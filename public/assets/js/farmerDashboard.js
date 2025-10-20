@@ -20,32 +20,43 @@ function loadFarmerProducts() {
 }
 
 // Submit add product
+let addProductBound = false;
+
 function initializeFarmerForms() {
     const addProductForm = document.getElementById('addProductForm');
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('Add Product button clicked'); // Console log added here
-            const fd = new FormData(addProductForm);
-            fetch(`${API_BASE}/create`, {
-                method: 'POST',
-                body: fd,
-                credentials: 'include'
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    showNotification('Product added', 'success');
-                    closeModal('addProductModal');
-                    addProductForm.reset();
-                    loadFarmerProducts(); // Reload products after adding
-                } else {
-                    showNotification(res.error || 'Failed to add', 'error');
-                }
-            })
-            .catch(() => showNotification('Failed to add product', 'error'));
-        });
-    }
+    if (!addProductForm || addProductBound) return;
+
+    addProductForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        console.log('Add Product button clicked');
+
+        const fd = new FormData(addProductForm);
+        const url = `${API_BASE}/create`;
+        console.log('POST:', url);
+
+        try {
+            const r = await fetch(url, { method: 'POST', body: fd, credentials: 'include' });
+            const raw = await r.text();
+            let res;
+            try { res = JSON.parse(raw); } catch {
+                console.error('Non-JSON response:', raw);
+                throw new Error(r.status + ' ' + r.statusText + ' (non-JSON)');
+            }
+            if (!r.ok || !res.success) {
+                throw new Error(res.error || ('HTTP ' + r.status));
+            }
+
+            showNotification('Product added', 'success');
+            closeModal('addProductModal');
+            addProductForm.reset();
+            loadFarmerProducts();
+        } catch (err) {
+            console.error('Add product failed:', err);
+            showNotification('Failed to add: ' + err.message, 'error');
+        }
+    });
+
+    addProductBound = true;
 }
 
 // Initialize Navigation

@@ -1,6 +1,6 @@
 <?php
 
-class ProductsController
+class Products
 {
     use Controller;
 
@@ -29,68 +29,66 @@ class ProductsController
     // Return farmer's products (JSON)
     public function farmerList()
     {
+        header('Content-Type: application/json');
         if (!$this->requireFarmer()) return;
 
         $farmerId = (int)$_SESSION['USER']->id;
         $items = $this->productModel->getByFarmer($farmerId);
-
-        header('Content-Type: application/json');
         echo json_encode(['success' => true, 'products' => $items]);
     }
 
     // Create product (JSON)
     public function create()
     {
+        header('Content-Type: application/json');
         if (!$this->requireFarmer()) return;
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
-            echo json_encode(['error' => 'Method not allowed']);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
             return;
         }
 
-        $errors = $this->validate($_POST);
-        if ($errors) {
-            http_response_code(422);
-            echo json_encode(['error' => 'Validation failed', 'errors' => $errors]);
-            return;
-        }
+        $data = [
+            'farmer_id'  => (int)$_SESSION['USER']->id,                 // DB column
+            'name'       => trim($_POST['name'] ?? ''),
+            'price'      => (float)($_POST['price'] ?? 0),
+            'quantity'   => (int)($_POST['quantity'] ?? 0),
+            'description' => trim($_POST['description'] ?? ''),
+            'location'   => trim($_POST['location'] ?? ''),
+            'image'      => null,
+        ];
 
-        $imagePath = null;
+        // Optional image upload
         if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             try {
-                $imagePath = $this->uploadImage($_FILES['image']);
+                $data['image'] = $this->uploadImage($_FILES['image']);
             } catch (Exception $e) {
-                http_response_code(400);
-                echo json_encode(['error' => $e->getMessage()]);
+                http_response_code(422);
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
                 return;
             }
         }
 
-        $payload = [
-            'farmer_id'  => (int)$_SESSION['USER']->id,
-            'name'       => trim($_POST['name']),
-            'price'      => (float)$_POST['price'],
-            'quantity'   => (int)$_POST['quantity'],
-            'description' => trim($_POST['description'] ?? ''),
-            'image'      => $imagePath,
-            'location'   => trim($_POST['location'] ?? '')
-        ];
+        // Basic validation
+        if ($data['name'] === '' || $data['price'] <= 0 || $data['quantity'] <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => 'Invalid input']);
+            return;
+        }
 
-        $result = $this->productModel->create($payload);
-
-        header('Content-Type: application/json');
-        if ($result !== false) {
-            echo json_encode(['success' => true, 'id' => $result, 'message' => 'Product added']);
+        $ok = $this->productModel->create($data);
+        if ($ok) {
+            echo json_encode(['success' => true]);
         } else {
             http_response_code(500);
-            echo json_encode(['error' => 'Failed to add product']);
+            echo json_encode(['success' => false, 'error' => 'DB insert failed']);
         }
     }
 
-    // Update product (JSON)
     public function update($id = null)
     {
+        header('Content-Type: application/json');
         if (!$this->requireFarmer()) return;
         $id = (int)($id ?? ($_POST['id'] ?? 0));
 
@@ -108,16 +106,15 @@ class ProductsController
         }
 
         $payload = [
-            'name'       => trim($_POST['name']),
-            'price'      => (float)$_POST['price'],
-            'quantity'   => (int)$_POST['quantity'],
+            'name'        => trim($_POST['name']),
+            'price'       => (float)$_POST['price'],
+            'quantity'    => (int)$_POST['quantity'],
             'description' => trim($_POST['description'] ?? ''),
-            'location'   => trim($_POST['location'] ?? '')
+            'location'    => trim($_POST['location'] ?? '')
         ];
 
         $ok = $this->productModel->updateByFarmer($id, (int)$_SESSION['USER']->id, $payload);
 
-        header('Content-Type: application/json');
         if ($ok) echo json_encode(['success' => true, 'message' => 'Product updated']);
         else {
             http_response_code(500);
@@ -125,9 +122,9 @@ class ProductsController
         }
     }
 
-    // Delete product (JSON)
     public function delete($id = null)
     {
+        header('Content-Type: application/json');
         if (!$this->requireFarmer()) return;
         $id = (int)($id ?? ($_POST['id'] ?? 0));
 
@@ -138,8 +135,6 @@ class ProductsController
         }
 
         $ok = $this->productModel->deleteByFarmer($id, (int)$_SESSION['USER']->id);
-
-        header('Content-Type: application/json');
         if ($ok) echo json_encode(['success' => true, 'message' => 'Product deleted']);
         else {
             http_response_code(500);
@@ -147,29 +142,27 @@ class ProductsController
         }
     }
 
-    // Single product (JSON)
     public function show($id)
     {
+        header('Content-Type: application/json');
         $item = $this->productModel->getById((int)$id);
         if (!$item) {
             http_response_code(404);
             echo json_encode(['error' => 'Not found']);
             return;
         }
-        header('Content-Type: application/json');
         echo json_encode(['success' => true, 'product' => $item]);
     }
 
     // Helpers
     private function requireFarmer()
     {
-        header('Content-Type: application/json');
         if (!isset($_SESSION['USER'])) {
             http_response_code(401);
             echo json_encode(['error' => 'Unauthorized']);
             return false;
         }
-        if ($_SESSION['USER']->role !== 'farmer') {
+        if (($_SESSION['USER']->role ?? '') !== 'farmer') {
             http_response_code(403);
             echo json_encode(['error' => 'Forbidden']);
             return false;
@@ -199,7 +192,6 @@ class ProductsController
         $path = $dir . $name;
         if (!move_uploaded_file($file['tmp_name'], $path)) throw new Exception('Upload failed');
 
-        // return relative path saved to DB
-        return 'assets/uploads/products/' . $name;
+        return 'assets/uploads/products/' . $name; // relative path
     }
 }
