@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroLink - Empowering Farm-to-Market Connections Across Sri Lanka</title>
     <meta name="description" content="A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade in Sri Lanka.">
-    <link rel="stylesheet" href="<?=ROOT?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?=ROOT?>/assets/css/style2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
                 <p>A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
                 <div class="hero-actions">
                     <a href="login.html" class="btn btn-primary btn-large"> Login</a>
-                    <a href="#register" class="btn btn-secondary btn-large" data-modal="registerModal"> Register Nowwww</a>
+                    <a href="#register" class="btn btn-secondary btn-large" data-modal="registerModal"> Register Now</a>
                 </div>
             </div>
             <div class="hero-image">

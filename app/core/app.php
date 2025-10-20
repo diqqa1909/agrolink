@@ -17,7 +17,8 @@
             $filename = "../app/controllers/".ucfirst($URL[0])."Controller.php";
             if(file_exists($filename)){
                 require $filename;
-                $this->controller = ucfirst($URL[0]);
+                // Controller class names include the 'Controller' suffix (e.g. BuyerDashboardController)
+                $this->controller = ucfirst($URL[0]) . 'Controller';
                 unset($URL[0]);
             }else{
                 $filename = "../app/controllers/_404.php";
@@ -25,7 +26,24 @@
                 $this->controller = "_404";
             }
             
-            $controller = new $this->controller;
+            // Try to instantiate the controller class. Some controllers in the repo
+            // use the 'Controller' suffix (e.g., BuyerDashboardController) while
+            // others don't (e.g., Home). We'll try both forms.
+            $controllerClass = $this->controller;
+            if (!class_exists($controllerClass)) {
+                // Fallback: maybe controller was defined without 'Controller' suffix
+                $alt = preg_replace('/Controller$/', '', $controllerClass);
+                if (class_exists($alt)) {
+                    $controllerClass = $alt;
+                }
+            }
+
+            if (!class_exists($controllerClass)) {
+                // If still not found, throw a clear error
+                throw new Exception("Controller class '$controllerClass' not found.");
+            }
+
+            $controller = new $controllerClass;
             
             //SELECT METHOD
             if (!empty($URL[1])) {

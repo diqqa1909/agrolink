@@ -33,8 +33,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
        <div class="sidebar-header">
-            <h3 class="sidebar-title">Buyer Dashboard</h3>
-            <!--<p class="sidebar-subtitle">Manage your orders and purchases</p>
+           <!-- <h3 class="sidebar-title">Buyer Dashboard</h3>
+            <p class="sidebar-subtitle">Manage your orders and purchases</p>
         </div>-->
         
         <ul class="sidebar-menu">
@@ -92,7 +92,7 @@
                 </div>
                 Wishlist
             </a></li>
-            <li><a href="#cart" class="menu-link" data-section="cart">
+            <li><a href="<?php echo ROOT; ?>/cart" class="menu-link">
                 <div class="menu-icon">
                     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="9" cy="21" r="1"></circle>
@@ -100,7 +100,7 @@
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
                 </div>
-                Cart
+                Cart <span class="cart-count" id="cartCount"><?php echo $cartItemCount; ?></span>
             </a></li>
             <li><a href="#requests" class="menu-link" data-section="requests">
                 <div class="menu-icon">
@@ -310,17 +310,6 @@
             </div>
         </div>
 
-        <!-- Cart Section -->
-        <div id="cart-section" class="content-section" style="display: none;">
-            <div class="content-header">
-                <h1 class="content-title">Shopping Cart</h1>
-                <p class="content-subtitle">Review items before checkout.</p>
-            </div>
-            
-            <div class="grid grid-2">
-                <!-- Cart items will be dynamically loaded here -->
-            </div>
-        </div>
 
         <!-- Profile Section -->
         <div id="profile-section" class="content-section" style="display: none;">
@@ -691,7 +680,6 @@
                 'orders': { title: 'My Orders', subtitle: 'Track and manage your order history.' },
                 'tracking': { title: 'Order Tracking', subtitle: 'Monitor the status of your deliveries.' },
                 'wishlist': { title: 'My Wishlist', subtitle: 'Your saved favorite products.' },
-                'cart': { title: 'Shopping Cart', subtitle: 'Review items before checkout.' },
                 'requests': { title: 'Crop Requests', subtitle: 'Request specific crops from farmers.' },
                 'reviews': { title: 'Reviews', subtitle: 'Rate and review your purchases.' },
                 'notifications': { title: 'Notifications', subtitle: 'Stay updated with your account activity.' }
@@ -709,9 +697,6 @@
                     break;
                 case 'wishlist':
                     loadWishlist();
-                    break;
-                case 'cart':
-                    loadCart();
                     break;
                 case 'products':
                     loadProducts();
@@ -922,96 +907,27 @@
             `;
         }
 
-        // Load cart data
-        function loadCart() {
-            const cartContainer = document.querySelector('#cart-section .grid');
-            if (!cartContainer) return;
-
-            const cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-            
-            if (cart.length === 0) {
-                cartContainer.innerHTML = `
-                    <div class="content-card" style="text-align: center; padding: 30px;">
-                        <div style="font-size: 4rem; margin-bottom: 15px;">🛒</div>
-                        <h3>Your cart is empty</h3>
-                        <p class="text-muted">Add some products to get started!</p>
-                        <button class="btn btn-primary" onclick="showSection('products')">Browse Products</button>
-                    </div>
-                `;
-                return;
-            }
-
-            let cartTotal = 0;
-            let cartItemsHTML = '';
-
-            cart.forEach(item => {
-                cartTotal += item.price * item.quantity;
-                cartItemsHTML += `
-                    <div class="content-card">
-                        <div style="text-align: center; padding: 25px;">
-                            <div style="font-size: 3rem; margin-bottom: 15px;">${item.icon}</div>
-                            <h4>${item.name}</h4>
-                            <p class="text-muted">${item.farmer}</p>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
-                                <span>Quantity: ${item.quantity}kg</span>
-                                <div style="font-size: 1.25rem; font-weight: bold; color: #4CAF50;">Rs. ${item.price * item.quantity}</div>
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px; justify-content: center;">
-                                <button class="btn btn-sm" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
-                                <span style="padding: 0 10px;">${item.quantity}</span>
-                                <button class="btn btn-sm" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
-                            </div>
-                            <button class="btn btn-danger w-full" onclick="removeFromCart('${item.id}')">Remove from Cart</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            cartContainer.innerHTML = `
-                <div>
-                    ${cartItemsHTML}
-                </div>
-                
-                <div>
-                    <div class="content-card" style="background: #4CAF50; color: white;">
-                        <div style="padding: 30px; text-align: center;">
-                            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 20px;">Total: Rs. ${cartTotal}</div>
-                            <button class="btn btn-secondary btn-large" onclick="showSection('products')">Continue Shopping</button>
-                            <button class="btn btn-primary btn-large" onclick="proceedToCheckout()">Proceed to Checkout</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            // Load user data from localStorage (set by PHP login)
-            const buyerName = localStorage.getItem('user_name') || 'Buyer';
-            const buyerId = localStorage.getItem('user_id');
-            const buyerEmail = localStorage.getItem('user_email');
-            
-            // Check if user is logged in
-            /* if (!buyerId || !buyerEmail) {
-                window.location.href = 'login.html';
-                return;
-           } */
-            
             // Update user info in header
-            document.getElementById('userName').textContent = buyerName;
-            document.getElementById('userAvatar').textContent = buyerName.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('userName').textContent = '<?php echo htmlspecialchars($username); ?>';
+            document.getElementById('userAvatar').textContent = '<?php echo strtoupper(substr($username, 0, 2)); ?>';
             
             // Update profile section
             const profileName = document.querySelector('.profile-info h4');
             const profileAvatar = document.querySelector('.profile-avatar');
-            if (profileName) profileName.textContent = buyerName;
-            if (profileAvatar) profileAvatar.textContent = buyerName.split(' ').map(n => n[0]).join('').toUpperCase();
+            if (profileName) profileName.textContent = '<?php echo htmlspecialchars($username); ?>';
+            if (profileAvatar) profileAvatar.textContent = '<?php echo strtoupper(substr($username, 0, 2)); ?>';
             
             // Setup navigation
             setupNavigation();
             
             // Show overview section by default
             showSection('overview');
+            
+            // Load cart count from server
+            loadCartCount();
         });
 
         // Navigation setup
@@ -1020,71 +936,90 @@
             menuLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
+                    const href = this.getAttribute('href');
                     const section = this.getAttribute('data-section');
-                    showSection(section);
+                    
+                    // If it's a cart link, redirect to cart page
+                    if (href && href.includes('/cart')) {
+                        window.location.href = href;
+                        return;
+                    }
+                    
+                    // Otherwise, show section if data-section exists
+                    if (section) {
+                        showSection(section);
+                    }
                 });
             });
         }
 
         // Cart functions
         function addToCart(productId, quantity) {
-            const cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-            
             // Product data mapping
             const productData = {
-                '1': { name: 'Fresh Tomatoes', price: 120, farmer: 'Ranjith Fernando (Matale)', icon: '🍅' },
-                '2': { name: 'Green Beans', price: 180, farmer: 'Kumari Silva (Kandy)', icon: '🫛' },
-                '3': { name: 'Red Rice', price: 95, farmer: 'Sunil Perera (Anuradhapura)', icon: '🌾' },
-                '4': { name: 'Sweet Mangoes', price: 150, farmer: 'Pradeep Jayasinghe (Galle)', icon: '🥭' },
-                '5': { name: 'Fresh Carrots', price: 200, farmer: 'Manjula Rathnayake (Nuwara Eliya)', icon: '🥕' },
-                '6': { name: 'Red Chili Powder', price: 800, farmer: 'Gamini Wickramasinghe (Matale)', icon: '🌶️' },
-                '7': { name: 'Ripe Bananas', price: 80, farmer: 'Asanka Perera (Ratnapura)', icon: '🍌' },
-                '8': { name: 'Fresh Cabbage', price: 160, farmer: 'Sandamali Fernando (Kurunegala)', icon: '🥬' },
-                '9': { name: 'Fresh Curry Leaves', price: 250, farmer: 'Dharmasena Silva (Kandy)', icon: '🌿' },
-                'mangoes': { name: 'Sweet Mangoes', price: 150, farmer: 'Pradeep Jayasinghe (Galle)', icon: '🥭' },
-                'red-rice': { name: 'Red Rice', price: 95, farmer: 'Sunil Perera (Anuradhapura)', icon: '🌾' },
-                'carrots': { name: 'Organic Carrots', price: 120, farmer: 'Lakshmi Perera (Nuwara Eliya)', icon: '🥕' }
+                '1': { name: 'Fresh Tomatoes', price: 120, farmer: 'Ranjith Fernando', location: 'Matale', icon: '🍅' },
+                '2': { name: 'Green Beans', price: 180, farmer: 'Kumari Silva', location: 'Kandy', icon: '🫛' },
+                '3': { name: 'Red Rice', price: 95, farmer: 'Sunil Perera', location: 'Anuradhapura', icon: '🌾' },
+                '4': { name: 'Sweet Mangoes', price: 150, farmer: 'Pradeep Jayasinghe', location: 'Galle', icon: '🥭' },
+                '5': { name: 'Fresh Carrots', price: 200, farmer: 'Manjula Rathnayake', location: 'Nuwara Eliya', icon: '🥕' },
+                '6': { name: 'Red Chili Powder', price: 800, farmer: 'Gamini Wickramasinghe', location: 'Matale', icon: '🌶️' },
+                '7': { name: 'Ripe Bananas', price: 80, farmer: 'Asanka Perera', location: 'Ratnapura', icon: '🍌' },
+                '8': { name: 'Fresh Cabbage', price: 160, farmer: 'Sandamali Fernando', location: 'Kurunegala', icon: '🥬' },
+                '9': { name: 'Fresh Curry Leaves', price: 250, farmer: 'Dharmasena Silva', location: 'Kandy', icon: '🌿' },
+                'mangoes': { name: 'Sweet Mangoes', price: 150, farmer: 'Pradeep Jayasinghe', location: 'Galle', icon: '🥭' },
+                'red-rice': { name: 'Red Rice', price: 95, farmer: 'Sunil Perera', location: 'Anuradhapura', icon: '🌾' },
+                'carrots': { name: 'Organic Carrots', price: 120, farmer: 'Lakshmi Perera', location: 'Nuwara Eliya', icon: '🥕' }
             };
 
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cart.push({
-                    id: productId,
-                    name: productData[productId].name,
-                    price: productData[productId].price,
-                    farmer: productData[productId].farmer,
-                    icon: productData[productId].icon,
-                    quantity: quantity
-                });
-            }
-
-            localStorage.setItem('buyerCart', JSON.stringify(cart));
-            showNotification(`${productData[productId].name} added to cart!`, 'success');
-        }
-
-        function removeFromCart(productId) {
-            const cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-            const updatedCart = cart.filter(item => item.id !== productId);
-            localStorage.setItem('buyerCart', JSON.stringify(updatedCart));
-            loadCart();
-            showNotification('Item removed from cart', 'success');
-        }
-
-        function updateQuantity(productId, newQuantity) {
-            if (newQuantity <= 0) {
-                removeFromCart(productId);
+            const product = productData[productId];
+            if (!product) {
+                showNotification('Product not found', 'error');
                 return;
             }
 
-            const cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-            const item = cart.find(item => item.id === productId);
-            if (item) {
-                item.quantity = newQuantity;
-                localStorage.setItem('buyerCart', JSON.stringify(cart));
-                loadCart();
-            }
+            // Send AJAX request to add item to cart
+            fetch('<?php echo ROOT; ?>/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `product_id=${productId}&product_name=${encodeURIComponent(product.name)}&product_price=${product.price}&quantity=${quantity}&farmer_name=${encodeURIComponent(product.farmer)}&farmer_location=${encodeURIComponent(product.location)}&product_image=${encodeURIComponent(product.icon)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Update cart count
+                    const cartCount = document.getElementById('cartCount');
+                    if (cartCount) {
+                        cartCount.textContent = data.cartItemCount;
+                    }
+                } else {
+                    showNotification(data.message, 'error');
+                    console.error('Cart add error:', data);
+                }
+            })
+            .catch(error => {
+                showNotification('An error occurred while adding to cart', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        // Load cart count from server
+        function loadCartCount() {
+            fetch('<?php echo ROOT; ?>/cart/getCartData')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const cartCount = document.getElementById('cartCount');
+                    if (cartCount) {
+                        cartCount.textContent = data.cartItemCount;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading cart count:', error);
+            });
         }
 
         // Wishlist functions
@@ -1553,5 +1488,16 @@
             loadNotifications();
         }
     </script>
+    
+    <style>
+        .cart-count {
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+    </style>
 </body>
 </html>
