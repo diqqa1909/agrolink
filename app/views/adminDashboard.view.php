@@ -10,7 +10,7 @@
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="logo-section">
-            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
+            <img src="<?=ROOT?>/assets/imgs/Logo2.png" alt="AgroLink">
         </div>
         <div class="user-section">
             <div class="user-info">
@@ -1027,6 +1027,7 @@
     </div>
 
     <script src="<?=ROOT?>/assets/js/main.js"></script>
+    <script src="<?=ROOT?>/assets/js/adminDashboard.js"></script>
     <script>
         function logout() {
             if (confirm('Are you sure you want to logout?')) {

@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transporter Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="assets/css/style2.css?v=2">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
 </head>
+
 <body>
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="logo-section">
-            <img src="assets/img/Logo.png" alt="AgroLink">
+            <img src="assets/imgs/Logo2.png" alt="AgroLink">
         </div>
         <div class="user-section">
             <div class="user-info">
@@ -33,86 +35,86 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-link active" data-section="dashboard">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </div>
-                    Dashboard
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        Dashboard
+                    </a></li>
                 <li><a href="#available" class="menu-link" data-section="available">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="16" rx="2"/>
-                            <line x1="7" y1="8" x2="17" y2="8"/>
-                            <line x1="7" y1="12" x2="17" y2="12"/>
-                        </svg>
-                    </div>
-                    Available
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <line x1="7" y1="8" x2="17" y2="8" />
+                                <line x1="7" y1="12" x2="17" y2="12" />
+                            </svg>
+                        </div>
+                        Available
+                    </a></li>
                 <li><a href="#mydeliveries" class="menu-link" data-section="mydeliveries">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 7h13v10H3z"/>
-                            <path d="M16 10h4l3 3v4h-7z"/>
-                        </svg>
-                    </div>
-                    My Deliveries
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7h13v10H3z" />
+                                <path d="M16 10h4l3 3v4h-7z" />
+                            </svg>
+                        </div>
+                        My Deliveries
+                    </a></li>
                 <li><a href="#schedule" class="menu-link" data-section="schedule">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </div>
-                    Schedule
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </div>
+                        Schedule
+                    </a></li>
                 <li><a href="#earnings" class="menu-link" data-section="earnings">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="8"/>
-                            <line x1="12" y1="8" x2="12" y2="16"/>
-                            <line x1="8" y1="12" x2="16" y2="12"/>
-                        </svg>
-                    </div>
-                    Earnings
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="8" />
+                                <line x1="12" y1="8" x2="12" y2="16" />
+                                <line x1="8" y1="12" x2="16" y2="12" />
+                            </svg>
+                        </div>
+                        Earnings
+                    </a></li>
                 <li><a href="#vehicle" class="menu-link" data-section="vehicle">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="6" rx="2"/>
-                            <path d="M7 11V7h6v4"/>
-                            <circle cx="7.5" cy="17.5" r="1.5"/>
-                            <circle cx="16.5" cy="17.5" r="1.5"/>
-                        </svg>
-                    </div>
-                    Vehicle
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="6" rx="2" />
+                                <path d="M7 11V7h6v4" />
+                                <circle cx="7.5" cy="17.5" r="1.5" />
+                                <circle cx="16.5" cy="17.5" r="1.5" />
+                            </svg>
+                        </div>
+                        Vehicle
+                    </a></li>
                 <li><a href="#profile" class="menu-link" data-section="profile">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </div>
-                    Profile
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
+                    </a></li>
                 <li><a href="#analytics" class="menu-link" data-section="analytics">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="20" x2="12" y2="10"/>
-                            <line x1="18" y1="20" x2="18" y2="4"/>
-                            <line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                    </div>
-                    Analytics
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="20" x2="12" y2="10" />
+                                <line x1="18" y1="20" x2="18" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                        </div>
+                        Analytics
+                    </a></li>
             </ul>
         </aside>
 
@@ -121,7 +123,7 @@
             <!-- Dashboard Overview -->
             <div id="dashboard-section" class="content-section">
                 <h1 style="margin-bottom: var(--spacing-lg);">Dashboard Overview</h1>
-                
+
                 <!-- Statistics Cards -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
@@ -189,7 +191,7 @@
                             <!-- Recent deliveries will be populated by JavaScript -->
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>💰 Weekly Earnings</h3>
@@ -780,7 +782,7 @@
                             <input type="text" id="vehicleRegistration" name="registration" class="form-control" required>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-2">
                         <div class="form-group">
                             <label for="vehicleCapacity">Load Capacity (kg) *</label>
@@ -796,12 +798,12 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="vehicleModel">Vehicle Model</label>
                         <input type="text" id="vehicleModel" name="model" class="form-control" placeholder="e.g., Toyota Hiace">
                     </div>
-                    
+
                     <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Add Vehicle</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
@@ -811,7 +813,8 @@
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/transporterDashboard.js"></script>
     <script>
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -836,16 +839,16 @@
             } else if (document.getElementById('transporterName')) {
                 document.getElementById('transporterName').textContent = 'Transporter';
             }
-            
+
             loadDashboardData();
             loadAvailableDeliveries();
             loadMyDeliveries();
             loadSchedule();
             loadProfile();
-            
+
             // Set up navigation
             setupNavigation();
-            
+
             // Set up CSS for tabs
             addTabStyles();
             // Show dashboard section by default
@@ -860,7 +863,7 @@
                     e.preventDefault();
                     const section = this.getAttribute('data-section');
                     showSection(section);
-                    
+
                     menuLinks.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 });
@@ -871,12 +874,12 @@
         function showSection(sectionName) {
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => section.style.display = 'none');
-            
+
             const targetSection = document.getElementById(sectionName + '-section');
             if (targetSection) {
                 targetSection.style.display = 'block';
             }
-            
+
             const menuLinks = document.querySelectorAll('.menu-link');
             menuLinks.forEach(link => {
                 link.classList.remove('active');
@@ -916,7 +919,7 @@
             document.getElementById('activeDeliveries').textContent = '3';
             document.getElementById('monthlyEarnings').textContent = 'Rs. 12,450';
             document.getElementById('completedDeliveries').textContent = '127';
-            
+
             // Recent deliveries
             document.getElementById('recentDeliveries').innerHTML = `
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
@@ -949,10 +952,10 @@
         function generateDeliveryCard(orderId, from, to, distance, weight, payment, priority) {
             const priorityColors = {
                 'urgent': 'danger',
-                'express': 'warning', 
+                'express': 'warning',
                 'normal': 'info'
             };
-            
+
             return `
                 <div class="card">
                     <div style="padding: var(--spacing-lg);">
@@ -1022,14 +1025,14 @@
         function loadSchedule() {
             const calendar = document.getElementById('scheduleCalendar');
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            
+
             calendar.innerHTML = days.map(day => `
                 <div style="text-align: center; padding: var(--spacing-md); border: 1px solid var(--medium-gray); border-radius: var(--radius-md);">
                     <div style="font-weight: var(--font-weight-bold); margin-bottom: var(--spacing-sm);">${day}</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">2 deliveries</div>
                 </div>
             `).join('');
-            
+
             // Today's schedule
             document.getElementById('todaySchedule').innerHTML = `
                 <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--medium-gray); border-radius: var(--radius-md);">
@@ -1058,7 +1061,7 @@
             const btn = document.getElementById('availabilityBtn');
             const status = document.getElementById('currentStatus');
             const indicator = document.getElementById('statusIndicator');
-            
+
             if (status.textContent === 'Available') {
                 status.textContent = 'Offline';
                 btn.textContent = 'Go Online';
@@ -1098,7 +1101,7 @@
             // Update active tab
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-status="${status}"]`).classList.add('active');
-            
+
             showNotification(`Filtering deliveries by: ${status}`, 'info');
         }
 
@@ -1141,4 +1144,5 @@
         }
     </script>
 </body>
+
 </html>

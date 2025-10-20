@@ -1,15 +1,19 @@
 <?php
-    function show($stuff){
-        echo "<pre>";
-        print_r($stuff);
-        echo "</pre>";
-    }
 
-    function esc($str){
-        return htmlspecialchars($str);
-    }
+function redirect($path)
+{
+    header('Location: ' . ROOT . '/' . $path);
+    exit();
+}
 
-    function redirect($path){
-        header("Location: ".ROOT."/".$path);
-        die;
-    }
+function esc($str)
+{
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+}
+
+function show($data)
+{
+    echo '<pre>';
+    print_r($data);
+    echo '</pre>';
+}
