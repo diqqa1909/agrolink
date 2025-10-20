@@ -19,7 +19,7 @@
                 <p>A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
                 <div class="hero-actions">
                     <a href="<?= ROOT ?>/login" class="btn btn-primary btn-large">Login</a>
-                    <a href="#register" class="btn btn-secondary btn-large" data-modal="registerModal">Register Now</a>
+                    <a href="<?= ROOT ?>/register" class="btn btn-secondary btn-large">Register Now</a>
                 </div>
             </div>
             <div class="hero-image">
@@ -94,7 +94,7 @@
                         <li>Track sales & payments</li>
                         <li>Connect directly with buyers</li>
                     </ul>
-                    <a href="register_farmer.html" class="btn btn-primary mt-md">Register as Farmer</a>
+                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Farmer</a>
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
@@ -107,7 +107,7 @@
                         <li>Track deliveries</li>
                         <li>Request specific crops</li>
                     </ul>
-                    <a href="register_buyer.html" class="btn btn-primary mt-md">Register as Buyer</a>
+                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Buyer</a>
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
@@ -119,7 +119,7 @@
                         <li>Update delivery status</li>
                         <li>Earn more with reliable clients</li>
                     </ul>
-                    <a href="register_transporter.html" class="btn btn-primary mt-md">Register as Transporter</a>
+                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Transporter</a>
                 </div>
             </div>
     </section>
@@ -221,26 +221,23 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                        <img src="<?= ROOT ?>/assets/imgs/Logo2.svg" alt="AgroLink" style="height: 50px;">
+                        <img src="<?= ROOT ?>/assets/imgs/Logo 2.svg" alt="AgroLink" style="height: 50px;">
                     </div>
                     <p>Empowering agricultural trade across Sri Lanka through digital innovation.</p>
                 </div>
                 <div class="footer-section">
                     <h3>Quick Links</h3>
-                    <a href="#home
-                </div>
-                <div class=" footer-section">
-                        <a href="#home">Home</a>
-                        <a href="#about">About</a>
-                        <a href="#features">Features</a>
-                        <a href="products.html">Browse Products</a>
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#features">Features</a>
+                    <a href="products.html">Browse Products</a>
                 </div>
                 <div class="footer-section">
                     <h3>Users</h3>
-                    <a href="register_farmer.html">Register as Farmer</a>
-                    <a href="register_buyer.html">Register as Buyer</a>
-                    <a href="register_transporter.html">Register as Transporter</a>
-                    <a href="login.html">Login</a>
+                    <a href="<?= ROOT ?>/register">Register as Farmer</a>
+                    <a href="<?= ROOT ?>/register">Register as Buyer</a>
+                    <a href="<?= ROOT ?>/register">Register as Transporter</a>
+                    <a href="<?= ROOT ?>/login">Login</a>
                 </div>
                 <div class="footer-section">
                     <h3>Legal</h3>
@@ -256,7 +253,7 @@
         </div>
     </footer>
 
-    <!-- Registration Modal -->
+    <!-- Registration Modal
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -266,21 +263,21 @@
             <div class="modal-body">
                 <p>Select your role to get started:</p>
                 <div class="grid grid-3">
-                    <a href="<?= ROOT ?>/register?role=farmer" class="card text-center">
+                    <a href="<?= ROOT ?>/register" class="card text-center">
                         <div class="card-icon">
                             <img src="<?= ROOT ?>/assets/imgs/farmer-icon.png" alt="Farmer" class="register-icon">
                         </div>
                         <h4>Farmer</h4>
                         <p>List and sell your produce</p>
                     </a>
-                    <a href="<?= ROOT ?>/register?role=buyer" class="card text-center">
+                    <a href="<?= ROOT ?>/register" class="card text-center">
                         <div class="card-icon">
                             <img src="<?= ROOT ?>/assets/imgs/buyer-icon.png" alt="Buyer" class="register-icon">
                         </div>
                         <h4>Buyer</h4>
                         <p>Purchase fresh produce</p>
                     </a>
-                    <a href="<?= ROOT ?>/register?role=transporter" class="card text-center">
+                    <a href="<?= ROOT ?>/register" class="card text-center">
                         <div class="card-icon">
                             <img src="<?= ROOT ?>/assets/imgs/transporter-icon.png" alt="Transporter" class="register-icon">
                         </div>
@@ -290,7 +287,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
 
     <script>
         window.APP_ROOT = "<?= ROOT ?>";

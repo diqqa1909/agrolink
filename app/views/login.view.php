@@ -68,9 +68,11 @@
                             placeholder="********" />
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-large">
-                        Sign In
-                    </button>
+                    <div style="text-align: center;">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            Sign In
+                        </button>
+                    </div>
                 </form>
 
                 <div class="text-center" style="margin-top: 1.5rem;">
