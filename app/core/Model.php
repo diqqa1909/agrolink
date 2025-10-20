@@ -70,8 +70,8 @@
             $keys = array_keys($data);
             $query = "insert into $this->table (".implode(",", $keys).") values (:".implode(",:", $keys).")";
             
-            $result = $this->query($query, $data);
-            return $result !== false;
+            $this->query($query, $data);
+            return false;
         }
 
         public function update($id, $data, $id_column = 'id'){
@@ -97,8 +97,8 @@
             
             $data[$id_column] = $id;
             
-            $result = $this->query($query, $data);
-            return $result !== false;
+            $this->query($query, $data);
+            return false;
         }
 
         public function delete($id, $id_column = 'id'){
@@ -106,7 +106,7 @@
             $query = "delete from $this->table where $id_column = :$id_column ";
             
             //echo $query;
-            $result = $this->query($query, $data);
-            return $result !== false;
+            $this->query($query, $data);
+            return false;
         }
     }

@@ -1,7 +1,6 @@
 <?php
     if ($_SERVER['SERVER_NAME']=='localhost') {
-        // Updated to match local XAMPP project path
-        define ('ROOT', 'http://localhost/AgrolinkNew/agrolink/public');
+        define ('ROOT', 'http://localhost/agrolink/public');
 
         define ('DBHOST', 'localhost');
         define ('DBNAME', 'agrolink');

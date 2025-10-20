@@ -1,15 +1,12 @@
 <?php
 
     spl_autoload_register(function($classname){
-        $filename = __DIR__ . "/../models/" . ucfirst($classname) . ".php";
-        if (file_exists($filename)) {
-            require $filename;
-        }
+        require $filename = "../app/models/".ucfirst($classname).".php";
     });
 
-    require __DIR__ . '/config.php';
-    require __DIR__ . '/functions.php';
-    require __DIR__ . '/Database.php';
-    require __DIR__ . '/Model.php';
-    require __DIR__ . '/Controller.php';
-    require __DIR__ . '/app.php';
+    require 'config.php';
+    require 'functions.php';
+    require 'Database.php';
+    require 'Model.php';
+    require 'Controller.php';
+    require 'app.php';
