@@ -45,5 +45,17 @@
             }
             return false;
         }
+
+        // NEW: execute INSERT/UPDATE/DELETE
+        public function write($query, $data=[]){
+            $con = $this->connect();
+            $stm = $con->prepare($query);
+            if ($stm->execute($data)) {
+                // return insert id if available, otherwise true
+                $id = $con->lastInsertId();
+                return $id ? (int)$id : true;
+            }
+            return false;
+        }
     }
     

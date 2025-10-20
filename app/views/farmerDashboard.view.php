@@ -1,28 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmer Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="assets/css/style2.css?v=2">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
 </head>
+
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="logo-section">
-            <img src="assets/img/Logo.png" alt="AgroLink">
-        </div>
-        <div class="user-section">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">FA</div>
-                <div class="user-details">
-                    <div class="user-name" id="farmerName">Farmer</div>
-                    <div class="user-role">Farmer</div>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </nav>
+    <!-- Include Navbar Component -->
+    <?php 
+        $username = $_SESSION['USER']->name ?? 'Farmer';
+        $role = $_SESSION['USER']->role ?? 'farmer';
+        include '../app/views/components/dashboardNavBar.view.php'; 
+    ?>
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
@@ -32,73 +24,73 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-link active" data-section="dashboard">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </div>
-                    Dashboard
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        Dashboard
+                    </a></li>
                 <li><a href="#products" class="menu-link" data-section="products">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                    </div>
-                    Products
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </div>
+                        Products
+                    </a></li>
                 <li><a href="#orders" class="menu-link" data-section="orders">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                        </svg>
-                    </div>
-                    Orders
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                            </svg>
+                        </div>
+                        Orders
+                    </a></li>
                 <li><a href="#earnings" class="menu-link" data-section="earnings">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="8"/>
-                            <line x1="12" y1="8" x2="12" y2="16"/>
-                            <line x1="8" y1="12" x2="16" y2="12"/>
-                        </svg>
-                    </div>
-                    Earnings
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="8" />
+                                <line x1="12" y1="8" x2="12" y2="16" />
+                                <line x1="8" y1="12" x2="16" y2="12" />
+                            </svg>
+                        </div>
+                        Earnings
+                    </a></li>
                 <li><a href="#deliveries" class="menu-link" data-section="deliveries">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 7h13v10H3z"/>
-                            <path d="M16 10h4l3 3v4h-7z"/>
-                            <circle cx="7.5" cy="17.5" r="1.5"/>
-                            <circle cx="18.5" cy="17.5" r="1.5"/>
-                        </svg>
-                    </div>
-                    Deliveries
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7h13v10H3z" />
+                                <path d="M16 10h4l3 3v4h-7z" />
+                                <circle cx="7.5" cy="17.5" r="1.5" />
+                                <circle cx="18.5" cy="17.5" r="1.5" />
+                            </svg>
+                        </div>
+                        Deliveries
+                    </a></li>
                 <li><a href="#profile" class="menu-link" data-section="profile">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </div>
-                    Profile
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
+                    </a></li>
                 <li><a href="#analytics" class="menu-link" data-section="analytics">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="20" x2="12" y2="10"/>
-                            <line x1="18" y1="20" x2="18" y2="4"/>
-                            <line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                    </div>
-                    Analytics
-                </a></li>
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="20" x2="12" y2="10" />
+                                <line x1="18" y1="20" x2="18" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                        </div>
+                        Analytics
+                    </a></li>
             </ul>
         </aside>
 
@@ -106,8 +98,11 @@
         <main class="main-content">
             <!-- Dashboard Overview -->
             <div id="dashboard-section" class="content-section">
-                <h1 style="margin-bottom: var(--spacing-lg);">Dashboard Overview</h1>
-                
+                <div class="content-header">
+                    <h1 class="content-title">Dashboard Overview</h1>
+                    <p class="content-subtitle">Welcome back! Here's what's happening with your farm.</p>
+                </div>
+
                 <!-- Statistics Cards -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
@@ -129,160 +124,85 @@
                 </div>
 
                 <!-- Recent Activity -->
-                <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📋 Recent Orders</h3>
-                        </div>
-                        <div id="recentOrders" style="padding: var(--spacing-lg);">
-                            <!-- Recent orders will be populated by JavaScript -->
-                        </div>
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"> Recent Orders</h3>
                     </div>
-                    
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🌾 Top Products</h3>
-                        </div>
-                        <div id="topProducts" style="padding: var(--spacing-lg);">
-                            <!-- Top products will be populated by JavaScript -->
-                        </div>
+                    <div class="card-content" id="recentOrders">
+                        <!-- Recent orders will be populated by JavaScript -->
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="card" style="margin-top: var(--spacing-xl);">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>⚡ Quick Actions</h3>
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"> Top Products</h3>
                     </div>
-                    <div style="padding: var(--spacing-lg);">
-                        <div class="grid grid-4">
-                            <button class="btn btn-primary" onclick="showSection('products')">➕ Add Product</button>
-                            <button class="btn btn-secondary" onclick="showSection('orders')">📦 View Orders</button>
-                            <button class="btn btn-secondary" onclick="showSection('earnings')">💰 Check Earnings</button>
-                            <button class="btn btn-secondary" onclick="showSection('profile')">👤 Update Profile</button>
-                        </div>
+                    <div class="card-content" id="topProducts">
+                        <!-- Top products will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
 
             <!-- Products Management -->
             <div id="products-section" class="content-section" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1>🌾 My Products</h1>
+                <div class="content-header">
+                    <h1 class="content-title"> My Products</h1>
                     <button class="btn btn-primary" data-modal="addProductModal">➕ Add New Product</button>
                 </div>
-
-                <!-- Product Filters -->
-                <div class="filters">
-                    <div class="filters-row">
-                        <div class="filter-group">
-                            <label for="productSearch">Search Products</label>
-                            <input type="text" id="productSearch" class="form-control" placeholder="Search by name...">
-                        </div>
-                        <div class="filter-group">
-                            <label for="statusFilter">Status</label>
-                            <select id="statusFilter" class="form-control">
-                                <option value="">All Status</option>
-                                <option value="available">Available</option>
-                                <option value="sold-out">Sold Out</option>
-                                <option value="pending">Pending</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="categoryProductFilter">Category</label>
-                            <select id="categoryProductFilter" class="form-control">
-                                <option value="">All Categories</option>
-                                <option value="vegetables">Vegetables</option>
-                                <option value="fruits">Fruits</option>
-                                <option value="grains">Grains</option>
-                                <option value="spices">Spices</option>
-                                <option value="herbs">Herbs</option>
-                                <option value="legumes">Legumes</option>
-                            </select>
-                        </div>
+                <div class="content-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <!-- Products will be populated here -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-
-                <!-- Products Table -->
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Price/kg</th>
-                                <th>Stock (kg)</th>
-                                <th>Status</th>
-                                <th>Harvest Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTableBody">
-                            <!-- Products will be populated by JavaScript -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
             <!-- Orders Management -->
             <div id="orders-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">📦 Order Management</h1>
-
-                <!-- Order Filters -->
-                <div class="filters">
-                    <div class="filters-row">
-                        <div class="filter-group">
-                            <label for="orderSearch">Search Orders</label>
-                            <input type="text" id="orderSearch" class="form-control" placeholder="Search by order ID or buyer...">
-                        </div>
-                        <div class="filter-group">
-                            <label for="orderStatusFilter">Status</label>
-                            <select id="orderStatusFilter" class="form-control">
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="accepted">Accepted</option>
-                                <option value="ready">Ready for Delivery</option>
-                                <option value="in-transit">In Transit</option>
-                                <option value="delivered">Delivered</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="orderDateFilter">Date Range</label>
-                            <select id="orderDateFilter" class="form-control">
-                                <option value="">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="content-header">
+                    <h1 class="content-title"> Order Management</h1>
                 </div>
 
                 <!-- Orders Table -->
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Buyer</th>
-                                <th>Products</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody">
-                            <!-- Orders will be populated by JavaScript -->
-                        </tbody>
-                    </table>
+                <div class="content-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Buyer</th>
+                                    <th>Products</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Orders will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Earnings -->
             <div id="earnings-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">💰 Earnings Overview</h1>
+                <div class="content-header">
+                    <h1 class="content-title"> Earnings Overview</h1>
+                </div>
 
                 <!-- Earnings Stats -->
                 <div class="dashboard-stats">
@@ -303,37 +223,13 @@
                         <div class="stat-label">This Year</div>
                     </div>
                 </div>
-
-                <!-- Earnings Chart Placeholder -->
-                <div class="card" style="margin-top: var(--spacing-xl);">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>📈 Monthly Earnings Trend</h3>
-                    </div>
-                    <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                        <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">📊</div>
-                        <p>Earnings chart will be implemented with a charting library</p>
-                        <p style="font-size: 0.9rem; margin-top: var(--spacing-md);">Shows monthly earnings trends, top-selling products, and seasonal patterns</p>
-                    </div>
-                </div>
-
-                <!-- Export & Download -->
-                <div class="card" style="margin-top: var(--spacing-lg);">
-                    <div style="padding: var(--spacing-lg);">
-                        <h3>📥 Export Sales Data</h3>
-                        <p style="margin: var(--spacing-md) 0; color: var(--dark-gray);">Download your sales data for accounting and tax purposes</p>
-                        <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="exportSalesData('week')">📊 This Week (CSV)</button>
-                            <button class="btn btn-secondary" onclick="exportSalesData('month')">📊 This Month (CSV)</button>
-                            <button class="btn btn-secondary" onclick="exportSalesData('year')">📊 This Year (CSV)</button>
-                            <button class="btn btn-primary" onclick="exportSalesData('all')">📊 All Time (CSV)</button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Deliveries -->
             <div id="deliveries-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">🚚 Delivery Coordination</h1>
+                <div class="content-header">
+                    <h1 class="content-title"> Delivery Coordination</h1>
+                </div>
 
                 <!-- Delivery Stats -->
                 <div class="dashboard-stats">
@@ -354,146 +250,43 @@
                         <div class="stat-label">Avg. Delivery Days</div>
                     </div>
                 </div>
-
-                <!-- Deliveries Table -->
-                <div class="table-container" style="margin-top: var(--spacing-xl);">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Buyer</th>
-                                <th>Destination</th>
-                                <th>Transporter</th>
-                                <th>Status</th>
-                                <th>Expected Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="deliveriesTableBody">
-                            <!-- Deliveries will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
             </div>
 
             <!-- Profile Management -->
             <div id="profile-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">👤 Farmer Profile</h1>
+                <div class="content-header">
+                    <h1 class="content-title"> Farmer Profile</h1>
+                </div>
 
-                <div class="grid grid-2" style="gap: var(--spacing-xl);">
-                    <!-- Personal Information -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📋 Personal Information</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="personalInfoForm">
-                                <div class="form-group">
-                                    <label for="profileName">Full Name</label>
-                                    <input type="text" id="profileName" name="name" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="profileEmail">Email</label>
-                                    <input type="email" id="profileEmail" name="email" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="profilePhone">Phone</label>
-                                    <input type="tel" id="profilePhone" name="phone" class="form-control" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Personal Info</button>
-                            </form>
-                        </div>
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"> Personal Information</h3>
                     </div>
-
-                    <!-- Farm Information -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🏡 Farm Information</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="farmInfoForm">
-                                <div class="form-group">
-                                    <label for="farmName">Farm Name</label>
-                                    <input type="text" id="farmName" name="farmName" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="farmSize">Farm Size (acres)</label>
-                                    <input type="number" id="farmSize" name="farmSize" class="form-control" step="0.1" min="0">
-                                </div>
-                                <div class="form-group">
-                                    <label for="farmLocation">Farm Location</label>
-                                    <textarea id="farmLocation" name="farmLocation" class="form-control" rows="3"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="primaryCropsProfile">Primary Crops</label>
-                                    <input type="text" id="primaryCropsProfile" name="primaryCrops" class="form-control" placeholder="e.g., Tomatoes, Rice, Mangoes">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Farm Info</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Bank Information -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🏦 Bank Information</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="bankInfoForm">
-                                <div class="form-group">
-                                    <label for="bankName">Bank Name</label>
-                                    <input type="text" id="bankName" name="bankName" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="accountNumber">Account Number</label>
-                                    <input type="text" id="accountNumber" name="accountNumber" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="accountHolder">Account Holder Name</label>
-                                    <input type="text" id="accountHolder" name="accountHolder" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="branchCode">Branch Code</label>
-                                    <input type="text" id="branchCode" name="branchCode" class="form-control">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Bank Info</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Account Settings -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>⚙️ Account Settings</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
+                    <div class="card-content">
+                        <form id="personalInfoForm">
                             <div class="form-group">
-                                <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                    <input type="checkbox" id="emailNotifications"> Email Notifications
-                                </label>
-                                <div class="form-text">Receive email updates for orders and deliveries</div>
+                                <label for="profileName">Full Name</label>
+                                <input type="text" id="profileName" name="name" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                    <input type="checkbox" id="smsNotifications"> SMS Notifications
-                                </label>
-                                <div class="form-text">Receive SMS alerts for urgent updates</div>
+                                <label for="profileEmail">Email</label>
+                                <input type="email" id="profileEmail" name="email" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                    <input type="checkbox" id="organicCertified"> Organic Certified Farm
-                                </label>
-                                <div class="form-text">Mark your farm as organic certified</div>
+                                <label for="profilePhone">Phone</label>
+                                <input type="tel" id="profilePhone" name="phone" class="form-control" required>
                             </div>
-                            <button class="btn btn-primary">Save Settings</button>
-                        </div>
+                            <button type="submit" class="btn btn-primary">Update Personal Info</button>
+                        </form>
                     </div>
                 </div>
             </div>
 
             <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">📈 Analytics & Insights</h1>
+                <div class="content-header">
+                    <h1 class="content-title"> Analytics & Insights</h1>
+                </div>
 
                 <!-- Analytics Cards -->
                 <div class="dashboard-stats">
@@ -514,95 +307,44 @@
                         <div class="stat-label">Order Conversion</div>
                     </div>
                 </div>
-
-                <!-- Analytics Charts Placeholders -->
-                <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🔝 Top Selling Products</h3>
-                        </div>
-                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📊</div>
-                            <p>Product performance chart</p>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📅 Seasonal Trends</h3>
-                        </div>
-                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📈</div>
-                            <p>Seasonal sales patterns</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
 
     <!-- Add Product Modal -->
     <div id="addProductModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>➕ Add New Product</h3>
-                <button class="modal-close">&times;</button>
+                <h3 class="modal-title"> Add New Product</h3>
+                <button class="close" data-modal-close>&times;</button>
             </div>
             <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="productName">Product Name *</label>
-                            <input type="text" id="productName" name="name" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="productCategory">Category *</label>
-                            <select id="productCategory" name="category" class="form-control" required>
-                                <option value="">Select Category</option>
-                                <option value="vegetables">🥬 Vegetables</option>
-                                <option value="fruits">🍎 Fruits</option>
-                                <option value="grains">🌾 Grains</option>
-                                <option value="spices">🌶️ Spices</option>
-                                <option value="herbs">🌿 Herbs</option>
-                                <option value="legumes">🫘 Legumes</option>
-                            </select>
-                        </div>
+                <form id="addProductForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="productName">Product Name *</label>
+                        <input type="text" id="productName" name="name" class="form-control" required>
                     </div>
-                    
+                    <div class="form-group">
+                        <label for="productPrice">Price (Rs.) *</label>
+                        <input type="number" id="productPrice" name="price" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productQuantity">Quantity *</label>
+                        <input type="number" id="productQuantity" name="quantity" class="form-control" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productLocation">Location</label>
+                        <input type="text" id="productLocation" name="location" class="form-control">
+                    </div>
                     <div class="form-group">
                         <label for="productDescription">Description</label>
                         <textarea id="productDescription" name="description" class="form-control" rows="3"></textarea>
                     </div>
-                    
-                    <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="productPrice">Price per kg (Rs.) *</label>
-                            <input type="number" id="productPrice" name="price" class="form-control" step="0.50" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="productStock">Stock (kg) *</label>
-                            <input type="number" id="productStock" name="stock" class="form-control" step="0.1" min="0" required>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="harvestDate">Harvest Date</label>
-                            <input type="date" id="harvestDate" name="harvestDate" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="expiryDate">Best Before Date</label>
-                            <input type="date" id="expiryDate" name="expiryDate" class="form-control">
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                            <input type="checkbox" name="organic" value="1"> Organic Product
-                        </label>
+                        <label for="productImage">Image</label>
+                        <input type="file" id="productImage" name="image" class="form-control" accept="image/*">
                     </div>
-                    
-                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                    <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Add Product</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
                     </div>
@@ -611,333 +353,13 @@
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <!-- Make ROOT available to JS -->
     <script>
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('user_email');
-                localStorage.removeItem('user_role');
-                localStorage.removeItem('user_name');
-                localStorage.removeItem('business_name');
-                window.location.href = 'auth/logout.php';
-            }
-        }
-        // Remove authentication check to allow dashboard access without login
-        document.addEventListener('DOMContentLoaded', function() {
-            initFarmerDashboard();
-        });
-
-        // Initialize farmer dashboard
-        function initFarmerDashboard() {
-            const user = getCurrentUser?.();
-            if (user && document.getElementById('farmerName')) {
-                document.getElementById('farmerName').textContent = user.name || 'Farmer';
-            } else if (document.getElementById('farmerName')) {
-                document.getElementById('farmerName').textContent = 'Farmer';
-            }
-            
-            loadDashboardData();
-            loadProducts();
-            loadOrders();
-            loadEarnings();
-            loadDeliveries();
-            loadProfile();
-            
-            // Set up navigation
-            setupNavigation();
-            
-            // Set up forms
-            setupForms();
-            // Show dashboard section by default
-            showSection('dashboard');
-        }
-
-        // Navigation setup
-        function setupNavigation() {
-            const menuLinks = document.querySelectorAll('.menu-link');
-            menuLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const section = this.getAttribute('data-section');
-                    showSection(section);
-                    
-                    // Update active menu item
-                    menuLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
-
-        // Show specific section
-        function showSection(sectionName) {
-            // Hide all sections
-            const sections = document.querySelectorAll('.content-section');
-            sections.forEach(section => section.style.display = 'none');
-            
-            // Show selected section
-            const targetSection = document.getElementById(sectionName + '-section');
-            if (targetSection) {
-                targetSection.style.display = 'block';
-            }
-            
-            // Update active menu
-            const menuLinks = document.querySelectorAll('.menu-link');
-            menuLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('data-section') === sectionName) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
-        // Load dashboard data
-        function loadDashboardData() {
-            // Mock data - in real app, fetch from API
-            const products = getFarmerProducts();
-            const orders = getFarmerOrders();
-            const earnings = calculateEarnings(orders);
-            
-            document.getElementById('totalProducts').textContent = products.length;
-            document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
-            document.getElementById('monthlyEarnings').textContent = `Rs. ${earnings.monthly.toFixed(2)}`;
-            document.getElementById('totalEarnings').textContent = `Rs. ${earnings.total.toFixed(2)}`;
-            
-            // Load recent orders
-            const recentOrders = orders.slice(0, 5);
-            document.getElementById('recentOrders').innerHTML = recentOrders.length ? 
-                recentOrders.map(order => `
-                    <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                        <div style="font-weight: var(--font-weight-bold);">#${order.id}</div>
-                        <div style="font-size: 0.9rem; color: var(--dark-gray);">${order.buyer} - Rs. ${order.total}</div>
-                        <span class="badge badge-${order.status === 'pending' ? 'warning' : 'success'}">${order.status}</span>
-                    </div>
-                `).join('') : '<p class="text-muted">No recent orders</p>';
-            
-            // Load top products
-            const topProducts = products.slice(0, 5);
-            document.getElementById('topProducts').innerHTML = topProducts.length ?
-                topProducts.map(product => `
-                    <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                        <div style="font-weight: var(--font-weight-bold);">${product.name}</div>
-                        <div style="font-size: 0.9rem; color: var(--dark-gray);">Rs. ${product.price}/kg - ${product.stock}kg available</div>
-                        <span class="badge badge-${product.status === 'available' ? 'success' : 'warning'}">${product.status}</span>
-                    </div>
-                `).join('') : '<p class="text-muted">No products listed</p>';
-        }
-
-        // Get farmer products (mock data)
-        function getFarmerProducts() {
-            const farmerProducts = JSON.parse(localStorage.getItem('farmer_products')) || [];
-            if (farmerProducts.length === 0) {
-                // Add some sample products
-                const sampleProducts = [
-                    {
-                        id: generateId(),
-                        name: 'Fresh Tomatoes',
-                        category: 'vegetables',
-                        price: 120,
-                        stock: 50,
-                        status: 'available',
-                        harvestDate: '2025-01-05',
-                        description: 'Fresh organic tomatoes',
-                        organic: true
-                    }
-                ];
-                localStorage.setItem('farmer_products', JSON.stringify(sampleProducts));
-                return sampleProducts;
-            }
-            return farmerProducts;
-        }
-
-        // Get farmer orders (mock data)
-        function getFarmerOrders() {
-            const orders = JSON.parse(localStorage.getItem('agrolink_orders')) || [];
-            return orders.map(order => ({
-                ...order,
-                buyer: order.customer?.firstName + ' ' + order.customer?.lastName || 'Anonymous',
-                status: order.status || 'pending'
-            }));
-        }
-
-        // Calculate earnings
-        function calculateEarnings(orders) {
-            const now = new Date();
-            const thisMonth = orders.filter(order => {
-                const orderDate = new Date(order.orderDate);
-                return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
-            });
-            
-            return {
-                monthly: thisMonth.reduce((sum, order) => sum + (order.total || 0), 0),
-                total: orders.reduce((sum, order) => sum + (order.total || 0), 0)
-            };
-        }
-
-        // Load products table
-        function loadProducts() {
-            const products = getFarmerProducts();
-            const tbody = document.getElementById('productsTableBody');
-            
-            tbody.innerHTML = products.map(product => `
-                <tr>
-                    <td>
-                        <div style="font-weight: var(--font-weight-bold);">${product.name}</div>
-                        <div style="font-size: 0.9rem; color: var(--dark-gray);">${product.description || 'No description'}</div>
-                    </td>
-                    <td><span class="badge badge-info">${product.category}</span></td>
-                    <td>Rs. ${product.price}</td>
-                    <td>${product.stock} kg</td>
-                    <td><span class="badge badge-${product.status === 'available' ? 'success' : 'warning'}">${product.status}</span></td>
-                    <td>${product.harvestDate || 'Not set'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" onclick="editProduct('${product.id}')">Edit</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-   // Setup forms
-        function setupForms() {
-            // Add product form
-            const addProductForm = document.getElementById('addProductForm');
-            if (addProductForm) {
-                addProductForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const productData = {
-                        id: generateId(),
-                        name: formData.get('name'),
-                        category: formData.get('category'),
-                        description: formData.get('description'),
-                        price: parseFloat(formData.get('price')),
-                        stock: parseFloat(formData.get('stock')),
-                        harvestDate: formData.get('harvestDate'),
-                        expiryDate: formData.get('expiryDate'),
-                        organic: formData.get('organic') === '1',
-                        status: 'available',
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    const products = getFarmerProducts();
-                    products.push(productData);
-                    localStorage.setItem('farmer_products', JSON.stringify(products));
-                    
-                    showNotification?.('Product added successfully!', 'success');
-                    closeModal?.('addProductModal');
-                    this.reset();
-                    loadProducts();
-                    loadDashboardData();
-                });
-            }
-        }
-        // Mock functions for orders, earnings, deliveries, profile
-        function loadOrders() {
-            const orders = getFarmerOrders();
-            const tbody = document.getElementById('ordersTableBody');
-            
-            tbody.innerHTML = orders.length ? orders.map(order => `
-                <tr>
-                    <td>#${order.id}</td>
-                    <td>${order.buyer}</td>
-                    <td>${order.items?.length || 0} items</td>
-                    <td>Rs. ${order.total?.toFixed(2) || '0.00'}</td>
-                    <td><span class="badge badge-${order.status === 'pending' ? 'warning' : 'success'}">${order.status}</span></td>
-                    <td>${order.orderDate ? new Date(order.orderDate).toLocaleDateString() : ''}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="viewOrder('${order.id}')">View</button>
-                        ${order.status === 'pending' ? '<button class="btn btn-sm btn-success" onclick="acceptOrder(\'' + order.id + '\')">Accept</button>' : ''}
-                    </td>
-                </tr>
-            `).join('') : '<tr><td colspan="7" class="text-center text-muted">No orders found</td></tr>';
-        }
-
-        function loadEarnings() {
-            // Mock earnings data
-            document.getElementById('todayEarnings').textContent = 'Rs. 2,450';
-            document.getElementById('weekEarnings').textContent = 'Rs. 15,600';
-            document.getElementById('monthEarningsDetail').textContent = 'Rs. 45,200';
-            document.getElementById('yearEarnings').textContent = 'Rs. 180,500';
-        }
-
-        function loadDeliveries() {
-            // Mock delivery data
-            document.getElementById('pendingDeliveries').textContent = '3';
-            document.getElementById('inTransitDeliveries').textContent = '2';
-            document.getElementById('completedDeliveries').textContent = '45';
-            document.getElementById('avgDeliveryTime').textContent = '2.3';
-            
-            const tbody = document.getElementById('deliveriesTableBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No deliveries found</td></tr>';
-        }
-
-        function loadProfile() {
-            const user = getCurrentUser?.();
-            if (user) {
-                if (document.getElementById('profileName')) document.getElementById('profileName').value = user.name || '';
-                if (document.getElementById('profileEmail')) document.getElementById('profileEmail').value = user.email || '';
-                if (document.getElementById('profilePhone')) document.getElementById('profilePhone').value = user.phone || '';
-            }
-        }
-
-        // Product management functions
-        function editProduct(productId) {
-            showNotification?.('Edit product functionality will be implemented', 'info');
-        }
-
-        function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                const products = getFarmerProducts();
-                const updatedProducts = products.filter(p => p.id !== productId);
-                localStorage.setItem('farmer_products', JSON.stringify(updatedProducts));
-                showNotification?.('Product deleted successfully!', 'success');
-                loadProducts();
-                loadDashboardData();
-            }
-        }
-
-        // Order management functions
-        function viewOrder(orderId) {
-            showNotification?.('Order details modal will be implemented', 'info');
-        }
-
-        function acceptOrder(orderId) {
-            showNotification?.('Order accepted! Buyer will be notified.', 'success');
-        }
-
-        // Export functions
-        function exportSalesData(period) {
-            showNotification?.(`Exporting ${period} sales data...`, 'info');
-            // In real app, generate and download CSV
-        }
-
-        // Utility: Generate random ID
-        function generateId() {
-            return 'id-' + Math.random().toString(36).substr(2, 9);
-        }
-
-        // Utility: Dummy getCurrentUser if not defined
-        if (typeof getCurrentUser !== 'function') {
-            function getCurrentUser() {
-                return null;
-            }
-        }
-
-        // Utility: Dummy showNotification if not defined
-        if (typeof showNotification !== 'function') {
-            function showNotification(msg, type) {
-                alert(msg);
-            }
-        }
-
-        // Utility: Dummy closeModal if not defined
-        if (typeof closeModal !== 'function') {
-            function closeModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) modal.style.display = 'none';
-            }
-        }
+        window.APP_ROOT = "<?= ROOT ?>";
     </script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/farmerDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
+
 </html>

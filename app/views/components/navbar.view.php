@@ -2,7 +2,7 @@
     <header class="header">
         <nav class="nav container">
             <div class="logo">
-                <img src="<?=ROOT?>/assets/imgs/Logo 2.svg" alt="AgroLink" style="height: 60px;">
+                <img src="<?=ROOT?>/assets/imgs/Logo2.svg" alt="AgroLink" style="height: 60px;">
             </div>
             <div class="nav-links">
                 <a href="#home">Home</a>
@@ -11,7 +11,7 @@
                 <a href="#roles">User Roles</a>
                 <a href="#contact">Contact</a>
             </div>
-            <div class="welcome-text">
+            <!--<div class="welcome-text">
                 <?php 
                 if(!empty($username)){?>
                     <div class="nav-actions">
@@ -26,6 +26,10 @@
                     <a href="<?=ROOT?>/login" class="btn btn-secondary login-link">Login</a>
                     <a href="#register" class="btn btn-primary" data-modal="registerModal">Register</a>
                 </div>
-            <?php endif ?>
+            <?php endif ?>-->
+            <div class="nav-actions">
+                <a href="<?=ROOT?>/login" class="btn btn-secondary login-link">Login</a>
+                <a href="#register" class="btn btn-primary" data-modal="registerModal">Register</a>
+            </div>
         </nav>
     </header>

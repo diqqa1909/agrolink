@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroLink - Empowering Farm-to-Market Connections Across Sri Lanka</title>
-    <meta name="description" content="A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade in Sri Lanka.">
-    <link rel="stylesheet" href="<?=ROOT?>/assets/css/style2.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>AgroLink - Farm to Market</title>
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style1.css">
 </head>
+
 <body>
-    <?php require 'components/navbar.view.php'?>
+    <?php require 'components/navbar.view.php' ?>
 
     <!-- Hero Section -->
-    <section id="home" class="hero" style="background: url('<?=ROOT?>/assets/imgs/hero-farm.jpg') center center/cover no-repeat; min-height: 500px; position: relative;">
+    <section id="home" class="hero" style="background: url('<?= ROOT ?>/assets/imgs/hero-farm.jpg') center center/cover no-repeat; min-height: 500px; position: relative;">
         <div class="container" style="position: relative; z-index: 2;">
             <div class="hero-content">
                 <h1>Trade Smarter. Deliver Faster.</h1>
                 <p>A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
                 <div class="hero-actions">
-                    <a href="login.html" class="btn btn-primary btn-large"> Login</a>
-                    <a href="#register" class="btn btn-secondary btn-large" data-modal="registerModal"> Register Now</a>
+                    <a href="<?= ROOT ?>/login" class="btn btn-primary btn-large">Login</a>
+                    <a href="#register" class="btn btn-secondary btn-large" data-modal="registerModal">Register Now</a>
                 </div>
             </div>
             <div class="hero-image">
@@ -61,22 +59,18 @@
             <h2 class="section-title">Why Use AgroLink?</h2>
             <div class="grid grid-3">
                 <div class="card">
-                    <div class="card-icon">✅</div>
                     <h3>Direct Farm-to-Buyer Sales</h3>
                     <p>Eliminate middlemen and boost farmer profits with direct connections between producers and buyers.</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">🚚</div>
                     <h3>Transport Coordination</h3>
                     <p>Assign and track deliveries in one place with integrated logistics management.</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">🧑‍🌾</div>
                     <h3>Role-Based Dashboards</h3>
                     <p>Tailored tools and interfaces designed specifically for each user type and their needs.</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">📊</div>
                     <h3>Track Orders & Revenue</h3>
                     <p>Real-time updates and comprehensive analytics to monitor your business performance.</p>
                 </div>
@@ -91,7 +85,7 @@
             <div class="grid grid-4">
                 <div class="role-card">
                     <div class="role-icon">
-                        <img src="<?=ROOT?>/assets/imgs/farmer-icon.png" alt="Farmer" style="height: 48px; width: 48px;">
+                        <img src="<?= ROOT ?>/assets/imgs/farmer-icon.png" alt="Farmer" style="height: 48px; width: 48px;">
                     </div>
                     <h3>Farmers</h3>
                     <ul>
@@ -104,7 +98,7 @@
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
-                        <img src="<?=ROOT?>/assets/imgs/buyer-icon.png" alt="Buyer" style="height: 48px; width: 48px;">
+                        <img src="<?= ROOT ?>/assets/imgs/buyer-icon.png" alt="Buyer" style="height: 48px; width: 48px;">
                     </div>
                     <h3>Buyers</h3>
                     <ul>
@@ -117,7 +111,7 @@
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
-                        <img src="<?=ROOT?>/assets/imgs/transporter-icon.png" alt="Transporter" style="height: 48px; width: 48px;">
+                        <img src="<?= ROOT ?>/assets/imgs/transporter-icon.png" alt="Transporter" style="height: 48px; width: 48px;">
                     </div>
                     <h3>Transporters</h3>
                     <ul>
@@ -126,8 +120,8 @@
                         <li>Earn more with reliable clients</li>
                     </ul>
                     <a href="register_transporter.html" class="btn btn-primary mt-md">Register as Transporter</a>
+                </div>
             </div>
-        </div>
     </section>
 
     <!-- Testimonials Section -->
@@ -213,7 +207,7 @@
                             <textarea id="contactMessage" name="message" class="form-control" rows="4" required></textarea>
                         </div>
                         <div style="text-align: center;">
-                        <button type="submit" class="btn btn-primary btn-large">Send Message</button>
+                            <button type="submit" class="btn btn-primary btn-large">Send Message</button>
                         </div>
                     </form>
                 </div>
@@ -227,16 +221,19 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                        <img src="<?=ROOT?>/assets/imgs/Logo 2.svg" alt="AgroLink" style="height: 50px;">
+                        <img src="<?= ROOT ?>/assets/imgs/Logo2.svg" alt="AgroLink" style="height: 50px;">
                     </div>
                     <p>Empowering agricultural trade across Sri Lanka through digital innovation.</p>
                 </div>
                 <div class="footer-section">
                     <h3>Quick Links</h3>
-                    <a href="#home">Home</a>
-                    <a href="#about">About</a>
-                    <a href="#features">Features</a>
-                    <a href="products.html">Browse Products</a>
+                    <a href="#home
+                </div>
+                <div class=" footer-section">
+                        <a href="#home">Home</a>
+                        <a href="#about">About</a>
+                        <a href="#features">Features</a>
+                        <a href="products.html">Browse Products</a>
                 </div>
                 <div class="footer-section">
                     <h3>Users</h3>
@@ -261,43 +258,45 @@
 
     <!-- Registration Modal -->
     <div id="registerModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Create AgroLink Account</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p class="modal-desc">
-                Select your role to get started with AgroLink:
-            </p>
-            <div class="grid grid-3 mt-lg register-cards">
-                <a href="register_farmer.html" class="card text-center register-card">
-                    <div class="card-icon">
-                        <img src="<?=ROOT?>/assets/imgs/farmer-icon.png" alt="Farmer" class="register-icon">
-                    </div>
-                    <h4 class="register-title">Farmer</h4>
-                    <p class="register-desc">List and sell your produce directly to buyers.</p>
-                </a>
-                <a href="register_buyer.html" class="card text-center register-card">
-                    <div class="card-icon">
-                        <img src="<?=ROOT?>/assets/imgs/buyer-icon.png" alt="Buyer" class="register-icon">
-                    </div>
-                    <h4 class="register-title">Buyer</h4>
-                    <p class="register-desc">Purchase fresh produce from trusted farmers.</p>
-                </a>
-                <a href="register_transporter.html" class="card text-center register-card">
-                    <div class="card-icon">
-                        <img src="<?=ROOT?>/assets/imgs/transporter-icon.png" alt="Transporter" class="register-icon">
-                    </div>
-                    <h4 class="register-title">Transporter</h4>
-                    <p class="register-desc">Provide reliable delivery and logistics services.</p>
-                </a>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create AgroLink Account</h3>
+                <button class="modal-close" data-modal-close>&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select your role to get started:</p>
+                <div class="grid grid-3">
+                    <a href="<?= ROOT ?>/register?role=farmer" class="card text-center">
+                        <div class="card-icon">
+                            <img src="<?= ROOT ?>/assets/imgs/farmer-icon.png" alt="Farmer" class="register-icon">
+                        </div>
+                        <h4>Farmer</h4>
+                        <p>List and sell your produce</p>
+                    </a>
+                    <a href="<?= ROOT ?>/register?role=buyer" class="card text-center">
+                        <div class="card-icon">
+                            <img src="<?= ROOT ?>/assets/imgs/buyer-icon.png" alt="Buyer" class="register-icon">
+                        </div>
+                        <h4>Buyer</h4>
+                        <p>Purchase fresh produce</p>
+                    </a>
+                    <a href="<?= ROOT ?>/register?role=transporter" class="card text-center">
+                        <div class="card-icon">
+                            <img src="<?= ROOT ?>/assets/imgs/transporter-icon.png" alt="Transporter" class="register-icon">
+                        </div>
+                        <h4>Transporter</h4>
+                        <p>Provide delivery services</p>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-    <!-- <script src="assets/js/main.js"></script> -->
+    <script>
+        window.APP_ROOT = "<?= ROOT ?>";
+    </script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/home.js"></script>
     <script>
         // Contact form handling
         document.getElementById('contactForm').addEventListener('submit', function(e) {
@@ -307,4 +306,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buyer Dashboard - AgroLink</title>
     <meta name="description" content="Manage your orders, track deliveries, and browse fresh produce on AgroLink.">
-    <link rel="stylesheet" href="assets/css/style2.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="logo-section">
-            <img src="assets/img/Logo.png" alt="AgroLink">
+            <img src="<?=ROOT?>/assets/imgs/Logo2.png" alt="AgroLink">
         </div>
         
         <div class="user-section">
@@ -552,12 +552,12 @@
                             <label for="categoryFilter">Category</label>
                             <select id="categoryFilter" class="form-control">
                                 <option value="">All Categories</option>
-                                <option value="vegetables">🥬 Vegetables</option>
-                                <option value="fruits">🍎 Fruits</option>
-                                <option value="grains">🌾 Grains</option>
-                                <option value="spices">🌶️ Spices</option>
-                                <option value="herbs">🌿 Herbs</option>
-                                <option value="legumes">🫘 Legumes</option>
+                                <option value="vegetables"> Vegetables</option>
+                                <option value="fruits"> Fruits</option>
+                                <option value="grains"> Grains</option>
+                                <option value="spices"> Spices</option>
+                                <option value="herbs"> Herbs</option>
+                                <option value="legumes"> Legumes</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -645,6 +645,8 @@
         </div>
     </main>
 
+    <script src="<?=ROOT?>/assets/js/main.js"></script>
+    <script src="<?=ROOT?>/assets/js/buyerDashboard.js"></script>
     <script>
         // Dashboard functionality
         function showSection(sectionName) {

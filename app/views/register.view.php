@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buyer Registration - AgroLink</title>
-    <link rel="stylesheet" href="assets/css/style2.css" />
+    <link rel="stylesheet" href="<?=ROOT?>/assets/css/style1.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -26,33 +26,22 @@
         <div class="split-left-content">
           <p>
             The best produce comes straight from the source.<br />
-            AgroLink connects you to Sri Lanka’s freshest harvests.
+            AgroLink connects you to Sri Lanka's freshest harvests.
           </p>
         </div>
       </div>
       <!-- Right: Registration Form -->
       <div class="split-right">
         <div class="form-box">
-          <!-- <div style="text-align: right; margin-bottom: 0.5rem">
-            <select
-              id="registerRoleSelect"
-              class="role-switcher"
-              aria-label="Register as"
-            >
-              <option value="" disabled selected hidden>Register as...</option>
-              <option value="farmer">Register as Farmer</option>
-              <option value="transporter">Register as Transporter</option>
-            </select>
-          </div> -->
           <?php if(!empty($errors)):?>
             <div class="alert">
                 <?= implode("<br>", $errors)?>
             </div>
             <?php endif?>
           <h1>Create AgroLink Account</h1>
-          <div class="subtitle">
+          <!--<div class="subtitle">
             Enter your email and password to create your account
-          </div>
+          </div>-->
           <form id="registerBuyerForm" autocomplete="off" method="POST">
             <div class="form-group">
               <label for="name">Name</label>
@@ -86,16 +75,26 @@
                 required
                 placeholder="********"
               />
-              <div class="form-group">
-                        <label for="role">I am a:</label>
-                        <select id="role" name="role" class="form-control" required>
-                            <option value="">Select your role</option>
-                            <option value="farmer">🧑‍🌾 Farmer</option>
-                            <option value="buyer">🛒 Buyer</option>
-                            <option value="transporter">🚚 Transporter</option>
-                            <option value="admin">🛠️ Admin</option>
-                        </select>
-                    </div>
+            </div>
+            <div class="form-group">
+              <label for="confirm_password">Confirm Password</label>
+              <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                class="form-control"
+                required
+                placeholder="********"
+              />
+            </div>
+            <div class="form-group">
+              <label for="role">I am a:</label>
+              <select id="role" name="role" class="form-control" required>
+                <option value="">Select your role</option>
+                <option value="farmer">Farmer</option>
+                <option value="buyer">Buyer</option>
+                <option value="transporter">Transporter</option>
+              </select>
             </div>
             <button class="btn btn-primary btn-large">
               Create Account
@@ -112,7 +111,7 @@
           </button> -->
           <div class="text-center">
             Already have an account?
-            <a href="login.html">Sign in here</a>
+            <a href="<?=ROOT?>/login">Sign in here</a>
           </div>
         </div>
       </div>
