@@ -16,8 +16,8 @@ class ProductsModel
     public function create(array $data)
     {
         $sql = "INSERT INTO {$this->table}
-                (farmer_id, name, price, quantity, description, image, location)
-                VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location)";
+                (farmer_id, name, price, quantity, description, image, location, category, listing_date)
+                VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
         return $this->write($sql, $data);
     }
 

@@ -73,21 +73,19 @@ function initializeFarmerNavigation() {
 
 // Section Navigation
 function showSection(sectionId) {
-    // Hide all sections
+    // Support earlier UI key
+    if (sectionId === 'overview') sectionId = 'dashboard';
+
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
-    
-    // Show selected section
     const targetSection = document.getElementById(sectionId + '-section');
-    if (targetSection) {
-        targetSection.style.display = 'block';
-    }
-    
-    // Update active menu link
+    if (targetSection) targetSection.style.display = 'block';
+
     document.querySelectorAll('.menu-link').forEach(link => {
         link.classList.remove('active');
-        if (link.dataset.section === sectionId) {
+        const key = link.dataset.section;
+        if (key === sectionId || (sectionId === 'dashboard' && key === 'overview')) {
             link.classList.add('active');
         }
     });
@@ -157,20 +155,54 @@ function populateProductsTable(products) {
     const tbody = document.getElementById('productsTableBody');
     if (!tbody) return;
 
-    // Clear existing rows
     tbody.innerHTML = '';
 
-    // Populate table with products
+    if (!products || products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">No products listed yet</td></tr>';
+        return;
+    }
+
     products.forEach(p => {
         const row = document.createElement('tr');
+        
+        // Format dates
+        const listingDate = p.listing_date ? new Date(p.listing_date).toLocaleDateString() : '-';
+        
+        // Category display
+        const categoryNames = {
+            'vegetables': 'Vegetables',
+            'fruits': 'Fruits',
+            'cereals': 'Cereals',
+            'yams': 'Yams',
+            'legumes': 'Legumes',
+            'spices': 'Spices',
+            'leafy': 'Leafy Greens',
+            'other': 'Other'
+        };
+        const categoryDisplay = categoryNames[p.category] || 'Other';
+        
         row.innerHTML = `
-            <td>${escapeHtml(p.name)}</td>
-            <td>Rs. ${Number(p.price).toFixed(2)}</td>
-            <td>${p.quantity}</td>
-            <td>${p.location || '-'}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    ${p.image ? 
+                        `<img src="${window.APP_ROOT || ''}/assets/images/products/${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">` : 
+                        `<div style="width: 40px; height: 40px; background: #E8F5E9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #43A047; font-weight: bold;">${p.name ? p.name.charAt(0).toUpperCase() : '?'}</div>`
+                    }
+                    <div style="font-weight: 600;">${escapeHtml(p.name)}</div>
+                </div>
+            </td>
+            <td><span style="padding: 4px 10px; background: #E8F5E9; border-radius: 12px; font-size: 0.85rem; color: #2E7D32;">${categoryDisplay}</span></td>
+            <td style="font-weight: 600;">Rs. ${Number(p.price).toFixed(2)}</td>
+            <td>${p.quantity} kg</td>
+            <td style="color: #555;">${escapeHtml(p.location) || '-'}</td>
+            <td style="font-size: 0.9rem; color: #666;">${listingDate}</td>
             <td class="action-buttons">
-                <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Delete</button>
+                <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})" title="Edit">
+                    ✏️
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})" title="Delete">
+                    🗑️
+                </button>
             </td>
         `;
         tbody.appendChild(row);

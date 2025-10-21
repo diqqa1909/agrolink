@@ -50,13 +50,15 @@ class Products
         }
 
         $data = [
-            'farmer_id'  => (int)$_SESSION['USER']->id,                 // DB column
-            'name'       => trim($_POST['name'] ?? ''),
-            'price'      => (float)($_POST['price'] ?? 0),
-            'quantity'   => (int)($_POST['quantity'] ?? 0),
+            'farmer_id'   => (int)$_SESSION['USER']->id,
+            'name'        => trim($_POST['name'] ?? ''),
+            'price'       => (float)($_POST['price'] ?? 0),
+            'quantity'    => (int)($_POST['quantity'] ?? 0),
             'description' => trim($_POST['description'] ?? ''),
-            'location'   => trim($_POST['location'] ?? ''),
-            'image'      => null,
+            'location'    => trim($_POST['location'] ?? ''),
+            'category'    => trim($_POST['category'] ?? 'other'),          // NEW
+            'listing_date' => $_POST['listing_date'] ?? date('Y-m-d'),      // NEW
+            'image'       => null,
         ];
 
         // Optional image upload
