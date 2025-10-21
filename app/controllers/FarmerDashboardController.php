@@ -1,5 +1,5 @@
 <?php
-class FarmerDashboard
+class FarmerDashboardController
 {
     use Controller;
 

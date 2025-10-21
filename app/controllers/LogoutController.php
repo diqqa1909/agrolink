@@ -1,5 +1,5 @@
 <?php
-class Logout
+class LogoutController
 {
     use Controller;
     

@@ -10,10 +10,10 @@
 
 <body>
     <!-- Include Navbar Component -->
-    <?php 
-        $username = $_SESSION['USER']->name ?? 'Farmer';
-        $role = $_SESSION['USER']->role ?? 'farmer';
-        include '../app/views/components/dashboardNavBar.view.php'; 
+    <?php
+    $username = $_SESSION['USER']->name ?? 'Farmer';
+    $role = $_SESSION['USER']->role ?? 'farmer';
+    include '../app/views/components/dashboardNavBar.view.php';
     ?>
 
     <!-- Dashboard Layout -->
@@ -23,7 +23,7 @@
                 <h3 class="sidebar-title">Farmer Dashboard</h3>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="#dashboard" class="menu-link active" data-section="dashboard">
+                <li><a href="#" class="menu-link active" data-section="overview">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -34,7 +34,16 @@
                         </div>
                         Dashboard
                     </a></li>
-                <li><a href="#products" class="menu-link" data-section="products">
+                <li><a href="#" class="menu-link" data-section="profile">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="products">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -42,7 +51,7 @@
                         </div>
                         Products
                     </a></li>
-                <li><a href="#orders" class="menu-link" data-section="orders">
+                <li><a href="#" class="menu-link" data-section="orders">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -51,7 +60,7 @@
                         </div>
                         Orders
                     </a></li>
-                <li><a href="#earnings" class="menu-link" data-section="earnings">
+                <li><a href="#" class="menu-link" data-section="earnings">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="8" />
@@ -61,7 +70,7 @@
                         </div>
                         Earnings
                     </a></li>
-                <li><a href="#deliveries" class="menu-link" data-section="deliveries">
+                <li><a href="#" class="menu-link" data-section="deliveries">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 7h13v10H3z" />
@@ -72,16 +81,18 @@
                         </div>
                         Deliveries
                     </a></li>
-                <li><a href="#profile" class="menu-link" data-section="profile">
+                <li><a href="#" class="menu-link" data-section="crop-requests">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
                             </svg>
                         </div>
-                        Profile
+                        Crop Requests
                     </a></li>
-                <li><a href="#analytics" class="menu-link" data-section="analytics">
+                <li><a href="#" class="menu-link" data-section="analytics">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="20" x2="12" y2="10" />
@@ -146,7 +157,7 @@
             <!-- Products Management -->
             <div id="products-section" class="content-section" style="display: none;">
                 <div class="content-header">
-                    <h1 class="content-title"> My Products</h1>
+                    <h1 class="content-title">My Products</h1>
                     <button class="btn btn-primary" data-modal="addProductModal">➕ Add New Product</button>
                 </div>
                 <div class="content-card">
@@ -154,10 +165,12 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Price</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price/KG</th>
                                     <th>Quantity</th>
                                     <th>Location</th>
+                                    <th>Listed Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -165,6 +178,16 @@
                                 <!-- Products will be populated here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crop Requests Management (Dummy UI) -->
+            <div id="crop-requests-section" class="content-section" style="display: none;">
+                <div class="content-card">
+                    <h3 class="card-title">Crop Requests from Buyers</h3>
+                    <div class="card-content" id="cropRequestsContainer">
+                        <!-- Filled by JS: loadCropRequestsData() -->
                     </div>
                 </div>
             </div>
@@ -253,31 +276,96 @@
             </div>
 
             <!-- Profile Management -->
-            <div id="profile-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title"> Farmer Profile</h1>
+            <div id="profile-section" class="content-section profile-section" style="display: none;">
+                <!-- Profile Header with Photo -->
+                <div class="profile-header">
+                    <h1>Personal Information</h1>
+                    <p>Manage your profile details and account settings</p>
+
+                    <div class="profile-photo-container">
+                        <div class="profile-photo-wrapper">
+                            <img id="profilePhoto" src="<?= ROOT ?>/assets/images/default-farmer.png" alt=" ">
+                            <div class="photo-upload-overlay" onclick="uploadPhoto()" title="Change Photo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="photo-upload-btn" onclick="uploadPhoto()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Change Profile Photo
+                    </button>
                 </div>
 
-                <div class="content-card">
-                    <div class="card-header">
-                        <h3 class="card-title"> Personal Information</h3>
+                <!-- Profile Form -->
+                <div class="profile-form-section">
+                    <div class="profile-form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Full Name <span class="required">*</span></label>
+                            <input type="text" id="profileName" class="form-input" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address <span class="required">*</span></label>
+                            <input type="email" id="profileEmail" class="form-input" placeholder="your.email@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="profilePhone" class="form-input" placeholder="+94 77 123 4567">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Location <span class="required">*</span></label>
+                            <input type="text" id="profileLocation" class="form-input" placeholder="City, Province">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Crops Selling <span class="required">*</span></label>
+                            <input type="text" id="profileCrops" class="form-input" placeholder="e.g., Tomatoes, Rice, Mangoes, Carrots">
+                            <span class="form-hint">Separate multiple crops with commas</span>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Full Address <span class="required">*</span></label>
+                            <textarea id="profileAddress" class="form-input" placeholder="Enter your complete farm address"></textarea>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <form id="personalInfoForm">
-                            <div class="form-group">
-                                <label for="profileName">Full Name</label>
-                                <input type="text" id="profileName" name="name" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="profileEmail">Email</label>
-                                <input type="email" id="profileEmail" name="email" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="profilePhone">Phone</label>
-                                <input type="tel" id="profilePhone" name="phone" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Update Personal Info</button>
-                        </form>
+
+                    <div class="profile-actions">
+                        <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+                        <button class="btn btn-secondary" onclick="loadProfileData()">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Account Statistics -->
+                <div class="profile-stats-card">
+                    <h3>Account Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Member Since</div>
+                            <div class="stat-value">Jan 2024</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Products Listed</div>
+                            <div class="stat-value">24</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Orders Fulfilled</div>
+                            <div class="stat-value">142</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Average Rating</div>
+                            <div class="stat-value">4.8/5</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Response Time</div>
+                            <div class="stat-value">&lt; 2h</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Earnings</div>
+                            <div class="stat-value">Rs. 842K</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,35 +403,60 @@
     <div id="addProductModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title"> Add New Product</h3>
+                <h3 class="modal-title">Add New Product</h3>
                 <button class="close" data-modal-close>&times;</button>
             </div>
             <div class="modal-body">
                 <form id="addProductForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="productName">Product Name *</label>
-                        <input type="text" id="productName" name="name" class="form-control" required>
+                        <input type="text" id="productName" name="name" class="form-control" required placeholder="e.g., Fresh Tomatoes">
                     </div>
+
                     <div class="form-group">
-                        <label for="productPrice">Price (Rs.) *</label>
-                        <input type="number" id="productPrice" name="price" class="form-control" step="0.01" min="0" required>
+                        <label for="productCategory">Category *</label>
+                        <select id="productCategory" name="category" class="form-control" required>
+                            <option value="other">Other</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="fruits">Fruits</option>
+                            <option value="cereals">Cereals & Grains</option>
+                            <option value="yams">Yams & Tubers</option>
+                            <option value="legumes">Legumes & Pulses</option>
+                            <option value="spices">Spices & Herbs</option>
+                            <option value="leafy">Leafy Greens</option>
+                        </select>
                     </div>
+
                     <div class="form-group">
-                        <label for="productQuantity">Quantity *</label>
-                        <input type="number" id="productQuantity" name="quantity" class="form-control" min="0" required>
+                        <label for="productPrice">Price per KG (Rs.) *</label>
+                        <input type="number" id="productPrice" name="price" class="form-control" step="0.01" min="0" required placeholder="120.00">
                     </div>
+
                     <div class="form-group">
-                        <label for="productLocation">Location</label>
-                        <input type="text" id="productLocation" name="location" class="form-control">
+                        <label for="productQuantity">Available Quantity (KG) *</label>
+                        <input type="number" id="productQuantity" name="quantity" class="form-control" min="1" required placeholder="100">
                     </div>
+
+                    <div class="form-group">
+                        <label for="productLocation">Farm Location</label>
+                        <input type="text" id="productLocation" name="location" class="form-control" placeholder="e.g., Matale, Central Province">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="listingDate">Available From</label>
+                        <input type="date" id="listingDate" name="listing_date" class="form-control" value="<?= date('Y-m-d') ?>">
+                    </div>
+
                     <div class="form-group">
                         <label for="productDescription">Description</label>
-                        <textarea id="productDescription" name="description" class="form-control" rows="3"></textarea>
+                        <textarea id="productDescription" name="description" class="form-control" rows="3" placeholder="Describe your product..."></textarea>
                     </div>
+
                     <div class="form-group">
-                        <label for="productImage">Image</label>
+                        <label for="productImage">Product Image</label>
                         <input type="file" id="productImage" name="image" class="form-control" accept="image/*">
                     </div>
+
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Add Product</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>

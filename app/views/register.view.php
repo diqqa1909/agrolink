@@ -96,10 +96,12 @@
                 <option value="transporter">Transporter</option>
               </select>
             </div>
-            <button class="btn btn-primary btn-large">
+          <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary btn-large">
               Create Account
             </button>
-          </form>
+          </div>
+        </form>
           <!-- <div class="or-divider">Or continue with</div>
           <button class="google-btn" type="button" onclick="loginWithGoogle()">
             <img
