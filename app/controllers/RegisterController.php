@@ -1,5 +1,5 @@
 <?php
-    class Register{
+    class RegisterController{
         use Controller;
         public function index($a='', $b='', $c=''){
 

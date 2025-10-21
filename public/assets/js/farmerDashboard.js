@@ -50,7 +50,6 @@ function initializeFarmerForms() {
 
     addProductForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-        console.log('Add Product button clicked');
 
         // Validate quantity minimum 10kg
         const quantity = quantityInput ? parseInt(quantityInput.value) : 0;
@@ -63,7 +62,6 @@ function initializeFarmerForms() {
 
         const fd = new FormData(addProductForm);
         const url = `${API_BASE}/create`;
-        console.log('POST:', url);
 
         // Show loading state
         const submitBtn = addProductForm.querySelector('button[type="submit"]');
@@ -72,14 +70,19 @@ function initializeFarmerForms() {
         submitBtn.innerHTML = 'Adding...';
 
         try {
-            const r = await fetch(url, { method: 'POST', body: fd, credentials: 'include' });
+            const r = await fetch(url, { 
+                method: 'POST', 
+                body: fd, 
+                credentials: 'include' 
+            });
+            
             const raw = await r.text();
             let res;
+            
             try { 
-                res = JSON.parse(raw); 
-            } catch {
-                console.error('Non-JSON response:', raw);
-                throw new Error(r.status + ' ' + r.statusText + ' (non-JSON)');
+                res = JSON.parse(raw);
+            } catch (parseError) {
+                throw new Error(r.status + ' ' + r.statusText + ' (non-JSON response)');
             }
             
             if (!r.ok || !res.success) {
@@ -90,6 +93,7 @@ function initializeFarmerForms() {
                     // Clear previous error styling
                     addProductForm.querySelectorAll('.form-control').forEach(input => {
                         input.style.borderColor = '';
+                        input.style.background = '';
                     });
                     
                     // Highlight error fields and collect messages
@@ -141,7 +145,6 @@ function initializeFarmerForms() {
             
             loadFarmerProducts();
         } catch (err) {
-            console.error('Add product failed:', err);
             showNotification('Failed to add product: ' + err.message, 'error');
         } finally {
             // Restore button state
@@ -480,7 +483,12 @@ function loadProfileData() {
     const profileCropsEl = document.getElementById('profileCrops');
     const profileAddressEl = document.getElementById('profileAddress');
     
-    if (profilePhotoEl) profilePhotoEl.src = (window.APP_ROOT || '') + '/assets/images/default-farmer.png';
+    // Use avatar placeholder service instead of missing image
+    if (profilePhotoEl) {
+        profilePhotoEl.src = 'https://ui-avatars.com/api/?name=Farmer&background=4CAF50&color=fff&size=150';
+        profilePhotoEl.alt = 'Farmer Profile';
+    }
+    
     if (profileNameEl) profileNameEl.value = 'Ranjith Fernando';
     if (profileEmailEl) profileEmailEl.value = 'ranjith@farm.lk';
     if (profilePhoneEl) profilePhoneEl.value = '+94 77 234 5678';

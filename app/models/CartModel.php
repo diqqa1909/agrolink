@@ -1,149 +1,130 @@
 <?php
-class CartModel {
-    use Model;
+class CartModel
+{
+    use Database;
 
     protected $table = 'cart';
-    protected $allowedColumns = [
-        'user_id',
-        'product_id',
-        'product_name',
-        'product_price',
-        'quantity',
-        'farmer_name',
-        'farmer_location',
-        'product_image',
-    ];
-
-    public function validate($data) {
-        $this->errors = [];
-
-        if(empty($data['user_id']))
-            $this->errors['user_id'] = "User ID is required";
-        
-        if(empty($data['product_id']))
-            $this->errors['product_id'] = "Product ID is required";
-        
-        if(empty($data['product_name']))
-            $this->errors['product_name'] = "Product name is required";
-        
-        if(empty($data['product_price']))
-            $this->errors['product_price'] = "Product price is required";
-        else
-            if(!is_numeric($data['product_price']) || $data['product_price'] <= 0)
-                $this->errors['product_price'] = "Product price must be a positive number";
-        
-        if(empty($data['quantity']))
-            $this->errors['quantity'] = "Quantity is required";
-        else
-            if(!is_numeric($data['quantity']) || $data['quantity'] <= 0)
-                $this->errors['quantity'] = "Quantity must be a positive number";
-        
-        if(empty($data['farmer_name']))
-            $this->errors['farmer_name'] = "Farmer name is required";
-
-        if(empty($this->errors))
-            return true;
-        return false;
-    }
 
     /**
-     * Get all cart items for a specific user
+     * Get all cart items for a user with farmer details
      */
-    public function getUserCart($user_id) {
-        $query = "SELECT * FROM $this->table WHERE user_id = :user_id ORDER BY created_at DESC";
-        $result = $this->query($query, ['user_id' => $user_id]);
-        return $result ? $result : [];
+    public function getCartByUserId($user_id)
+    {
+        $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name
+                FROM {$this->table} c
+                LEFT JOIN products p ON c.product_id = p.id
+                LEFT JOIN users u ON p.farmer_id = u.id
+                WHERE c.user_id = :user_id 
+                ORDER BY c.created_at DESC";
+
+        $result = $this->query($sql, ['user_id' => $user_id]);
+        return is_array($result) ? $result : [];
     }
 
     /**
      * Get a specific cart item
      */
-    public function getCartItem($user_id, $product_id) {
-        $query = "SELECT * FROM $this->table WHERE user_id = :user_id AND product_id = :product_id LIMIT 1";
-        return $this->get_row($query, ['user_id' => $user_id, 'product_id' => $product_id]);
-    }
-
-    /**
-     * Add item to cart or update quantity if exists
-     */
-    public function addToCart($data) {
-        // Check if item already exists in cart
-        $existingItem = $this->getCartItem($data['user_id'], $data['product_id']);
-        
-        if($existingItem) {
-            // Update quantity
-            $newQuantity = $existingItem->quantity + $data['quantity'];
-            $query = "UPDATE $this->table SET quantity = :quantity WHERE user_id = :user_id AND product_id = :product_id";
-            $result = $this->query($query, [
-                'quantity' => $newQuantity,
-                'user_id' => $data['user_id'],
-                'product_id' => $data['product_id']
-            ]);
-            return $result !== false;
-        } else {
-            // Insert new item
-            $this->insert($data);
-            return true;
-        }
-    }
-
-    /**
-     * Update quantity of a cart item
-     */
-    public function updateQuantity($user_id, $product_id, $quantity) {
-        if($quantity <= 0) {
-            return $this->removeFromCart($user_id, $product_id);
-        }
-        
-        $query = "UPDATE $this->table SET quantity = :quantity WHERE user_id = :user_id AND product_id = :product_id";
-        $result = $this->query($query, [
-            'quantity' => $quantity,
+    public function getCartItem($user_id, $product_id)
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE user_id = :user_id AND product_id = :product_id LIMIT 1";
+        $result = $this->query($sql, [
             'user_id' => $user_id,
             'product_id' => $product_id
         ]);
+        return (is_array($result) && !empty($result)) ? $result[0] : null;
+    }
+
+    /**
+     * Add item to cart
+     */
+    public function addToCart($data)
+    {
+        $sql = "INSERT INTO {$this->table} 
+                (user_id, product_id, product_name, product_price, quantity, product_image) 
+                VALUES (:user_id, :product_id, :product_name, :product_price, :quantity, :product_image)";
+
+        $result = $this->write($sql, $data);
+
+        // Return true if insert was successful
+        return $result !== false;
+    }
+
+    /**
+     * Update cart item quantity
+     */
+    public function updateQuantity($user_id, $product_id, $quantity)
+    {
+        $sql = "UPDATE {$this->table} 
+                SET quantity = :quantity, updated_at = CURRENT_TIMESTAMP 
+                WHERE user_id = :user_id AND product_id = :product_id";
+
+        $result = $this->write($sql, [
+            'user_id' => $user_id,
+            'product_id' => $product_id,
+            'quantity' => $quantity
+        ]);
+
+        // Return true if update affected rows
         return $result !== false;
     }
 
     /**
      * Remove item from cart
      */
-    public function removeFromCart($user_id, $product_id) {
-        $query = "DELETE FROM $this->table WHERE user_id = :user_id AND product_id = :product_id";
-        $result = $this->query($query, ['user_id' => $user_id, 'product_id' => $product_id]);
+    public function removeFromCart($user_id, $product_id)
+    {
+        $sql = "DELETE FROM {$this->table} 
+                WHERE user_id = :user_id AND product_id = :product_id";
+
+        $result = $this->write($sql, [
+            'user_id' => $user_id,
+            'product_id' => $product_id
+        ]);
+
+        // Return true if delete was successful
         return $result !== false;
     }
 
     /**
-     * Clear entire cart for a user
+     * Clear all items from user's cart
      */
-    public function clearCart($user_id) {
-        $query = "DELETE FROM $this->table WHERE user_id = :user_id";
-        $result = $this->query($query, ['user_id' => $user_id]);
-        return $result !== false;
+    public function clearCart($user_id)
+    {
+        $sql = "DELETE FROM {$this->table} WHERE user_id = :user_id";
+
+        $result = $this->write($sql, ['user_id' => $user_id]);
+
+        // Return true even if cart was already empty
+        return true;
     }
 
     /**
-     * Get cart total for a user
+     * Get total number of items in cart
      */
-    public function getCartTotal($user_id) {
-        $query = "SELECT SUM(product_price * quantity) as total FROM $this->table WHERE user_id = :user_id";
-        $result = $this->get_row($query, ['user_id' => $user_id]);
-        return $result && $result->total ? $result->total : 0;
+    public function getCartItemCount($user_id)
+    {
+        $sql = "SELECT COALESCE(SUM(quantity), 0) as total FROM {$this->table} WHERE user_id = :user_id";
+        $result = $this->query($sql, ['user_id' => $user_id]);
+
+        if (is_array($result) && !empty($result) && isset($result[0]->total)) {
+            return (int)$result[0]->total;
+        }
+        return 0;
     }
 
     /**
-     * Get cart item count for a user
+     * Get cart total price
      */
-    public function getCartItemCount($user_id) {
-        $query = "SELECT COUNT(*) as count FROM $this->table WHERE user_id = :user_id";
-        $result = $this->get_row($query, ['user_id' => $user_id]);
-        return $result && $result->count ? $result->count : 0;
-    }
+    public function getCartTotal($user_id)
+    {
+        $sql = "SELECT COALESCE(SUM(product_price * quantity), 0) as total 
+                FROM {$this->table} WHERE user_id = :user_id";
+        $result = $this->query($sql, ['user_id' => $user_id]);
 
-    /**
-     * Check if cart is empty for a user
-     */
-    public function isCartEmpty($user_id) {
-        return $this->getCartItemCount($user_id) == 0;
+        if (is_array($result) && !empty($result) && isset($result[0]->total)) {
+            return (float)$result[0]->total;
+        }
+        return 0.0;
     }
 }

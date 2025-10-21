@@ -1,12 +1,5 @@
 <?php
 
-class ProductModel
-{
-    use Model;
-    protected $table = 'products';
-    protected $allowedColumns = ['name', 'price', 'quantity', 'location', 'user_id'];
-}
-
 class ProductsModel
 {
     use Database;
@@ -15,10 +8,25 @@ class ProductsModel
 
     public function create(array $data)
     {
-        $sql = "INSERT INTO {$this->table}
-                (farmer_id, name, price, quantity, description, image, location, category, listing_date)
-                VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
-        return $this->write($sql, $data);
+        try {
+            $sql = "INSERT INTO {$this->table}
+                    (farmer_id, name, price, quantity, description, image, location, category, listing_date)
+                    VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
+            
+            $result = $this->write($sql, $data);
+            
+            if ($result === false) {
+                error_log("ProductsModel::create - Insert failed for data: " . print_r($data, true));
+            } else {
+                error_log("ProductsModel::create - Insert successful, ID: " . $result);
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("ProductsModel::create - Exception: " . $e->getMessage());
+            error_log("ProductsModel::create - Data: " . print_r($data, true));
+            return false;
+        }
     }
 
     public function updateByFarmer(int $id, int $farmerId, array $data)
@@ -40,7 +48,8 @@ class ProductsModel
     public function getByFarmer(int $farmerId)
     {
         $sql = "SELECT * FROM {$this->table} WHERE farmer_id=:farmer_id ORDER BY created_at DESC";
-        return $this->query($sql, ['farmer_id' => $farmerId]) ?: [];
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return $result ?: [];
     }
 
     public function getById(int $id)
@@ -56,6 +65,7 @@ class ProductsModel
     {
         $params = [];
         $where = "p.quantity > 0";
+        
         if (!empty($filters['search'])) {
             $where .= " AND (p.name LIKE :search OR p.description LIKE :search)";
             $params['search'] = '%' . $filters['search'] . '%';
@@ -74,10 +84,14 @@ class ProductsModel
                 JOIN users u ON u.id = p.farmer_id
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
-        return $this->query($sql, $params) ?: [];
+        
+        $result = $this->query($sql, $params);
+        return $result ?: [];
     }
 
-    // NEW METHOD: Get all products with farmer details for buyer dashboard
+    /**
+     * Get all products with farmer details for buyer dashboard
+     */
     public function getWithFarmerDetails($conditions = [])
     {
         $params = [];
@@ -110,6 +124,7 @@ class ProductsModel
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
 
-        return $this->query($sql, $params) ?: [];
+        $result = $this->query($sql, $params);
+        return $result ?: [];
     }
 }

@@ -1,5 +1,5 @@
 <?php
-class Buyerdashboard{
+class BuyerDashboardController{
     use Controller;
     
     private $cartModel;

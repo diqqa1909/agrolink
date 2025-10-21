@@ -1,238 +1,266 @@
 <?php
-class CartController {
+
+class CartController
+{
     use Controller;
-    
-    private $cartModel;
-    
-    public function __construct() {
+
+    protected $cartModel;
+
+    public function __construct()
+    {
         $this->cartModel = new CartModel();
     }
 
     /**
      * Display cart page
      */
-    public function index() {
+    public function index()
+    {
         // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
             redirect('login');
             return;
         }
 
         $user_id = $_SESSION['USER']->id;
-        $cartItems = $this->cartModel->getUserCart($user_id);
-        $cartTotal = $this->cartModel->getCartTotal($user_id);
+
+        // Get cart items
+        $cartItems = $this->cartModel->getCartByUserId($user_id);
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+        $cartTotal = $this->cartModel->getCartTotal($user_id);
 
         $data = [
-            'cartItems' => $cartItems,
-            'cartTotal' => $cartTotal,
+            'cartItems' => $cartItems ?: [],
             'cartItemCount' => $cartItemCount,
-            'username' => $_SESSION['USER']->name
+            'cartTotal' => $cartTotal
         ];
 
         $this->view('cart', $data);
     }
 
     /**
-     * Add item to cart (AJAX endpoint)
+     * Add item to cart (AJAX)
      */
-    public function add() {
-        // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->jsonResponse(['success' => false, 'message' => 'Please login as a buyer']);
-            return;
-        }
+    public function add()
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireBuyer()) exit;
 
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-            return;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
         }
 
         $user_id = $_SESSION['USER']->id;
-        
-        // Get POST data
-        $product_id = $_POST['product_id'] ?? '';
-        $product_name = $_POST['product_name'] ?? '';
-        $product_price = $_POST['product_price'] ?? 0;
-        $quantity = $_POST['quantity'] ?? 1;
-        $farmer_name = $_POST['farmer_name'] ?? '';
-        $farmer_location = $_POST['farmer_location'] ?? '';
-        $product_image = $_POST['product_image'] ?? '';
-
         $data = [
             'user_id' => $user_id,
-            'product_id' => $product_id,
-            'product_name' => $product_name,
-            'product_price' => $product_price,
-            'quantity' => $quantity,
-            'farmer_name' => $farmer_name,
-            'farmer_location' => $farmer_location,
-            'product_image' => $product_image
+            'product_id' => $_POST['product_id'] ?? null,
+            'product_name' => trim($_POST['product_name'] ?? ''),
+            'product_price' => (float)($_POST['product_price'] ?? 0),
+            'quantity' => (int)($_POST['quantity'] ?? 1),
+            'product_image' => trim($_POST['product_image'] ?? '🌱')
         ];
 
-        // Validate data
-        if(!$this->cartModel->validate($data)) {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid data', 'errors' => $this->cartModel->errors]);
-            return;
+        if (!$data['product_id']) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Product ID is required']);
+            exit;
         }
 
-        // Add to cart
-        $result = $this->cartModel->addToCart($data);
-        
-        if($result !== false) {
-            $cartItemCount = $this->cartModel->getCartItemCount($user_id);
-            $this->jsonResponse([
-                'success' => true, 
-                'message' => 'Item added to cart successfully',
-                'cartItemCount' => $cartItemCount
-            ]);
-        } else {
-            $errorData = ['success' => false, 'message' => 'Failed to add item to cart'];
-            // If model has errors, include them
-            if (!empty($this->cartModel->errors)) {
-                $errorData['errors'] = $this->cartModel->errors;
+        try {
+            // Check if product already exists in cart
+            $existingItem = $this->cartModel->getCartItem($user_id, $data['product_id']);
+
+            if ($existingItem) {
+                // Update quantity
+                $newQuantity = $existingItem->quantity + $data['quantity'];
+                $updated = $this->cartModel->updateQuantity($user_id, $data['product_id'], $newQuantity);
+
+                if ($updated) {
+                    $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Product quantity updated in cart',
+                        'cartItemCount' => $cartItemCount
+                    ]);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Failed to update cart']);
+                }
+            } else {
+                // Add new item
+                $added = $this->cartModel->addToCart($data);
+
+                if ($added) {
+                    $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Product added to cart successfully',
+                        'cartItemCount' => $cartItemCount
+                    ]);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Failed to add product to cart']);
+                }
             }
-            // If DEBUG mode, try to include last DB error from PHP error log (best-effort)
-            if (defined('DEBUG') && DEBUG === true) {
-                $errorData['debug'] = 'Check PHP error log for database error details.';
-            }
-            $this->jsonResponse($errorData);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
-    }
-
-    /**
-     * Update item quantity in cart (AJAX endpoint)
-     */
-    public function update() {
-        // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->jsonResponse(['success' => false, 'message' => 'Please login as a buyer']);
-            return;
-        }
-
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-            return;
-        }
-
-        $user_id = $_SESSION['USER']->id;
-        $product_id = $_POST['product_id'] ?? '';
-        $quantity = $_POST['quantity'] ?? 0;
-
-        if(empty($product_id) || !is_numeric($quantity)) {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid product ID or quantity']);
-            return;
-        }
-
-        $result = $this->cartModel->updateQuantity($user_id, $product_id, $quantity);
-        
-        if($result !== false) {
-            $cartTotal = $this->cartModel->getCartTotal($user_id);
-            $cartItemCount = $this->cartModel->getCartItemCount($user_id);
-            $this->jsonResponse([
-                'success' => true, 
-                'message' => 'Cart updated successfully',
-                'cartTotal' => $cartTotal,
-                'cartItemCount' => $cartItemCount
-            ]);
-        } else {
-            $this->jsonResponse(['success' => false, 'message' => 'Failed to update cart']);
-        }
-    }
-
-    /**
-     * Remove item from cart (AJAX endpoint)
-     */
-    public function remove() {
-        // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->jsonResponse(['success' => false, 'message' => 'Please login as a buyer']);
-            return;
-        }
-
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-            return;
-        }
-
-        $user_id = $_SESSION['USER']->id;
-        $product_id = $_POST['product_id'] ?? '';
-
-        if(empty($product_id)) {
-            $this->jsonResponse(['success' => false, 'message' => 'Product ID is required']);
-            return;
-        }
-
-        $result = $this->cartModel->removeFromCart($user_id, $product_id);
-        
-        if($result !== false) {
-            $cartTotal = $this->cartModel->getCartTotal($user_id);
-            $cartItemCount = $this->cartModel->getCartItemCount($user_id);
-            $this->jsonResponse([
-                'success' => true, 
-                'message' => 'Item removed from cart successfully',
-                'cartTotal' => $cartTotal,
-                'cartItemCount' => $cartItemCount
-            ]);
-        } else {
-            $this->jsonResponse(['success' => false, 'message' => 'Failed to remove item from cart']);
-        }
-    }
-
-    /**
-     * Clear entire cart (AJAX endpoint)
-     */
-    public function clear() {
-        // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->jsonResponse(['success' => false, 'message' => 'Please login as a buyer']);
-            return;
-        }
-
-        if($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-            return;
-        }
-
-        $user_id = $_SESSION['USER']->id;
-        $result = $this->cartModel->clearCart($user_id);
-        
-        if($result !== false) {
-            $this->jsonResponse(['success' => true, 'message' => 'Cart cleared successfully']);
-        } else {
-            $this->jsonResponse(['success' => false, 'message' => 'Failed to clear cart']);
-        }
-    }
-
-    /**
-     * Get cart data (AJAX endpoint)
-     */
-    public function getCartData() {
-        // Check if user is logged in and is a buyer
-        if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->jsonResponse(['success' => false, 'message' => 'Please login as a buyer']);
-            return;
-        }
-
-        $user_id = $_SESSION['USER']->id;
-        $cartItems = $this->cartModel->getUserCart($user_id);
-        $cartTotal = $this->cartModel->getCartTotal($user_id);
-        $cartItemCount = $this->cartModel->getCartItemCount($user_id);
-
-        $this->jsonResponse([
-            'success' => true,
-            'cartItems' => $cartItems,
-            'cartTotal' => $cartTotal,
-            'cartItemCount' => $cartItemCount
-        ]);
-    }
-
-    /**
-     * Send JSON response
-     */
-    private function jsonResponse($data) {
-        header('Content-Type: application/json');
-        echo json_encode($data);
         exit;
+    }
+
+    /**
+     * Update quantity (AJAX)
+     */
+    public function update($id = null)
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireBuyer()) exit;
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
+        }
+
+        $user_id = $_SESSION['USER']->id;
+        $product_id = $id ?? ($_POST['product_id'] ?? null);
+        $quantity = (int)($_POST['quantity'] ?? 0);
+
+        if (!$product_id || $quantity < 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            exit;
+        }
+
+        try {
+            $updated = $this->cartModel->updateQuantity($user_id, $product_id, $quantity);
+
+            if ($updated) {
+                $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Cart updated successfully',
+                    'cartItemCount' => $cartItemCount
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Failed to update']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Remove item (AJAX)
+     */
+    public function remove($id = null)
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireBuyer()) exit;
+
+        $user_id = $_SESSION['USER']->id;
+        $product_id = $id ?? ($_POST['product_id'] ?? null);
+
+        if (!$product_id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Product ID required']);
+            exit;
+        }
+
+        try {
+            $removed = $this->cartModel->removeFromCart($user_id, $product_id);
+
+            if ($removed) {
+                $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Item removed from cart',
+                    'cartItemCount' => $cartItemCount
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Failed to remove']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Clear cart (AJAX)
+     */
+    public function clear()
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireBuyer()) exit;
+
+        try {
+            $user_id = $_SESSION['USER']->id;
+            $cleared = $this->cartModel->clearCart($user_id);
+
+            if ($cleared) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Cart cleared successfully',
+                    'cartItemCount' => 0
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Failed to clear cart']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Get cart data (AJAX)
+     */
+    public function getData()
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireBuyer()) exit;
+
+        try {
+            $user_id = $_SESSION['USER']->id;
+            $cartItemCount = $this->cartModel->getCartItemCount($user_id);
+            $cartTotal = $this->cartModel->getCartTotal($user_id);
+
+            echo json_encode([
+                'success' => true,
+                'cartItemCount' => $cartItemCount,
+                'cartTotal' => $cartTotal
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // Helper
+    private function requireBuyer()
+    {
+        if (!isset($_SESSION['USER'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return false;
+        }
+        if (($_SESSION['USER']->role ?? '') !== 'buyer') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Forbidden']);
+            return false;
+        }
+        return true;
     }
 }

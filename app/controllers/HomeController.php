@@ -1,5 +1,5 @@
 <?php
-    class Home{
+    class HomeController{
         use Controller;
         public function index($a='', $b='', $c=''){
 

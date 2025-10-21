@@ -417,7 +417,7 @@
                                         <?= htmlspecialchars($product->quantity) ?>kg available
                                     </div>
                                     <button class="btn btn-primary btn-add-cart"
-                                        onclick="addToCart(<?= $product->id ?>, '<?= htmlspecialchars($product->name) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                                        onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
                                         🛒 Add to Cart
                                     </button>
                                 </div>

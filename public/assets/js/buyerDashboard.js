@@ -2,12 +2,15 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeBuyerDashboard();
+    updateCartBadge();
 });
 
 // Initialize Dashboard
 function initializeBuyerDashboard() {
     // Show dashboard section by default
-    showSection('dashboard');
+    if (document.getElementById('dashboard-section')) {
+        showSection('dashboard');
+    }
     
     // Add click handlers to menu links
     document.querySelectorAll('.menu-link').forEach(link => {
@@ -54,76 +57,22 @@ function showSection(sectionName) {
     });
 }
 
-// Show Notification (uses main.js if available)
+// Show Notification
 function showNotification(message, type = 'info') {
-    // Check if main.js notification exists
-    if (typeof window.showNotification === 'function') {
-        window.showNotification(message, type);
-        return;
-    }
+    // Remove existing notifications
+    document.querySelectorAll('.notification').forEach(n => n.remove());
     
-    // Fallback notification
+    // Create notification
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : type === 'warning' ? '#ff9800' : '#2196F3'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        font-weight: 600;
-        animation: slideInRight 0.3s ease;
-    `;
+    notification.className = `notification notification-${type}`;
     notification.textContent = message;
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
+        notification.classList.add('notification-hide');
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-// Add CSS animation for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-    
-    .profile-photo-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        font-weight: bold;
-        color: white;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    }
-`;
-document.head.appendChild(style);
 
 // Filter products based on search and filters
 function filterProducts() {
@@ -197,57 +146,314 @@ function filterProducts() {
     }
 }
 
-// Add to cart function
+// Add to cart function - AJAX call to backend
 function addToCart(productId, productName, price, maxQuantity) {
-    // Get existing cart from localStorage
-    let cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-    
-    // Check if product already exists in cart
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        if (existingItem.quantity < maxQuantity) {
-            existingItem.quantity++;
-            showNotification(`${productName} quantity increased!`, 'success');
-        } else {
-            showNotification(`Maximum available quantity (${maxQuantity}kg) already in cart`, 'warning');
-            return;
-        }
-    } else {
-        cart.push({
-            id: productId,
-            name: productName,
-            price: price,
-            quantity: 1,
-            maxQuantity: maxQuantity
-        });
-        showNotification(`${productName} added to cart!`, 'success');
+    // Show loading
+    const btn = event?.target;
+    const originalText = btn?.textContent;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
     }
     
-    // Save to localStorage
-    localStorage.setItem('buyerCart', JSON.stringify(cart));
+    // Get product details from the card
+    const productCard = document.querySelector(`[data-name="${productName.toLowerCase()}"]`);
+    const categoryEmoji = productCard?.querySelector('.product-placeholder')?.textContent || 
+                         productCard?.querySelector('.product-image img')?.alt.charAt(0) || '🌱';
     
-    // Update cart badge
-    updateCartBadge();
+    // Prepare data
+    const formData = new FormData();
+    formData.append('product_id', productId);
+    formData.append('product_name', productName);
+    formData.append('product_price', price);
+    formData.append('quantity', 1);
+    formData.append('product_image', categoryEmoji);
+    
+    // Send AJAX request
+    fetch(window.APP_ROOT + '/Cart/add', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response => {
+        // Log response for debugging
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            updateCartBadge(data.cartItemCount);
+        } else {
+            showNotification(data.message || 'Failed to add to cart', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showNotification('An error occurred: ' + error.message, 'error');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
 }
 
 // Update cart badge count
-function updateCartBadge() {
-    const cart = JSON.parse(localStorage.getItem('buyerCart')) || [];
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+function updateCartBadge(count) {
+    // If count is provided, use it
+    if (count !== undefined) {
+        const badges = document.querySelectorAll('.cart-badge');
+        badges.forEach(badge => {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        });
+        return;
+    }
     
-    const badge = document.querySelector('.cart-badge');
-    if (badge) {
-        badge.textContent = totalItems;
-        badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+    // Otherwise, fetch from server
+    fetch(window.APP_ROOT + '/Cart/getData', {
+        method: 'GET',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const badges = document.querySelectorAll('.cart-badge');
+            badges.forEach(badge => {
+                badge.textContent = data.cartItemCount;
+                badge.style.display = data.cartItemCount > 0 ? 'inline-block' : 'none';
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching cart data:', error);
+    });
+}
+
+// Show loading overlay
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
     }
 }
 
-// Initialize cart badge on page load
-document.addEventListener('DOMContentLoaded', function() {
-    initializeBuyerDashboard();
-    updateCartBadge();
-});
+// Hide loading overlay
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// Update quantity in cart - NO REFRESH
+function updateQuantity(productId, newQuantity) {
+    if (newQuantity <= 0) {
+        removeFromCart(productId);
+        return;
+    }
+
+    showLoading();
+    
+    const formData = new FormData();
+    formData.append('product_id', productId);
+    formData.append('quantity', newQuantity);
+    
+    fetch(window.APP_ROOT + '/Cart/update', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Update response:', data);
+        hideLoading();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Update the UI without refreshing
+            const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+            if (cartItem) {
+                // Update quantity display
+                const quantityDisplay = cartItem.querySelector('.quantity-display');
+                if (quantityDisplay) {
+                    quantityDisplay.textContent = newQuantity;
+                }
+                
+                // Update total price for this item
+                const priceElement = cartItem.querySelector('.cart-item-total-price');
+                const unitPriceText = cartItem.querySelector('.cart-item-unit-price')?.textContent || '0';
+                const unitPrice = parseFloat(unitPriceText.replace(/[^\d.]/g, '')) || 0;
+                if (priceElement) {
+                    priceElement.textContent = 'Rs. ' + (unitPrice * newQuantity).toFixed(2);
+                }
+                
+                // Update cart badge
+                updateCartBadge(data.cartItemCount);
+                
+                // Recalculate cart total
+                recalculateCartTotal();
+            }
+        } else {
+            showNotification(data.message || 'Failed to update cart', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Update error:', error);
+        hideLoading();
+        showNotification('An error occurred: ' + error.message, 'error');
+    });
+}
+
+// Remove from cart - NO REFRESH
+function removeFromCart(productId) {
+    if (!confirm('Are you sure you want to remove this item from your cart?')) {
+        return;
+    }
+
+    showLoading();
+    
+    const formData = new FormData();
+    formData.append('product_id', productId);
+    
+    fetch(window.APP_ROOT + '/Cart/remove', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Remove response:', data);
+        hideLoading();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Remove the item from DOM with animation
+            const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+            if (cartItem) {
+                cartItem.style.transition = 'all 0.3s ease';
+                cartItem.style.opacity = '0';
+                cartItem.style.transform = 'translateX(-100px)';
+                
+                setTimeout(() => {
+                    cartItem.remove();
+                    
+                    // Update cart badge
+                    updateCartBadge(data.cartItemCount);
+                    
+                    // Recalculate cart total
+                    recalculateCartTotal();
+                    
+                    // Check if cart is empty
+                    const remainingItems = document.querySelectorAll('.cart-item');
+                    if (remainingItems.length === 0) {
+                        location.reload(); // Reload to show empty cart message
+                    }
+                }, 300);
+            }
+        } else {
+            showNotification(data.message || 'Failed to remove item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Remove error:', error);
+        hideLoading();
+        showNotification('An error occurred: ' + error.message, 'error');
+    });
+}
+
+// Clear cart - WITH REFRESH
+function clearCart() {
+    if (!confirm('Are you sure you want to clear your entire cart?')) {
+        return;
+    }
+
+    showLoading();
+    
+    fetch(window.APP_ROOT + '/Cart/clear', {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showNotification('An error occurred while clearing cart', 'error');
+        console.error('Error:', error);
+    });
+}
+
+// Recalculate cart total (helper function)
+function recalculateCartTotal() {
+    let total = 0;
+    let itemCount = 0;
+    
+    document.querySelectorAll('.cart-item').forEach(item => {
+        const priceText = item.querySelector('.cart-item-total-price')?.textContent || '0';
+        const price = parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
+        const quantity = parseInt(item.querySelector('.quantity-display')?.textContent) || 0;
+        
+        total += price;
+        itemCount += quantity;
+    });
+    
+    // Update summary
+    const summaryValue = document.querySelector('.cart-summary-value');
+    if (summaryValue) {
+        summaryValue.textContent = itemCount;
+    }
+    
+    const subtotal = document.querySelectorAll('.cart-summary-row .cart-summary-value')[1];
+    if (subtotal) {
+        subtotal.textContent = 'Rs. ' + total.toFixed(2);
+    }
+    
+    const totalAmount = document.querySelector('.cart-summary-total-amount');
+    if (totalAmount) {
+        totalAmount.textContent = 'Rs. ' + total.toFixed(2);
+    }
+}
+
+// Proceed to checkout
+function proceedToCheckout() {
+    showNotification('Proceeding to checkout...', 'info');
+    // TODO: Implement checkout page
+    // window.location.href = window.APP_ROOT + '/checkout';
+}
 
 // Export functions to window
 window.showSection = showSection;
@@ -255,3 +461,10 @@ window.showNotification = showNotification;
 window.filterProducts = filterProducts;
 window.addToCart = addToCart;
 window.updateCartBadge = updateCartBadge;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.updateQuantity = updateQuantity;
+window.removeFromCart = removeFromCart;
+window.clearCart = clearCart;
+window.recalculateCartTotal = recalculateCartTotal;
+window.proceedToCheckout = proceedToCheckout;
