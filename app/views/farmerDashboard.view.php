@@ -23,7 +23,7 @@
                 <h3 class="sidebar-title">Farmer Dashboard</h3>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="#dashboard" class="menu-link active" data-section="overview">
+                <li><a href="#" class="menu-link active" data-section="overview">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -34,7 +34,16 @@
                         </div>
                         Dashboard
                     </a></li>
-                <li><a href="#products" class="menu-link" data-section="products">
+                <li><a href="#" class="menu-link" data-section="profile">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="products">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -42,19 +51,7 @@
                         </div>
                         Products
                     </a></li>
-                <!-- Add Crop Requests menu item -->
-                <li><a href="#crop-requests" class="menu-link" data-section="crop-requests">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="12" y1="18" x2="12" y2="12"></line>
-                                <line x1="9" y1="15" x2="15" y2="15"></line>
-                            </svg>
-                        </div>
-                        Crop Requests
-                    </a></li>
-                <li><a href="#orders" class="menu-link" data-section="orders">
+                <li><a href="#" class="menu-link" data-section="orders">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -63,7 +60,7 @@
                         </div>
                         Orders
                     </a></li>
-                <li><a href="#earnings" class="menu-link" data-section="earnings">
+                <li><a href="#" class="menu-link" data-section="earnings">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="8" />
@@ -73,7 +70,7 @@
                         </div>
                         Earnings
                     </a></li>
-                <li><a href="#deliveries" class="menu-link" data-section="deliveries">
+                <li><a href="#" class="menu-link" data-section="deliveries">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 7h13v10H3z" />
@@ -84,16 +81,18 @@
                         </div>
                         Deliveries
                     </a></li>
-                <li><a href="#profile" class="menu-link" data-section="profile">
+                <li><a href="#" class="menu-link" data-section="crop-requests">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
                             </svg>
                         </div>
-                        Profile
+                        Crop Requests
                     </a></li>
-                <li><a href="#analytics" class="menu-link" data-section="analytics">
+                <li><a href="#" class="menu-link" data-section="analytics">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="20" x2="12" y2="10" />
@@ -285,7 +284,7 @@
 
                     <div class="profile-photo-container">
                         <div class="profile-photo-wrapper">
-                            <img id="profilePhoto" src="<?= ROOT ?>/assets/images/default-farmer.png" alt="Profile Photo">
+                            <img id="profilePhoto" src="<?= ROOT ?>/assets/images/default-farmer.png" alt=" ">
                             <div class="photo-upload-overlay" onclick="uploadPhoto()" title="Change Photo">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
