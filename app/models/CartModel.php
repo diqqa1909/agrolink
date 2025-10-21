@@ -51,14 +51,15 @@ class CartModel {
      */
     public function getUserCart($user_id) {
         $query = "SELECT * FROM $this->table WHERE user_id = :user_id ORDER BY created_at DESC";
-        return $this->query($query, ['user_id' => $user_id]);
+        $result = $this->query($query, ['user_id' => $user_id]);
+        return $result ? $result : [];
     }
 
     /**
      * Get a specific cart item
      */
     public function getCartItem($user_id, $product_id) {
-        $query = "SELECT * FROM $this->table WHERE user_id = :user_id AND product_id = :product_id";
+        $query = "SELECT * FROM $this->table WHERE user_id = :user_id AND product_id = :product_id LIMIT 1";
         return $this->get_row($query, ['user_id' => $user_id, 'product_id' => $product_id]);
     }
 
@@ -72,11 +73,17 @@ class CartModel {
         if($existingItem) {
             // Update quantity
             $newQuantity = $existingItem->quantity + $data['quantity'];
-            return $this->updateQuantity($data['user_id'], $data['product_id'], $newQuantity);
-        } else {
-            // Add new item
-            $result = $this->insert($data);
+            $query = "UPDATE $this->table SET quantity = :quantity WHERE user_id = :user_id AND product_id = :product_id";
+            $result = $this->query($query, [
+                'quantity' => $newQuantity,
+                'user_id' => $data['user_id'],
+                'product_id' => $data['product_id']
+            ]);
             return $result !== false;
+        } else {
+            // Insert new item
+            $this->insert($data);
+            return true;
         }
     }
 
@@ -121,7 +128,7 @@ class CartModel {
     public function getCartTotal($user_id) {
         $query = "SELECT SUM(product_price * quantity) as total FROM $this->table WHERE user_id = :user_id";
         $result = $this->get_row($query, ['user_id' => $user_id]);
-        return $result ? $result->total : 0;
+        return $result && $result->total ? $result->total : 0;
     }
 
     /**
@@ -130,7 +137,7 @@ class CartModel {
     public function getCartItemCount($user_id) {
         $query = "SELECT COUNT(*) as count FROM $this->table WHERE user_id = :user_id";
         $result = $this->get_row($query, ['user_id' => $user_id]);
-        return $result ? $result->count : 0;
+        return $result && $result->count ? $result->count : 0;
     }
 
     /**

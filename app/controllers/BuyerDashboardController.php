@@ -1,5 +1,5 @@
 <?php
-class BuyerDashboardController {
+class Buyerdashboard{
     use Controller;
     
     private $cartModel;
@@ -20,9 +20,16 @@ class BuyerDashboardController {
         $user_id = $_SESSION['USER']->id;
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
         
+        // Load Products model
+        $productModel = new ProductsModel();
+        
+        // Fetch all available products with farmer details
+        $products = $productModel->getWithFarmerDetails();
+        
         $data = [
             'username' => $_SESSION['USER']->name,
-            'cartItemCount' => $cartItemCount
+            'cartItemCount' => $cartItemCount,
+            'products' => $products ?: []
         ];
         
         // Load the view

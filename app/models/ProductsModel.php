@@ -76,4 +76,40 @@ class ProductsModel
                 ORDER BY p.created_at DESC";
         return $this->query($sql, $params) ?: [];
     }
+
+    // NEW METHOD: Get all products with farmer details for buyer dashboard
+    public function getWithFarmerDetails($conditions = [])
+    {
+        $params = [];
+        $where = "p.quantity > 0"; // Only show products with stock
+
+        // Add optional conditions
+        if (!empty($conditions['category'])) {
+            $where .= " AND p.category = :category";
+            $params['category'] = $conditions['category'];
+        }
+
+        if (!empty($conditions['location'])) {
+            $where .= " AND p.location = :location";
+            $params['location'] = $conditions['location'];
+        }
+
+        if (!empty($conditions['min_price'])) {
+            $where .= " AND p.price >= :min_price";
+            $params['min_price'] = $conditions['min_price'];
+        }
+
+        if (!empty($conditions['max_price'])) {
+            $where .= " AND p.price <= :max_price";
+            $params['max_price'] = $conditions['max_price'];
+        }
+
+        $sql = "SELECT p.*, u.name as farmer_name, u.email as farmer_email 
+                FROM {$this->table} p 
+                LEFT JOIN users u ON p.farmer_id = u.id 
+                WHERE {$where}
+                ORDER BY p.created_at DESC";
+
+        return $this->query($sql, $params) ?: [];
+    }
 }
