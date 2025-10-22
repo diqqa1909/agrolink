@@ -3,13 +3,37 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeBuyerDashboard();
     updateCartBadge();
+    
+    // Listen for hash changes (when navigating from external pages)
+    window.addEventListener('hashchange', function() {
+        const hash = window.location.hash.substring(1);
+        if (hash && document.getElementById(hash + '-section')) {
+            showSection(hash);
+        }
+    });
+    
+    // Also check hash after a short delay (for external navigation)
+    setTimeout(function() {
+        const hash = window.location.hash.substring(1);
+        if (hash && document.getElementById(hash + '-section')) {
+            showSection(hash);
+        }
+    }, 100);
 });
 
 // Initialize Dashboard
 function initializeBuyerDashboard() {
-    // Show dashboard section by default
-    if (document.getElementById('dashboard-section')) {
-        showSection('dashboard');
+    // Check for hash fragment in URL
+    const hash = window.location.hash.substring(1); // Remove the # symbol
+    
+    if (hash && document.getElementById(hash + '-section')) {
+        // Show the section specified in the hash
+        showSection(hash);
+    } else {
+        // Show dashboard section by default
+        if (document.getElementById('dashboard-section')) {
+            showSection('dashboard');
+        }
     }
     
     // Add click handlers to menu links
