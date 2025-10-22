@@ -139,16 +139,32 @@ function removeFromCart(productId) {
 }
 
 function updateCartQuantity(productId, change) {
-    const item = cart.find(item => item.id === productId);
-    if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
-            removeFromCart(productId);
-            return;
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    fetch(`${window.APP_ROOT}/cart/update/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${Math.max(1, parseInt(document.querySelector(`[data-product-id="${productId}"] .quantity-display`).textContent) + change)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the page to update cart
+            window.location.reload();
+        } else {
+            showNotification(data.message || 'Failed to update cart', 'error');
         }
-        localStorage.setItem('agrolink_cart', JSON.stringify(cart));
-        updateCartUI();
-    }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to update cart', 'error');
+    })
+    .finally(() => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    });
 }
 
 function updateCartUI() {
