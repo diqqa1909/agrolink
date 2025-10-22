@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transporter Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="stylesheet" href="assets/css/style2.css?v=2">
 </head>
-
 <body>
-    <!-- Top Navigation Bar -->
+
     <nav class="top-navbar">
         <div class="logo-section">
-            <img src="assets/imgs/Logo2.png" alt="AgroLink">
+            <img src="<?php echo ROOT; ?>/assets/imgs/Logo.png" alt="AgroLink" style="height: 40px;">
         </div>
         <div class="user-section">
             <div class="user-info">
@@ -26,105 +24,102 @@
         </div>
     </nav>
 
-    <!-- Dashboard Layout -->
     <div class="dashboard">
-        <!-- Sidebar -->
+ 
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h3 class="sidebar-title">Transporter Dashboard</h3>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="menu-link active" data-section="dashboard">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                        </div>
-                        Dashboard
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    Dashboard
+                </a></li>
                 <li><a href="#available" class="menu-link" data-section="available">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="16" rx="2" />
-                                <line x1="7" y1="8" x2="17" y2="8" />
-                                <line x1="7" y1="12" x2="17" y2="12" />
-                            </svg>
-                        </div>
-                        Available
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <line x1="7" y1="8" x2="17" y2="8"/>
+                            <line x1="7" y1="12" x2="17" y2="12"/>
+                        </svg>
+                    </div>
+                    Available
+                </a></li>
                 <li><a href="#mydeliveries" class="menu-link" data-section="mydeliveries">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7h13v10H3z" />
-                                <path d="M16 10h4l3 3v4h-7z" />
-                            </svg>
-                        </div>
-                        My Deliveries
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7h13v10H3z"/>
+                            <path d="M16 10h4l3 3v4h-7z"/>
+                        </svg>
+                    </div>
+                    My Deliveries
+                </a></li>
                 <li><a href="#schedule" class="menu-link" data-section="schedule">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" />
-                                <line x1="16" y1="2" x2="16" y2="6" />
-                                <line x1="8" y1="2" x2="8" y2="6" />
-                                <line x1="3" y1="10" x2="21" y2="10" />
-                            </svg>
-                        </div>
-                        Schedule
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    Schedule
+                </a></li>
                 <li><a href="#earnings" class="menu-link" data-section="earnings">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="8" />
-                                <line x1="12" y1="8" x2="12" y2="16" />
-                                <line x1="8" y1="12" x2="16" y2="12" />
-                            </svg>
-                        </div>
-                        Earnings
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="8"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    Earnings
+                </a></li>
                 <li><a href="#vehicle" class="menu-link" data-section="vehicle">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="6" rx="2" />
-                                <path d="M7 11V7h6v4" />
-                                <circle cx="7.5" cy="17.5" r="1.5" />
-                                <circle cx="16.5" cy="17.5" r="1.5" />
-                            </svg>
-                        </div>
-                        Vehicle
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="6" rx="2"/>
+                            <path d="M7 11V7h6v4"/>
+                            <circle cx="7.5" cy="17.5" r="1.5"/>
+                            <circle cx="16.5" cy="17.5" r="1.5"/>
+                        </svg>
+                    </div>
+                    Vehicle
+                </a></li>
                 <li><a href="#profile" class="menu-link" data-section="profile">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                        Profile
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    Profile
+                </a></li>
                 <li><a href="#analytics" class="menu-link" data-section="analytics">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="20" x2="12" y2="10" />
-                                <line x1="18" y1="20" x2="18" y2="4" />
-                                <line x1="6" y1="20" x2="6" y2="14" />
-                            </svg>
-                        </div>
-                        Analytics
-                    </a></li>
+                    <div class="menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="20" x2="12" y2="10"/>
+                            <line x1="18" y1="20" x2="18" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                    </div>
+                    Analytics
+                </a></li>
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Dashboard Overview -->
+    
             <div id="dashboard-section" class="content-section">
                 <h1 style="margin-bottom: var(--spacing-lg);">Dashboard Overview</h1>
-
-                <!-- Statistics Cards -->
+                
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-number" id="availableDeliveries">0</div>
@@ -144,7 +139,6 @@
                     </div>
                 </div>
 
-                <!-- Current Status -->
                 <div class="card" style="margin-top: var(--spacing-xl);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <h3>🚛 Current Status</h3>
@@ -159,8 +153,8 @@
                                 <div style="margin-bottom: var(--spacing-sm);">
                                     <strong>Current Location:</strong> <span id="currentLocation">Colombo</span>
                                 </div>
-                                <div style="margin-bottom: var(--spacing-sm);">
-                                    <strong>Vehicle:</strong> <span id="activeVehicle">Toyota Hiace Van</span>
+                                <div style="margin-bottom: var(--spacing-sm);" id="activeVehicleInfo">
+                                    <strong>Vehicle:</strong> <span id="activeVehicle">Loading...</span>
                                 </div>
                                 <div style="margin-bottom: var(--spacing-sm);">
                                     <strong>Next Delivery:</strong> <span id="nextDelivery">No pending deliveries</span>
@@ -181,17 +175,17 @@
                     </div>
                 </div>
 
-                <!-- Recent Activity -->
+          
                 <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>📋 Recent Deliveries</h3>
                         </div>
                         <div id="recentDeliveries" style="padding: var(--spacing-lg);">
-                            <!-- Recent deliveries will be populated by JavaScript -->
+                            
                         </div>
                     </div>
-
+                    
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>💰 Weekly Earnings</h3>
@@ -207,7 +201,7 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
+             
                 <div class="card" style="margin-top: var(--spacing-xl);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <h3>⚡ Quick Actions</h3>
@@ -223,7 +217,6 @@
                 </div>
             </div>
 
-            <!-- Available Deliveries -->
             <div id="available-section" class="content-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
                     <h1>📋 Available Deliveries</h1>
@@ -233,7 +226,7 @@
                     </div>
                 </div>
 
-                <!-- Delivery Filters -->
+
                 <div class="filters" id="deliveryFilters">
                     <div class="filters-row">
                         <div class="filter-group">
@@ -280,17 +273,15 @@
                     </div>
                 </div>
 
-                <!-- Available Deliveries List -->
+
                 <div id="availableDeliveriesList">
-                    <!-- Delivery cards will be populated by JavaScript -->
+
                 </div>
             </div>
 
-            <!-- My Deliveries -->
             <div id="mydeliveries-section" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: var(--spacing-lg);">🚛 My Deliveries</h1>
 
-                <!-- Delivery Status Tabs -->
                 <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-lg); border-bottom: 2px solid var(--light-gray);">
                     <button class="tab-btn active" data-status="all" onclick="filterMyDeliveries('all')">All</button>
                     <button class="tab-btn" data-status="accepted" onclick="filterMyDeliveries('accepted')">Accepted</button>
@@ -298,7 +289,6 @@
                     <button class="tab-btn" data-status="completed" onclick="filterMyDeliveries('completed')">Completed</button>
                 </div>
 
-                <!-- My Deliveries Table -->
                 <div class="table-container">
                     <table class="table">
                         <thead>
@@ -314,17 +304,14 @@
                             </tr>
                         </thead>
                         <tbody id="myDeliveriesTableBody">
-                            <!-- Deliveries will be populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Schedule -->
             <div id="schedule-section" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: var(--spacing-lg);">📅 Delivery Schedule</h1>
 
-                <!-- Calendar View -->
                 <div class="card">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -337,27 +324,24 @@
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div id="scheduleCalendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--spacing-sm);">
-                            <!-- Calendar will be populated by JavaScript -->
+
                         </div>
                     </div>
                 </div>
 
-                <!-- Today's Schedule -->
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <h3>📋 Today's Deliveries</h3>
                     </div>
                     <div id="todaySchedule" style="padding: var(--spacing-lg);">
-                        <!-- Today's deliveries will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
 
-            <!-- Earnings -->
+
             <div id="earnings-section" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: var(--spacing-lg);">💰 Earnings Overview</h1>
 
-                <!-- Earnings Stats -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-number" id="todayEarnings">Rs. 0</div>
@@ -377,7 +361,6 @@
                     </div>
                 </div>
 
-                <!-- Earnings Breakdown -->
                 <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
@@ -441,7 +424,6 @@
                     </div>
                 </div>
 
-                <!-- Payment History -->
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -462,7 +444,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="paymentHistoryBody">
-                                    <!-- Payment history will be populated by JavaScript -->
                                 </tbody>
                             </table>
                         </div>
@@ -470,78 +451,16 @@
                 </div>
             </div>
 
-            <!-- Vehicle Management -->
             <div id="vehicle-section" class="content-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
                     <h1>🚗 Vehicle Management</h1>
                     <button class="btn btn-primary" data-modal="addVehicleModal">➕ Add Vehicle</button>
                 </div>
 
-                <!-- Active Vehicle -->
-                <div class="card">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>🚛 Active Vehicle</h3>
-                    </div>
-                    <div style="padding: var(--spacing-lg);">
-                        <div class="grid grid-2">
-                            <div>
-                                <div style="margin-bottom: var(--spacing-md);">
-                                    <strong>Vehicle Type:</strong> Toyota Hiace Van<br>
-                                    <strong>Registration:</strong> WP ABC-1234<br>
-                                    <strong>Capacity:</strong> 750kg<br>
-                                    <strong>Fuel Type:</strong> Diesel<br>
-                                    <strong>License Expires:</strong> 2025-12-15
-                                </div>
-                                <div style="display: flex; gap: var(--spacing-sm);">
-                                    <button class="btn btn-secondary">✏️ Edit</button>
-                                    <button class="btn btn-secondary">🔧 Maintenance</button>
-                                    <button class="btn btn-secondary">⛽ Fuel Log</button>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="background: var(--light-gray); border-radius: var(--radius-md); padding: var(--spacing-lg); text-align: center;">
-                                    <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">🚐</div>
-                                    <div style="font-weight: var(--font-weight-bold); margin-bottom: var(--spacing-sm);">Toyota Hiace</div>
-                                    <div style="color: var(--dark-gray);">Available for delivery</div>
-                                    <div style="margin-top: var(--spacing-md);">
-                                        <span class="badge badge-success">Active</span>
-                                        <span class="badge badge-info">GPS Enabled</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="myVehiclesContainer">
+
                 </div>
 
-                <!-- Vehicle Status -->
-                <div class="grid grid-3" style="margin-top: var(--spacing-lg);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">⛽</div>
-                            <h4>Fuel Status</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">75%</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Last filled: Yesterday</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🔧</div>
-                            <h4>Maintenance</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">Good</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Next service: 15 days</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">📍</div>
-                            <h4>GPS Tracking</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">Active</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Real-time location</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- All Vehicles -->
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                         <h3>🚗 All Vehicles</h3>
@@ -560,17 +479,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="vehiclesTableBody">
-                                    <tr>
-                                        <td>Toyota Hiace Van</td>
-                                        <td>WP ABC-1234</td>
-                                        <td>Van</td>
-                                        <td>750kg</td>
-                                        <td><span class="badge badge-success">Active</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-secondary">Edit</button>
-                                            <button class="btn btn-sm btn-secondary">View</button>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -578,12 +486,11 @@
                 </div>
             </div>
 
-            <!-- Profile -->
             <div id="profile-section" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: var(--spacing-lg);">👤 Transporter Profile</h1>
 
                 <div class="grid grid-2" style="gap: var(--spacing-xl);">
-                    <!-- Personal Information -->
+ 
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>📋 Personal Information</h3>
@@ -611,7 +518,6 @@
                         </div>
                     </div>
 
-                    <!-- Business Information -->
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>🏢 Business Information</h3>
@@ -643,7 +549,6 @@
                         </div>
                     </div>
 
-                    <!-- Bank Information -->
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>🏦 Bank Information</h3>
@@ -671,7 +576,6 @@
                         </div>
                     </div>
 
-                    <!-- Preferences -->
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
                             <h3>⚙️ Preferences</h3>
@@ -706,11 +610,9 @@
                 </div>
             </div>
 
-            <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: var(--spacing-lg);">📈 Analytics & Performance</h1>
 
-                <!-- Performance Metrics -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-number">127</div>
@@ -730,7 +632,6 @@
                     </div>
                 </div>
 
-                <!-- Charts Placeholders -->
                 <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
                     <div class="card">
                         <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
@@ -756,7 +657,6 @@
         </main>
     </div>
 
-    <!-- Add Vehicle Modal -->
     <div id="addVehicleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -782,7 +682,7 @@
                             <input type="text" id="vehicleRegistration" name="registration" class="form-control" required>
                         </div>
                     </div>
-
+                    
                     <div class="grid grid-2">
                         <div class="form-group">
                             <label for="vehicleCapacity">Load Capacity (kg) *</label>
@@ -798,12 +698,12 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="vehicleModel">Vehicle Model</label>
                         <input type="text" id="vehicleModel" name="model" class="form-control" placeholder="e.g., Toyota Hiace">
                     </div>
-
+                    
                     <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Add Vehicle</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
@@ -813,8 +713,7 @@
         </div>
     </div>
 
-    <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/transporterDashboard.js"></script>
+    <script src="assets/js/main.js"></script>
     <script>
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -826,12 +725,10 @@
                 window.location.href = 'auth/logout.php';
             }
         }
-        // Remove authentication check to allow dashboard access without login
         document.addEventListener('DOMContentLoaded', function() {
             initTransporterDashboard();
         });
 
-        // Initialize transporter dashboard
         function initTransporterDashboard() {
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
             if (user && document.getElementById('transporterName')) {
@@ -839,23 +736,23 @@
             } else if (document.getElementById('transporterName')) {
                 document.getElementById('transporterName').textContent = 'Transporter';
             }
-
+            
             loadDashboardData();
             loadAvailableDeliveries();
             loadMyDeliveries();
             loadSchedule();
             loadProfile();
-
-            // Set up navigation
+            loadVehicles();
+            
             setupNavigation();
-
-            // Set up CSS for tabs
+            
             addTabStyles();
-            // Show dashboard section by default
+            
+            setupAddVehicleForm();
+            
             showSection('dashboard');
         }
 
-        // Navigation setup (reuse from farmer dashboard)
         function setupNavigation() {
             const menuLinks = document.querySelectorAll('.menu-link');
             menuLinks.forEach(link => {
@@ -863,23 +760,22 @@
                     e.preventDefault();
                     const section = this.getAttribute('data-section');
                     showSection(section);
-
+                    
                     menuLinks.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
         }
 
-        // Show specific section (reuse from farmer dashboard)
         function showSection(sectionName) {
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => section.style.display = 'none');
-
+            
             const targetSection = document.getElementById(sectionName + '-section');
             if (targetSection) {
                 targetSection.style.display = 'block';
             }
-
+            
             const menuLinks = document.querySelectorAll('.menu-link');
             menuLinks.forEach(link => {
                 link.classList.remove('active');
@@ -889,7 +785,6 @@
             });
         }
 
-        // Add tab styles
         function addTabStyles() {
             const style = document.createElement('style');
             style.textContent = `
@@ -912,15 +807,12 @@
             document.head.appendChild(style);
         }
 
-        // Load dashboard data
         function loadDashboardData() {
-            // Mock data
             document.getElementById('availableDeliveries').textContent = '8';
             document.getElementById('activeDeliveries').textContent = '3';
             document.getElementById('monthlyEarnings').textContent = 'Rs. 12,450';
             document.getElementById('completedDeliveries').textContent = '127';
-
-            // Recent deliveries
+            
             document.getElementById('recentDeliveries').innerHTML = `
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-001</div>
@@ -935,7 +827,6 @@
             `;
         }
 
-        // Load available deliveries
         function loadAvailableDeliveries() {
             const container = document.getElementById('availableDeliveriesList');
             container.innerHTML = `
@@ -948,14 +839,13 @@
             `;
         }
 
-        // Generate delivery card HTML
         function generateDeliveryCard(orderId, from, to, distance, weight, payment, priority) {
             const priorityColors = {
                 'urgent': 'danger',
-                'express': 'warning',
+                'express': 'warning', 
                 'normal': 'info'
             };
-
+            
             return `
                 <div class="card">
                     <div style="padding: var(--spacing-lg);">
@@ -990,7 +880,6 @@
             `;
         }
 
-        // Load my deliveries
         function loadMyDeliveries() {
             const tbody = document.getElementById('myDeliveriesTableBody');
             tbody.innerHTML = `
@@ -1021,19 +910,17 @@
             `;
         }
 
-        // Load schedule
         function loadSchedule() {
             const calendar = document.getElementById('scheduleCalendar');
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
+            
             calendar.innerHTML = days.map(day => `
                 <div style="text-align: center; padding: var(--spacing-md); border: 1px solid var(--medium-gray); border-radius: var(--radius-md);">
                     <div style="font-weight: var(--font-weight-bold); margin-bottom: var(--spacing-sm);">${day}</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">2 deliveries</div>
                 </div>
             `).join('');
-
-            // Today's schedule
+            
             document.getElementById('todaySchedule').innerHTML = `
                 <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--medium-gray); border-radius: var(--radius-md);">
                     <div style="font-weight: var(--font-weight-bold);">9:00 AM - Pickup</div>
@@ -1046,7 +933,6 @@
             `;
         }
 
-        // Load profile
         function loadProfile() {
             const user = getCurrentUser();
             if (user) {
@@ -1056,12 +942,11 @@
             }
         }
 
-        // Transporter specific functions
         function toggleAvailability() {
             const btn = document.getElementById('availabilityBtn');
             const status = document.getElementById('currentStatus');
             const indicator = document.getElementById('statusIndicator');
-
+            
             if (status.textContent === 'Available') {
                 status.textContent = 'Offline';
                 btn.textContent = 'Go Online';
@@ -1098,10 +983,9 @@
         }
 
         function filterMyDeliveries(status) {
-            // Update active tab
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-status="${status}"]`).classList.add('active');
-
+            
             showNotification(`Filtering deliveries by: ${status}`, 'info');
         }
 
@@ -1121,28 +1005,418 @@
             showNotification('Loading next week...', 'info');
         }
 
-        // Utility: Dummy getCurrentUser if not defined
         if (typeof getCurrentUser !== 'function') {
             function getCurrentUser() {
                 return null;
             }
         }
 
-        // Utility: Dummy showNotification if not defined
         if (typeof showNotification !== 'function') {
             function showNotification(msg, type) {
                 alert(msg);
             }
         }
 
-        // Utility: Dummy closeModal if not defined
         if (typeof closeModal !== 'function') {
             function closeModal(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) modal.style.display = 'none';
             }
         }
+
+        function loadVehicles() {
+            fetch('<?php echo ROOT; ?>/TransporterDashboard/getVehicles')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.vehicles) {
+                        displayVehicles(data.vehicles);
+                        updateCurrentStatus(data.vehicles); 
+                    } else {
+                        displayVehicles([]);
+                        updateCurrentStatus([]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading vehicles:', error);
+                    displayVehicles([]);
+                    updateCurrentStatus([]);
+                });
+        }
+
+        function updateCurrentStatus(vehicles) {
+            const activeVehicleSpan = document.getElementById('activeVehicle');
+            
+            if (!vehicles || vehicles.length === 0) {
+                activeVehicleSpan.textContent = 'No vehicles added';
+                activeVehicleSpan.style.color = 'var(--dark-gray)';
+                return;
+            }
+            
+            const activeVehicle = vehicles.find(v => v.status === 'active');
+            
+            if (activeVehicle) {
+                const vehicleName = activeVehicle.model || getVehicleTypeName(activeVehicle.type);
+                activeVehicleSpan.textContent = `${vehicleName} (${activeVehicle.registration})`;
+                activeVehicleSpan.style.color = 'var(--primary-green)';
+                activeVehicleSpan.style.fontWeight = 'bold';
+            } else {
+                const firstVehicle = vehicles[0];
+                const vehicleName = firstVehicle.model || getVehicleTypeName(firstVehicle.type);
+                activeVehicleSpan.textContent = `${vehicleName} (${firstVehicle.registration}) - ${firstVehicle.status}`;
+                activeVehicleSpan.style.color = 'var(--dark-gray)';
+            }
+        }
+
+        function displayVehicles(vehicles) {
+            const container = document.getElementById('myVehiclesContainer');
+            const tbody = document.getElementById('vehiclesTableBody');
+            
+            if (!vehicles || vehicles.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
+                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">🚗</div>
+                            <h3>No Vehicles Yet</h3>
+                            <p>Click "Add Vehicle" button to add your first vehicle.</p>
+                        </div>
+                    </div>
+                `;
+                
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: var(--spacing-xl); color: var(--dark-gray);">
+                            No vehicles added yet. Click "Add Vehicle" to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = vehicles.map(vehicle => {
+                const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
+                const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
+                const vehicleIcon = getVehicleIcon(vehicle.type);
+                const vehicleTypeName = getVehicleTypeName(vehicle.type);
+                
+                return `
+                    <div class="card" style="margin-bottom: var(--spacing-lg);">
+                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray); display: flex; justify-content: space-between; align-items: center;">
+                            <h3>🚛 ${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
+                            <span class="badge badge-${statusClass}">${statusText}</span>
+                        </div>
+                        <div style="padding: var(--spacing-lg);">
+                            <div class="grid grid-2">
+                                <div>
+                                    <div style="margin-bottom: var(--spacing-md); line-height: 2;">
+                                        <strong>Vehicle Type:</strong> ${vehicleTypeName}<br>
+                                        <strong>Registration:</strong> ${escapeHtml(vehicle.registration)}<br>
+                                        <strong>Capacity:</strong> ${escapeHtml(vehicle.capacity)}kg<br>
+                                        <strong>Fuel Type:</strong> ${escapeHtml(vehicle.fuel_type || 'N/A')}<br>
+                                        <strong>Status:</strong> <span class="badge badge-${statusClass}">${statusText}</span>
+                                    </div>
+                                    <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="background: var(--primary-green); border-color: var(--primary-green);">✓ Set as Active</button>` : ''}
+                                        <button class="btn btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white;">✏️ Edit</button>
+                                        <button class="btn btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})">🗑️ Delete</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="background: var(--light-gray); border-radius: var(--radius-md); padding: var(--spacing-lg); text-align: center;">
+                                        <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">${vehicleIcon}</div>
+                                        <div style="font-weight: var(--font-weight-bold); margin-bottom: var(--spacing-sm);">${escapeHtml(vehicle.model || vehicleTypeName)}</div>
+                                        <div style="color: var(--dark-gray); margin-bottom: var(--spacing-md);">
+                                            ${vehicle.status === 'active' ? 'Available for delivery' : vehicle.status === 'maintenance' ? 'Under maintenance' : 'Not available'}
+                                        </div>
+                                        <div style="margin-top: var(--spacing-md);">
+                                            <span class="badge badge-${statusClass}">${statusText.toUpperCase()}</span>
+                                            ${vehicle.status === 'active' ? '<span class="badge badge-info">GPS ENABLED</span>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            tbody.innerHTML = vehicles.map(vehicle => {
+                const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
+                const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
+                
+                return `
+                    <tr>
+                        <td>${escapeHtml(vehicle.model || 'N/A')}</td>
+                        <td>${escapeHtml(vehicle.registration)}</td>
+                        <td>${getVehicleTypeName(vehicle.type)}</td>
+                        <td>${escapeHtml(vehicle.capacity)}kg</td>
+                        <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                        <td>
+                            ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="background: var(--primary-green); border-color: var(--primary-green); margin-right: 5px;">Set Active</button>` : ''}
+                            <button class="btn btn-sm btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white;">Edit</button>
+                            <button class="btn btn-sm btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getVehicleIcon(type) {
+            const icons = {
+                'bike': '🏍️',
+                'threewheeler': '🛺',
+                'car': '🚗',
+                'van': '🚐',
+                'truck': '🚚'
+            };
+            return icons[type] || '🚗';
+        }
+
+        function getVehicleTypeName(type) {
+            const names = {
+                'bike': 'Motorcycle',
+                'threewheeler': 'Three-wheeler',
+                'car': 'Car',
+                'van': 'Van',
+                'truck': 'Truck'
+            };
+            return names[type] || type.charAt(0).toUpperCase() + type.slice(1);
+        }
+
+        function setupAddVehicleForm() {
+            const form = document.getElementById('addVehicleForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    
+                    fetch('<?php echo ROOT; ?>/TransporterDashboard/addVehicle', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message, 'success');
+                            form.reset();
+                            closeModal('addVehicleModal');
+                            loadVehicles();
+                        } else {
+                            if (data.errors) {
+                                let errorMsg = 'Validation errors:\n';
+                                for (let field in data.errors) {
+                                    errorMsg += `- ${data.errors[field]}\n`;
+                                }
+                                showNotification(errorMsg, 'error');
+                            } else {
+                                showNotification(data.message, 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to add vehicle. Please try again.', 'error');
+                    });
+                });
+            }
+        }
+
+        function editVehicleModal(vehicleId) {
+            fetch('<?php echo ROOT; ?>/TransporterDashboard/getVehicles')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.vehicles) {
+                        const vehicle = data.vehicles.find(v => v.id == vehicleId);
+                        if (vehicle) {
+                            showEditVehicleModal(vehicle);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Failed to load vehicle data', 'error');
+                });
+        }
+
+        function showEditVehicleModal(vehicle) {
+            const modalHtml = `
+                <div id="editVehicleModal" class="modal" style="display: block;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3>✏️ Edit Vehicle</h3>
+                            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editVehicleForm" onsubmit="submitEditVehicle(event, ${vehicle.id})">
+                                <div class="grid grid-2">
+                                    <div class="form-group">
+                                        <label for="editVehicleType">Vehicle Type *</label>
+                                        <select id="editVehicleType" name="type" class="form-control" required>
+                                            <option value="">Select Type</option>
+                                            <option value="bike" ${vehicle.type === 'bike' ? 'selected' : ''}>Motorcycle</option>
+                                            <option value="threewheeler" ${vehicle.type === 'threewheeler' ? 'selected' : ''}>Three-wheeler</option>
+                                            <option value="car" ${vehicle.type === 'car' ? 'selected' : ''}>Car</option>
+                                            <option value="van" ${vehicle.type === 'van' ? 'selected' : ''}>Van</option>
+                                            <option value="truck" ${vehicle.type === 'truck' ? 'selected' : ''}>Truck</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editVehicleRegistration">Registration Number *</label>
+                                        <input type="text" id="editVehicleRegistration" name="registration" class="form-control" value="${escapeHtml(vehicle.registration)}" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-2">
+                                    <div class="form-group">
+                                        <label for="editVehicleCapacity">Load Capacity (kg) *</label>
+                                        <input type="number" id="editVehicleCapacity" name="capacity" class="form-control" value="${vehicle.capacity}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editVehicleFuelType">Fuel Type</label>
+                                        <select id="editVehicleFuelType" name="fuel_type" class="form-control">
+                                            <option value="petrol" ${vehicle.fuel_type === 'petrol' ? 'selected' : ''}>Petrol</option>
+                                            <option value="diesel" ${vehicle.fuel_type === 'diesel' ? 'selected' : ''}>Diesel</option>
+                                            <option value="electric" ${vehicle.fuel_type === 'electric' ? 'selected' : ''}>Electric</option>
+                                            <option value="hybrid" ${vehicle.fuel_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editVehicleModel">Vehicle Model</label>
+                                    <input type="text" id="editVehicleModel" name="model" class="form-control" value="${escapeHtml(vehicle.model || '')}" placeholder="e.g., Toyota Hiace">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editVehicleStatus">Status</label>
+                                    <select id="editVehicleStatus" name="status" class="form-control">
+                                        <option value="active" ${vehicle.status === 'active' ? 'selected' : ''}>Active</option>
+                                        <option value="inactive" ${vehicle.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                                        <option value="maintenance" ${vehicle.status === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                                    <button type="submit" class="btn btn-primary">Update Vehicle</button>
+                                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const existingModal = document.getElementById('editVehicleModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editVehicleModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function closeModalOnBackdrop(event, modalId) {
+            if (event.target.id === modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.remove();
+                }
+            }
+        }
+
+        function submitEditVehicle(event, vehicleId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            fetch('<?php echo ROOT; ?>/TransporterDashboard/editVehicle/' + vehicleId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeEditModal();
+                    loadVehicles(); 
+                } else {
+                    if (data.errors) {
+                        let errorMsg = 'Validation errors:\n';
+                        for (let field in data.errors) {
+                            errorMsg += `- ${data.errors[field]}\n`;
+                        }
+                        showNotification(errorMsg, 'error');
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to update vehicle. Please try again.', 'error');
+            });
+        }
+
+        function setActiveVehicle(vehicleId) {
+            if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
+                fetch('<?php echo ROOT; ?>/TransporterDashboard/setActiveVehicle/' + vehicleId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        loadVehicles();
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Failed to set active vehicle. Please try again.', 'error');
+                });
+            }
+        }
+
+        function deleteVehicleConfirm(vehicleId) {
+            if (confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
+                fetch('<?php echo ROOT; ?>/TransporterDashboard/deleteVehicle/' + vehicleId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        loadVehicles();
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Failed to delete vehicle. Please try again.', 'error');
+                });
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
     </script>
 </body>
-
 </html>

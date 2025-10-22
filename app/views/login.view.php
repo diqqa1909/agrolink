@@ -91,7 +91,44 @@
         window.APP_ROOT = "<?= ROOT ?>";
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <!-- <script src="<?= ROOT ?>/assets/js/auth.js"></script> -->
+    <!-- Debug logging for login submit (does not prevent submit) -->
+    <script>
+        (function(){
+            const form = document.getElementById('loginForm');
+            if (!form) {
+                console.warn('[LoginForm] not found on page');
+                return;
+            }
+            console.log('[LoginForm] script attached', {
+                method: form.method,
+                action: form.action || 'current URL',
+                time: new Date().toISOString()
+            });
+            form.addEventListener('submit', function(){
+                try {
+                    const fd = new FormData(form);
+                    const email = fd.get('email');
+                    const password = fd.get('password');
+                    const emailInput = document.getElementById('email');
+                    const passwordInput = document.getElementById('password');
+                    console.log('[LoginForm] submit event', {
+                        hasEmail: !!email,
+                        hasPassword: !!password,
+                        emailValue: email,
+                        passwordLength: password ? String(password).length : 0,
+                        rawEmailInput: emailInput ? emailInput.value : null,
+                        rawPasswordLength: passwordInput ? String(passwordInput.value).length : null,
+                        method: form.method,
+                        action: form.action || window.location.href,
+                        userAgent: navigator.userAgent,
+                        time: new Date().toISOString()
+                    });
+                } catch (err) {
+                    console.error('[LoginForm] error reading form data', err);
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>
