@@ -153,12 +153,12 @@
                 <!-- Stats Grid -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                       <!-- <div class="stat-icon primary">📦</div>-->
+                        <!-- <div class="stat-icon primary">📦</div>-->
                         <div class="stat-number">8</div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
-                       <!-- <div class="stat-icon warning">⏳</div>-->
+                        <!-- <div class="stat-icon warning">⏳</div>-->
                         <div class="stat-number">3</div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
@@ -168,7 +168,7 @@
                         <div class="stat-label">Total Spent</div>
                     </div>
                     <div class="stat-card">
-                       <!-- <div class="stat-icon info">❤️</div>-->
+                        <!-- <div class="stat-icon info">❤️</div>-->
                         <div class="stat-number">12</div>
                         <div class="stat-label">Wishlist Items</div>
                     </div>
@@ -397,9 +397,9 @@
                                         <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($product->image) ?>"
                                             alt="<?= htmlspecialchars($product->name) ?>">
                                     <?php else: ?>
-                                        <div class="product-placeholder">
-                                            <?= getCategoryEmoji($product->category) ?>
-                                        </div>
+                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
+                                            alt="<?= htmlspecialchars($product->name) ?>"
+                                            style="opacity: 0.6;">
                                     <?php endif; ?>
                                 </div>
 
@@ -828,20 +828,3 @@
 </body>
 
 </html>
-
-<?php
-// Helper function for category emojis
-function getCategoryEmoji($category)
-{
-    $emojis = [
-        'vegetables' => '🥬',
-        'fruits' => '🍎',
-        'cereals' => '🌾',
-        'legumes' => '🫘',
-        'spices' => '🌶️',
-        'yams' => '🍠',
-        'leafy' => '🥬'
-    ];
-    return $emojis[strtolower($category)] ?? '🌱';
-}
-?>
