@@ -17,7 +17,7 @@
                     return $result;
                 }
             }
-            return false;
+            return 1;
         }
 
         public function get_row($query, $data=[]){

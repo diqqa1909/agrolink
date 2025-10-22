@@ -9,7 +9,7 @@
         public $errors = [];
 
         public function findAll(){
-            $query = "select * from $this->table order by $this->order_column $this->order_type limit $this->limit offset $this->offset";
+            $query = "select * from $this->table order by $this->order_column $this->order_type";
             
             return $this->query($query);
         }
@@ -33,28 +33,31 @@
             return $this->query($query, $data);
         }
 
-        public function first($data, $data_not=[]){
-            $keys = array_keys($data);
-            $keys_not = array_keys($data_not);
-            $query = "select * from $this->table where ";
+        public function first($data, $data_not = []) {
+    $keys = array_keys($data);
+    $keys_not = array_keys($data_not);
+    $query = "select * from $this->table where ";
 
-            foreach ($keys as $key) {
-                $query .= $key . " = :". $key . " && ";
-            }
+    foreach ($keys as $key) {
+        $query .= $key . " = :" . $key . " && ";
+    }
 
-            foreach ($keys_not as $key) {
-                $query .= $key . " != :". $key . " && ";
-            }
+    foreach ($keys_not as $key) {
+        $query .= $key . " != :" . $key . " && ";
+    }
 
-            $query = trim($query," && ");
-            $query .= " limit $this->limit offset $this->offset";
-            $data = array_merge($data, $data_not);
-            $result = $this->query($query, $data);
-            if($result){
-                return $result[0];
-            }
-            return false;
-        }
+    $query = trim($query, " && ");
+    $query .= " limit $this->limit offset $this->offset";
+    $data = array_merge($data, $data_not);
+    $result = $this->query($query, $data);
+    
+    // Fix: Add proper array validation
+    if ($result && is_array($result) && count($result) > 0) {
+        return $result[0];
+    }
+    
+    return false; // Return false instead of 1 for better consistency
+}
 
         public function insert($data){
 
@@ -71,7 +74,7 @@
             $query = "insert into $this->table (".implode(",", $keys).") values (:".implode(",:", $keys).")";
             
             $this->query($query, $data);
-            return false;
+            return 1;
         }
 
         public function update($id, $data, $id_column = 'id'){
@@ -98,7 +101,7 @@
             $data[$id_column] = $id;
             
             $this->query($query, $data);
-            return false;
+            return 1;
         }
 
         public function delete($id, $id_column = 'id'){
@@ -107,6 +110,6 @@
             
             //echo $query;
             $this->query($query, $data);
-            return false;
+            return 1;
         }
     }

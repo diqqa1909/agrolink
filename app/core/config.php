@@ -1,6 +1,6 @@
 <?php
     if ($_SERVER['SERVER_NAME']=='localhost') {
-        define ('ROOT', 'http://localhost/agrolink/public');
+        define ('ROOT', 'http://localhost/agrolinknew/public');
 
         define ('DBHOST', 'localhost');
         define ('DBNAME', 'agrolink');

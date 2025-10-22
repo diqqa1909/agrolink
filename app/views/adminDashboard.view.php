@@ -13,16 +13,19 @@
             <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
         </div>
         <div class="user-section">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">AD</div>
-                <div class="user-details">
-                    <div class="user-name" id="adminName">Admin</div>
+            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
+                <div>
+                    <div class="user-avatar" id="userAvatar">AD</div>
+
+                </div>
+                <div>
+                    <div class="user-name" id="adminName"><?=$username?></div>
                     <div class="user-role">Admin</div>
                 </div>
-            </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </nav>
+    
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
@@ -127,7 +130,7 @@
                 <!-- Key Metrics -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-number" id="totalUsers"></div>
                         <div class="stat-label">Total Users</div>
                     </div>
                     <div class="stat-card">
@@ -138,10 +141,10 @@
                         <div class="stat-number" id="totalRevenue">Rs. 0</div>
                         <div class="stat-label">Total Revenue</div>
                     </div>
-                    <div class="stat-card">
+                    <!-- <div class="stat-card">
                         <div class="stat-number" id="systemHealth">98%</div>
                         <div class="stat-label">System Health</div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- User Distribution -->
@@ -149,28 +152,28 @@
                     <div class="card text-center">
                         <div style="padding: var(--spacing-lg);">
                             <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">👨‍🌾</div>
-                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="farmerCount">0</div>
+                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="farmerCount"><?php show($farmers);?></div>
                             <div style="color: var(--dark-gray);">Farmers</div>
                         </div>
                     </div>
                     <div class="card text-center">
                         <div style="padding: var(--spacing-lg);">
                             <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">🛒</div>
-                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="buyerCount">0</div>
+                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="buyerCount"><?php show($buyers);?></div>
                             <div style="color: var(--dark-gray);">Buyers</div>
                         </div>
                     </div>
                     <div class="card text-center">
                         <div style="padding: var(--spacing-lg);">
                             <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">🚚</div>
-                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="transporterCount">0</div>
+                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="transporterCount"><?php show($transporters);?></div>
                             <div style="color: var(--dark-gray);">Transporters</div>
                         </div>
                     </div>
                     <div class="card text-center">
                         <div style="padding: var(--spacing-lg);">
                             <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">👑</div>
-                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="adminCount">0</div>
+                            <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-green);" id="adminCount"><?php show($admins);?></div>
                             <div style="color: var(--dark-gray);">Admins</div>
                         </div>
                     </div>
@@ -222,7 +225,7 @@
                     <h1>👥 User Management</h1>
                     <div style="display: flex; gap: var(--spacing-sm);">
                         <button class="btn btn-secondary" onclick="exportUsers()">📥 Export Users</button>
-                        <button class="btn btn-primary" data-modal="addUserModal">➕ Add User</button>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
                     </div>
                 </div>
 
@@ -243,7 +246,7 @@
                                 <option value="admin">Admins</option>
                             </select>
                         </div>
-                        <div class="filter-group">
+                        <!-- <div class="filter-group">
                             <label for="statusFilter">Status</label>
                             <select id="statusFilter" class="form-control">
                                 <option value="">All Status</option>
@@ -262,7 +265,7 @@
                                 <option value="Galle">Galle</option>
                                 <option value="Matale">Matale</option>
                             </select>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
@@ -275,12 +278,12 @@
                                 <th data-sort="name">Name</th>
                                 <th data-sort="email">Email</th>
                                 <th data-sort="role">Role</th>
-                                <th data-sort="location">Location</th>
-                                <th data-sort="status">Status</th>
-                                <th data-sort="created">Registration Date</th>
+                                <!-- <th data-sort="location">Location</th>
+                                <th data-sort="status">Status</th> -->
                                 <th>Actions</th>
                             </tr>
                         </thead>
+                        <div class="message" id="message"></div>
                         <tbody id="usersTableBody">
                             <!-- Users will be populated by JavaScript -->
                         </tbody>
@@ -928,10 +931,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>➕ Add New User</h3>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="addUserForm">
+                    <div class="message" id="addUserMessage"></div>
                     <div class="grid grid-2">
                         <div class="form-group">
                             <label for="userName">Full Name *</label>
@@ -955,19 +959,72 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="userPhone">Phone</label>
-                            <input type="tel" id="userPhone" name="phone" class="form-control">
+                            <label for="userPass">Password *</label>
+                            <input type="password" id="userPass" name="password" class="form-control" required minlength="8">
+                            <small class="form-text">Minimum 8 characters</small>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="userLocation">Location</label>
-                        <input type="text" id="userLocation" name="location" class="form-control">
+
+                    <div id="addUserFormErrors" style="display: none; color: red; margin-bottom: 15px; padding: 10px; background: #ffe6e6; border-radius: 4px;">
+                        <!-- Validation errors will appear here -->
                     </div>
                     
                     <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Add User</button>
-                        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATE User Modal -->
+    <div id="updateUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update User</h3>
+                <button class="modal-close" onclick="closeUpdateUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="updateUserForm">
+                    <div class="message" id="updateUserMessage"></div>
+                    <input type="hidden" id="updateUserId" name="id">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="updateName">Full Name *</label>
+                            <input type="text" id="updateName" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateEmail">Email *</label>
+                            <input type="email" id="updateEmail" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="updateRole">Role *</label>
+                            <select id="updateRole" name="role" class="form-control" required>
+                                <option value="">Select Role</option>
+                                <option value="farmer">Farmer</option>
+                                <option value="buyer">Buyer</option>
+                                <option value="transporter">Transporter</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="updatePass">Password *</label>
+                            <input type="password" id="updatePass" name="password" class="form-control" required minlength="8">
+                            <small class="form-text">Minimum 8 characters</small>
+                        </div>
+                    </div>
+
+                    <div id="updateUserFormErrors" style="display: none; color: red; margin-bottom: 15px; padding: 10px; background: #ffe6e6; border-radius: 4px;">
+                        <!-- Validation errors will appear here -->
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                        <button type="submit" class="btn btn-primary" id="updateSubmitBtn">Update User</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeUpdateUserModal()">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -1038,6 +1095,7 @@
                 window.location.href = 'auth/logout.php';
             }
         }
+        
         // Remove authentication check to allow dashboard access without login
         document.addEventListener('DOMContentLoaded', function() {
             initAdminDashboard();
@@ -1045,13 +1103,6 @@
 
         // Initialize admin dashboard
         function initAdminDashboard() {
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            if (user && document.getElementById('adminName')) {
-                document.getElementById('adminName').textContent = user.name || 'Admin';
-            } else if (document.getElementById('adminName')) {
-                document.getElementById('adminName').textContent = 'Admin';
-            }
-            
             loadDashboardData();
             loadUsers();
             loadOrders();
@@ -1104,17 +1155,6 @@
         // Load dashboard data
         function loadDashboardData() {
             // Mock data - in real app, fetch from APIs
-            document.getElementById('totalUsers').textContent = '247';
-            document.getElementById('activeOrders').textContent = '18';
-            document.getElementById('totalRevenue').textContent = 'Rs. 1,245,500';
-            
-            // User counts by role
-            document.getElementById('farmerCount').textContent = '89';
-            document.getElementById('buyerCount').textContent = '134';
-            document.getElementById('transporterCount').textContent = '21';
-            document.getElementById('adminCount').textContent = '3';
-            
-            // Recent orders
             document.getElementById('recentOrders').innerHTML = `
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-007</div>
@@ -1144,36 +1184,26 @@
         }
 
         // Load users data
-        function loadUsers() {
+        function loadUsers(){
             const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = `
-                <tr>
-                    <td>#USR-001</td>
-                    <td>Ranjith Fernando</td>
-                    <td>ranjith@email.com</td>
-                    <td><span class="badge badge-success">Farmer</span></td>
-                    <td>Matale</td>
-                    <td><span class="badge badge-success">Active</span></td>
-                    <td>2024-12-15</td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" onclick="viewUser('USR-001')">View</button>
-                        <button class="btn btn-sm btn-warning" onclick="suspendUser('USR-001')">Suspend</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>#USR-002</td>
-                    <td>Kumari Silva</td>
-                    <td>kumari@email.com</td>
-                    <td><span class="badge badge-info">Buyer</span></td>
-                    <td>Colombo</td>
-                    <td><span class="badge badge-success">Active</span></td>
-                    <td>2024-12-20</td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" onclick="viewUser('USR-002')">View</button>
-                        <button class="btn btn-sm btn-warning" onclick="suspendUser('USR-002')">Suspend</button>
-                    </td>
-                </tr>
-            `;
+            const users = <?=json_encode($users)?>; //convert php array to js object
+
+            let html = '';
+            users.forEach(user => {
+                html += `
+                    <tr>
+                        <td>${user.id || 'N/A'}</td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td><span class="badge badge-${user.role === 'farmer' ? 'success' : user.role === 'buyer' ? 'info' : user.role === 'transporter' ? 'warning' : 'danger'}">${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="openUpdateUserModal('${user.id}')">View</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
         }
 
         // Load orders data
@@ -1248,18 +1278,6 @@
 
         // Setup forms
         function setupForms() {
-            // Add user form
-            const addUserForm = document.getElementById('addUserForm');
-            if (addUserForm) {
-                addUserForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    showNotification?.('User added successfully!', 'success');
-                    closeModal?.('addUserModal');
-                    this.reset();
-                    loadUsers();
-                });
-            }
-            
             // Send notification form
             const sendNotificationForm = document.getElementById('sendNotificationForm');
             if (sendNotificationForm) {
@@ -1280,17 +1298,75 @@
                 });
             }
         }
-
-        // Admin-specific functions
-        function viewUser(userId) {
-            showNotification?.('User details modal will be implemented', 'info');
+        
+        // Function to reload table
+        async function reloadTable() {
+            try {
+                const response = await fetch('<?=ROOT?>/users/getTable');
+                const html = await response.text();
+                document.getElementById('users-table-body').innerHTML = html;
+                attachDeleteListeners(); // Re-attach event listeners
+            } catch (error) {
+                console.error('Error reloading table:', error);
+            }
         }
 
+        // Function to attach delete button listeners
+        function attachDeleteListeners() {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-userid');
+                    deleteUser(userId);
+                });
+            });
+        }
+
+        // Initial attachment
+        document.addEventListener('DOMContentLoaded', function() {
+            attachDeleteListeners();
+        });
+
+        // Admin-specific functions
         function suspendUser(userId) {
             if (confirm('Are you sure you want to suspend this user?')) {
                 showNotification?.('User suspended successfully', 'warning');
                 loadUsers();
             }
+        }
+
+        async function deleteUser(userId){
+            if(!confirm('Are you sure you want to delete this user? This action cannot be undone.')){
+                return;
+            }
+
+            try {
+                const response = await fetch('<?=ROOT?>/adminDashboard/deleteUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({user_id: userId})
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('User deleted successfully', 'success');
+                    updateUserCount();
+                    window.location.reload();
+                } else {
+                    showNotification(result.message || 'Error deleting user', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Optional: Notification function
+        function showNotification(message, type) {
+            // Your notification implementation
+            alert(message); // Simple alert for demo
         }
 
         function viewOrder(orderId) {
@@ -1365,6 +1441,171 @@
             function closeModal(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) modal.style.display = 'none';
+            }
+        }
+
+        //////////////////MY FUNCTIONS////////////////////
+        async function updateUserCount(){
+            try {
+                const response = await fetch('<?=ROOT?>/adminDashboard/updateUserCount');
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('totalUsers').textContent = result.userCount;
+                }
+            } catch (error) {
+                console.error('Error loading user content:', error);
+            }
+        }
+
+        //update count every 30s
+        document.addEventListener('DOMContentLoaded', function(){
+            updateUserCount();
+            setInterval(updateUserCount, 30000);
+        });
+
+        // Function to open Add User Modal
+        function openAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('addUserForm').reset();
+            document.getElementById('addUserMessage').style.display = 'none';
+            document.getElementById('addUserFormErrors').style.display = 'none';
+        }
+
+        // Function to close Add User Modal
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('addUserForm').reset();
+        }
+
+        // Function to open Update User Modal
+        async function openUpdateUserModal(userId) {
+            try {
+                const response = await fetch(`<?=ROOT?>/adminDashboard/getUser/${userId}`);
+                const result = await response.json();
+
+                if(result.success){
+                    populateUpdateModal(result.data);
+                    document.getElementById('updateUserModal').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    showMessage(result.message || 'Failed to load user details', 'error');
+                }
+            } catch(error) {
+                console.error('Error loading user details:', error);
+                showMessage('Network error occurred', 'error');
+            }
+        }
+
+        // Function to close Update User Modal
+        function closeUpdateUserModal() {
+            document.getElementById('updateUserModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('updateUserForm').reset();
+        }
+
+        // Function to populate update modal
+        function populateUpdateModal(user) {
+            document.getElementById('updateUserId').value = user.id;
+            document.getElementById('updateName').value = user.name;
+            document.getElementById('updateEmail').value = user.email;
+            document.getElementById('updateRole').value = user.role;
+            document.getElementById('updatePass').value = ''; // Clear password field for security
+            document.getElementById('updateUserMessage').style.display = 'none';
+            document.getElementById('updateUserFormErrors').style.display = 'none';
+        }
+
+        // Add User Form submission
+        document.getElementById('addUserForm').addEventListener('submit', async function(e){
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('<?=ROOT?>/adminDashboard/register',{
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                showMessage(result.message, result.success ? 'success' : 'error', 'addUserMessage');
+
+                if (result.success) {
+                    showNotification('User added successfully!', 'success');
+                    closeAddUserModal();
+                    this.reset();
+                    updateUserCount();
+                    window.location.reload();
+                } else {
+                    // Show validation errors
+                    if (result.errors) {
+                        let errorHtml = '<strong>Please fix the following errors:</strong><ul>';
+                        for (const error in result.errors) {
+                            errorHtml += `<li>${result.errors[error]}</li>`;
+                        }
+                        errorHtml += '</ul>';
+                        document.getElementById('addUserFormErrors').innerHTML = errorHtml;
+                        document.getElementById('addUserFormErrors').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Network error occurred. Please try again.', 'error', 'addUserMessage');
+            }
+        });
+
+        // Update User Form submission
+        document.getElementById('updateUserForm').addEventListener('submit', async function(e){
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('<?=ROOT?>/adminDashboard/updateUser',{
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if(result.success){
+                    showMessage('User updated successfully!', 'success', 'updateUserMessage');
+                    closeUpdateUserModal();
+                    loadUsers(); // Refresh the user list
+                    window.location.reload();
+                } else {
+                    showMessage(result.message || 'Failed to update user', 'error', 'updateUserMessage');
+                    // Show validation errors
+                    if (result.errors) {
+                        let errorHtml = '<strong>Please fix the following errors:</strong><ul>';
+                        for (const error in result.errors) {
+                            errorHtml += `<li>${result.errors[error]}</li>`;
+                        }
+                        errorHtml += '</ul>';
+                        document.getElementById('updateUserFormErrors').innerHTML = errorHtml;
+                        document.getElementById('updateUserFormErrors').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showMessage('Network error while updating user', 'error', 'updateUserMessage');
+            }
+        });
+
+        function showMessage(message, type, elementId = 'message') {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
             }
         }
     </script>
