@@ -120,7 +120,7 @@
             <div id="dashboard-section" class="content-section">
                 <h1 style="margin-bottom: 20px; font-size: 2rem;">Dashboard Overview</h1>
                 <p style="color: #666; font-size: 1rem; margin-bottom: 36px;">
-                    Welcome back, <span id="welcomeUserName" style="font-weight: 600; color: #000000ff;"><?php echo isset($username) ? htmlspecialchars($username) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.
+                    Welcome , <span id="welcomeUserName" style="font-weight: 600; color: #000000ff;"><?php echo isset($username) ? htmlspecialchars($username) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.
                 </p>
                 
                 <div class="dashboard-stats" style="margin-bottom: 36px;">
@@ -1143,10 +1143,6 @@
                                         <div style="color: #666; margin-bottom: 20px;">
                                             ${vehicle.status === 'active' ? 'Available for delivery' : vehicle.status === 'maintenance' ? 'Under maintenance' : 'Not available'}
                                         </div>
-                                        <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                                            <span class="badge badge-${statusClass}">${statusText.toUpperCase()}</span>
-                                            ${vehicle.status === 'active' ? '<span class="badge badge-info">GPS ENABLED</span>' : ''}
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1258,10 +1254,10 @@
 
         function showEditVehicleModal(vehicle) {
             const modalHtml = `
-                <div id="editVehicleModal" class="modal" style="display: block;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
+                <div id="editVehicleModal" class="modal" style="display: flex; align-items: center; justify-content: center;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
                     <div class="modal-content" onclick="event.stopPropagation()">
                         <div class="modal-header">
-                            <h3>✏️ Edit Vehicle</h3>
+                            <h3>Edit Vehicle</h3>
                             <button class="modal-close" onclick="closeEditModal()">&times;</button>
                         </div>
                         <div class="modal-body">
@@ -1314,7 +1310,7 @@
                                     </select>
                                 </div>
                                 
-                                <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                                <div style="display: flex; gap: 20px; margin-top: var(--spacing-lg);">
                                     <button type="submit" class="btn btn-primary">Update Vehicle</button>
                                     <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
                                 </div>
