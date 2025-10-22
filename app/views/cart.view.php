@@ -105,12 +105,12 @@
                                                 <!-- Quantity Controls -->
                                                 <div class="quantity-controls">
                                                     <button class="quantity-btn quantity-decrease"
-                                                        onclick="updateQuantity('<?= $item->product_id ?>', <?= $item->quantity - 1 ?>)">
+                                                        onclick="updateCartQuantity('<?= $item->product_id ?>', -1)">
                                                         -
                                                     </button>
                                                     <span class="quantity-display"><?= $item->quantity ?></span>
                                                     <button class="quantity-btn quantity-increase"
-                                                        onclick="updateQuantity('<?= $item->product_id ?>', <?= $item->quantity + 1 ?>)">
+                                                        onclick="updateCartQuantity('<?= $item->product_id ?>', 1)">
                                                         +
                                                     </button>
                                                 </div>
