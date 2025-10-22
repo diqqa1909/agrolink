@@ -1,3 +1,4 @@
+
 <!-- Header -->
     <header class="header">
         <nav class="nav container">
@@ -11,7 +12,7 @@
                 <a href="#roles">User Roles</a>
                 <a href="#contact">Contact</a>
             </div>
-            <div class="welcome-text">
+            <!--<div class="welcome-text">
                 <?php 
                 if(!empty($username)){?>
                     <div class="nav-actions">
@@ -24,8 +25,12 @@
             <?php if(empty($username)): ?>
                 <div class="nav-actions">
                     <a href="<?=ROOT?>/login" class="btn btn-secondary login-link">Login</a>
-                    <a href="#register" class="btn btn-primary" data-modal="registerModal">Register</a>
+                    <a href="<?=ROOT?>/register" class="btn btn-primary">Register</a>
                 </div>
-            <?php endif ?>
+            <?php endif ?>-->
+            <div class="nav-actions">
+                <a href="<?=ROOT?>/login" class="btn btn-secondary login-link">Login</a>
+                <a href="<?=ROOT?>/register" class="btn btn-primary">Register</a>
+            </div>
         </nav>
     </header>

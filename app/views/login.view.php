@@ -1,154 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AgroLink</title>
-    <link rel="stylesheet" href="<?=ROOT?>/assets/css/style.css">
-</head>
-<body>
-    <!-- Header -->
-    <!-- <header class="header">
-        <nav class="nav container">
-            <div class="logo">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTAgMzBMMjAgMTBMMzAgMzBIMTBaIiBmaWxsPSIjNENBRjUwIi8+CjxwYXRoIGQ9Ik0xNSAyNUwyMCAxNUwyNSAyNUgxNVoiIGZpbGw9IiNGRkZGRkYiLz4KPHRleHQgeD0iMzgiIHk9IjI2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjNENBRjUwIj5BZ3JvTGluazwvdGV4dD4KPC9zdmc+" alt="AgroLink" style="height: 40px;">
-            </div>
-            <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#about">About</a>
-                <a href="index.html#features">Features</a>
-                <a href="products.html">Products</a>
-            </div>
-            <div class="nav-actions">
-                <a href="#register" class="btn btn-primary" data-modal="registerModal">Register</a>
-            </div>
-        </nav>
-    </header> -->
 
-    <!-- Login Section -->
-    <section class="section" style="min-height: 70vh; display: flex; align-items: center;">
-        <div class="container">
-            <div class="form-container">
-                <div class="text-center mb-lg">
-                    <h1>Welcome Back to AgroLink</h1>
-                    <p class="text-muted">Sign in to access your dashboard</p>
-                </div>
-                
-                <form id="loginForm" method="POST">
-                    <?php if(!empty($errors)):?>
-            <div class="alert">
-                <?= implode("<br>", $errors)?>
-            </div>
-            <?php endif?>
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" class="form-control" required>
-                    </div>
-                    
-                    
-                    
-                    <button type="submit" class="btn btn-primary w-full btn-large">Sign In</button>
-                </form>
-                
-                <div class="text-center mt-lg">
-                    <p>Don't have an account? <a href="<?=ROOT?>/register" data-modal="registerModal" class="text-primary">Register here</a></p>
-                    <p><a href="#forgot" class="text-muted">Forgot your password?</a></p>
-                </div>
-                
-                <!-- Demo Accounts -->
-                <!-- <div class="mt-xl">
-                    <h3 class="text-center mb-md">Demo Accounts</h3>
-                    <div class="grid grid-2">
-                        <div class="card p-md">
-                            <h4>🧑‍🌾 Farmer Demo</h4>
-                            <p class="text-muted">Email: farmer@demo.com<br>Password: demo123</p>
-                            <button onclick="loginDemo('farmer')" class="btn btn-secondary btn-sm w-full">Login as Farmer</button>
-                        </div>
-                        <div class="card p-md">
-                            <h4>🛒 Buyer Demo</h4>
-                            <p class="text-muted">Email: buyer@demo.com<br>Password: demo123</p>
-                            <button onclick="loginDemo('buyer')" class="btn btn-secondary btn-sm w-full">Login as Buyer</button>
-                        </div>
-                        <div class="card p-md">
-                            <h4>🚚 Transporter Demo</h4>
-                            <p class="text-muted">Email: transporter@demo.com<br>Password: demo123</p>
-                            <button onclick="loginDemo('transporter')" class="btn btn-secondary btn-sm w-full">Login as Transporter</button>
-                        </div>
-                        <div class="card p-md">
-                            <h4>🛠️ Admin Demo</h4>
-                            <p class="text-muted">Email: admin@demo.com<br>Password: demo123</p>
-                            <button onclick="loginDemo('admin')" class="btn btn-secondary btn-sm w-full">Login as Admin</button>
-                        </div>
-                    </div>
-                </div> -->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - AgroLink</title>
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style1.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet" />
+</head>
+
+<body>
+    <div class="split-container">
+        <!-- Left: Quote & Image -->
+        <div
+            class="split-left"
+            style="
+                background: url('<?= ROOT ?>/assets/imgs/registerpage/register4.jpg') center
+                center/cover no-repeat;
+            ">
+            <span class="quote-icon">&ldquo;</span>
+            <div class="split-left-content">
+                <p>
+                    Welcome back to AgroLink.<br />
+                    Your gateway to Sri Lanka's agricultural marketplace.
+                </p>
             </div>
         </div>
-    </section>
 
-    <!-- Registration Modal -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Choose Registration Type</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Select your role to get started with AgroLink:</p>
-                <div class="grid grid-3 mt-lg">
-                    <a href="register_farmer.html" class="card text-center" style="text-decoration: none;">
-                        <div class="card-icon"></div>
-                        <h4>Farmer</h4>
-                        <p>List and sell your produce</p>
-                    </a>
-                    <a href="register_buyer.html" class="card text-center" style="text-decoration: none;">
-                        <div class="card-icon">🛒</div>
-                        <h4>Buyer</h4>
-                        <p>Purchase fresh produce</p>
-                    </a>
-                    <a href="register_transporter.html" class="card text-center" style="text-decoration: none;">
-                        <div class="card-icon">🚚</div>
-                        <h4>Transporter</h4>
-                        <p>Provide delivery services</p>
-                    </a>
+        <!-- Right: Login Form -->
+        <div class="split-right">
+            <div class="form-box">
+                <?php if (!empty($errors)): ?>
+                    <div class="alert">
+                        <?= implode("<br>", $errors) ?>
+                    </div>
+                <?php endif ?>
+
+                <h1>Welcome Back</h1>
+                <div class="subtitle">
+                    Sign in to access your dashboard
+                </div>
+
+                <form id="loginForm" method="POST" autocomplete="off">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="form-control"
+                            required
+                            placeholder="you@example.com" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-control"
+                            required
+                            placeholder="********" />
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center" style="margin-top: 1.5rem;">
+                    Don't have an account?
+                    <a href="<?= ROOT ?>/register">Register here</a>
+                </div>
+
+                <div class="text-center" style="margin-top: 0.5rem;">
+                    <a href="#forgot" class="text-muted">Forgot your password?</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-bottom">
-                <p>&copy; 2025 AgroLink - UCSC Project. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- <script src="assets/js/main.js"></script> -->
     <script>
-        // Demo login function
-        function loginDemo(role) {
-            const demoAccounts = {
-                farmer: { email: 'farmer@demo.com', password: 'demo123' },
-                buyer: { email: 'buyer@demo.com', password: 'demo123' },
-                transporter: { email: 'transporter@demo.com', password: 'demo123' },
-                admin: { email: 'admin@demo.com', password: 'demo123' }
-            };
-            
-            const account = demoAccounts[role];
-            if (account) {
-                document.getElementById('email').value = account.email;
-                document.getElementById('password').value = account.password;
-                document.getElementById('role').value = role;
-                
-                showNotification(`Demo ${role} account loaded! Click Sign In to continue.`, 'success');
-            }
-        }
+        window.APP_ROOT = "<?= ROOT ?>";
     </script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <!-- <script src="<?= ROOT ?>/assets/js/auth.js"></script> -->
 </body>
+
 </html>

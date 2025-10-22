@@ -1,7 +1,12 @@
 <?php
-    class _404{
-        use Controller;
-        public function index(){
-            echo '404 Controller';
-        }
+
+class _404
+{
+    use Controller;
+
+    public function index()
+    {
+        http_response_code(404);
+        $this->view('404');
     }
+}

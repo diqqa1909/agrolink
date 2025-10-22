@@ -12,5 +12,5 @@
                 $filename = "../app/views/404.view.php";
                 require $filename;
             }
-    }
+        }
     }
