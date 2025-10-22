@@ -489,13 +489,67 @@ body {
 
 /* Badge for cart count */
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background-color: var(--primary-color);
   color: var(--white);
-  border-radius: 50%;
-  padding: 2px 8px;
+  border-radius: 4px;
+  padding: 6px 12px;
   font-size: 0.75rem;
   font-weight: 700;
   margin-left: auto;
+}
+
+.badge::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background-color: currentColor;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.badge-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.badge-success::before {
+  background-color: #4caf50;
+}
+
+.badge-warning {
+  background-color: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffe082;
+}
+
+.badge-warning::before {
+  background-color: #ffc107;
+}
+
+.badge-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.badge-info::before {
+  background-color: #2196f3;
+}
+
+.badge-danger, .badge-secondary {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.badge-danger::before, .badge-secondary::before {
+  background-color: #f44336;
 }
 
 /* Cart count pill */
@@ -713,31 +767,63 @@ table td {
 }
 
 .order-status {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
+.order-status::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 .order-status.delivered {
-  background-color: #c8e6c9;
+  background-color: #e8f5e9;
   color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.order-status.delivered::before {
+  background-color: #4caf50;
 }
 
 .order-status.pending {
-  background-color: #fff9c4;
+  background-color: #fff8e1;
   color: #f57f17;
+  border: 1px solid #ffe082;
+}
+
+.order-status.pending::before {
+  background-color: #ffc107;
 }
 
 .order-status.shipped {
-  background-color: #bbdefb;
+  background-color: #e3f2fd;
   color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.order-status.shipped::before {
+  background-color: #2196f3;
 }
 
 .order-status.cancelled {
-  background-color: #ffcdd2;
+  background-color: #ffebee;
   color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.order-status.cancelled::before {
+  background-color: #f44336;
 }
 
 .order-details {
