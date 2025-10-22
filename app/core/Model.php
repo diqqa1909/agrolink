@@ -9,7 +9,7 @@
         public $errors = [];
 
         public function findAll(){
-            $query = "select * from $this->table order by $this->order_column $this->order_type limit $this->limit offset $this->offset";
+            $query = "select * from $this->table order by $this->order_column $this->order_type";
             
             return $this->query($query);
         }
@@ -53,7 +53,7 @@
             if($result){
                 return $result[0];
             }
-            return false;
+            return 1;
         }
 
         public function insert($data){
@@ -71,7 +71,7 @@
             $query = "insert into $this->table (".implode(",", $keys).") values (:".implode(",:", $keys).")";
             
             $this->query($query, $data);
-            return false;
+            return 1;
         }
 
         public function update($id, $data, $id_column = 'id'){
@@ -98,7 +98,7 @@
             $data[$id_column] = $id;
             
             $this->query($query, $data);
-            return false;
+            return 1;
         }
 
         public function delete($id, $id_column = 'id'){
@@ -107,6 +107,6 @@
             
             //echo $query;
             $this->query($query, $data);
-            return false;
+            return 1;
         }
     }

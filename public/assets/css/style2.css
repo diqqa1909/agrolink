@@ -1882,3 +1882,62 @@ table td {
         width: 100%;
     }
 }
+
+/* Ensure cards in dashboard-stats have equal height and proper spacing */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+}
+
+.dashboard-stats .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.dashboard-stats .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Text center utility */
+.text-center {
+    text-align: center;
+}
+
+/* Notification styles */
+.notification {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border-left: 4px solid;
+}
+
+.notification.warning {
+    background-color: #fff8e1;
+    border-left-color: var(--warning);
+    color: #f57f17;
+}
+
+.notification.success {
+    background-color: #e8f5e9;
+    border-left-color: var(--success);
+    color: #2e7d32;
+}
+
+.notification.info {
+    background-color: #e3f2fd;
+    border-left-color: var(--info);
+    color: #1565c0;
+}
+
+/* Card content alignment */
+.card > div:first-child {
+    flex-shrink: 0;
+}
+
+.card > div:last-child {
+    flex: 1;
+}
