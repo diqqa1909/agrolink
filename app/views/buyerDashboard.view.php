@@ -38,17 +38,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="menu-link" data-section="profile">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </div>
-                        Profile
-                    </a>
-                </li>
-                <li>
                     <a href="#" class="menu-link" data-section="products">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -138,6 +127,17 @@
                         <span class="badge">5</span>
                     </a>
                 </li>
+                <li>
+                    <a href="#" class="menu-link" data-section="profile">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        Profile
+                    </a>
+                </li>
             </ul>
         </aside>
 
@@ -153,22 +153,22 @@
                 <!-- Stats Grid -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-icon primary">📦</div>
+                       <!-- <div class="stat-icon primary">📦</div>-->
                         <div class="stat-number">8</div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon warning">⏳</div>
+                       <!-- <div class="stat-icon warning">⏳</div>-->
                         <div class="stat-number">3</div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon success">💰</div>
+                        <!--<div class="stat-icon success">💰</div>-->
                         <div class="stat-number">Rs. 28,450</div>
                         <div class="stat-label">Total Spent</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon info">❤️</div>
+                       <!-- <div class="stat-icon info">❤️</div>-->
                         <div class="stat-number">12</div>
                         <div class="stat-label">Wishlist Items</div>
                     </div>
@@ -597,10 +597,10 @@
                 <div class="products-grid">
                     <div class="product-card">
                         <div class="product-image">
-                            <div class="product-placeholder">🥕</div>
+                            <img src="<?= ROOT ?>/assets/imgs/C.jpeg" alt="Organic Carrots" class="product-image">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">Organic Carrots</h3>
+                            <h3 class="product-name">Carrots</h3>
                             <p class="product-farmer">Nimal Bandara (Nuwara Eliya)</p>
                             <div class="product-price">Rs. 200/kg</div>
                             <div class="product-stock">25kg available</div>
@@ -613,10 +613,10 @@
 
                     <div class="product-card">
                         <div class="product-image">
-                            <div class="product-placeholder">🌽</div>
+                            <img src="<?= ROOT ?>/assets/imgs/corn.jpeg" alt="Sweet Corn" class="product-image">
                         </div>
                         <div class="product-info">
-                            <h3 class="product-name">Sweet Corn</h3>
+                            <h3 class="product-name"> Corn</h3>
                             <p class="product-farmer">Lakshmi Fernando (Badulla)</p>
                             <div class="product-price">Rs. 160/kg</div>
                             <div class="product-stock">35kg available</div>
@@ -629,7 +629,7 @@
 
                     <div class="product-card">
                         <div class="product-image">
-                            <div class="product-placeholder">🍆</div>
+                            <img src="<?= ROOT ?>/assets/imgs/B.jpeg" alt="Brinjal" class="product-image">
                         </div>
                         <div class="product-info">
                             <h3 class="product-name">Brinjal</h3>

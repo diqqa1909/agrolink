@@ -19,8 +19,8 @@
     <!-- Dashboard Layout -->
     <div class="dashboard">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3 class="sidebar-title">Farmer Dashboard</h3>
+           <div class="sidebar-header"> 
+              <h3 class="sidebar-title">Farmer Dashboard</h3>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="menu-link active" data-section="overview">
