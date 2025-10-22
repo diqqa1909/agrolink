@@ -17,7 +17,7 @@
                     return $result;
                 }
             }
-            return false;
+            return 1;
         }
 
         public function get_row($query, $data=[]){
@@ -31,7 +31,7 @@
                     return $result[0];
                 }
             }
-            return false;
+            return 1;
         }
 
         // NEW: execute INSERT/UPDATE/DELETE
@@ -43,7 +43,7 @@
                 $id = $con->lastInsertId();
                 return $id ? (int)$id : true;
             }
-            return false;
+            return 1;
         }
     }
     

@@ -53,6 +53,10 @@ class LoginController
                 redirect('transporterDashboard');
                 break;
 
+            case 'admin':
+                redirect('adminDashboard');
+                break;
+
             default:
                 redirect('home');
                 break;
