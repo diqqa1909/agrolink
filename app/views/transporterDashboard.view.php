@@ -118,12 +118,12 @@
         <main class="main-content">
     
             <div id="dashboard-section" class="content-section">
-                <h1 style="margin-bottom: 12px;">Dashboard Overview</h1>
-                <p style="color: #666; font-size: 1rem; margin-bottom: 24px;">
-                    Welcome back, <span id="welcomeUserName"><?php echo isset($_SESSION['user']['name']) ? htmlspecialchars($_SESSION['user']['name']) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.
+                <h1 style="margin-bottom: 20px; font-size: 2rem;">Dashboard Overview</h1>
+                <p style="color: #666; font-size: 1rem; margin-bottom: 36px;">
+                    Welcome back, <span id="welcomeUserName" style="font-weight: 600; color: #000000ff;"><?php echo isset($username) ? htmlspecialchars($username) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.
                 </p>
                 
-                <div class="dashboard-stats">
+                <div class="dashboard-stats" style="margin-bottom: 36px;">
                     <div class="stat-card">
                         <div class="stat-number" id="availableDeliveries">0</div>
                         <div class="stat-label">Available Deliveries</div>
@@ -143,21 +143,21 @@
                 </div>
 
                 <!-- Current Status -->
-                <div class="content-card">
+                <div class="content-card" style="margin-bottom: 36px;">
                     <div class="card-header">
                         <h3 class="card-title">Current Status</h3>
                     </div>
-                    <div class="card-content">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="card-content" style="padding: 28px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px;">
                             <div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
                                     <div id="statusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #4CAF50;"></div>
                                     <span style="font-weight: 600;">Status: <span id="currentStatus">Available</span></span>
                                 </div>
-                                <div style="margin-bottom: 12px; color: #666;">
+                                <div style="margin-bottom: 18px; color: #666;">
                                     <strong>Current Location:</strong> <span id="currentLocation">Colombo</span>
                                 </div>
-                                <div style="margin-bottom: 12px; color: #666;" id="activeVehicleInfo">
+                                <div style="margin-bottom: 18px; color: #666;" id="activeVehicleInfo">
                                     <strong>Vehicle:</strong> <span id="activeVehicle">Loading...</span>
                                 </div>
                                 <div style="color: #666;">
@@ -165,13 +165,13 @@
                                 </div>
                             </div>
                             <div>
-                                <button class="btn btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="toggleAvailability()">
+                                <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="toggleAvailability()">
                                     <span id="availabilityBtn">Go Offline</span>
                                 </button>
-                                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;" onclick="updateLocation()">
+                                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="updateLocation()">
                                     Update Location
                                 </button>
-                                <button class="btn btn-outline" style="width: 100%;" onclick="showSection('available')">
+                                <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="showSection('available')">
                                     Find Deliveries
                                 </button>
                             </div>
@@ -180,20 +180,20 @@
                 </div>
 
                 <!-- Recent Activity Grid -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 0;">
                     <div class="content-card">
                         <div class="card-header">
                             <h3 class="card-title">Recent Deliveries</h3>
                         </div>
-                        <div class="card-content" id="recentDeliveries">
-                            <div style="padding: 16px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px;">
-                                <div style="font-weight: 600; margin-bottom: 4px; color: #2c3e50;">#ORD-2025-001</div>
-                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">Colombo → Kandy • Rs. 850</div>
+                        <div class="card-content" id="recentDeliveries" style="padding: 24px;">
+                            <div style="padding: 18px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 18px;">
+                                <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">#ORD-2025-001</div>
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Colombo → Kandy • Rs. 850</div>
                                 <span class="order-status delivered">DELIVERED</span>
                             </div>
-                            <div style="padding: 16px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                                <div style="font-weight: 600; margin-bottom: 4px; color: #2c3e50;">#ORD-2025-002</div>
-                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">Galle → Matara • Rs. 650</div>
+                            <div style="padding: 18px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
+                                <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">#ORD-2025-002</div>
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Galle → Matara • Rs. 650</div>
                                 <span class="order-status pending">IN PROGRESS</span>
                             </div>
                         </div>
@@ -203,12 +203,12 @@
                         <div class="card-header">
                             <h3 class="card-title">Weekly Earnings</h3>
                         </div>
-                        <div class="card-content">
-                            <div id="weeklyEarnings" style="font-size: 2rem; font-weight: 700; color: #65b57c; margin-bottom: 16px;">Rs. 12,450</div>
+                        <div class="card-content" style="padding: 24px;">
+                            <div id="weeklyEarnings" style="font-size: 3rem; font-weight: 700; color: #65b57c; margin-bottom: 28px;">Rs. 12,450</div>
                             <div style="font-size: 0.9rem; color: #666; line-height: 1.8;">
-                                <div style="margin-bottom: 8px;">✅ 12 deliveries completed</div>
-                                <div style="margin-bottom: 8px;">📦 8 deliveries pending</div>
-                                <div>⭐ 4.8 average rating</div>
+                                <div style="margin-bottom: 16px;"> 12 deliveries completed</div>
+                                <div style="margin-bottom: 16px;"> 8 deliveries pending</div>
+                                <div> 4.8 average rating</div>
                             </div>
                         </div>
                     </div>
@@ -290,22 +290,22 @@
                 </div>
 
                 <!-- Deliveries Grid -->
-                <div id="availableDeliveriesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 24px;">
+                <div id="availableDeliveriesList" style="display: flex; gap: 24px; margin-top: 28px; overflow-x: auto; padding-bottom: 16px;">
                     <!-- Populated by JavaScript -->
                 </div>
             </div>
 
             <div id="mydeliveries-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">🚛 My Deliveries</h1>
+                <h1 style="margin-bottom: 32px; font-size: 2rem;"> My Deliveries</h1>
 
-                <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap;">
-                    <button class="tab-btn active" data-status="all" onclick="filterMyDeliveries('all')" style="margin-right: 8px;">All</button>
-                    <button class="tab-btn" data-status="accepted" onclick="filterMyDeliveries('accepted')" style="margin-right: 8px;">Accepted</button>
-                    <button class="tab-btn" data-status="in-progress" onclick="filterMyDeliveries('in-progress')" style="margin-right: 8px;">In Progress</button>
-                    <button class="tab-btn" data-status="completed" onclick="filterMyDeliveries('completed')">Completed</button>
+                <div style="display: flex; gap: 20px; margin-bottom: 32px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; padding-bottom: 4px;">
+                    <button class="tab-btn active" data-status="all" onclick="filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
+                    <button class="tab-btn" data-status="accepted" onclick="filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
+                    <button class="tab-btn" data-status="in-progress" onclick="filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
+                    <button class="tab-btn" data-status="completed" onclick="filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
                 </div>
 
-                <div class="table-container">
+                <div class="table-container" style="padding: 24px; background: #fff; border-radius: 12px;">
                     <table class="table">
                         <thead>
                             <tr>
@@ -326,7 +326,7 @@
             </div>
 
             <div id="schedule-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">📅 Delivery Schedule</h1>
+                <h1 style="margin-bottom: 24px;">Delivery Schedule</h1>
 
                 <div class="content-card">
                     <div class="card-header">
@@ -359,7 +359,7 @@
 
 
             <div id="earnings-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">💰 Earnings Overview</h1>
+                <h1 style="margin-bottom: 24px;">Earnings Overview</h1>
 
                 <div class="dashboard-stats" style="margin-bottom: 24px;">
                     <div class="stat-card">
@@ -470,7 +470,7 @@
 
             <div id="vehicle-section" class="content-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1>🚗 Vehicle Management</h1>
+                    <h1> Vehicle Management</h1>
                     <button class="btn btn-primary" data-modal="addVehicleModal">➕ Add Vehicle</button>
                 </div>
 
@@ -480,7 +480,7 @@
 
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>🚗 All Vehicles</h3>
+                        <h3>  All Vehicles</h3>
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div class="table-container">
@@ -504,13 +504,13 @@
             </div>
 
             <div id="profile-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">👤 Transporter Profile</h1>
+                <h1 style="margin-bottom: 24px;">Transporter Profile</h1>
 
                 <div class="grid grid-2" style="gap: 20px;">
  
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">📋 Personal Information</h3>
+                            <h3 class="card-title">Personal Information</h3>
                         </div>
                         <div class="card-content" style="padding: 20px;">
                             <form id="personalInfoForm">
@@ -537,7 +537,7 @@
 
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">🏢 Business Information</h3>
+                            <h3 class="card-title">Business Information</h3>
                         </div>
                         <div class="card-content" style="padding: 20px;">
                             <form id="businessInfoForm">
@@ -568,7 +568,7 @@
 
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">🏦 Bank Information</h3>
+                            <h3 class="card-title">Bank Information</h3>
                         </div>
                         <div class="card-content" style="padding: 20px;">
                             <form id="bankInfoForm">
@@ -595,7 +595,7 @@
 
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">⚙️ Preferences</h3>
+                            <h3 class="card-title">Preferences</h3>
                         </div>
                         <div class="card-content" style="padding: 20px;">
                             <div class="form-group" style="margin-bottom: 16px;">
@@ -628,9 +628,9 @@
             </div>
 
             <div id="analytics-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">📈 Analytics & Performance</h1>
+                <h1 style="margin-bottom: 32px; font-size: 2rem;">Analytics & Performance</h1>
 
-                <div class="dashboard-stats">
+                <div class="dashboard-stats" style="margin-bottom: 40px;">
                     <div class="stat-card">
                         <div class="stat-number">127</div>
                         <div class="stat-label">Total Deliveries</div>
@@ -649,23 +649,23 @@
                     </div>
                 </div>
 
-                <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
+                <div class="grid grid-2" style="margin-top: 0; gap: 32px;">
                     <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📊 Monthly Performance</h3>
+                        <div style="padding: 24px; border-bottom: 1px solid var(--medium-gray);">
+                            <h3> Monthly Performance</h3>
                         </div>
-                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">📈</div>
+                        <div style="padding: 32px; text-align: center; color: var(--dark-gray);">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">📈</div>
                             <p>Monthly delivery and earnings chart</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🗺️ Popular Routes</h3>
+                        <div style="padding: 24px; border-bottom: 1px solid var(--medium-gray);">
+                            <h3> Popular Routes</h3>
                         </div>
-                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">🗺️</div>
+                        <div style="padding: 32px; text-align: center; color: var(--dark-gray);">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🗺️</div>
                             <p>Most frequent delivery routes</p>
                         </div>
                     </div>
@@ -847,12 +847,10 @@
         function loadAvailableDeliveries() {
             const container = document.getElementById('availableDeliveriesList');
             container.innerHTML = `
-                <div class="grid grid-2" style="gap: var(--spacing-lg);">
-                    ${generateDeliveryCard('ORD-2025-003', 'Colombo', 'Kandy', '25km', '15kg', 'Rs. 750', 'urgent')}
-                    ${generateDeliveryCard('ORD-2025-004', 'Matale', 'Gampaha', '45km', '30kg', 'Rs. 950', 'normal')}
-                    ${generateDeliveryCard('ORD-2025-005', 'Anuradhapura', 'Kurunegala', '60km', '22kg', 'Rs. 1200', 'normal')}
-                    ${generateDeliveryCard('ORD-2025-006', 'Galle', 'Colombo', '120km', '40kg', 'Rs. 1500', 'express')}
-                </div>
+                ${generateDeliveryCard('ORD-2025-003', 'Colombo', 'Kandy', '25km', '15kg', 'Rs. 750', 'urgent')}
+                ${generateDeliveryCard('ORD-2025-004', 'Matale', 'Gampaha', '45km', '30kg', 'Rs. 950', 'normal')}
+                ${generateDeliveryCard('ORD-2025-005', 'Anuradhapura', 'Kurunegala', '60km', '22kg', 'Rs. 1200', 'normal')}
+                ${generateDeliveryCard('ORD-2025-006', 'Galle', 'Colombo', '120km', '40kg', 'Rs. 1500', 'express')}
             `;
         }
 
@@ -869,7 +867,7 @@
             };
             
             return `
-                <div class="content-card" style="margin: 0;">
+                <div class="content-card" style="margin: 0; min-width: 350px; max-width: 350px; flex-shrink: 0;">
                     <div style="padding: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                             <h4 style="margin: 0; color: #2c3e50; font-weight: 600;">${orderId}</h4>
@@ -1119,7 +1117,7 @@
                 return `
                     <div class="content-card" style="margin-bottom: 24px;">
                         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 class="card-title">🚛 ${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
+                            <h3 class="card-title">${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
                             <span class="badge badge-${statusClass}">${statusText}</span>
                         </div>
                         <div class="card-content">
