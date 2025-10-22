@@ -300,10 +300,6 @@
                         <div class="stat-number" id="completedDeliveries">0</div>
                         <div class="stat-label">Completed</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="avgDeliveryTime">0</div>
-                        <div class="stat-label">Avg. Delivery Days</div>
-                    </div>
                 </div>
 
                 <!-- Pending Deliveries List -->
@@ -313,9 +309,7 @@
                         <div style="display:flex; gap:8px; align-items:center;">
                             <input id="deliveriesSearch" type="text" class="form-control" placeholder="Search buyer or order..." style="min-width: 220px;">
                             <select id="deliveriesSort" class="form-control">
-                                <option value="eta-asc">ETA: Soonest first</option>
-                                <option value="eta-desc">ETA: Latest first</option>
-                                <option value="status">Status</option>
+                                <option value="status" selected>Status</option>
                             </select>
                         </div>
                     </div>

@@ -734,13 +734,6 @@ function renderPendingDeliveriesList(items) {
             </div>
             
             <div class="delivery-footer">
-                <div class="delivery-eta">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 6v6l4 2"/>
-                    </svg>
-                    ETA: <span class="delivery-eta-value">${escapeHtml(i.eta)}</span>
-                </div>
                 <div class="delivery-actions">
                     <button class="btn btn-outline" onclick="viewDeliveryDetails('${i.id}')">View Details</button>
                     <button class="btn btn-primary" onclick="trackDelivery('${i.id}')">Track</button>
@@ -753,11 +746,11 @@ function renderPendingDeliveriesList(items) {
 
 function loadPendingDeliveriesData() {
     _pendingDeliveriesData = [
-        { id: 'D-3101', order: 'F2002', buyer: 'Fresh Mart Supermarket', route: 'Matale → Kandy', driver: 'Nuwan', contact: '+94 76 123 4567', eta: 'Oct 21, 2025 11:00 AM', status: 'Out for pickup' },
-        { id: 'D-3102', order: 'F2001', buyer: 'Green Leaf Restaurant', route: 'Matale → Colombo', driver: 'Kasun', contact: '+94 71 555 1234', eta: 'Oct 20, 2025 5:30 PM', status: 'Pending assignment' },
-        { id: 'D-3103', order: 'F2005', buyer: 'Green Market', route: 'Matale → Gampaha', driver: 'Pradeep', contact: '+94 77 987 6543', eta: 'Oct 19, 2025 2:00 PM', status: 'In transit' },
-        { id: 'D-3104', order: 'F2006', buyer: 'Royal Dine', route: 'Matale → Kurunegala', driver: 'Saman', contact: '+94 75 222 3344', eta: 'Oct 21, 2025 9:30 AM', status: 'Awaiting pickup' },
-        { id: 'D-3105', order: 'F2007', buyer: 'Harvest Hub', route: 'Matale → Colombo', driver: 'Ruwan', contact: '+94 70 444 7788', eta: 'Oct 22, 2025 3:15 PM', status: 'Scheduled' },
+        { id: 'D-3101', order: 'F2002', buyer: 'Fresh Mart Supermarket', route: 'Matale → Kandy', driver: 'Nuwan', contact: '+94 76 123 4567', status: 'Out for pickup' },
+        { id: 'D-3102', order: 'F2001', buyer: 'Green Leaf Restaurant', route: 'Matale → Colombo', driver: 'Kasun', contact: '+94 71 555 1234', status: 'Pending assignment' },
+        { id: 'D-3103', order: 'F2005', buyer: 'Green Market', route: 'Matale → Gampaha', driver: 'Pradeep', contact: '+94 77 987 6543', status: 'In transit' },
+        { id: 'D-3104', order: 'F2006', buyer: 'Royal Dine', route: 'Matale → Kurunegala', driver: 'Saman', contact: '+94 75 222 3344', status: 'Awaiting pickup' },
+        { id: 'D-3105', order: 'F2007', buyer: 'Harvest Hub', route: 'Matale → Colombo', driver: 'Ruwan', contact: '+94 70 444 7788', status: 'Scheduled' },
     ];
     applyDeliveriesFilters();
 }
@@ -771,7 +764,7 @@ function initializeDeliveriesFilters() {
 
 function applyDeliveriesFilters() {
     const search = (document.getElementById('deliveriesSearch')?.value || '').toLowerCase();
-    const sort = document.getElementById('deliveriesSort')?.value || 'eta-asc';
+    const sort = document.getElementById('deliveriesSort')?.value || 'status';
     let items = _pendingDeliveriesData.slice();
 
     // Filter by buyer or order id
@@ -784,16 +777,7 @@ function applyDeliveriesFilters() {
     }
 
     // Sort
-    const etaToDate = (eta) => {
-        // Parse in a robust way; Date can handle this format
-        const d = new Date(eta);
-        return isNaN(d.getTime()) ? 0 : d.getTime();
-    };
-    if (sort === 'eta-asc') {
-        items.sort((a,b) => etaToDate(a.eta) - etaToDate(b.eta));
-    } else if (sort === 'eta-desc') {
-        items.sort((a,b) => etaToDate(b.eta) - etaToDate(a.eta));
-    } else if (sort === 'status') {
+    if (sort === 'status') {
         items.sort((a,b) => a.status.localeCompare(b.status));
     }
 
