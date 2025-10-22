@@ -158,8 +158,8 @@ function addToCart(productId, productName, price, maxQuantity) {
     
     // Get product details from the card
     const productCard = document.querySelector(`[data-name="${productName.toLowerCase()}"]`);
-    const categoryEmoji = productCard?.querySelector('.product-placeholder')?.textContent || 
-                         productCard?.querySelector('.product-image img')?.alt.charAt(0) || '🌱';
+    const productImage = productCard?.querySelector('.product-image img')?.src || '';
+    const productImageName = productImage ? productImage.split('/').pop() : '';
     
     // Prepare data
     const formData = new FormData();
@@ -167,7 +167,7 @@ function addToCart(productId, productName, price, maxQuantity) {
     formData.append('product_name', productName);
     formData.append('product_price', price);
     formData.append('quantity', 1);
-    formData.append('product_image', categoryEmoji);
+    formData.append('product_image', productImageName);
     
     // Send AJAX request
     fetch(window.APP_ROOT + '/Cart/add', {

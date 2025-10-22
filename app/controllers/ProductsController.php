@@ -52,6 +52,22 @@ class ProductsController
         try {
             $farmer_id = $_SESSION['USER']->id;
 
+            // Verify the farmer exists in the database
+            if (!class_exists('UserModel')) {
+                require_once '../app/models/UserModel.php';
+            }
+            $userModel = new UserModel();
+            $user = $userModel->first(['id' => $farmer_id]);
+
+            if (!$user) {
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'User account not found. Please log out and log in again.'
+                ]);
+                exit;
+            }
+
             // Validation
             $errors = [];
 
@@ -91,7 +107,7 @@ class ProductsController
             if (empty($location)) {
                 // Use farmer's location from profile if available
                 $location = $_SESSION['USER']->location ?? '';
-                
+
                 // If still empty, show error
                 if (empty($location)) {
                     $errors['location'] = 'Location is required';
@@ -134,6 +150,9 @@ class ProductsController
                         $imageName = null;
                     }
                 }
+            } else {
+                // Image is required
+                $errors['image'] = 'Product image is required';
             }
 
             // If validation fails, return errors
@@ -156,12 +175,17 @@ class ProductsController
                 'quantity' => (int)$quantity,
                 'location' => $location,
                 'listing_date' => $listing_date,
-                'description' => $description,
-                'image' => $imageName
+                'description' => $description ?: '', // Ensure description is not null
+                'image' => $imageName ?: '' // Ensure image is not null
             ];
+
+            // Log data being inserted
+            error_log("ProductsController::create - Attempting to insert: " . print_r($data, true));
 
             // Insert product using ProductsModel
             $result = $this->productModel->create($data);
+
+            error_log("ProductsController::create - Insert result: " . ($result ? $result : 'FALSE'));
 
             if ($result) {
                 http_response_code(201);
@@ -171,10 +195,21 @@ class ProductsController
                     'product_id' => $result
                 ]);
             } else {
+                // Get more detailed error
+                $pdo_error = $this->productModel->getLastError();
+                error_log("ProductsController::create - Insert failed. PDO Error: " . print_r($pdo_error, true));
+
+                // Check if it's a foreign key constraint error
+                $errorMessage = 'Failed to add product to database';
+                if (is_string($pdo_error) && strpos($pdo_error, 'foreign key constraint') !== false) {
+                    $errorMessage = 'Your account is invalid. Please log out and log in again.';
+                }
+
                 http_response_code(500);
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to add product to database'
+                    'error' => $errorMessage,
+                    'debug' => $pdo_error // Remove in production
                 ]);
             }
         } catch (Exception $e) {
@@ -217,7 +252,7 @@ class ProductsController
     public function buyerList()
     {
         header('Content-Type: application/json');
-        
+
         // Optional: check if user is a buyer
         if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
             http_response_code(403);
@@ -226,7 +261,7 @@ class ProductsController
         }
 
         $conditions = [];
-        
+
         // Add filters if provided
         if (!empty($_GET['category'])) {
             $conditions['category'] = $_GET['category'];
@@ -245,40 +280,207 @@ class ProductsController
         echo json_encode(['success' => true, 'products' => $products]);
     }
 
+    /**
+     * Get a single product for editing
+     */
+    public function edit($id = null)
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        try {
+            if (!$id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Product ID required']);
+                exit;
+            }
+
+            $farmer_id = $_SESSION['USER']->id;
+
+            if (!class_exists('ProductsModel')) {
+                require_once '../app/models/ProductsModel.php';
+            }
+
+            $productsModel = new ProductsModel();
+            $product = $productsModel->getById($id);
+
+            if (!$product || $product->farmer_id != $farmer_id) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Product not found']);
+                exit;
+            }
+
+            echo json_encode(['success' => true, 'product' => $product]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Update a product
+     */
     public function update($id = null)
     {
+        if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
-        if (!$this->requireFarmer()) return;
-        $id = (int)($id ?? ($_POST['id'] ?? 0));
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $id <= 0) {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
-            echo json_encode(['error' => 'Method not allowed']);
-            return;
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
         }
 
-        $errors = $this->validate($_POST);
-        if ($errors) {
-            http_response_code(422);
-            echo json_encode(['error' => 'Validation failed', 'errors' => $errors]);
-            return;
-        }
+        try {
+            $product_id = $id ?? ($_POST['id'] ?? null);
+            if (!$product_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Product ID required']);
+                exit;
+            }
 
-        $payload = [
-            'name'        => trim($_POST['name']),
-            'price'       => (float)$_POST['price'],
-            'quantity'    => (int)$_POST['quantity'],
-            'description' => trim($_POST['description'] ?? ''),
-            'location'    => trim($_POST['location'] ?? '')
-        ];
+            $farmer_id = $_SESSION['USER']->id;
 
-        $ok = $this->productModel->updateByFarmer($id, (int)$_SESSION['USER']->id, $payload);
+            if (!class_exists('ProductsModel')) {
+                require_once '../app/models/ProductsModel.php';
+            }
 
-        if ($ok) echo json_encode(['success' => true, 'message' => 'Product updated']);
-        else {
+            $productsModel = new ProductsModel();
+            $existing = $productsModel->getById($product_id);
+
+            if (!$existing || $existing->farmer_id != $farmer_id) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Product not found']);
+                exit;
+            }
+
+            // Validation
+            $errors = [];
+            $data = [];
+
+            // Validate name
+            if (isset($_POST['name'])) {
+                $name = trim($_POST['name']);
+                if (empty($name)) {
+                    $errors['name'] = 'Product name is required';
+                } elseif (strlen($name) < 3) {
+                    $errors['name'] = 'Product name must be at least 3 characters';
+                } else {
+                    $data['name'] = $name;
+                }
+            }
+
+            // Validate category
+            if (isset($_POST['category'])) {
+                $category = trim($_POST['category']);
+                if (empty($category)) {
+                    $errors['category'] = 'Category is required';
+                } else {
+                    $data['category'] = $category;
+                }
+            }
+
+            // Validate price
+            if (isset($_POST['price'])) {
+                $price = trim($_POST['price']);
+                if (!is_numeric($price) || $price <= 0) {
+                    $errors['price'] = 'Price must be positive';
+                } else {
+                    $data['price'] = (float)$price;
+                }
+            }
+
+            // Validate quantity
+            if (isset($_POST['quantity'])) {
+                $quantity = trim($_POST['quantity']);
+                if (!is_numeric($quantity) || $quantity < 0) {
+                    $errors['quantity'] = 'Quantity must be non-negative';
+                } else {
+                    $data['quantity'] = (int)$quantity;
+                }
+            }
+
+            // Optional fields
+            if (isset($_POST['location'])) {
+                $data['location'] = trim($_POST['location']);
+            }
+
+            if (isset($_POST['listing_date'])) {
+                $data['listing_date'] = trim($_POST['listing_date']);
+            }
+
+            if (isset($_POST['description'])) {
+                $data['description'] = trim($_POST['description']);
+            }
+
+            // Handle image upload
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                $filename = $_FILES['image']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+                if (!in_array($ext, $allowed)) {
+                    $errors['image'] = 'Invalid format. Allowed: jpg, jpeg, png, gif, webp';
+                } elseif ($_FILES['image']['size'] > 5 * 1024 * 1024) {
+                    $errors['image'] = 'File too large (max 5MB)';
+                } else {
+                    $imageName = uniqid('product_') . '.' . $ext;
+                    $uploadPath = '../public/assets/images/products/';
+
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0777, true);
+                    }
+
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $imageName)) {
+                        // Delete old image
+                        if ($existing->image && file_exists($uploadPath . $existing->image)) {
+                            unlink($uploadPath . $existing->image);
+                        }
+                        $data['image'] = $imageName;
+                    } else {
+                        $errors['image'] = 'Failed to upload image';
+                    }
+                }
+            }
+
+            if (!empty($errors)) {
+                http_response_code(422);
+                echo json_encode(['success' => false, 'errors' => $errors]);
+                exit;
+            }
+
+            if (empty($data)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'No data to update']);
+                exit;
+            }
+
+            $result = $productsModel->updateByFarmer($product_id, $farmer_id, $data);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Failed to update product']);
+            }
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'Failed to update product']);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+        exit;
     }
 
     public function delete($id = null)

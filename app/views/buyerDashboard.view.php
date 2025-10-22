@@ -393,12 +393,14 @@
                                 data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>">
 
                                 <div class="product-image">
-                                    <?php if (!empty($product->image) && file_exists("assets/images/products/" . $product->image)): ?>
+                                    <?php if (!empty($product->image)): ?>
                                         <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($product->image) ?>"
                                             alt="<?= htmlspecialchars($product->name) ?>">
                                     <?php else: ?>
                                         <div class="product-placeholder">
-                                            <?= getCategoryEmoji($product->category) ?>
+                                            <div style="font-size: 3rem; font-weight: bold; color: #43A047;">
+                                                <?= strtoupper(substr(htmlspecialchars($product->name), 0, 1)) ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -828,20 +830,3 @@
 </body>
 
 </html>
-
-<?php
-// Helper function for category emojis
-function getCategoryEmoji($category)
-{
-    $emojis = [
-        'vegetables' => '🥬',
-        'fruits' => '🍎',
-        'cereals' => '🌾',
-        'legumes' => '🫘',
-        'spices' => '🌶️',
-        'yams' => '🍠',
-        'leafy' => '🥬'
-    ];
-    return $emojis[strtolower($category)] ?? '🌱';
-}
-?>

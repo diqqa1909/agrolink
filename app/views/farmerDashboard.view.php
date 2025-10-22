@@ -19,9 +19,6 @@
     <!-- Dashboard Layout -->
     <div class="dashboard">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3 class="sidebar-title">Farmer Dashboard</h3>
-            </div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="menu-link active" data-section="overview">
                         <div class="menu-icon">
@@ -33,15 +30,6 @@
                             </svg>
                         </div>
                         Dashboard
-                    </a></li>
-                <li><a href="#" class="menu-link" data-section="profile">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                        Profile
                     </a></li>
                 <li><a href="#" class="menu-link" data-section="products">
                         <div class="menu-icon">
@@ -92,15 +80,24 @@
                         </div>
                         Crop Requests
                     </a></li>
-                <li><a href="#" class="menu-link" data-section="analytics">
+                <li><a href="#" class="menu-link" data-section="reviews">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="20" x2="12" y2="10" />
-                                <line x1="18" y1="20" x2="18" y2="4" />
-                                <line x1="6" y1="20" x2="6" y2="14" />
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                             </svg>
                         </div>
-                        Analytics
+                        Reviews
+                    </a></li>
+            </ul>
+            <ul class="sidebar-menu" style="margin-top: auto; border-top: 1px solid #e0e0e0; padding-top: 10px;">
+                <li><a href="#" class="menu-link" data-section="profile">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
                     </a></li>
             </ul>
         </aside>
@@ -246,6 +243,32 @@
                         <div class="stat-label">This Year</div>
                     </div>
                 </div>
+
+                <!-- Earnings Breakdown Table -->
+                <div class="content-card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3 class="card-title">💰 Earnings Breakdown</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Buyer</th>
+                                    <th>Product</th>
+                                    <th>Gross Amount</th>
+                                    <th>Platform Fee (5%)</th>
+                                    <th>Net Earnings</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="earningsTableBody">
+                                <!-- Earnings will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- Deliveries -->
@@ -271,6 +294,73 @@
                     <div class="stat-card">
                         <div class="stat-number" id="avgDeliveryTime">0</div>
                         <div class="stat-label">Avg. Delivery Days</div>
+                    </div>
+                </div>
+
+                <!-- Deliveries Table -->
+                <div class="content-card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3 class="card-title">📦 Active Deliveries</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Delivery ID</th>
+                                    <th>Order ID</th>
+                                    <th>Buyer</th>
+                                    <th>Product Details</th>
+                                    <th>Route</th>
+                                    <th>Transporter</th>
+                                    <th>Driver</th>
+                                    <th>Status</th>
+                                    <th>Pickup Date</th>
+                                    <th>Delivery Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveriesTableBody">
+                                <!-- Deliveries will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div id="reviews-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">⭐ Customer Reviews</h1>
+                    <p class="content-subtitle">See what buyers are saying about your products</p>
+                </div>
+
+                <!-- Reviews Stats -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">4.8</div>
+                        <div class="stat-label">Average Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">127</div>
+                        <div class="stat-label">Total Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">Positive Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="content-card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3 class="card-title">💬 Recent Reviews</h3>
+                    </div>
+                    <div class="card-content" id="reviewsContainer">
+                        <!-- Reviews will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -403,8 +493,7 @@
     <div id="addProductModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Add New Product</h3>
-                <button class="close" data-modal-close>&times;</button>
+                <h3 class="modal-title">Add New Product Details</h3>
             </div>
             <div class="modal-body">
                 <form id="addProductForm" enctype="multipart/form-data">
@@ -448,17 +537,81 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="productDescription">Description</label>
-                        <textarea id="productDescription" name="description" class="form-control" rows="3" placeholder="Describe your product..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="productImage">Product Image</label>
-                        <input type="file" id="productImage" name="image" class="form-control" accept="image/*">
+                        <label for="productImage">Product Image *</label>
+                        <input type="file" id="productImage" name="image" class="form-control" accept="image/*" required>
                     </div>
 
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Add Product</button>
+                        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Product Details</h3>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm" enctype="multipart/form-data">
+                    <input type="hidden" id="editProductId" name="id">
+
+                    <div class="form-group">
+                        <label for="editProductName">Product Name *</label>
+                        <input type="text" id="editProductName" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductCategory">Category *</label>
+                        <select id="editProductCategory" name="category" class="form-control" required>
+                            <option value="other">Other</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="fruits">Fruits</option>
+                            <option value="cereals">Cereals & Grains</option>
+                            <option value="yams">Yams & Tubers</option>
+                            <option value="legumes">Legumes & Pulses</option>
+                            <option value="spices">Spices & Herbs</option>
+                            <option value="leafy">Leafy Greens</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductPrice">Price per KG (Rs.) *</label>
+                        <input type="number" id="editProductPrice" name="price" class="form-control" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductQuantity">Available Quantity (KG) *</label>
+                        <input type="number" id="editProductQuantity" name="quantity" class="form-control" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductLocation">Farm Location</label>
+                        <input type="text" id="editProductLocation" name="location" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editListingDate">Available From</label>
+                        <input type="date" id="editListingDate" name="listing_date" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductDescription">Description</label>
+                        <textarea id="editProductDescription" name="description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProductImage">Product Image</label>
+                        <input type="file" id="editProductImage" name="image" class="form-control" accept="image/*">
+                        <div id="currentImagePreview" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
                     </div>
                 </form>

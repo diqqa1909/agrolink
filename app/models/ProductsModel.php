@@ -9,18 +9,31 @@ class ProductsModel
     public function create(array $data)
     {
         try {
+            // Ensure all required fields have values (even if empty strings)
+            $defaults = [
+                'description' => '',
+                'image' => '',
+                'location' => '',
+                'category' => 'other'
+            ];
+
+            $data = array_merge($defaults, $data);
+
+            error_log("ProductsModel::create - Data to insert: " . print_r($data, true));
+
             $sql = "INSERT INTO {$this->table}
                     (farmer_id, name, price, quantity, description, image, location, category, listing_date)
                     VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
-            
+
             $result = $this->write($sql, $data);
-            
+
             if ($result === false) {
                 error_log("ProductsModel::create - Insert failed for data: " . print_r($data, true));
+                error_log("ProductsModel::create - Last error: " . print_r($this->getLastError(), true));
             } else {
                 error_log("ProductsModel::create - Insert successful, ID: " . $result);
             }
-            
+
             return $result;
         } catch (Exception $e) {
             error_log("ProductsModel::create - Exception: " . $e->getMessage());
@@ -29,14 +42,35 @@ class ProductsModel
         }
     }
 
+    /**
+     * Update product - dynamic fields
+     */
     public function updateByFarmer(int $id, int $farmerId, array $data)
     {
-        $sql = "UPDATE {$this->table}
-                SET name=:name, price=:price, quantity=:quantity, description=:description, location=:location
-                WHERE id=:id AND farmer_id=:farmer_id";
-        $data['id'] = $id;
-        $data['farmer_id'] = $farmerId;
-        return $this->write($sql, $data);
+        // Build dynamic SET clause based on provided data
+        $setParts = [];
+        $params = ['id' => $id, 'farmer_id' => $farmerId];
+
+        $allowedFields = ['name', 'price', 'quantity', 'description', 'location', 'category', 'listing_date', 'image'];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowedFields)) {
+                $setParts[] = "$key = :$key";
+                $params[$key] = $value;
+            }
+        }
+
+        if (empty($setParts)) {
+            return false; // No valid fields to update
+        }
+
+        $setClause = implode(', ', $setParts);
+
+        $sql = "UPDATE {$this->table} 
+                SET $setClause, updated_at = NOW() 
+                WHERE id = :id AND farmer_id = :farmer_id";
+
+        return $this->write($sql, $params);
     }
 
     public function deleteByFarmer(int $id, int $farmerId)
@@ -65,7 +99,7 @@ class ProductsModel
     {
         $params = [];
         $where = "p.quantity > 0";
-        
+
         if (!empty($filters['search'])) {
             $where .= " AND (p.name LIKE :search OR p.description LIKE :search)";
             $params['search'] = '%' . $filters['search'] . '%';
@@ -84,7 +118,7 @@ class ProductsModel
                 JOIN users u ON u.id = p.farmer_id
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
-        
+
         $result = $this->query($sql, $params);
         return $result ?: [];
     }
@@ -95,9 +129,8 @@ class ProductsModel
     public function getWithFarmerDetails($conditions = [])
     {
         $params = [];
-        $where = "p.quantity > 0"; // Only show products with stock
+        $where = "p.quantity > 0";
 
-        // Add optional conditions
         if (!empty($conditions['category'])) {
             $where .= " AND p.category = :category";
             $params['category'] = $conditions['category'];
