@@ -10,12 +10,12 @@ class CartModel
      */
     public function getCartByUserId($user_id)
     {
-        $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name
-                FROM {$this->table} c
-                LEFT JOIN products p ON c.product_id = p.id
-                LEFT JOIN users u ON p.farmer_id = u.id
-                WHERE c.user_id = :user_id 
-                ORDER BY c.created_at DESC";
+        $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name, p.image as product_image_db
+        FROM {$this->table} c
+        LEFT JOIN products p ON c.product_id = p.id
+        LEFT JOIN users u ON p.farmer_id = u.id
+        WHERE c.user_id = :user_id 
+        ORDER BY c.created_at DESC";
 
         $result = $this->query($sql, ['user_id' => $user_id]);
         return is_array($result) ? $result : [];

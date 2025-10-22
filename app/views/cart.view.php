@@ -168,7 +168,22 @@
                                     <div class="cart-item-content">
                                         <!-- Product Image -->
                                         <div class="cart-item-image">
-                                            <?= htmlspecialchars($item->product_image) ?>
+                                            <?php
+                                            // Prefer cart-stored image, else fallback to product's image from join
+                                            $imgFile = '';
+                                            if (!empty($item->product_image) && strlen($item->product_image) > 2 && strpos($item->product_image, '.') !== false) {
+                                                $imgFile = $item->product_image;
+                                            } elseif (!empty($item->product_image_db)) {
+                                                $imgFile = $item->product_image_db;
+                                            }
+                                            ?>
+                                            <?php if (!empty($imgFile) && file_exists("assets/images/products/" . $imgFile)): ?>
+                                                <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($imgFile) ?>" alt="<?= htmlspecialchars($item->product_name) ?>" style="width: 72px; height: 72px; object-fit: cover; border-radius: 10px;">
+                                            <?php else: ?>
+                                                <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,0.06);font-size:32px;">
+                                                    <?= htmlspecialchars(!empty($item->product_image) && strlen($item->product_image) <= 8 ? $item->product_image : '🌱') ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
 
                                         <!-- Product Info -->

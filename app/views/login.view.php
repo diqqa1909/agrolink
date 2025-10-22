@@ -91,9 +91,35 @@
         window.APP_ROOT = "<?= ROOT ?>";
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script>
+        // Show success toast if redirected with ?registered=1 (no server flash needed)
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('registered') === '1') {
+                const msg = 'Registration successful! You can now sign in.';
+                if (typeof showNotification === 'function') {
+                    showNotification(msg, 'success');
+                } else {
+                    // simple fallback alert box if notification util isn't yet available
+                    var box = document.createElement('div');
+                    box.className = 'alert';
+                    box.textContent = msg;
+                    var formBox = document.querySelector('.form-box');
+                    if (formBox) formBox.insertBefore(box, formBox.firstChild);
+                }
+                // Clean URL to avoid re-trigger on refresh
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('registered');
+                    window.history.replaceState({}, document.title, url.toString());
+                } catch (e) {
+                    /* no-op */ }
+            }
+        })();
+    </script>
     <!-- Debug logging for login submit (does not prevent submit) -->
     <script>
-        (function(){
+        (function() {
             const form = document.getElementById('loginForm');
             if (!form) {
                 console.warn('[LoginForm] not found on page');
@@ -104,7 +130,7 @@
                 action: form.action || 'current URL',
                 time: new Date().toISOString()
             });
-            form.addEventListener('submit', function(){
+            form.addEventListener('submit', function() {
                 try {
                     const fd = new FormData(form);
                     const email = fd.get('email');

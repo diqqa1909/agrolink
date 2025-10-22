@@ -499,11 +499,13 @@
                     <?php else: ?>
                         <?php foreach ($products as $product): ?>
                             <div class="product-card"
+                                data-id="<?= htmlspecialchars($product->id) ?>"
                                 data-name="<?= strtolower(htmlspecialchars($product->name)) ?>"
                                 data-category="<?= strtolower(htmlspecialchars($product->category)) ?>"
                                 data-location="<?= strtolower(htmlspecialchars($product->location)) ?>"
                                 data-price="<?= htmlspecialchars($product->price) ?>"
-                                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>">
+                                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>"
+                                data-image="<?= !empty($product->image) ? htmlspecialchars($product->image) : '' ?>">
 
                                 <div class="product-image">
                                     <?php if (!empty($product->image) && file_exists("assets/images/products/" . $product->image)): ?>
@@ -940,6 +942,7 @@
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 
 </html>

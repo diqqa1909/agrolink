@@ -3,6 +3,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeBuyerDashboard();
     updateCartBadge();
+    // Initialize profile defaults for modern profile UI
+    loadProfileData();
     
     // Listen for hash changes (when navigating from external pages)
     window.addEventListener('hashchange', function() {
@@ -98,6 +100,87 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// Profile: populate defaults and avatar (modern profile UI)
+function loadProfileData() {
+    const profilePhotoEl = document.getElementById('profilePhoto');
+    const profileNameEl = document.getElementById('profileName');
+    const profileEmailEl = document.getElementById('profileEmail');
+    const profilePhoneEl = document.getElementById('profilePhone');
+    const profileLocationEl = document.getElementById('profileLocation');
+    const profileAddressEl = document.getElementById('profileAddress');
+
+    const uname = (window.USER_NAME || 'Buyer').trim() || 'Buyer';
+    const uemail = (window.USER_EMAIL || '').trim();
+
+    if (profilePhotoEl) {
+        const encoded = encodeURIComponent(uname || 'Buyer');
+        profilePhotoEl.src = `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=150`;
+        profilePhotoEl.alt = 'Buyer Profile';
+    }
+
+    if (profileNameEl && !profileNameEl.value) profileNameEl.value = uname;
+    if (profileEmailEl && !profileEmailEl.value) profileEmailEl.value = uemail || 'buyer@example.com';
+    if (profilePhoneEl && !profilePhoneEl.value) profilePhoneEl.value = '+94 77 123 4567';
+    if (profileLocationEl && !profileLocationEl.value) profileLocationEl.value = 'Colombo';
+    if (profileAddressEl && !profileAddressEl.value) profileAddressEl.value = '123, Main Street, Colombo 07, Sri Lanka';
+}
+
+// Profile: simple client-side validation and save feedback
+function updateProfile() {
+    const name = document.getElementById('profileName')?.value?.trim();
+    const email = document.getElementById('profileEmail')?.value?.trim();
+    const phone = document.getElementById('profilePhone')?.value?.trim();
+    const city = document.getElementById('profileLocation')?.value?.trim();
+    const address = document.getElementById('profileAddress')?.value?.trim();
+
+    if (!name || !email || !phone || !city || !address) {
+        showNotification('Please fill all required fields', 'error');
+        return;
+    }
+    showNotification('Profile updated successfully!', 'success');
+}
+
+// Profile: upload photo button handler
+function uploadPhoto() {
+    let input = document.getElementById('photoUploadInput');
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'photoUploadInput';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+    }
+
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select a valid image file', 'error');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image size should be less than 5MB', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const profilePhoto = document.getElementById('profilePhoto');
+                if (profilePhoto) {
+                    profilePhoto.src = ev.target.result;
+                    showNotification('Photo uploaded successfully!', 'success');
+                }
+            };
+            reader.onerror = function() {
+                showNotification('Failed to read image file', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    input.click();
+}
+
 // Filter products based on search and filters
 function filterProducts() {
     const searchInput = document.getElementById('searchInput')?.value.toLowerCase() || '';
@@ -180,10 +263,29 @@ function addToCart(productId, productName, price, maxQuantity) {
         btn.textContent = 'Adding...';
     }
     
-    // Get product details from the card
-    const productCard = document.querySelector(`[data-name="${productName.toLowerCase()}"]`);
-    const categoryEmoji = productCard?.querySelector('.product-placeholder')?.textContent || 
-                         productCard?.querySelector('.product-image img')?.alt.charAt(0) || '🌱';
+    // Get product details from the card (prefer by id for reliability)
+    const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
+                        document.querySelector(`.product-card[data-name="${productName.toLowerCase()}"]`);
+    // Determine image filename to send to server
+    let imageFile = '';
+    if (productCard) {
+        // 1) Prefer explicit data-image from markup
+        imageFile = productCard.getAttribute('data-image') || '';
+        // 2) Otherwise, try parsing the img src basename if present
+        if (!imageFile) {
+            const imgEl = productCard.querySelector('.product-image img');
+            const src = imgEl?.getAttribute('src') || '';
+            if (src && !/default-product\.svg$/i.test(src)) {
+                try {
+                    imageFile = src.split('/').pop();
+                } catch (e) {
+                    imageFile = '';
+                }
+            }
+        }
+    }
+    // 3) Fallback to emoji if no image available
+    const fallbackEmoji = productCard?.querySelector('.product-placeholder')?.textContent || '🌱';
     
     // Prepare data
     const formData = new FormData();
@@ -191,7 +293,7 @@ function addToCart(productId, productName, price, maxQuantity) {
     formData.append('product_name', productName);
     formData.append('product_price', price);
     formData.append('quantity', 1);
-    formData.append('product_image', categoryEmoji);
+    formData.append('product_image', imageFile || fallbackEmoji);
     
     // Send AJAX request
     fetch(window.APP_ROOT + '/Cart/add', {
@@ -492,3 +594,6 @@ window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
 window.recalculateCartTotal = recalculateCartTotal;
 window.proceedToCheckout = proceedToCheckout;
+window.loadProfileData = loadProfileData;
+window.updateProfile = updateProfile;
+window.uploadPhoto = uploadPhoto;
