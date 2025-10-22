@@ -39,6 +39,50 @@
                     </a>
                 </li>
                 <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#products" class="menu-link" onclick="scrollToProducts(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                        </div>
+                        Products
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#orders" class="menu-link" onclick="scrollToOrders(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            </svg>
+                        </div>
+                        Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#tracking" class="menu-link" onclick="scrollToTracking(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        Tracking
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#wishlist" class="menu-link" onclick="scrollToWishlist(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        Wishlist
+                    </a>
+                </li>
+                <li>
                     <a href="<?= ROOT ?>/cart" class="menu-link active">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -49,6 +93,50 @@
                         </div>
                         Cart
                         <span class="cart-badge"><?= $cartItemCount ?></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#requests" class="menu-link" onclick="scrollToRequests(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        Requests
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#reviews" class="menu-link" onclick="scrollToReviews(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </div>
+                        Reviews
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#notifications" class="menu-link" onclick="scrollToNotifications(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        Notifications
+                        <span class="badge">5</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerDashboard#profile" class="menu-link" onclick="scrollToProfile(event)">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        Profile
                     </a>
                 </li>
             </ul>
@@ -68,7 +156,7 @@
                         <div style="font-size: 4rem; margin-bottom: 20px;">🛒</div>
                         <h3>Your cart is empty</h3>
                         <p style="color: #666; margin: 16px 0;">Add some products to get started!</p>
-                        <a href="<?= ROOT ?>/buyerDashboard" class="btn btn-primary" style="margin-top: 20px;">Browse Products</a>
+                        <a href="<?= ROOT ?>/buyerDashboard#products" class="btn btn-primary" style="margin-top: 20px;" onclick="window.location.href='<?= ROOT ?>/buyerDashboard'; setTimeout(() => document.querySelector('[data-section=products]').click(), 100);">Browse Products</a>
                     </div>
                 <?php else: ?>
                     <!-- Cart Items Grid -->
@@ -189,13 +277,42 @@
 
         function scrollToProducts(e) {
             e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard';
-            // After navigation, scroll to products section
-            setTimeout(() => {
-                if (window.showSection) {
-                    window.showSection('products');
-                }
-            }, 100);
+            window.location.href = '<?= ROOT ?>/buyerDashboard#products';
+        }
+
+        function scrollToOrders(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#orders';
+        }
+
+        function scrollToTracking(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#tracking';
+        }
+
+        function scrollToWishlist(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#wishlist';
+        }
+
+        function scrollToRequests(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#requests';
+        }
+
+        function scrollToReviews(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#reviews';
+        }
+
+        function scrollToNotifications(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#notifications';
+        }
+
+        function scrollToProfile(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#profile';
         }
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
