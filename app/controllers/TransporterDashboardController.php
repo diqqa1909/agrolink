@@ -47,8 +47,6 @@ class TransporterDashboardController {
             ];
             
             if ($vehicleModel->validate($data)) {
-                $vehicleModel->deactivateAllVehicles($_SESSION['USER']->id);
-                
                 $vehicleModel->create($data);
                 $response['success'] = true;
                 $response['message'] = 'Vehicle added successfully!';
@@ -92,11 +90,7 @@ class TransporterDashboardController {
             $data['id'] = $id;
             
             if ($vehicleModel->validate($data)) {
-                if (isset($_POST['status']) && $_POST['status'] === 'active') {
-                    $vehicleModel->setActiveVehicle($id, $_SESSION['USER']->id);
-                } else {
-                    $vehicleModel->updateVehicle($id, $data);
-                }
+                $vehicleModel->updateVehicle($id, $data);
                 $response['success'] = true;
                 $response['message'] = 'Vehicle updated successfully!';
             } else {
@@ -170,9 +164,11 @@ class TransporterDashboardController {
                 exit;
             }
             
-            $vehicleModel->setActiveVehicle($id, $_SESSION['USER']->id);
+            // Toggle vehicle status between active and inactive
+            $newStatus = ($vehicle->status === 'active') ? 'inactive' : 'active';
+            $vehicleModel->updateVehicle($id, ['status' => $newStatus]);
             $response['success'] = true;
-            $response['message'] = 'Active vehicle updated successfully!';
+            $response['message'] = 'Vehicle status updated successfully!';
         }
         
         echo json_encode($response);
