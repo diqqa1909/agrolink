@@ -99,9 +99,12 @@
         (function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('registered') === '1') {
-                const msg = 'Registration successful! You can now sign in.';
+                const msg = 'Registration successful!';
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showFloatingAlert(msg, 'error');
+                        });
                 if (typeof showNotification === 'function') {
-                    showNotification(msg, 'success');
+                    /* showNotification(msg, 'success'); */
                 } else {
                     // simple fallback alert box if notification util isn't yet available
                     var box = document.createElement('div');

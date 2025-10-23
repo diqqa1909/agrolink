@@ -4539,3 +4539,206 @@ input:checked + .toggle-slider:before {
         padding: 20px;
     }
 }
+
+/* ========================================
+   DELIVERIES SECTION STYLES
+   ======================================== */
+
+/* Delivery Item Card */
+.delivery-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.delivery-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary-green);
+}
+
+/* Delivery Header */
+.delivery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.delivery-main-info {
+    flex: 1;
+}
+
+.delivery-order-id {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.delivery-buyer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.delivery-buyer svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+}
+
+/* Delivery Status Badge */
+.delivery-status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.delivery-status-badge.awaiting {
+    background: #FFF8E1;
+    color: #F57C00;
+}
+
+.delivery-status-badge.in-transit {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
+.delivery-status-badge.ready {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.delivery-status-badge.completed {
+    background: #E0E0E0;
+    color: #616161;
+}
+
+/* Delivery Body - Info Grid */
+.delivery-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.delivery-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.delivery-info-label {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.delivery-info-value {
+    font-size: 0.95rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.delivery-info-value.highlight {
+    color: var(--primary-green);
+}
+
+/* Delivery Product List */
+.delivery-product-list {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.delivery-product-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.delivery-product-item:last-child {
+    border-bottom: none;
+}
+
+.delivery-product-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.delivery-product-qty {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Delivery Footer */
+.delivery-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 16px;
+}
+
+.delivery-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Delivery Empty State */
+.delivery-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.delivery-empty-state svg {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    stroke: #ccc;
+    stroke-width: 1.5;
+}
+
+.delivery-empty-state h3 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.delivery-empty-state p {
+    color: #888;
+    font-size: 0.95rem;
+}
+
+/* Responsive Delivery Cards */
+@media (max-width: 768px) {
+    .delivery-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .delivery-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .delivery-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .delivery-actions .btn {
+        width: 100%;
+    }
+}
