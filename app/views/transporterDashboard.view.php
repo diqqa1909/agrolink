@@ -457,7 +457,7 @@
                 <div class="grid grid-2" style="margin-top: 32px; gap: 28px;">
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">📊 Earnings Breakdown</h3>
+                            <h3 class="card-title">Earnings Breakdown</h3>
                         </div>
                         <div class="card-content" style="padding: 28px;">
                             <div>
@@ -488,7 +488,7 @@
 
                     <div class="content-card">
                         <div class="card-header">
-                            <h3 class="card-title">📈 Performance Metrics</h3>
+                            <h3 class="card-title">Performance Metrics</h3>
                         </div>
                         <div class="card-content" style="padding: 28px;">
                             <div>
