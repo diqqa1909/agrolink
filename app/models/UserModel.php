@@ -38,4 +38,59 @@ class UserModel
             return true;
         return false;
     }
+
+    public function insert($data)
+    {
+        // Hash password before inserting
+        if (isset($data['password'])) {
+            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        // Remove unwanted data
+        if (!empty($this->allowedColumns)) {
+            foreach ($data as $key => $value) {
+                if (!in_array($key, $this->allowedColumns)) {
+                    unset($data[$key]);
+                }
+            }
+        }
+
+        $keys = array_keys($data);
+        $query = "insert into $this->table (".implode(",", $keys).") values (:".implode(",:", $keys).")";
+
+        $this->query($query, $data);
+        return 1;
+    }
+
+    public function update($id, $data, $id_column = 'id')
+    {
+        // Hash password before updating (only if password is provided)
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        // Remove unwanted data
+        if (!empty($this->allowedColumns)) {
+            foreach ($data as $key => $value) {
+                if (!in_array($key, $this->allowedColumns)) {
+                    unset($data[$key]);
+                }
+            }
+        }
+
+        $keys = array_keys($data);
+        $query = "update $this->table set ";
+
+        foreach ($keys as $key) {
+            $query .= $key . " = :". $key . ", ";
+        }
+
+        $query = trim($query,", ");
+        $query .= " where $id_column = :$id_column ";
+
+        $data[$id_column] = $id;
+
+        $this->query($query, $data);
+        return 1;
+    }
 }

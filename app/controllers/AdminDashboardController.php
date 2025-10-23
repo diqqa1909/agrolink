@@ -40,11 +40,23 @@ class AdminDashboardController {
     
     
     public function deleteUser() {
+        header('Content-Type: application/json');
+
         // Check if it's an AJAX request
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'])) {
             $userModel = new UserModel();
             $userId = $_POST['user_id'];
-            
+
+            // Check if the user being deleted is an admin
+            $userToDelete = $userModel->first(['id' => $userId]);
+            if ($userToDelete && $userToDelete->role === 'admin') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Cannot delete admin users. Admin accounts are protected for security.'
+                ]);
+                exit;
+            }
+
             if ($userModel->delete($userId)) {
                 echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
             } else {
@@ -54,10 +66,20 @@ class AdminDashboardController {
             // Handle JSON request
             $input = json_decode(file_get_contents('php://input'), true);
             $userId = $input['user_id'] ?? null;
-            
+
             if ($userId) {
                 $userModel = new UserModel();
-                
+
+                // Check if the user being deleted is an admin
+                $userToDelete = $userModel->first(['id' => $userId]);
+                if ($userToDelete && $userToDelete->role === 'admin') {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Cannot delete admin users. Admin accounts are protected for security.'
+                    ]);
+                    exit;
+                }
+
                 if ($userModel->delete($userId)) {
                     echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
                 } else {
@@ -314,16 +336,30 @@ class AdminDashboardController {
             $name = $_POST['name'];
             $email = $_POST['email'];
             $role = $_POST['role'];
-            $password = $_POST['password'];
+            $password = $_POST['password'] ?? '';
+
+            // Check if user is logged in
+            if(!isset($_SESSION['USER'])){
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Unauthorized. Please login again.'
+                ]);
+                exit;
+            }
 
             $userModel = new UserModel();
 
+            // Prepare update data
             $updateData = [
                 'name'=>$name,
                 'email'=>$email,
-                'role'=>$role,
-                'password'=>$password
+                'role'=>$role
             ];
+
+            // Only update password if a new one is provided
+            if(!empty($password)){
+                $updateData['password'] = $password;
+            }
 
             $result = $userModel->update($userId, $updateData);
 
@@ -341,7 +377,7 @@ class AdminDashboardController {
         } catch (Exception $e) {
             echo json_encode([
                 'success' => false,
-                'message' => 'An error occurred while updating the user'
+                'message' => 'An error occurred while updating the user: ' . $e->getMessage()
             ]);
         }
         exit;

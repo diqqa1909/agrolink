@@ -18,14 +18,15 @@ class VehicleModel
     public function getByUserId($user_id)
     {
         $query = "SELECT * FROM $this->table WHERE user_id = :user_id ORDER BY created_at DESC";
-        return $this->query($query, ['user_id' => $user_id]);
+        $result = $this->query($query, ['user_id' => $user_id]);
+        return is_array($result) ? $result : [];
     }
 
     public function getById($id)
     {
         $query = "SELECT * FROM $this->table WHERE id = :id LIMIT 1";
         $result = $this->query($query, ['id' => $id]);
-        return $result ? $result[0] : false;
+        return (is_array($result) && !empty($result)) ? $result[0] : false;
     }
 
     public function create($data)
@@ -33,7 +34,7 @@ class VehicleModel
         if (!isset($data['status'])) {
             $data['status'] = 'active';
         }
-        
+
         return $this->insert($data);
     }
 
@@ -51,7 +52,7 @@ class VehicleModel
     {
         $query = "UPDATE $this->table SET status = 'inactive' WHERE user_id = :user_id";
         $this->query($query, ['user_id' => $user_id]);
-        
+
         $query = "UPDATE $this->table SET status = 'active' WHERE id = :id AND user_id = :user_id";
         return $this->query($query, ['id' => $vehicle_id, 'user_id' => $user_id]);
     }
@@ -80,8 +81,15 @@ class VehicleModel
 
         if (!empty($data['registration'])) {
             $existing = $this->where(['registration' => $data['registration']]);
-            if ($existing && (!isset($data['id']) || $existing[0]->id != $data['id'])) {
-                $this->errors['registration'] = "This registration number is already registered";
+            if (!is_array($existing)) {
+                $existing = [];
+            }
+            if (!empty($existing)) {
+                // On create, any existing match is a duplicate. On update, ignore self.
+                $existingId = $existing[0]->id ?? null;
+                if (!isset($data['id']) || ($existingId && $existingId != $data['id'])) {
+                    $this->errors['registration'] = "This registration number is already registered";
+                }
             }
         }
 

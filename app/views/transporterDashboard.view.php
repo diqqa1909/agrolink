@@ -1,128 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transporter Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="assets/css/style2.css?v=2">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
 
-    <nav class="top-navbar">
-        <div class="logo-section">
-            <img src="<?php echo ROOT; ?>/assets/imgs/Logo.png" alt="AgroLink" style="height: 40px;">
-        </div>
-        <div class="user-section">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">TR</div>
-                <div class="user-details">
-                    <div class="user-name" id="transporterName">Transporter</div>
-                    <div class="user-role">Transporter</div>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </nav>
+<body>
+    <!-- Include Navbar Component -->
+    <?php
+    $username = $_SESSION['USER']->name ?? 'Transporter';
+    $role = $_SESSION['USER']->role ?? 'transporter';
+    include '../app/views/components/dashboardNavBar.view.php';
+    ?>
 
     <div class="dashboard">
- 
+
         <aside class="sidebar">
-           <!-- <div class="sidebar-header">
-               <h3 class="sidebar-title">Transporter Dashboard</h3>
-            </div> -->
             <ul class="sidebar-menu">
-                <li><a href="#dashboard" class="menu-link active" data-section="dashboard">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </div>
-                    Dashboard
-                </a></li>
-                <li><a href="#available" class="menu-link" data-section="available">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="16" rx="2"/>
-                            <line x1="7" y1="8" x2="17" y2="8"/>
-                            <line x1="7" y1="12" x2="17" y2="12"/>
-                        </svg>
-                    </div>
-                    Available
-                </a></li>
-                <li><a href="#mydeliveries" class="menu-link" data-section="mydeliveries">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 7h13v10H3z"/>
-                            <path d="M16 10h4l3 3v4h-7z"/>
-                        </svg>
-                    </div>
-                    My Deliveries
-                </a></li>
-                <li><a href="#schedule" class="menu-link" data-section="schedule">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </div>
-                    Schedule
-                </a></li>
-                <li><a href="#earnings" class="menu-link" data-section="earnings">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="8"/>
-                            <line x1="12" y1="8" x2="12" y2="16"/>
-                            <line x1="8" y1="12" x2="16" y2="12"/>
-                        </svg>
-                    </div>
-                    Earnings
-                </a></li>
-                <li><a href="#vehicle" class="menu-link" data-section="vehicle">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="6" rx="2"/>
-                            <path d="M7 11V7h6v4"/>
-                            <circle cx="7.5" cy="17.5" r="1.5"/>
-                            <circle cx="16.5" cy="17.5" r="1.5"/>
-                        </svg>
-                    </div>
-                    Vehicle
-                </a></li>
-                <li><a href="#profile" class="menu-link" data-section="profile">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </div>
-                    Profile
-                </a></li>
-                <li><a href="#analytics" class="menu-link" data-section="analytics">
-                    <div class="menu-icon">
-                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="20" x2="12" y2="10"/>
-                            <line x1="18" y1="20" x2="18" y2="4"/>
-                            <line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                    </div>
-                    Analytics
-                </a></li>
+                <li><a href="#" class="menu-link active" data-section="dashboard">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        Dashboard
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="available-deliveries">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <line x1="7" y1="8" x2="17" y2="8" />
+                                <line x1="7" y1="12" x2="17" y2="12" />
+                            </svg>
+                        </div>
+                        Available Deliveries
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="mydeliveries">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 7h13v10H3z" />
+                                <path d="M16 10h4l3 3v4h-7z" />
+                            </svg>
+                        </div>
+                        My Deliveries
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="schedule">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </div>
+                        Schedule
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="earnings">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="8" />
+                                <line x1="12" y1="8" x2="12" y2="16" />
+                                <line x1="8" y1="12" x2="16" y2="12" />
+                            </svg>
+                        </div>
+                        Earnings
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="vehicle">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="6" rx="2" />
+                                <path d="M7 11V7h6v4" />
+                                <circle cx="7.5" cy="17.5" r="1.5" />
+                                <circle cx="16.5" cy="17.5" r="1.5" />
+                            </svg>
+                        </div>
+                        Vehicle
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="analytics">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="20" x2="12" y2="10" />
+                                <line x1="18" y1="20" x2="18" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                        </div>
+                        Analytics
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="feedback">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                        </div>
+                        Reviews & Complaints
+                    </a></li>
+                <li><a href="#" class="menu-link" data-section="profile">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        Profile
+                    </a></li>
             </ul>
         </aside>
 
         <main class="main-content">
-    
+
             <div id="dashboard-section" class="content-section">
-                <h1 style="margin-bottom: 20px; font-size: 2rem;">Dashboard Overview</h1>
-                <p style="color: #666; font-size: 1rem; margin-bottom: 36px;">
-                    Welcome , <span id="welcomeUserName" style="font-weight: 600; color: #000000ff;"><?php echo isset($username) ? htmlspecialchars($username) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.
-                </p>
-                
+                <div class="content-header">
+                    <h1 class="content-title">Dashboard Overview</h1>
+                    <p class="content-subtitle">Welcome, <span id="welcomeUserName"><?php echo isset($username) ? htmlspecialchars($username) : 'Transporter'; ?></span>! Here's what's happening with your deliveries.</p>
+                </div>
+
                 <div class="dashboard-stats" style="margin-bottom: 36px;">
                     <div class="stat-card">
                         <div class="stat-number" id="availableDeliveries">0</div>
@@ -171,7 +171,7 @@
                                 <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="updateLocation()">
                                     Update Location
                                 </button>
-                                <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="showSection('available')">
+                                <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="showSection('available-deliveries')">
                                     Find Deliveries
                                 </button>
                             </div>
@@ -198,7 +198,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="content-card">
                         <div class="card-header">
                             <h3 class="card-title">Weekly Earnings</h3>
@@ -221,7 +221,7 @@
                     </div>
                     <div class="card-content">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                            <button class="btn btn-primary" onclick="showSection('available')" style="margin: 0;">Find Deliveries</button>
+                            <button class="btn btn-primary" onclick="showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
                             <button class="btn btn-secondary" onclick="showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
                             <button class="btn btn-outline" onclick="showSection('schedule')" style="margin: 0;">View Schedule</button>
                             <button class="btn btn-outline" onclick="showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
@@ -230,8 +230,88 @@
                 </div>
             </div>
 
+            <div id="feedback-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">Reviews & Complaints</h1>
+                    <p class="content-subtitle">See what buyers and farmers are saying about your deliveries</p>
+                </div>
+
+                <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Reviews</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="buyer-avatar">AK</div>
+                                    <div class="review-meta">
+                                        <div class="buyer-name">Anu K.</div>
+                                        <div class="review-sub">Colombo → Kandy • #ORD-2025-014</div>
+                                    </div>
+                                    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                                </div>
+                                <div class="review-body">Very punctual and careful with the produce. Highly recommended!</div>
+                                <div class="review-footer">
+                                    <span class="feedback-badge positive">On-time</span>
+                                    <span class="feedback-badge positive">Professional</span>
+                                    <span class="review-product">Vegetables</span>
+                                </div>
+                            </div>
+
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <div class="buyer-avatar alt">RS</div>
+                                    <div class="review-meta">
+                                        <div class="buyer-name">Ruwan S.</div>
+                                        <div class="review-sub">Galle → Colombo • #ORD-2025-011</div>
+                                    </div>
+                                    <div class="rating-stars">⭐⭐⭐⭐☆</div>
+                                </div>
+                                <div class="review-body">Good service. One small delay due to traffic but communicated well.</div>
+                                <div class="review-footer">
+                                    <span class="feedback-badge neutral">Slight delay</span>
+                                    <span class="review-product">Fruits</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Complaints</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="complaint-card">
+                                <div class="complaint-header">
+                                    <div class="buyer-avatar">TM</div>
+                                    <div class="review-meta">
+                                        <div class="complaint-title">Packaging issue</div>
+                                        <div class="complaint-sub">Matale → Gampaha • #ORD-2025-010</div>
+                                    </div>
+                                    <span class="complaint-status resolved">Resolved</span>
+                                </div>
+                                <div class="complaint-body">Some boxes were stacked incorrectly. Repacked at destination with no loss.</div>
+                            </div>
+
+                            <div class="complaint-card">
+                                <div class="complaint-header">
+                                    <div class="buyer-avatar alt">NK</div>
+                                    <div class="review-meta">
+                                        <div class="complaint-title">Pickup delay</div>
+                                        <div class="complaint-sub">Anuradhapura → Kurunegala • #ORD-2025-008</div>
+                                    </div>
+                                    <span class="complaint-status in-progress">In Progress</span>
+                                </div>
+                                <div class="complaint-body">Driver arrived 20 minutes late due to road closure. Working on mitigation.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Available Deliveries Section -->
-            <div id="available-section" class="content-section" style="display: none;">
+            <div id="available-deliveries-section" class="content-section" style="display: none;">
                 <div class="content-header">
                     <h1 class="content-title">Available Deliveries</h1>
                     <button class="btn btn-outline btn-sm" onclick="refreshDeliveries()">🔄 Refresh</button>
@@ -330,16 +410,10 @@
 
                 <div class="content-card">
                     <div class="card-header">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <h3 class="card-title">Weekly Schedule</h3>
-                            <div style="display: flex; gap: 12px;">
-                                <button class="btn btn-sm btn-secondary" onclick="previousWeek()">← Previous</button>
-                                <button class="btn btn-sm btn-secondary" onclick="nextWeek()">Next →</button>
-                            </div>
-                        </div>
+                        <h3 class="card-title">Upcoming (Next 3 Days)</h3>
                     </div>
                     <div class="card-content">
-                        <div id="scheduleCalendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px;">
+                        <div id="scheduleCalendar" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                             <!-- Populated by JavaScript -->
                         </div>
                     </div>
@@ -469,9 +543,17 @@
             </div>
 
             <div id="vehicle-section" class="content-section" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1> Vehicle Management</h1>
-                    <button class="btn btn-primary" data-modal="addVehicleModal">➕ Add Vehicle</button>
+                <div class="content-header" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom: var(--spacing-sm);">
+                    <h1 class="content-title" style="margin:0;">Vehicle Management</h1>
+                </div>
+                <div style="margin-bottom: var(--spacing-lg);">
+                    <button class="btn btn-add-product" data-modal="addVehicleModal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Vehicle
+                    </button>
                 </div>
 
                 <div id="myVehiclesContainer">
@@ -480,7 +562,7 @@
 
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>  All Vehicles</h3>
+                        <h3> All Vehicles</h3>
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div class="table-container">
@@ -503,132 +585,155 @@
                 </div>
             </div>
 
-            <div id="profile-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">Transporter Profile</h1>
-
-                <div class="grid grid-2" style="gap: 20px;">
- 
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Personal Information</h3>
+            <div id="profile-section" class="content-section profile-section" style="display: none;">
+                <!-- Profile Header with Photo (modern UI) -->
+                <div class="profile-header-modern">
+                    <div class="profile-banner"></div>
+                    <div class="profile-header-content">
+                        <div class="profile-photo-wrapper-modern">
+                            <img src="https://ui-avatars.com/api/?name=Transporter&background=4CAF50&color=fff&size=150" alt="Transporter Profile" id="profilePhoto" class="profile-photo-modern">
+                            <button class="photo-edit-btn" onclick="uploadPhoto()" title="Change profile photo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                    <circle cx="12" cy="13" r="4" />
+                                </svg>
+                            </button>
                         </div>
-                        <div class="card-content" style="padding: 20px;">
-                            <form id="personalInfoForm">
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="profileName">Full Name</label>
-                                    <input type="text" id="profileName" name="name" class="form-control" required>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="profileEmail">Email</label>
-                                    <input type="email" id="profileEmail" name="email" class="form-control" required>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="profilePhone">Phone</label>
-                                    <input type="tel" id="profilePhone" name="phone" class="form-control" required>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <label for="profileNIC">NIC Number</label>
-                                    <input type="text" id="profileNIC" name="nic" class="form-control" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Personal Info</button>
-                            </form>
+                        <div class="profile-info-modern">
+                            <h2 class="profile-name-modern" id="displayProfileName">Transporter</h2>
+                            <p class="profile-role-modern">Transporter Account</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="profile-form-modern">
+                    <div class="form-section-header">
+                        <h3>Personal Information</h3>
+                        <p>Update your account details and preferences</p>
+                    </div>
+                    <div class="profile-form-grid-modern">
+                        <div class="form-group-modern">
+                            <label for="profileName">Full Name</label>
+                            <input type="text" id="profileName" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="profileEmail">Email</label>
+                            <input type="email" id="profileEmail" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="profilePhone">Phone</label>
+                            <input type="tel" id="profilePhone" name="phone" class="form-control" required>
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="profileNIC">NIC Number</label>
+                            <input type="text" id="profileNIC" name="nic" class="form-control" required>
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="businessName">Business Name</label>
+                            <input type="text" id="businessName" name="businessName" class="form-control">
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="businessType">Business Type</label>
+                            <select id="businessType" name="businessType" class="form-control">
+                                <option value="individual">Individual</option>
+                                <option value="company">Company</option>
+                                <option value="cooperative">Cooperative</option>
+                            </select>
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="serviceAreas">Service Areas</label>
+                            <input type="text" id="serviceAreas" name="serviceAreas" class="form-control" placeholder="e.g., Colombo, Kandy, Galle">
+                        </div>
+                        <div class="form-group-modern">
+                            <label for="baseLocation">Base Location</label>
+                            <input type="text" id="baseLocation" name="baseLocation" class="form-control">
                         </div>
                     </div>
 
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Business Information</h3>
-                        </div>
-                        <div class="card-content" style="padding: 20px;">
-                            <form id="businessInfoForm">
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="businessName">Business Name</label>
-                                    <input type="text" id="businessName" name="businessName" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="businessType">Business Type</label>
-                                    <select id="businessType" name="businessType" class="form-control">
-                                        <option value="individual">Individual</option>
-                                        <option value="company">Company</option>
-                                        <option value="cooperative">Cooperative</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="serviceAreas">Service Areas</label>
-                                    <input type="text" id="serviceAreas" name="serviceAreas" class="form-control" placeholder="e.g., Colombo, Kandy, Galle">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <label for="baseLocation">Base Location</label>
-                                    <input type="text" id="baseLocation" name="baseLocation" class="form-control">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Business Info</button>
-                            </form>
-                        </div>
+                    <div class="profile-actions-modern">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="updateProfile()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            Save Changes
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10" />
+                                <polyline points="23 20 23 14 17 14" />
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+                            </svg>
+                            Reset
+                        </button>
                     </div>
+                </div>
 
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Bank Information</h3>
-                        </div>
-                        <div class="card-content" style="padding: 20px;">
-                            <form id="bankInfoForm">
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="bankName">Bank Name</label>
-                                    <input type="text" id="bankName" name="bankName" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="accountNumber">Account Number</label>
-                                    <input type="text" id="accountNumber" name="accountNumber" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 16px;">
-                                    <label for="accountHolder">Account Holder Name</label>
-                                    <input type="text" id="accountHolder" name="accountHolder" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <label for="branchCode">Branch Code</label>
-                                    <input type="text" id="branchCode" name="branchCode" class="form-control">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Bank Info</button>
-                            </form>
-                        </div>
+                <!-- Account Statistics -->
+                <div class="profile-stats-modern">
+                    <div class="stats-header">
+                        <h3>Account Statistics</h3>
+                        <p>Your performance and activity overview</p>
                     </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Preferences</h3>
+                    <div class="stats-grid-modern">
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern" style="background: var(--primary-color);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 7h13v10H3z" />
+                                    <path d="M16 10h4l3 3v4h-7z" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Total Deliveries</div>
+                                <div class="stat-value-modern">127</div>
+                            </div>
                         </div>
-                        <div class="card-content" style="padding: 20px;">
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label for="maxDeliveryDistance">Maximum Delivery Distance (km)</label>
-                                <input type="number" id="maxDeliveryDistance" class="form-control" value="50">
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern" style="background: var(--primary-color);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
                             </div>
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label for="preferredWorkingHours">Preferred Working Hours</label>
-                                <select id="preferredWorkingHours" class="form-control">
-                                    <option value="full-time">Full-time (8AM-8PM)</option>
-                                    <option value="morning">Morning (6AM-12PM)</option>
-                                    <option value="afternoon">Afternoon (12PM-6PM)</option>
-                                    <option value="evening">Evening (6PM-10PM)</option>
-                                </select>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Average Rating</div>
+                                <div class="stat-value-modern">4.8</div>
                             </div>
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="emailNotifications"> Email Notifications
-                                </label>
+                        </div>
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern" style="background: var(--primary-color);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                    <polyline points="17 6 23 6 23 12" />
+                                </svg>
                             </div>
-                            <div class="form-group" style="margin-bottom: 20px;">
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="smsNotifications"> SMS Notifications
-                                </label>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">On-Time Rate</div>
+                                <div class="stat-value-modern">95%</div>
                             </div>
-                            <button class="btn btn-primary">Save Preferences</button>
+                        </div>
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern" style="background: var(--primary-color);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23" />
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Total Earnings</div>
+                                <div class="stat-value-modern">Rs. 68.5K</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="analytics-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 32px; font-size: 2rem;">Analytics & Performance</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Analytics & Performance</h1>
+                    <p class="content-subtitle">Track your performance metrics and delivery statistics</p>
+                </div>
 
                 <div class="dashboard-stats" style="margin-bottom: 40px;">
                     <div class="stat-card">
@@ -650,23 +755,68 @@
                 </div>
 
                 <div class="grid grid-2" style="margin-top: 0; gap: 32px;">
-                    <div class="card">
-                        <div style="padding: 24px; border-bottom: 1px solid var(--medium-gray);">
-                            <h3> Monthly Performance</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Monthly Performance</h3>
                         </div>
-                        <div style="padding: 32px; text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">📈</div>
-                            <p>Monthly delivery and earnings chart</p>
+                        <div class="card-content" style="padding: 10px 0;">
+                            <div style="display:grid; grid-template-columns: 1fr 4fr 1fr; gap:12px; align-items:center; padding:8px 12px;">
+                                <div>Oct</div>
+                                <div style="background:#E8F5E9; border-radius:8px; overflow:hidden;">
+                                    <div style="width: 78%; background:#66BB6A; color:#fff; padding:6px 8px;">78 deliveries</div>
+                                </div>
+                                <div style="text-align:right; font-weight:700;">Rs. 12.5k</div>
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 4fr 1fr; gap:12px; align-items:center; padding:8px 12px;">
+                                <div>Sep</div>
+                                <div style="background:#E8F5E9; border-radius:8px; overflow:hidden;">
+                                    <div style="width: 64%; background:#66BB6A; color:#fff; padding:6px 8px;">64 deliveries</div>
+                                </div>
+                                <div style="text-align:right; font-weight:700;">Rs. 10.1k</div>
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 4fr 1fr; gap:12px; align-items:center; padding:8px 12px;">
+                                <div>Aug</div>
+                                <div style="background:#E8F5E9; border-radius:8px; overflow:hidden;">
+                                    <div style="width: 58%; background:#66BB6A; color:#fff; padding:6px 8px;">58 deliveries</div>
+                                </div>
+                                <div style="text-align:right; font-weight:700;">Rs. 9.4k</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div style="padding: 24px; border-bottom: 1px solid var(--medium-gray);">
-                            <h3> Popular Routes</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Popular Routes</h3>
                         </div>
-                        <div style="padding: 32px; text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">🗺️</div>
-                            <p>Most frequent delivery routes</p>
+                        <div class="card-content">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Route</th>
+                                            <th>Deliveries</th>
+                                            <th>Avg. Earning</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Colombo → Kandy</td>
+                                            <td>28</td>
+                                            <td>Rs. 820</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Galle → Colombo</td>
+                                            <td>22</td>
+                                            <td>Rs. 1,050</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Matale → Gampaha</td>
+                                            <td>16</td>
+                                            <td>Rs. 940</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -677,8 +827,7 @@
     <div id="addVehicleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>➕ Add New Vehicle</h3>
-                <button class="modal-close">&times;</button>
+                <h3 class="modal-title">Add New Vehicle</h3>
             </div>
             <div class="modal-body">
                 <form id="addVehicleForm">
@@ -699,7 +848,7 @@
                             <input type="text" id="vehicleRegistration" name="registration" class="form-control" required>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-2">
                         <div class="form-group">
                             <label for="vehicleCapacity">Load Capacity (kg) *</label>
@@ -707,7 +856,7 @@
                         </div>
                         <div class="form-group">
                             <label for="vehicleFuelType">Fuel Type</label>
-                            <select id="vehicleFuelType" name="fuelType" class="form-control">
+                            <select id="vehicleFuelType" name="fuel_type" class="form-control">
                                 <option value="petrol">Petrol</option>
                                 <option value="diesel">Diesel</option>
                                 <option value="electric">Electric</option>
@@ -715,12 +864,12 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="vehicleModel">Vehicle Model</label>
                         <input type="text" id="vehicleModel" name="model" class="form-control" placeholder="e.g., Toyota Hiace">
                     </div>
-                    
+
                     <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Add Vehicle</button>
                         <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
@@ -730,18 +879,15 @@
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
     <script>
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('user_email');
-                localStorage.removeItem('user_role');
-                localStorage.removeItem('user_name');
-                localStorage.removeItem('business_name');
-                window.location.href = 'auth/logout.php';
-            }
-        }
+        window.APP_ROOT = "<?= ROOT ?>";
+        window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? 'Transporter') ?>;
+        window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
+    </script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/transporterDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             initTransporterDashboard();
         });
@@ -753,20 +899,21 @@
             } else if (document.getElementById('transporterName')) {
                 document.getElementById('transporterName').textContent = 'Transporter';
             }
-            
+
             loadDashboardData();
             loadAvailableDeliveries();
             loadMyDeliveries();
             loadSchedule();
+            loadEarnings();
             loadProfile();
             loadVehicles();
-            
+
             setupNavigation();
-            
+
             addTabStyles();
-            
+
             setupAddVehicleForm();
-            
+
             showSection('dashboard');
         }
 
@@ -777,7 +924,7 @@
                     e.preventDefault();
                     const section = this.getAttribute('data-section');
                     showSection(section);
-                    
+
                     menuLinks.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 });
@@ -787,12 +934,12 @@
         function showSection(sectionName) {
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => section.style.display = 'none');
-            
+
             const targetSection = document.getElementById(sectionName + '-section');
             if (targetSection) {
                 targetSection.style.display = 'block';
             }
-            
+
             const menuLinks = document.querySelectorAll('.menu-link');
             menuLinks.forEach(link => {
                 link.classList.remove('active');
@@ -829,17 +976,17 @@
             document.getElementById('activeDeliveries').textContent = '3';
             document.getElementById('monthlyEarnings').textContent = 'Rs. 12,450';
             document.getElementById('completedDeliveries').textContent = '127';
-            
+
             document.getElementById('recentDeliveries').innerHTML = `
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-001</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">Colombo → Kandy - Rs. 850</div>
-                    <span class="badge badge-success">Completed</span>
+                    <span class="badge">Completed</span>
                 </div>
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-002</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">Galle → Matara - Rs. 650</div>
-                    <span class="badge badge-warning">In Progress</span>
+                    <span class="badge">In Progress</span>
                 </div>
             `;
         }
@@ -857,15 +1004,15 @@
         function generateDeliveryCard(orderId, from, to, distance, weight, payment, priority) {
             const priorityColors = {
                 'urgent': 'delivered',
-                'express': 'pending', 
+                'express': 'pending',
                 'normal': 'shipped'
             };
             const priorityLabels = {
                 'urgent': 'URGENT',
-                'express': 'EXPRESS', 
+                'express': 'EXPRESS',
                 'normal': 'NORMAL'
             };
-            
+
             return `
                 <div class="content-card" style="margin: 0; min-width: 350px; max-width: 350px; flex-shrink: 0;">
                     <div style="padding: 20px;">
@@ -923,20 +1070,88 @@
                         <button class="btn btn-sm btn-primary" onclick="updateDeliveryStatus('ORD-2025-002')">Update Status</button>
                     </td>
                 </tr>
+                <tr>
+                    <td><strong>#ORD-2025-003</strong></td>
+                    <td>Matale → Gampaha</td>
+                    <td>45km</td>
+                    <td>30kg</td>
+                    <td><strong>Rs. 950</strong></td>
+                    <td><span class="order-status shipped">ACCEPTED</span></td>
+                    <td>Oct 24, 2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-003')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-004</strong></td>
+                    <td>Anuradhapura → Kurunegala</td>
+                    <td>60km</td>
+                    <td>22kg</td>
+                    <td><strong>Rs. 1,200</strong></td>
+                    <td><span class="order-status pending">IN PROGRESS</span></td>
+                    <td>Oct 25, 2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="updateDeliveryStatus('ORD-2025-004')">Update Status</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-005</strong></td>
+                    <td>Galle → Colombo</td>
+                    <td>120km</td>
+                    <td>40kg</td>
+                    <td><strong>Rs. 1,500</strong></td>
+                    <td><span class="order-status delivered">DELIVERED</span></td>
+                    <td>Oct 21, 2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-005')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-006</strong></td>
+                    <td>Colombo → Negombo</td>
+                    <td>38km</td>
+                    <td>18kg</td>
+                    <td><strong>Rs. 700</strong></td>
+                    <td><span class="order-status cancelled">CANCELLED</span></td>
+                    <td>Oct 19, 2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-006')">View</button>
+                    </td>
+                </tr>
             `;
         }
 
         function loadSchedule() {
             const calendar = document.getElementById('scheduleCalendar');
-            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            
-            calendar.innerHTML = days.map(day => `
-                <div style="text-align: center; padding: 20px; background: #ffffff; border: 2px solid #e0e0e0; border-radius: 12px;">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 1.1rem;">${day}</div>
-                    <div style="font-size: 0.9rem; color: #666;">2 deliveries</div>
+            const today = new Date();
+            const options = {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            };
+
+            const next3Days = [0, 1, 2].map(offset => {
+                const d = new Date(today);
+                d.setDate(today.getDate() + offset);
+                return d;
+            });
+
+            calendar.innerHTML = next3Days.map((date, idx) => `
+                <div style="padding: 16px; background: #ffffff; border: 2px solid #e0e0e0; border-radius: 12px;">
+                    <div style="font-weight: 700; margin-bottom: 10px; color: #2c3e50;">${date.toLocaleDateString(undefined, options)}</div>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="padding: 10px; background:#f8f9fa; border-radius:8px;">
+                            <div style="font-weight:600; color:#2c3e50;">08:30 AM • Pickup</div>
+                            <div style="color:#666; font-size:0.9rem;">Order #ORD-2025-00${7+idx} • ${idx === 0 ? 'Colombo' : idx === 1 ? 'Matale' : 'Galle'}</div>
+                        </div>
+                        <div style="padding: 10px; background:#f8f9fa; border-radius:8px;">
+                            <div style="font-weight:600; color:#2c3e50;">01:45 PM • Delivery</div>
+                            <div style="color:#666; font-size:0.9rem;">Order #ORD-2025-00${6+idx} • ${idx === 0 ? 'Kandy' : idx === 1 ? 'Kurunegala' : 'Colombo'}</div>
+                        </div>
+                    </div>
                 </div>
             `).join('');
-            
+
             document.getElementById('todaySchedule').innerHTML = `
                 <div style="padding: 20px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 16px;">
                     <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;">9:00 AM - Pickup</div>
@@ -951,18 +1166,88 @@
 
         function loadProfile() {
             const user = getCurrentUser();
-            if (user) {
-                document.getElementById('profileName').value = user.name || '';
-                document.getElementById('profileEmail').value = user.email || '';
-                document.getElementById('profilePhone').value = user.phone || '';
+            const uname = (window.USER_NAME || 'Transporter').trim() || 'Transporter';
+            const uemail = (window.USER_EMAIL || '').trim();
+
+            // Update profile photo
+            const profilePhoto = document.getElementById('profilePhoto');
+            const displayName = document.getElementById('displayProfileName');
+            if (profilePhoto) {
+                const encoded = encodeURIComponent(uname);
+                profilePhoto.src = `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=150`;
             }
+            if (displayName) {
+                displayName.textContent = uname;
+            }
+
+            // Populate form fields
+            if (user) {
+                document.getElementById('profileName').value = user.name || uname;
+                document.getElementById('profileEmail').value = user.email || uemail;
+                document.getElementById('profilePhone').value = user.phone || '';
+            } else {
+                document.getElementById('profileName').value = uname;
+                document.getElementById('profileEmail').value = uemail || '';
+            }
+        }
+
+        function uploadPhoto() {
+            let input = document.getElementById('photoUploadInput');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'photoUploadInput';
+                input.accept = 'image/*';
+                input.style.display = 'none';
+                document.body.appendChild(input);
+            }
+
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.type.startsWith('image/')) {
+                        showNotification('Please select a valid image file', 'error');
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        showNotification('Image size should be less than 5MB', 'error');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const profilePhoto = document.getElementById('profilePhoto');
+                        if (profilePhoto) {
+                            profilePhoto.src = ev.target.result;
+                            showNotification('Photo uploaded successfully!', 'success');
+                        }
+                    };
+                    reader.onerror = function() {
+                        showNotification('Failed to read image file', 'error');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            input.click();
+        }
+
+        function updateProfile() {
+            const name = document.getElementById('profileName')?.value?.trim();
+            const email = document.getElementById('profileEmail')?.value?.trim();
+            const phone = document.getElementById('profilePhone')?.value?.trim();
+
+            if (!name || !email || !phone) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+            showNotification('Profile updated successfully!', 'success');
         }
 
         function toggleAvailability() {
             const btn = document.getElementById('availabilityBtn');
             const status = document.getElementById('currentStatus');
             const indicator = document.getElementById('statusIndicator');
-            
+
             if (status.textContent === 'Available') {
                 status.textContent = 'Offline';
                 btn.textContent = 'Go Online';
@@ -1001,7 +1286,7 @@
         function filterMyDeliveries(status) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[data-status="${status}"]`).classList.add('active');
-            
+
             showNotification(`Filtering deliveries by: ${status}`, 'info');
         }
 
@@ -1011,6 +1296,63 @@
 
         function exportPaymentHistory() {
             showNotification('Exporting payment history...', 'info');
+        }
+
+        function loadEarnings() {
+            // Populate top stat cards
+            const today = 1850;
+            const week = 9450;
+            const month = 12450;
+            const total = 68500;
+
+            const el = id => document.getElementById(id);
+            if (el('todayEarnings')) el('todayEarnings').textContent = `Rs. ${today.toLocaleString()}`;
+            if (el('weekEarnings')) el('weekEarnings').textContent = `Rs. ${week.toLocaleString()}`;
+            if (el('monthEarningsDetail')) el('monthEarningsDetail').textContent = `Rs. ${month.toLocaleString()}`;
+            if (el('totalEarningsDetail')) el('totalEarningsDetail').textContent = `Rs. ${total.toLocaleString()}`;
+
+            // Fill payment history table
+            const rows = [{
+                    date: 'Oct 23, 2025',
+                    id: 'ORD-2025-019',
+                    route: 'Galle → Colombo',
+                    amount: 1500,
+                    status: 'Paid'
+                },
+                {
+                    date: 'Oct 22, 2025',
+                    id: 'ORD-2025-017',
+                    route: 'Matale → Gampaha',
+                    amount: 950,
+                    status: 'Paid'
+                },
+                {
+                    date: 'Oct 22, 2025',
+                    id: 'ORD-2025-016',
+                    route: 'Anuradhapura → Kurunegala',
+                    amount: 1200,
+                    status: 'Pending'
+                },
+                {
+                    date: 'Oct 21, 2025',
+                    id: 'ORD-2025-012',
+                    route: 'Colombo → Kandy',
+                    amount: 850,
+                    status: 'Paid'
+                }
+            ];
+            const body = document.getElementById('paymentHistoryBody');
+            if (body) {
+                body.innerHTML = rows.map(r => `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>#${r.id}</td>
+                        <td>${r.route}</td>
+                        <td><strong>Rs. ${r.amount.toLocaleString()}</strong></td>
+                        <td><span class="badge">${r.status}</span></td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function previousWeek() {
@@ -1041,12 +1383,12 @@
         }
 
         function loadVehicles() {
-            fetch('<?php echo ROOT; ?>/TransporterDashboard/getVehicles')
+            fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.vehicles) {
                         displayVehicles(data.vehicles);
-                        updateCurrentStatus(data.vehicles); 
+                        updateCurrentStatus(data.vehicles);
                     } else {
                         displayVehicles([]);
                         updateCurrentStatus([]);
@@ -1061,15 +1403,15 @@
 
         function updateCurrentStatus(vehicles) {
             const activeVehicleSpan = document.getElementById('activeVehicle');
-            
+
             if (!vehicles || vehicles.length === 0) {
                 activeVehicleSpan.textContent = 'No vehicles added';
                 activeVehicleSpan.style.color = '#666';
                 return;
             }
-            
+
             const activeVehicle = vehicles.find(v => v.status === 'active');
-            
+
             if (activeVehicle) {
                 const vehicleName = activeVehicle.model || getVehicleTypeName(activeVehicle.type);
                 activeVehicleSpan.textContent = `${vehicleName} (${activeVehicle.registration})`;
@@ -1086,7 +1428,7 @@
         function displayVehicles(vehicles) {
             const container = document.getElementById('myVehiclesContainer');
             const tbody = document.getElementById('vehiclesTableBody');
-            
+
             if (!vehicles || vehicles.length === 0) {
                 container.innerHTML = `
                     <div class="content-card">
@@ -1097,7 +1439,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 60px 20px; color: #666;">
@@ -1113,12 +1455,12 @@
                 const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
                 const vehicleIcon = getVehicleIcon(vehicle.type);
                 const vehicleTypeName = getVehicleTypeName(vehicle.type);
-                
+
                 return `
                     <div class="content-card" style="margin-bottom: 24px;">
                         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
-                            <span class="badge badge-${statusClass}">${statusText}</span>
+                            <span class="badge">${statusText}</span>
                         </div>
                         <div class="card-content">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
@@ -1128,7 +1470,7 @@
                                         <strong>Registration:</strong> ${escapeHtml(vehicle.registration)}<br>
                                         <strong>Capacity:</strong> ${escapeHtml(vehicle.capacity)}kg<br>
                                         <strong>Fuel Type:</strong> ${escapeHtml(vehicle.fuel_type || 'N/A')}<br>
-                                        <strong>Status:</strong> <span class="badge badge-${statusClass}">${statusText}</span>
+                                        <strong>Status:</strong> <span class="badge">${statusText}</span>
                                     </div>
                                     <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
                                         ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="margin: 0;">✓ Set as Active</button>` : ''}
@@ -1154,14 +1496,14 @@
             tbody.innerHTML = vehicles.map(vehicle => {
                 const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
                 const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
-                
+
                 return `
                     <tr>
                         <td>${escapeHtml(vehicle.model || 'N/A')}</td>
                         <td>${escapeHtml(vehicle.registration)}</td>
                         <td>${getVehicleTypeName(vehicle.type)}</td>
                         <td>${escapeHtml(vehicle.capacity)}kg</td>
-                        <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                        <td><span class="badge">${statusText}</span></td>
                         <td>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="background: #65b57c; border-color: #65b57c;">Set Active</button>` : ''}
@@ -1201,42 +1543,42 @@
             if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const formData = new FormData(form);
-                    
-                    fetch('<?php echo ROOT; ?>/TransporterDashboard/addVehicle', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message, 'success');
-                            form.reset();
-                            closeModal('addVehicleModal');
-                            loadVehicles();
-                        } else {
-                            if (data.errors) {
-                                let errorMsg = 'Validation errors:\n';
-                                for (let field in data.errors) {
-                                    errorMsg += `- ${data.errors[field]}\n`;
-                                }
-                                showNotification(errorMsg, 'error');
+
+                    fetch('<?= ROOT ?>/TransporterDashboard/addVehicle', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotification(data.message, 'success');
+                                form.reset();
+                                closeModal('addVehicleModal');
+                                loadVehicles();
                             } else {
-                                showNotification(data.message, 'error');
+                                if (data.errors) {
+                                    let errorMsg = 'Validation errors:\n';
+                                    for (let field in data.errors) {
+                                        errorMsg += `- ${data.errors[field]}\n`;
+                                    }
+                                    showNotification(errorMsg, 'error');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showNotification('Failed to add vehicle. Please try again.', 'error');
-                    });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showNotification('Failed to add vehicle. Please try again.', 'error');
+                        });
                 });
             }
         }
 
         function editVehicleModal(vehicleId) {
-            fetch('<?php echo ROOT; ?>/TransporterDashboard/getVehicles')
+            fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.vehicles) {
@@ -1258,7 +1600,6 @@
                     <div class="modal-content" onclick="event.stopPropagation()">
                         <div class="modal-header">
                             <h3>Edit Vehicle</h3>
-                            <button class="modal-close" onclick="closeEditModal()">&times;</button>
                         </div>
                         <div class="modal-body">
                             <form id="editVehicleForm" onsubmit="submitEditVehicle(event, ${vehicle.id})">
@@ -1319,12 +1660,12 @@
                     </div>
                 </div>
             `;
-            
+
             const existingModal = document.getElementById('editVehicleModal');
             if (existingModal) {
                 existingModal.remove();
             }
-            
+
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
@@ -1346,77 +1687,77 @@
 
         function submitEditVehicle(event, vehicleId) {
             event.preventDefault();
-            
+
             const form = event.target;
             const formData = new FormData(form);
-            
-            fetch('<?php echo ROOT; ?>/TransporterDashboard/editVehicle/' + vehicleId, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    closeEditModal();
-                    loadVehicles(); 
-                } else {
-                    if (data.errors) {
-                        let errorMsg = 'Validation errors:\n';
-                        for (let field in data.errors) {
-                            errorMsg += `- ${data.errors[field]}\n`;
-                        }
-                        showNotification(errorMsg, 'error');
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Failed to update vehicle. Please try again.', 'error');
-            });
-        }
 
-        function setActiveVehicle(vehicleId) {
-            if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
-                fetch('<?php echo ROOT; ?>/TransporterDashboard/setActiveVehicle/' + vehicleId, {
-                    method: 'POST'
+            fetch('<?= ROOT ?>/TransporterDashboard/editVehicle/' + vehicleId, {
+                    method: 'POST',
+                    body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         showNotification(data.message, 'success');
+                        closeEditModal();
                         loadVehicles();
                     } else {
-                        showNotification(data.message, 'error');
+                        if (data.errors) {
+                            let errorMsg = 'Validation errors:\n';
+                            for (let field in data.errors) {
+                                errorMsg += `- ${data.errors[field]}\n`;
+                            }
+                            showNotification(errorMsg, 'error');
+                        } else {
+                            showNotification(data.message, 'error');
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Failed to set active vehicle. Please try again.', 'error');
+                    showNotification('Failed to update vehicle. Please try again.', 'error');
                 });
+        }
+
+        function setActiveVehicle(vehicleId) {
+            if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
+                fetch('<?= ROOT ?>/TransporterDashboard/setActiveVehicle/' + vehicleId, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message, 'success');
+                            loadVehicles();
+                        } else {
+                            showNotification(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to set active vehicle. Please try again.', 'error');
+                    });
             }
         }
 
         function deleteVehicleConfirm(vehicleId) {
             if (confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
-                fetch('<?php echo ROOT; ?>/TransporterDashboard/deleteVehicle/' + vehicleId, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification(data.message, 'success');
-                        loadVehicles();
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to delete vehicle. Please try again.', 'error');
-                });
+                fetch('<?= ROOT ?>/TransporterDashboard/deleteVehicle/' + vehicleId, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message, 'success');
+                            loadVehicles();
+                        } else {
+                            showNotification(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to delete vehicle. Please try again.', 'error');
+                    });
             }
         }
 
@@ -1433,4 +1774,5 @@
         }
     </script>
 </body>
+
 </html>

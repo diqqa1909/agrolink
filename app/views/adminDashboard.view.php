@@ -7,25 +7,12 @@
     <link rel="stylesheet" href="<?=ROOT?>/assets/css/style2.css">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="logo-section">
-            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
-        </div>
-        <div class="user-section">
-            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
-                <div>
-                    <div class="user-avatar" id="userAvatar">AD</div>
-
-                </div>
-                <div>
-                    <div class="user-name" id="adminName"><?=$username?></div>
-                    <div class="user-role">Admin</div>
-                </div>
-                <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </nav>
-    
+    <!-- Include Navbar Component -->
+    <?php
+    $username = $_SESSION['USER']->name ?? 'Admin';
+    $role = $_SESSION['USER']->role ?? 'admin';
+    include '../app/views/components/dashboardNavBar.view.php';
+    ?>
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
@@ -125,7 +112,10 @@
         <main class="main-content">
             <!-- Dashboard Overview -->
             <div id="dashboard-section" class="content-section">
-    <h1 style="margin-bottom: var(--spacing-lg);">System Overview</h1>
+                <div class="content-header">
+                    <h1 class="content-title">System Overview</h1>
+                    <p class="content-subtitle">Welcome back! Monitor your platform's performance and activities.</p>
+                </div>
     
     <!-- Key Metrics -->
     <div class="dashboard-stats">
@@ -147,54 +137,49 @@
         </div> -->
     </div>
 
-    <!-- User Distribution -->
-    <div class="dashboard-stats" style="margin-top: var(--spacing-xl);">
-        <div class="card text-center">
-            <div style="padding: var(--spacing-lg);">
-                <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">👨‍🌾</div>
-                <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-color);" id="farmerCount"><?php show($farmers);?></div>
-                <div style="color: var(--text-light);">Farmers</div>
-            </div>
+    <!-- User Summary Card -->
+    <div class="content-card" style="margin-top: var(--spacing-xl);">
+        <div class="card-header">
+            <h3 class="card-title">User Summary</h3>
         </div>
-        <div class="card text-center">
-            <div style="padding: var(--spacing-lg);">
-                <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">🛒</div>
-                <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-color);" id="buyerCount"><?php show($buyers);?></div>
-                <div style="color: var(--text-light);">Buyers</div>
-            </div>
-        </div>
-        <div class="card text-center">
-            <div style="padding: var(--spacing-lg);">
-                <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">🚚</div>
-                <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-color);" id="transporterCount"><?php show($transporters);?></div>
-                <div style="color: var(--text-light);">Transporters</div>
-            </div>
-        </div>
-        <div class="card text-center">
-            <div style="padding: var(--spacing-lg);">
-                <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">👑</div>
-                <div style="font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary-color);" id="adminCount"><?php show($admins);?></div>
-                <div style="color: var(--text-light);">Admins</div>
+        <div class="card-content">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; padding: 20px;">
+                <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;" id="farmerCount"><?php show($farmers);?></div>
+                    <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Farmers</div>
+                </div>
+                <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;" id="buyerCount"><?php show($buyers);?></div>
+                    <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Buyers</div>
+                </div>
+                <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;" id="transporterCount"><?php show($transporters);?></div>
+                    <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Transporters</div>
+                </div>
+                <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;" id="adminCount"><?php show($admins);?></div>
+                    <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Admins</div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Activity -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: var(--spacing-xl);">
-        <div class="card">
-            <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
-                <h3>📋 Recent Orders</h3>
+        <div class="content-card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Orders</h3>
             </div>
-            <div id="recentOrders" style="padding: var(--spacing-lg);">
+            <div class="card-content" id="recentOrders">
                 <!-- Recent orders will be populated by JavaScript -->
             </div>
         </div>
-        
-        <div class="card">
-            <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
-                <h3>👥 New User Registrations</h3>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h3 class="card-title">New User Registrations</h3>
             </div>
-            <div id="newRegistrations" style="padding: var(--spacing-lg);">
+            <div class="card-content" id="newRegistrations">
                 <!-- New registrations will be populated by JavaScript -->
             </div>
         </div>
@@ -221,11 +206,17 @@
 
             <!-- User Management -->
             <div id="users-section" class="content-section" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1>👥 User Management</h1>
-                    <div style="display: flex; gap: var(--spacing-sm);">
-                        <button class="btn btn-secondary" onclick="exportUsers()">📥 Export Users</button>
-                        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
+                <div class="content-header">
+                    <h1 class="content-title">User Management</h1>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="exportUsers()">Export Users</button>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add User
+                        </button>
                     </div>
                 </div>
 
@@ -293,7 +284,9 @@
 
             <!-- Order Management -->
             <div id="orders-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">📦 Order Management</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Order Management</h1>
+                </div>
 
                 <!-- Order Statistics -->
                 <div class="dashboard-stats">
@@ -381,77 +374,115 @@
 
             <!-- Product Management -->
             <div id="products-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">🌾 Product Management</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Product Management</h1>
+                    <p class="content-subtitle">Overview of all products listed on the platform</p>
+                </div>
 
                 <!-- Product Statistics -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalProducts">0</div>
+                        <div class="stat-number">248</div>
                         <div class="stat-label">Total Products</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="activeProducts">0</div>
+                        <div class="stat-number">189</div>
                         <div class="stat-label">Active Products</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="outOfStock">0</div>
+                        <div class="stat-number">42</div>
                         <div class="stat-label">Out of Stock</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="pendingApproval">0</div>
+                        <div class="stat-number">17</div>
                         <div class="stat-label">Pending Approval</div>
                     </div>
                 </div>
 
-                <!-- Product Categories -->
-                <div class="grid grid-3" style="margin-top: var(--spacing-xl);">
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🥬</div>
-                            <h4>Vegetables</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);" id="vegetableCount">0</div>
-                        </div>
+                <!-- Sample Products List -->
+                <div class="content-card" style="margin-top: var(--spacing-xl);">
+                    <div class="card-header">
+                        <h3 class="card-title">Sample Products</h3>
                     </div>
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🍎</div>
-                            <h4>Fruits</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);" id="fruitCount">0</div>
-                        </div>
+                    <div class="card-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Farmer</th>
+                                    <th>Category</th>
+                                    <th>Price (Rs/kg)</th>
+                                    <th>Stock (kg)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Fresh Tomatoes</strong>
+                                        <div style="font-size: 0.9rem; color: #666;">Organic tomatoes from Matale</div>
+                                    </td>
+                                    <td>Nimal Silva</td>
+                                    <td><span class="badge">Vegetables</span></td>
+                                    <td><strong>Rs. 180</strong></td>
+                                    <td>250 kg</td>
+                                    <td><span class="badge">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Organic Carrots</strong>
+                                        <div style="font-size: 0.9rem; color: #666;">Organic carrots from Nuwara Eliya</div>
+                                    </td>
+                                    <td>Kamala Perera</td>
+                                    <td><span class="badge">Vegetables</span></td>
+                                    <td><strong>Rs. 220</strong></td>
+                                    <td>180 kg</td>
+                                    <td><span class="badge">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Sweet Mangoes</strong>
+                                        <div style="font-size: 0.9rem; color: #666;">Sweet mangoes from Galle</div>
+                                    </td>
+                                    <td>Sunil Fernando</td>
+                                    <td><span class="badge">Fruits</span></td>
+                                    <td><strong>Rs. 350</strong></td>
+                                    <td>120 kg</td>
+                                    <td><span class="badge">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Red Rice</strong>
+                                        <div style="font-size: 0.9rem; color: #666;">Traditional red rice from Anuradhapura</div>
+                                    </td>
+                                    <td>Ajith Bandara</td>
+                                    <td><span class="badge">Grains</span></td>
+                                    <td><strong>Rs. 280</strong></td>
+                                    <td>500 kg</td>
+                                    <td><span class="badge">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Green Beans</strong>
+                                        <div style="font-size: 0.9rem; color: #666;">Fresh green beans from Kandy</div>
+                                    </td>
+                                    <td>Priyani Dias</td>
+                                    <td><span class="badge">Vegetables</span></td>
+                                    <td><strong>Rs. 240</strong></td>
+                                    <td>0 kg</td>
+                                    <td><span class="badge">Out of Stock</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🌾</div>
-                            <h4>Grains</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);" id="grainCount">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Table -->
-                <div class="table-container" style="margin-top: var(--spacing-xl);">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Farmer</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTableBody">
-                            <!-- Products will be populated by JavaScript -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
             <!-- Payments & Finance -->
             <div id="payments-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">💳 Payments & Finance</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Payments & Finance</h1>
+                </div>
 
                 <!-- Financial Overview -->
                 <div class="dashboard-stats">
@@ -474,44 +505,30 @@
                 </div>
 
                 <!-- Payment Methods -->
-                <div class="grid grid-4" style="margin-top: var(--spacing-xl);">
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💵</div>
-                            <h4>Cash on Delivery</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);">65%</div>
-                        </div>
+                <div class="dashboard-stats" style="margin-top: var(--spacing-xl);">
+                    <div class="stat-card">
+                        <div class="stat-number">65%</div>
+                        <div class="stat-label">Cash on Delivery</div>
                     </div>
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🏦</div>
-                            <h4>Bank Transfer</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);">20%</div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-number">20%</div>
+                        <div class="stat-label">Bank Transfer</div>
                     </div>
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">📱</div>
-                            <h4>Mobile Payment</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);">10%</div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-number">10%</div>
+                        <div class="stat-label">Mobile Payment</div>
                     </div>
-                    <div class="card text-center">
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💳</div>
-                            <h4>Credit/Debit</h4>
-                            <div style="font-size: 1.2rem; color: var(--primary-green);">5%</div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-number">5%</div>
+                        <div class="stat-label">Credit/Debit</div>
                     </div>
                 </div>
 
                 <!-- Recent Transactions -->
-                <div class="card" style="margin-top: var(--spacing-xl);">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3>💰 Recent Transactions</h3>
-                            <button class="btn btn-secondary" onclick="exportTransactions()">📥 Export</button>
-                        </div>
+                <div class="content-card" style="margin-top: var(--spacing-xl);">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Transactions</h3>
+                        <button class="btn btn-secondary" onclick="exportTransactions()">Export</button>
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div class="table-container">
@@ -528,7 +545,61 @@
                                     </tr>
                                 </thead>
                                 <tbody id="transactionsTableBody">
-                                    <!-- Transactions will be populated by JavaScript -->
+                                    <tr>
+                                        <td><strong>#TXN-2025-001</strong></td>
+                                        <td>#ORD-2025-001</td>
+                                        <td><strong>Rs. 2,450</strong></td>
+                                        <td>Cash on Delivery</td>
+                                        <td><span class="badge">Completed</span></td>
+                                        <td>2025-01-05</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN-2025-001')">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>#TXN-2025-002</strong></td>
+                                        <td>#ORD-2025-002</td>
+                                        <td><strong>Rs. 8,900</strong></td>
+                                        <td>Bank Transfer</td>
+                                        <td><span class="badge">Pending</span></td>
+                                        <td>2025-01-07</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN-2025-002')">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>#TXN-2025-003</strong></td>
+                                        <td>#ORD-2025-003</td>
+                                        <td><strong>Rs. 6,200</strong></td>
+                                        <td>Mobile Payment</td>
+                                        <td><span class="badge">Completed</span></td>
+                                        <td>2025-01-06</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN-2025-003')">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>#TXN-2025-004</strong></td>
+                                        <td>#ORD-2025-004</td>
+                                        <td><strong>Rs. 950</strong></td>
+                                        <td>Cash on Delivery</td>
+                                        <td><span class="badge">Completed</span></td>
+                                        <td>2025-01-04</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN-2025-004')">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>#TXN-2025-005</strong></td>
+                                        <td>#ORD-2025-006</td>
+                                        <td><strong>Rs. 1,440</strong></td>
+                                        <td>Bank Transfer</td>
+                                        <td><span class="badge">Failed</span></td>
+                                        <td>2025-01-03</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN-2025-005')">View</button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -538,7 +609,9 @@
 
             <!-- Disputes -->
             <div id="disputes-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">⚖️ Disputes Management</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Disputes Management</h1>
+                </div>
 
                 <!-- Dispute Statistics -->
                 <div class="dashboard-stats">
@@ -560,31 +633,6 @@
                     </div>
                 </div>
 
-                <!-- Dispute Categories -->
-                <div class="grid grid-3" style="margin-top: var(--spacing-xl);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <h4>📦 Order Issues</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">15</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Wrong items, missing orders</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <h4>💳 Payment Issues</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">8</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Payment failures, refunds</div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); text-align: center;">
-                            <h4>🚚 Delivery Issues</h4>
-                            <div style="font-size: 1.5rem; color: var(--primary-green); margin: var(--spacing-sm) 0;">12</div>
-                            <div style="color: var(--dark-gray); font-size: 0.9rem;">Late delivery, damaged goods</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Disputes Table -->
                 <div class="table-container" style="margin-top: var(--spacing-xl);">
                     <table class="table">
@@ -602,16 +650,66 @@
                         </thead>
                         <tbody id="disputesTableBody">
                             <tr>
-                                <td>#DIS-001</td>
+                                <td><strong>#DIS-001</strong></td>
                                 <td>#ORD-2025-001</td>
                                 <td>John Buyer</td>
                                 <td>Order Issue</td>
-                                <td><span class="badge badge-danger">High</span></td>
-                                <td><span class="badge badge-warning">Open</span></td>
+                                <td><span class="badge badge">High</span></td>
+                                <td><span class="badge badge">Open</span></td>
                                 <td>2025-01-07</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary" onclick="viewDispute('DIS-001')">View</button>
                                     <button class="btn btn-sm btn-success" onclick="resolveDispute('DIS-001')">Resolve</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>#DIS-002</strong></td>
+                                <td>#ORD-2025-003</td>
+                                <td>Fresh Market Ltd</td>
+                                <td>Payment Issue</td>
+                                <td><span class="badge badge">Medium</span></td>
+                                <td><span class="badge badge">In Progress</span></td>
+                                <td>2025-01-06</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDispute('DIS-002')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="resolveDispute('DIS-002')">Resolve</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>#DIS-003</strong></td>
+                                <td>#ORD-2024-989</td>
+                                <td>Sarah Williams</td>
+                                <td>Delivery Issue</td>
+                                <td><span class="badge badge">Low</span></td>
+                                <td><span class="badge badge">Resolved</span></td>
+                                <td>2025-01-02</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDispute('DIS-003')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>#DIS-004</strong></td>
+                                <td>#ORD-2025-005</td>
+                                <td>Michael Brown</td>
+                                <td>Order Issue</td>
+                                <td><span class="badge badge">High</span></td>
+                                <td><span class="badge badge">Open</span></td>
+                                <td>2025-01-08</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDispute('DIS-004')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="resolveDispute('DIS-004')">Resolve</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>#DIS-005</strong></td>
+                                <td>#ORD-2024-978</td>
+                                <td>Emma Davis</td>
+                                <td>Product Quality</td>
+                                <td><span class="badge badge">Medium</span></td>
+                                <td><span class="badge badge">Resolved</span></td>
+                                <td>2024-12-30</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDispute('DIS-005')">View</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -621,7 +719,9 @@
 
             <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">📈 Platform Analytics</h1>
+                <div class="content-header">
+                    <h1 class="content-title">Platform Analytics</h1>
+                </div>
 
                 <!-- Key Performance Indicators -->
                 <div class="dashboard-stats">
@@ -644,94 +744,90 @@
                 </div>
 
                 <!-- Analytics Charts -->
-                <div class="grid grid-2" style="margin-top: var(--spacing-xl);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📊 User Growth</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-top: var(--spacing-xl);">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">User Growth</h3>
                         </div>
-                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">📈</div>
+                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
                             <p>User registration and growth trends over time</p>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>💰 Revenue Trends</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Revenue Trends</h3>
                         </div>
-                        <div class="text-center" style="padding: var(--spacing-xl); color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">💹</div>
+                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
                             <p>Monthly revenue and commission tracking</p>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🗺️ Geographic Distribution</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Geographic Distribution</h3>
                         </div>
-                        <div class="text-center" style="padding: var(--spacing-xl); color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">🗺️</div>
+                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
                             <p>User distribution across Sri Lankan provinces</p>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📱 Platform Usage</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Platform Usage</h3>
                         </div>
-                        <div class="text-center" style="padding: var(--spacing-xl); color: var(--dark-gray);">
-                            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">📱</div>
+                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
                             <p>Daily active users and session analytics</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Top Performers -->
-                <div class="grid grid-3" style="margin-top: var(--spacing-xl);">
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🏆 Top Farmers</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: var(--spacing-xl);">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Top Farmers</h3>
                         </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Ranjith Fernando</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">Rs. 45,200 revenue</div>
+                        <div class="card-content">
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Ranjith Fernando</div>
+                                <div style="color: #666; font-size: 0.9rem;">Rs. 45,200 revenue</div>
                             </div>
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Kumari Silva</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">Rs. 38,500 revenue</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🛒 Top Buyers</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Green Valley Restaurant</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">Rs. 28,900 spent</div>
-                            </div>
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Fresh Market Ltd</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">Rs. 22,150 spent</div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Kumari Silva</div>
+                                <div style="color: #666; font-size: 0.9rem;">Rs. 38,500 revenue</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🚚 Top Transporters</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Top Buyers</h3>
                         </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Express Delivery Co</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">127 deliveries</div>
+                        <div class="card-content">
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Green Valley Restaurant</div>
+                                <div style="color: #666; font-size: 0.9rem;">Rs. 28,900 spent</div>
                             </div>
-                            <div style="margin-bottom: var(--spacing-sm);">
-                                <div style="font-weight: var(--font-weight-bold);">Island Transport</div>
-                                <div style="color: var(--dark-gray); font-size: 0.9rem;">89 deliveries</div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Fresh Market Ltd</div>
+                                <div style="color: #666; font-size: 0.9rem;">Rs. 22,150 spent</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Top Transporters</h3>
+                        </div>
+                        <div class="card-content">
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Express Delivery Co</div>
+                                <div style="color: #666; font-size: 0.9rem;">127 deliveries</div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">Island Transport</div>
+                                <div style="color: #666; font-size: 0.9rem;">89 deliveries</div>
                             </div>
                         </div>
                     </div>
@@ -740,9 +836,9 @@
 
             <!-- Notifications -->
             <div id="notifications-section" class="content-section" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1>📢 System Notifications</h1>
-                    <button class="btn btn-primary" data-modal="sendNotificationModal">📤 Send Notification</button>
+                <div class="content-header">
+                    <h1 class="content-title">System Notifications</h1>
+                    <button class="btn btn-primary" data-modal="sendNotificationModal">Send Notification</button>
                 </div>
 
                 <!-- Notification Stats -->
@@ -766,9 +862,9 @@
                 </div>
 
                 <!-- Recent Notifications -->
-                <div class="card" style="margin-top: var(--spacing-xl);">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3>📋 Recent Notifications</h3>
+                <div class="content-card" style="margin-top: var(--spacing-xl);">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Notifications</h3>
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div class="table-container">
@@ -787,8 +883,8 @@
                                     <tr>
                                         <td>System Maintenance Notice</td>
                                         <td>All Users</td>
-                                        <td><span class="badge badge-warning">System</span></td>
-                                        <td><span class="badge badge-success">Delivered</span></td>
+                                        <td><span class="badge badge">System</span></td>
+                                        <td><span class="badge badge">Delivered</span></td>
                                         <td>2025-01-07</td>
                                         <td>
                                             <button class="btn btn-sm btn-secondary">View</button>
@@ -803,13 +899,15 @@
 
             <!-- Settings -->
             <div id="settings-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: var(--spacing-lg);">⚙️ System Settings</h1>
+                <div class="content-header">
+                    <h1 class="content-title">System Settings</h1>
+                </div>
 
-                <div class="grid grid-2" style="gap: var(--spacing-xl);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
                     <!-- Platform Settings -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🏛️ Platform Settings</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Platform Settings</h3>
                         </div>
                         <div style="padding: var(--spacing-lg);">
                             <form id="platformSettingsForm">
@@ -835,9 +933,9 @@
                     </div>
 
                     <!-- Payment Settings -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>💳 Payment Settings</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Settings</h3>
                         </div>
                         <div style="padding: var(--spacing-lg);">
                             <form id="paymentSettingsForm">
@@ -871,9 +969,9 @@
                     </div>
 
                     <!-- Notification Settings -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>📧 Notification Settings</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Notification Settings</h3>
                         </div>
                         <div style="padding: var(--spacing-lg);">
                             <form id="notificationSettingsForm">
@@ -902,22 +1000,22 @@
                     </div>
 
                     <!-- System Maintenance -->
-                    <div class="card">
-                        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                            <h3>🔧 System Maintenance</h3>
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">System Maintenance</h3>
                         </div>
                         <div style="padding: var(--spacing-lg);">
                             <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('backup')">🗄️ Create System Backup</button>
+                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('backup')">Create System Backup</button>
                             </div>
                             <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cleanup')">🧹 Clean Database</button>
+                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cleanup')">Clean Database</button>
                             </div>
                             <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cache')">💾 Clear Cache</button>
+                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cache')">Clear Cache</button>
                             </div>
                             <div class="form-group">
-                                <button class="btn btn-warning w-full" onclick="performMaintenance('maintenance')">⚠️ Enable Maintenance Mode</button>
+                                <button class="btn btn-warning w-full" onclick="performMaintenance('maintenance')">Enable Maintenance Mode</button>
                             </div>
                         </div>
                     </div>
@@ -930,8 +1028,7 @@
     <div id="addUserModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>➕ Add New User</h3>
-                <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
+                <h3>Add New User</h3>
             </div>
             <div class="modal-body">
                 <form id="addUserForm">
@@ -946,22 +1043,28 @@
                             <input type="email" id="userEmail" name="email" class="form-control" required>
                         </div>
                     </div>
-                    
+
+                    <div class="form-group">
+                        <label for="userRole">Role *</label>
+                        <select id="userRole" name="role" class="form-control" required>
+                            <option value="">Select Role</option>
+                            <option value="farmer">Farmer</option>
+                            <option value="buyer">Buyer</option>
+                            <option value="transporter">Transporter</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
                     <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="userRole">Role *</label>
-                            <select id="userRole" name="role" class="form-control" required>
-                                <option value="">Select Role</option>
-                                <option value="farmer">Farmer</option>
-                                <option value="buyer">Buyer</option>
-                                <option value="transporter">Transporter</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
                         <div class="form-group">
                             <label for="userPass">Password *</label>
                             <input type="password" id="userPass" name="password" class="form-control" required minlength="8">
                             <small class="form-text">Minimum 8 characters</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="userConfirmPass">Confirm Password *</label>
+                            <input type="password" id="userConfirmPass" name="confirmPassword" class="form-control" required minlength="8">
+                            <small class="form-text">Re-enter password to confirm</small>
                         </div>
                     </div>
 
@@ -983,7 +1086,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Update User</h3>
-                <button class="modal-close" onclick="closeUpdateUserModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="updateUserForm">
@@ -1012,9 +1114,9 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="updatePass">Password *</label>
-                            <input type="password" id="updatePass" name="password" class="form-control" required minlength="8">
-                            <small class="form-text">Minimum 8 characters</small>
+                            <label for="updatePass">New Password</label>
+                            <input type="password" id="updatePass" name="password" class="form-control" minlength="8">
+                            <small class="form-text">Leave empty to keep current password. Minimum 8 characters if changing</small>
                         </div>
                     </div>
 
@@ -1035,8 +1137,7 @@
     <div id="sendNotificationModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>📤 Send Notification</h3>
-                <button class="modal-close">&times;</button>
+                <h3>Send Notification</h3>
             </div>
             <div class="modal-body">
                 <form id="sendNotificationForm">
@@ -1085,17 +1186,6 @@
 
     <script src="<?=ROOT?>/assets/js/main.js"></script>
     <script>
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('user_email');
-                localStorage.removeItem('user_role');
-                localStorage.removeItem('user_name');
-                localStorage.removeItem('business_name');
-                window.location.href = 'auth/logout.php';
-            }
-        }
-        
         // Remove authentication check to allow dashboard access without login
         document.addEventListener('DOMContentLoaded', function() {
             initAdminDashboard();
@@ -1106,7 +1196,6 @@
             loadDashboardData();
             loadUsers();
             loadOrders();
-            loadProducts();
             setupNavigation();
             setupForms();
             // Show dashboard section by default on initial load
@@ -1159,12 +1248,12 @@
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-007</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">John Buyer → Ranjith Farmer - Rs. 2,450</div>
-                    <span class="badge badge-success">Completed</span>
+                    <span class="badge badge">Completed</span>
                 </div>
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-008</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">Green Valley Restaurant → Multiple Farmers - Rs. 8,900</div>
-                    <span class="badge badge-warning">Processing</span>
+                    <span class="badge badge">Processing</span>
                 </div>
             `;
             
@@ -1173,16 +1262,17 @@
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">Saman Perera</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">Farmer - Kandy</div>
-                    <span class="badge badge-info">Pending Approval</span>
+                    <span class="badge badge">Pending Approval</span>
                 </div>
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">Fresh Mart Ltd</div>
                     <div style="font-size: 0.9rem; color: var(--dark-gray);">Buyer - Colombo</div>
-                    <span class="badge badge-success">Approved</span>
+                    <span class="badge badge">Approved</span>
                 </div>
             `;
         }
 
+        // Load dashboard users table
         // Load users data
         function loadUsers(){
             const tbody = document.getElementById('usersTableBody');
@@ -1197,8 +1287,8 @@
                         <td>${user.email || 'N/A'}</td>
                         <td><span class="badge badge-${user.role === 'farmer' ? 'success' : user.role === 'buyer' ? 'info' : user.role === 'transporter' ? 'warning' : 'danger'}">${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-secondary" onclick="openUpdateUserModal('${user.id}')">View</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                            <button class="btn btn-sm btn-primary" onclick="openUpdateUserModal('${user.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.role}')">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -1217,64 +1307,80 @@
             const tbody = document.getElementById('ordersTableBody');
             tbody.innerHTML = `
                 <tr>
-                    <td>#ORD-2025-001</td>
+                    <td><strong>#ORD-2025-001</strong></td>
                     <td>John Buyer</td>
                     <td>Ranjith Fernando</td>
-                    <td>Rs. 2,450</td>
-                    <td><span class="badge badge-success">Completed</span></td>
-                    <td><span class="badge badge-success">Paid</span></td>
+                    <td><strong>Rs. 2,450</strong></td>
+                    <td><span class="badge badge">Completed</span></td>
+                    <td><span class="badge badge">Paid</span></td>
                     <td>2025-01-05</td>
                     <td>
-                        <button class="btn btn-sm btn-secondary" onclick="viewOrder('ORD-2025-001')">View</button>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-001')">View</button>
                     </td>
                 </tr>
                 <tr>
-                    <td>#ORD-2025-002</td>
+                    <td><strong>#ORD-2025-002</strong></td>
                     <td>Green Valley Restaurant</td>
                     <td>Multiple Farmers</td>
-                    <td>Rs. 8,900</td>
-                    <td><span class="badge badge-warning">Processing</span></td>
-                    <td><span class="badge badge-warning">Pending</span></td>
+                    <td><strong>Rs. 8,900</strong></td>
+                    <td><span class="badge badge">Processing</span></td>
+                    <td><span class="badge badge">Pending</span></td>
                     <td>2025-01-07</td>
                     <td>
-                        <button class="btn btn-sm btn-secondary" onclick="viewOrder('ORD-2025-002')">View</button>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-002')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-003</strong></td>
+                    <td>Fresh Market Ltd</td>
+                    <td>Kumari Silva</td>
+                    <td><strong>Rs. 6,200</strong></td>
+                    <td><span class="badge badge">Shipped</span></td>
+                    <td><span class="badge badge">Paid</span></td>
+                    <td>2025-01-06</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-003')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-004</strong></td>
+                    <td>Sarah Williams</td>
+                    <td>Sunil Perera</td>
+                    <td><strong>Rs. 950</strong></td>
+                    <td><span class="badge badge">Completed</span></td>
+                    <td><span class="badge badge">Paid</span></td>
+                    <td>2025-01-04</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-004')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-005</strong></td>
+                    <td>Michael Brown</td>
+                    <td>Pradeep Jayasinghe</td>
+                    <td><strong>Rs. 3,750</strong></td>
+                    <td><span class="badge badge">Pending</span></td>
+                    <td><span class="badge badge">Pending</span></td>
+                    <td>2025-01-08</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-005')">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>#ORD-2025-006</strong></td>
+                    <td>Emma Davis</td>
+                    <td>Nimal Bandara</td>
+                    <td><strong>Rs. 1,440</strong></td>
+                    <td><span class="badge badge">Cancelled</span></td>
+                    <td><span class="badge badge">Refunded</span></td>
+                    <td>2025-01-03</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewOrder('ORD-2025-006')">View</button>
                     </td>
                 </tr>
             `;
         }
 
-        // Load products data
-        function loadProducts() {
-            // Product statistics
-            document.getElementById('totalProducts').textContent = '156';
-            document.getElementById('activeProducts').textContent = '142';
-            document.getElementById('outOfStock').textContent = '8';
-            document.getElementById('pendingApproval').textContent = '6';
-            
-            // Category counts
-            document.getElementById('vegetableCount').textContent = '89';
-            document.getElementById('fruitCount').textContent = '34';
-            document.getElementById('grainCount').textContent = '23';
-            
-            const tbody = document.getElementById('productsTableBody');
-            tbody.innerHTML = `
-                <tr>
-                    <td>
-                        <div style="font-weight: var(--font-weight-bold);">Fresh Tomatoes</div>
-                        <div style="font-size: 0.9rem; color: var(--dark-gray);">Organic tomatoes from Matale</div>
-                    </td>
-                    <td>Ranjith Fernando</td>
-                    <td><span class="badge badge-success">Vegetables</span></td>
-                    <td>Rs. 120/kg</td>
-                    <td>45kg</td>
-                    <td><span class="badge badge-success">Active</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" onclick="viewProduct('PROD-001')">View</button>
-                        <button class="btn btn-sm btn-warning" onclick="moderateProduct('PROD-001')">Moderate</button>
-                    </td>
-                </tr>
-            `;
-        }
 
         // Setup forms
         function setupForms() {
@@ -1334,7 +1440,13 @@
             }
         }
 
-        async function deleteUser(userId){
+        async function deleteUser(userId, userRole){
+            // Check if trying to delete an admin user
+            if (userRole === 'admin') {
+                showNotification('Cannot delete admin users. Admin accounts are protected.', 'error');
+                return;
+            }
+
             if(!confirm('Are you sure you want to delete this user? This action cannot be undone.')){
                 return;
             }
@@ -1347,7 +1459,7 @@
                     },
                     body: JSON.stringify({user_id: userId})
                 });
-                
+
                 const result = await response.json();
 
                 if (result.success) {
@@ -1521,6 +1633,20 @@
         document.getElementById('addUserForm').addEventListener('submit', async function(e){
             e.preventDefault();
 
+            // Clear previous errors
+            document.getElementById('addUserFormErrors').style.display = 'none';
+            document.getElementById('addUserFormErrors').innerHTML = '';
+
+            // Validate password confirmation
+            const password = document.getElementById('userPass').value;
+            const confirmPassword = document.getElementById('userConfirmPass').value;
+
+            if (password !== confirmPassword) {
+                document.getElementById('addUserFormErrors').innerHTML = '<strong>Error:</strong> Passwords do not match. Please make sure both password fields are identical.';
+                document.getElementById('addUserFormErrors').style.display = 'block';
+                return;
+            }
+
             const formData = new FormData(this);
 
             try {
@@ -1609,5 +1735,6 @@
             }
         }
     </script>
+    <script src="<?=ROOT?>/assets/js/dashboardNavBar.js"></script>
 </body>
 </html>

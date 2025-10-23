@@ -297,16 +297,19 @@ body {
 }
 
 .user-section {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 16px;
   position: relative;
+  visibility: visible;
+  opacity: 1;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
 }
 
 /* User Avatar - clickable with hover effect */
@@ -333,21 +336,42 @@ body {
 }
 
 .user-details {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 120px;
 }
 
 .user-name {
   font-weight: 600;
   color: var(--text-dark);
   font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .user-role {
   font-size: 0.8rem;
   color: var(--text-light);
   text-transform: capitalize;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.user-greeting {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.user-caret {
+  color: var(--text-light);
+  transition: transform 0.3s ease;
+}
+
+.user-info:hover .user-caret {
+  transform: rotate(180deg);
 }
 
 .logout-btn {
@@ -1930,6 +1954,17 @@ textarea.form-input-modern {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Make profile action buttons smaller and tidy */
+.profile-actions-modern .btn {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  border-radius: 10px;
+}
+.profile-actions-modern .btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Add Product Button Enhancement */
