@@ -14,10 +14,32 @@
 <body>
     <!-- Include Navbar Component -->
     <?php
-    $username = $_SESSION['USER']->name ?? 'Transporter';
+    /* $username = $_SESSION['USER']->name ?? 'Transporter';
     $role = $_SESSION['USER']->role ?? 'transporter';
-    include '../app/views/components/dashboardNavBar.view.php';
+    include '../app/views/components/dashboardNavBar.view.php'; */
     ?>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="logo-section">
+            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
+        </div>
+        <div class="user-section">
+            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
+                <div>
+                    <div class="user-avatar" id="userAvatar">AD</div>
+
+                </div>
+                <div>
+                    <div class="user-name" id="adminName"><?=$username?></div>
+                    <div class="user-role">Transporter</div>
+                </div><!-- 
+                <button class="logout-btn" onclick="logout()">Logout</button> -->
+                <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
+                        <button type="submit" class="logout-btn btn login-link">Logout</button>
+                    </form>
+        </div>
+    </nav>
 
     <div class="dashboard">
 
