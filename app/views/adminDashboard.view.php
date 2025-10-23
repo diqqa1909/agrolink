@@ -185,7 +185,7 @@
     <!-- Recent Orders Card -->
     <div class="elegant-card">
         <div class="card-header-elegant">
-            <div class="card-icon">📋</div>
+           <!-- <div class="card-icon"></div> -->
             <div class="card-header-content">
                 <h3 class="card-title">Recent Orders</h3>
                 <p class="card-subtitle">Latest customer purchases</p>
@@ -202,7 +202,7 @@
     <!-- New Registrations Card -->
     <div class="elegant-card">
         <div class="card-header-elegant">
-            <div class="card-icon">👥</div>
+           <!-- <div class="card-icon"></div> -->
             <div class="card-header-content">
                 <h3 class="card-title">New User Registrations</h3>
                 <p class="card-subtitle">Recently joined users</p>
@@ -239,9 +239,9 @@
             <!-- User Management -->
             <div id="users-section" class="content-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h1>👥 User Management</h1>
+                    <h1>User Management</h1>
                     <div style="display: flex; gap: 15px;">
-                        <button class="btn btn-secondary" onclick="exportUsers()">📥 Export Users</button>
+                        <button class="btn btn-secondary" onclick="exportUsers()">Export Users</button>
                         <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
                     </div>
                 </div>
@@ -430,21 +430,21 @@
     <div class="stats-grid">
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">🥬</div>
+                <div class="stat-icon"></div>
                 <h4>Vegetables</h4>
                 <div class="stat-number" id="vegetableCount">0</div>
             </div>
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">🍎</div>
+                <div class="stat-icon"></div>
                 <h4>Fruits</h4>
                 <div class="stat-number" id="fruitCount">0</div>
             </div>
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">🌾</div>
+                <div class="stat-icon"></div>
                 <h4>Grains</h4>
                 <div class="stat-number" id="grainCount">0</div>
             </div>
@@ -504,28 +504,28 @@
     <div class="stats-grid-4">
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">💵</div>
+                <div class="stat-icon"></div>
                 <h4>Cash on Delivery</h4>
                 <div class="stat-number">65%</div>
             </div>
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">🏦</div>
+                <div class="stat-icon"></div>
                 <h4>Bank Transfer</h4>
                 <div class="stat-number">20%</div>
             </div>
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">📱</div>
+                <div class="stat-icon"></div>
                 <h4>Mobile Payment</h4>
                 <div class="stat-number">10%</div>
             </div>
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">💳</div>
+                <div class="stat-icon"></div>
                 <h4>Credit/Debit</h4>
                 <div class="stat-number">5%</div>
             </div>
@@ -647,7 +647,7 @@
     <div class="stats-grid-3">
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">📦</div>
+                <div class="stat-icon"></div>
                 <h4>Order Issues</h4>
                 <div class="stat-number">15</div>
                 <div class="stat-description">Wrong items, missing orders</div>
@@ -655,7 +655,7 @@
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">💳</div>
+                <div class="stat-icon"></div>
                 <h4>Payment Issues</h4>
                 <div class="stat-number">8</div>
                 <div class="stat-description">Payment failures, refunds</div>
@@ -663,7 +663,7 @@
         </div>
         <div class="stat-card card text-center">
             <div class="stat-content">
-                <div class="stat-icon">🚚</div>
+                <div class="stat-icon"></div>
                 <h4>Delivery Issues</h4>
                 <div class="stat-number">12</div>
                 <div class="stat-description">Late delivery, damaged goods</div>
@@ -759,7 +759,7 @@
             <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
     <div class="analytics-header">
-        <h1>📈 Platform Analytics</h1>
+        <h1>Platform Analytics</h1>
     </div>
 
     <!-- Key Performance Indicators -->
@@ -788,7 +788,7 @@
         <div class="analytics-card">
             <div class="card-header">
                 <div class="card-title">
-                    <div class="card-icon">📊</div>
+                    <!--<div class="card-icon"></div> -->
                     <div>
                         <h3>User Growth</h3>
                         <p>Registration trends over time</p>
@@ -836,7 +836,7 @@
         <div class="analytics-card">
             <div class="card-header">
                 <div class="card-title">
-                    <div class="card-icon">💰</div>
+                   <!-- <div class="card-icon"></div> -->
                     <div>
                         <h3>Revenue Trends</h3>
                         <p>Monthly revenue tracking</p>
@@ -886,7 +886,7 @@
         <div class="analytics-card">
             <div class="card-header">
                 <div class="card-title">
-                    <div class="card-icon">🗺️</div>
+                   <!-- <div class="card-icon"></div> -->
                     <div>
                         <h3>Geographic Distribution</h3>
                         <p>Users across provinces</p>
@@ -933,7 +933,7 @@
         <div class="analytics-card">
             <div class="card-header">
                 <div class="card-title">
-                    <div class="card-icon">📱</div>
+                   <!-- <div class="card-icon"></div> -->
                     <div>
                         <h3>Platform Usage</h3>
                         <p>Daily active users & sessions</p>
@@ -978,12 +978,12 @@
 
     <!-- Top Performers -->
     <div class="performers-section">
-        <h2 style="margin-bottom: var(--spacing-lg);">🏆 Top Performers</h2>
+        <h2 style="margin-bottom: var(--spacing-lg);"> Top Performers</h2>
         <div class="performers-grid">
             <!-- Top Farmers -->
             <div class="performer-card">
                 <div class="performer-header">
-                    <div class="performer-icon">👨‍🌾</div>
+                    <!--<div class="performer-icon"></div>-->
                     <h3>Top Farmers</h3>
                     <div class="performer-badge">Revenue</div>
                 </div>
@@ -1021,7 +1021,7 @@
             <!-- Top Buyers -->
             <div class="performer-card">
                 <div class="performer-header">
-                    <div class="performer-icon">🛒</div>
+                    <!--<div class="performer-icon"></div>-->
                     <h3>Top Buyers</h3>
                     <div class="performer-badge">Spending</div>
                 </div>
@@ -1059,7 +1059,7 @@
             <!-- Top Transporters -->
             <div class="performer-card">
                 <div class="performer-header">
-                    <div class="performer-icon">🚚</div>
+                    <!--<div class="performer-icon"></div>-->
                     <h3>Top Transporters</h3>
                     <div class="performer-badge">Deliveries</div>
                 </div>
@@ -1163,7 +1163,7 @@
             <!-- Settings -->
             <div id="settings-section" class="content-section" style="display: none;">
     <div class="settings-header">
-        <h1>⚙️ System Settings</h1>
+        <h1>System Settings</h1>
         <p>Manage platform configuration and system preferences</p>
     </div>
 
@@ -1171,7 +1171,7 @@
         <!-- Platform Settings -->
         <div class="settings-card">
             <div class="settings-card-header">
-                <div class="settings-icon">🏛️</div>
+                <!-- <div class="settings-icon"></div> -->
                 <div>
                     <h3>Platform Settings</h3>
                     <p>Basic platform configuration</p>
@@ -1214,7 +1214,7 @@
         <!-- Payment Settings -->
         <div class="settings-card">
             <div class="settings-card-header">
-                <div class="settings-icon">💳</div>
+              <!--  <div class="settings-icon"></div> -->
                 <div>
                     <h3>Payment Methods</h3>
                     <p>Configure payment options</p>
@@ -1225,7 +1225,7 @@
                     <div class="toggle-group">
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">💵</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Cash on Delivery</div>
                                     <div class="toggle-description">Allow customers to pay on delivery</div>
@@ -1238,7 +1238,7 @@
                         </div>
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">🏦</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Bank Transfer</div>
                                     <div class="toggle-description">Enable bank transfer payments</div>
@@ -1251,7 +1251,7 @@
                         </div>
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">📱</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Mobile Payment</div>
                                     <div class="toggle-description">Enable mobile payment gateways</div>
@@ -1264,7 +1264,7 @@
                         </div>
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">💳</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Card Payments</div>
                                     <div class="toggle-description">Credit/debit card processing</div>
@@ -1291,7 +1291,7 @@
         <!-- Notification Settings -->
         <div class="settings-card">
             <div class="settings-card-header">
-                <div class="settings-icon">📧</div>
+               <!-- <div class="settings-icon"></div> -->
                 <div>
                     <h3>Notifications</h3>
                     <p>Communication preferences</p>
@@ -1302,7 +1302,7 @@
                     <div class="toggle-group">
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">✉️</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Email Notifications</div>
                                     <div class="toggle-description">Send email alerts and updates</div>
@@ -1315,7 +1315,7 @@
                         </div>
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">📱</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">SMS Notifications</div>
                                     <div class="toggle-description">Text message alerts</div>
@@ -1328,7 +1328,7 @@
                         </div>
                         <div class="toggle-item">
                             <div class="toggle-label">
-                                <span class="toggle-icon">🔔</span>
+                                <span class="toggle-icon"></span>
                                 <div>
                                     <div class="toggle-title">Push Notifications</div>
                                     <div class="toggle-description">Browser & mobile push alerts</div>
@@ -1352,7 +1352,7 @@
         <!-- System Maintenance -->
         <div class="settings-card">
             <div class="settings-card-header">
-                <div class="settings-icon">🔧</div>
+                <!-- <div class="settings-icon"></div> -->
                 <div>
                     <h3>System Maintenance</h3>
                     <p>System operations and tools</p>
@@ -1362,7 +1362,7 @@
                 <div class="maintenance-actions">
                     <div class="maintenance-item">
                         <div class="maintenance-info">
-                            <span class="maintenance-icon">🗄️</span>
+                            <span class="maintenance-icon"></span>
                             <div>
                                 <div class="maintenance-title">System Backup</div>
                                 <div class="maintenance-description">Create a full system backup</div>
@@ -1382,7 +1382,7 @@
                     </div>
                     <div class="maintenance-item">
                         <div class="maintenance-info">
-                            <span class="maintenance-icon">💾</span>
+                            <span class="maintenance-icon"></span>
                             <div>
                                 <div class="maintenance-title">Clear Cache</div>
                                 <div class="maintenance-description">Refresh system cache</div>
@@ -1392,7 +1392,7 @@
                     </div>
                     <div class="maintenance-item">
                         <div class="maintenance-info">
-                            <span class="maintenance-icon">⚠️</span>
+                            <span class="maintenance-icon"></span>
                             <div>
                                 <div class="maintenance-title">Maintenance Mode</div>
                                 <div class="maintenance-description">Temporarily disable platform</div>
@@ -1628,7 +1628,7 @@
             document.getElementById('recentOrders').innerHTML = `
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
                     <div style="font-weight: var(--font-weight-bold);">#ORD-2025-007</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">John Buyer → Ranjith Farmer - Rs. 2,450</div>
+                    <div style="font-size: 0.9rem; color: var(--dark-gray);">saadhiq Buyer → Ranjith Farmer - Rs. 2,450</div>
                     <span class="badge badge">Completed</span>
                 </div>
                 <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
