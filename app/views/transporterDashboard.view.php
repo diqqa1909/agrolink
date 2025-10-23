@@ -249,7 +249,7 @@
                                         <div class="buyer-name">Anu K.</div>
                                         <div class="review-sub">Colombo → Kandy • #ORD-2025-014</div>
                                     </div>
-                                    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                                  <div class="rating-stars">⭐⭐⭐⭐⭐</div> 
                                 </div>
                                 <div class="review-body">Very punctual and careful with the produce. Highly recommended!</div>
                                 <div class="review-footer">
@@ -266,7 +266,7 @@
                                         <div class="buyer-name">Ruwan S.</div>
                                         <div class="review-sub">Galle → Colombo • #ORD-2025-011</div>
                                     </div>
-                                    <div class="rating-stars">⭐⭐⭐⭐☆</div>
+                                  <div class="rating-stars">⭐⭐⭐⭐☆</div>
                                 </div>
                                 <div class="review-body">Good service. One small delay due to traffic but communicated well.</div>
                                 <div class="review-footer">
@@ -314,7 +314,7 @@
             <div id="available-deliveries-section" class="content-section" style="display: none;">
                 <div class="content-header">
                     <h1 class="content-title">Available Deliveries</h1>
-                    <button class="btn btn-outline btn-sm" onclick="refreshDeliveries()">🔄 Refresh</button>
+                    <button class="btn btn-outline btn-sm" onclick="refreshDeliveries()">Refresh</button>
                 </div>
 
                 <!-- Filter Section -->
@@ -421,7 +421,7 @@
 
                 <div class="content-card" style="margin-top: 20px;">
                     <div class="card-header">
-                        <h3 class="card-title">📋 Today's Deliveries</h3>
+                        <h3 class="card-title">Today's Deliveries</h3>
                     </div>
                     <div class="card-content">
                         <div id="todaySchedule">
@@ -498,7 +498,7 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Average Rating:</span>
-                                    <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">⭐ 4.8/5</span>
+                                    <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">4.8/5</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">On-Time Delivery:</span>
@@ -519,8 +519,8 @@
 
                 <div class="content-card" style="margin-top: 32px;">
                     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 class="card-title">💳 Payment History</h3>
-                        <button class="btn btn-secondary" onclick="exportPaymentHistory()">📥 Export CSV</button>
+                        <h3 class="card-title">Payment History</h3>
+                        <button class="btn btn-secondary" onclick="exportPaymentHistory()">Export CSV</button>
                     </div>
                     <div style="padding: 28px;">
                         <div class="table-container">
