@@ -433,9 +433,9 @@
 
 
             <div id="earnings-section" class="content-section" style="display: none;">
-                <h1 style="margin-bottom: 24px;">Earnings Overview</h1>
+                <h1 style="margin-bottom: 32px;">Earnings Overview</h1>
 
-                <div class="dashboard-stats" style="margin-bottom: 24px;">
+                <div class="dashboard-stats" style="margin-bottom: 40px;">
                     <div class="stat-card">
                         <div class="stat-number" id="todayEarnings">Rs. 0</div>
                         <div class="stat-label">Today</div>
@@ -454,31 +454,31 @@
                     </div>
                 </div>
 
-                <div class="grid grid-2" style="margin-top: 24px; gap: 20px;">
+                <div class="grid grid-2" style="margin-top: 32px; gap: 28px;">
                     <div class="content-card">
                         <div class="card-header">
                             <h3 class="card-title">📊 Earnings Breakdown</h3>
                         </div>
-                        <div class="card-content" style="padding: 20px;">
+                        <div class="card-content" style="padding: 28px;">
                             <div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Base Delivery Fee:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 8,500</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Distance Bonus:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 2,300</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Express Delivery:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 1,150</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Rating Bonus:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 500</span>
                                 </div>
-                                <hr style="margin: 16px 0; border: none; border-top: 2px solid #e0e0e0;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #e8f5e9; border-radius: 8px;">
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #e8f5e9; border-radius: 8px;">
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Total This Month:</span>
                                     <span style="font-weight: 700; font-size: 1.2rem; color: #65b57c;">Rs. 12,450</span>
                                 </div>
@@ -490,25 +490,25 @@
                         <div class="card-header">
                             <h3 class="card-title">📈 Performance Metrics</h3>
                         </div>
-                        <div class="card-content" style="padding: 20px;">
+                        <div class="card-content" style="padding: 28px;">
                             <div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Deliveries Completed:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">23</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Average Rating:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">⭐ 4.8/5</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">On-Time Delivery:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">95%</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Customer Satisfaction:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">98%</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px;">
                                     <span style="font-size: 0.95rem; color: #2c3e50;">Earnings per Delivery:</span>
                                     <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 541</span>
                                 </div>
@@ -517,12 +517,12 @@
                     </div>
                 </div>
 
-                <div class="content-card" style="margin-top: 20px;">
+                <div class="content-card" style="margin-top: 32px;">
                     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="card-title">💳 Payment History</h3>
                         <button class="btn btn-secondary" onclick="exportPaymentHistory()">📥 Export CSV</button>
                     </div>
-                    <div style="padding: var(--spacing-lg);">
+                    <div style="padding: 28px;">
                         <div class="table-container">
                             <table class="table">
                                 <thead>
@@ -543,10 +543,10 @@
             </div>
 
             <div id="vehicle-section" class="content-section" style="display: none;">
-                <div class="content-header" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom: var(--spacing-sm);">
+                <div class="content-header" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom: 32px;">
                     <h1 class="content-title" style="margin:0;">Vehicle Management</h1>
                 </div>
-                <div style="margin-bottom: var(--spacing-lg);">
+                <div style="margin-bottom: 36px;">
                     <button class="btn btn-add-product" data-modal="addVehicleModal">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -556,15 +556,15 @@
                     </button>
                 </div>
 
-                <div id="myVehiclesContainer">
+                <div id="myVehiclesContainer" style="margin-bottom: 40px;">
 
                 </div>
 
-                <div class="card" style="margin-top: var(--spacing-lg);">
-                    <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--medium-gray);">
-                        <h3> All Vehicles</h3>
+                <div class="card" style="margin-top: 32px;">
+                    <div style="padding: 24px; border-bottom: 1px solid var(--medium-gray);">
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: #2c3e50;">All Vehicles</h3>
                     </div>
-                    <div style="padding: var(--spacing-lg);">
+                    <div style="padding: 28px;">
                         <div class="table-container">
                             <table class="table">
                                 <thead>
@@ -1465,7 +1465,7 @@
                         <div class="card-content">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                                 <div>
-                                    <div style="margin-bottom: 20px; line-height: 2;">
+                                    <div style="margin-bottom: 20px; line-height: 2.2;">
                                         <strong>Vehicle Type:</strong> ${vehicleTypeName}<br>
                                         <strong>Registration:</strong> ${escapeHtml(vehicle.registration)}<br>
                                         <strong>Capacity:</strong> ${escapeHtml(vehicle.capacity)}kg<br>
