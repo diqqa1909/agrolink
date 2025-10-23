@@ -50,10 +50,11 @@
             $query .= " limit $this->limit offset $this->offset";
             $data = array_merge($data, $data_not);
             $result = $this->query($query, $data);
-            if($result){
-                return $result[0];
-            }
-            return 1;
+            if (is_array($result) && count($result) > 0) {
+        return $result[0];
+    }
+    
+    return false;
         }
 
         public function insert($data){

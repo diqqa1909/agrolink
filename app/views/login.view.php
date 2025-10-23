@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    <div id="floatingAlerts" style="position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 400px;"></div>
     <div class="split-container">
         <!-- Left: Quote & Image -->
         <div
@@ -35,9 +36,11 @@
         <div class="split-right">
             <div class="form-box">
                 <?php if (!empty($errors)): ?>
-                    <div class="alert">
-                        <?= implode("<br>", $errors) ?>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showFloatingAlert('<?= implode("<br>", $errors) ?>', 'error');
+                        });
+                    </script>
                 <?php endif ?>
 
                 <h1>Welcome Back</h1>

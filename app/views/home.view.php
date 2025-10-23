@@ -186,8 +186,8 @@
                 <div class="card">
                     <h3>Contact Information</h3>
                     <p><strong>Email:</strong> agrolink.lk@gmail.com</p>
-                    <p><strong>Phone:</strong> +94 xxx xxx xxx</p>
-                    <p><strong>Address:</strong> UCSC, University of Colombo<br>Sri Lanka</p>
+                    <p><strong>Phone:</strong> +94 11 2559 259</p>
+                    <p><strong>Address:</strong> UCSC Building Complex, Reid Avenue, Colombo 07,<br>Sri Lanka</p>
                 </div>
                 <div class="card">
                     <h3>Quick Contact</h3>

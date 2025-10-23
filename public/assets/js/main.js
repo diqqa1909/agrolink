@@ -433,6 +433,54 @@ function getMockProducts() {
     ];
 }
 
+// Floating alert system
+function showFloatingAlert(message, type = 'error', duration = 5000) {
+    const alertContainer = document.getElementById('floatingAlerts');
+    if (!alertContainer) return;
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `floating-alert floating-alert-${type}`;
+    alertDiv.innerHTML = `
+        <div class="floating-alert-content">
+            <span class="floating-alert-message">${message}</span>
+            <button class="floating-alert-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+        </div>
+    `;
+
+    // Add to container
+    alertContainer.appendChild(alertDiv);
+
+    // Animate in
+    setTimeout(() => {
+        alertDiv.classList.add('show');
+    }, 10);
+
+    // Auto remove after duration
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.classList.remove('show');
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 300);
+        }
+    }, duration);
+}
+
+// Close alert when clicking anywhere on it
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.floating-alert')) {
+        const alert = e.target.closest('.floating-alert');
+        alert.classList.remove('show');
+        setTimeout(() => {
+            if (alert.parentElement) {
+                alert.remove();
+            }
+        }, 300);
+    }
+});
+
 // Export functions for global access
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;

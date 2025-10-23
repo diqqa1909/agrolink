@@ -7,12 +7,28 @@
     <link rel="stylesheet" href="<?=ROOT?>/assets/css/style2.css">
 </head>
 <body>
-    <!-- Include Navbar Component -->
-    <?php
-    $username = $_SESSION['USER']->name ?? 'Admin';
-    $role = $_SESSION['USER']->role ?? 'admin';
-    include '../app/views/components/dashboardNavBar.view.php';
-    ?>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="logo-section">
+            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
+        </div>
+        <div class="user-section">
+            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
+                <div>
+                    <div class="user-avatar" id="userAvatar">AD</div>
+
+                </div>
+                <div>
+                    <div class="user-name" id="adminName"><?=$username?></div>
+                    <div class="user-role">Admin</div>
+                </div><!-- 
+                <button class="logout-btn" onclick="logout()">Logout</button> -->
+                <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
+                        <button type="submit" class="logout-btn btn login-link">Logout</button>
+                    </form>
+        </div>
+    </nav>
+    
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
@@ -165,25 +181,41 @@
     </div>
 
     <!-- Recent Activity -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: var(--spacing-xl);">
-        <div class="content-card">
-            <div class="card-header">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: var(--spacing-xl);">
+    <!-- Recent Orders Card -->
+    <div class="elegant-card">
+        <div class="card-header-elegant">
+            <div class="card-icon">📋</div>
+            <div class="card-header-content">
                 <h3 class="card-title">Recent Orders</h3>
-            </div>
-            <div class="card-content" id="recentOrders">
-                <!-- Recent orders will be populated by JavaScript -->
+                <p class="card-subtitle">Latest customer purchases</p>
             </div>
         </div>
-
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">New User Registrations</h3>
-            </div>
-            <div class="card-content" id="newRegistrations">
-                <!-- New registrations will be populated by JavaScript -->
-            </div>
+        <div class="card-body-elegant" id="recentOrders">
+            <!-- Content will be populated here -->
+        </div>
+        <div class="card-footer-elegant">
+            <a href="#" class="card-link">View all orders →</a>
         </div>
     </div>
+    
+    <!-- New Registrations Card -->
+    <div class="elegant-card">
+        <div class="card-header-elegant">
+            <div class="card-icon">👥</div>
+            <div class="card-header-content">
+                <h3 class="card-title">New User Registrations</h3>
+                <p class="card-subtitle">Recently joined users</p>
+            </div>
+        </div>
+        <div class="card-body-elegant" id="newRegistrations">
+            <!-- Content will be populated here -->
+        </div>
+        <div class="card-footer-elegant">
+            <a href="#" class="card-link">View all users →</a>
+        </div>
+    </div>
+</div>
 
     <!-- System Alerts -->
     <!-- <div class="card" style="margin-top: var(--spacing-xl);">
@@ -206,17 +238,11 @@
 
             <!-- User Management -->
             <div id="users-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">User Management</h1>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-secondary" onclick="exportUsers()">Export Users</button>
-                        <button class="btn btn-primary" onclick="openAddUserModal()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            Add User
-                        </button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+                    <h1>👥 User Management</h1>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn btn-secondary" onclick="exportUsers()">📥 Export Users</button>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
                     </div>
                 </div>
 
@@ -399,82 +425,51 @@
                     </div>
                 </div>
 
-                <!-- Sample Products List -->
-                <div class="content-card" style="margin-top: var(--spacing-xl);">
-                    <div class="card-header">
-                        <h3 class="card-title">Sample Products</h3>
-                    </div>
-                    <div class="card-content">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Farmer</th>
-                                    <th>Category</th>
-                                    <th>Price (Rs/kg)</th>
-                                    <th>Stock (kg)</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <strong>Fresh Tomatoes</strong>
-                                        <div style="font-size: 0.9rem; color: #666;">Organic tomatoes from Matale</div>
-                                    </td>
-                                    <td>Nimal Silva</td>
-                                    <td><span class="badge">Vegetables</span></td>
-                                    <td><strong>Rs. 180</strong></td>
-                                    <td>250 kg</td>
-                                    <td><span class="badge">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Organic Carrots</strong>
-                                        <div style="font-size: 0.9rem; color: #666;">Organic carrots from Nuwara Eliya</div>
-                                    </td>
-                                    <td>Kamala Perera</td>
-                                    <td><span class="badge">Vegetables</span></td>
-                                    <td><strong>Rs. 220</strong></td>
-                                    <td>180 kg</td>
-                                    <td><span class="badge">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Sweet Mangoes</strong>
-                                        <div style="font-size: 0.9rem; color: #666;">Sweet mangoes from Galle</div>
-                                    </td>
-                                    <td>Sunil Fernando</td>
-                                    <td><span class="badge">Fruits</span></td>
-                                    <td><strong>Rs. 350</strong></td>
-                                    <td>120 kg</td>
-                                    <td><span class="badge">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Red Rice</strong>
-                                        <div style="font-size: 0.9rem; color: #666;">Traditional red rice from Anuradhapura</div>
-                                    </td>
-                                    <td>Ajith Bandara</td>
-                                    <td><span class="badge">Grains</span></td>
-                                    <td><strong>Rs. 280</strong></td>
-                                    <td>500 kg</td>
-                                    <td><span class="badge">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Green Beans</strong>
-                                        <div style="font-size: 0.9rem; color: #666;">Fresh green beans from Kandy</div>
-                                    </td>
-                                    <td>Priyani Dias</td>
-                                    <td><span class="badge">Vegetables</span></td>
-                                    <td><strong>Rs. 240</strong></td>
-                                    <td>0 kg</td>
-                                    <td><span class="badge">Out of Stock</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Product Categories -->
+                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
+    <div class="stats-grid">
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">🥬</div>
+                <h4>Vegetables</h4>
+                <div class="stat-number" id="vegetableCount">0</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">🍎</div>
+                <h4>Fruits</h4>
+                <div class="stat-number" id="fruitCount">0</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">🌾</div>
+                <h4>Grains</h4>
+                <div class="stat-number" id="grainCount">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!-- Products Table -->
+                <div class="table-container" style="margin-top: var(--spacing-xl);">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Farmer</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Products will be populated by JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -505,24 +500,38 @@
                 </div>
 
                 <!-- Payment Methods -->
-                <div class="dashboard-stats" style="margin-top: var(--spacing-xl);">
-                    <div class="stat-card">
-                        <div class="stat-number">65%</div>
-                        <div class="stat-label">Cash on Delivery</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">20%</div>
-                        <div class="stat-label">Bank Transfer</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">10%</div>
-                        <div class="stat-label">Mobile Payment</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">5%</div>
-                        <div class="stat-label">Credit/Debit</div>
-                    </div>
-                </div>
+                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
+    <div class="stats-grid-4">
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">💵</div>
+                <h4>Cash on Delivery</h4>
+                <div class="stat-number">65%</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">🏦</div>
+                <h4>Bank Transfer</h4>
+                <div class="stat-number">20%</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">📱</div>
+                <h4>Mobile Payment</h4>
+                <div class="stat-number">10%</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">💳</div>
+                <h4>Credit/Debit</h4>
+                <div class="stat-number">5%</div>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <!-- Recent Transactions -->
                 <div class="content-card" style="margin-top: var(--spacing-xl);">
@@ -633,6 +642,36 @@
                     </div>
                 </div>
 
+                <!-- Dispute Categories -->
+                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
+    <div class="stats-grid-3">
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">📦</div>
+                <h4>Order Issues</h4>
+                <div class="stat-number">15</div>
+                <div class="stat-description">Wrong items, missing orders</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">💳</div>
+                <h4>Payment Issues</h4>
+                <div class="stat-number">8</div>
+                <div class="stat-description">Payment failures, refunds</div>
+            </div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-content">
+                <div class="stat-icon">🚚</div>
+                <h4>Delivery Issues</h4>
+                <div class="stat-number">12</div>
+                <div class="stat-description">Late delivery, damaged goods</div>
+            </div>
+        </div>
+    </div>
+</div>
+
                 <!-- Disputes Table -->
                 <div class="table-container" style="margin-top: var(--spacing-xl);">
                     <table class="table">
@@ -719,120 +758,344 @@
 
             <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Platform Analytics</h1>
-                </div>
+    <div class="analytics-header">
+        <h1>📈 Platform Analytics</h1>
+    </div>
 
-                <!-- Key Performance Indicators -->
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-number" id="monthlyActiveUsers">0</div>
-                        <div class="stat-label">Monthly Active Users</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="platformGrowth">0%</div>
-                        <div class="stat-label">Growth Rate</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="userRetention">0%</div>
-                        <div class="stat-label">User Retention</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="customerSatisfaction">0%</div>
-                        <div class="stat-label">Customer Satisfaction</div>
-                    </div>
-                </div>
+    <!-- Key Performance Indicators -->
+    <div class="dashboard-stats">
+        <div class="stat-card card text-left">
+            <div class="stat-number" id="monthlyActiveUsers">2,847</div>
+            <div class="stat-label">Monthly Active Users</div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-number" id="platformGrowth">24%</div>
+            <div class="stat-label">Growth Rate</div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-number" id="userRetention">78%</div>
+            <div class="stat-label">User Retention</div>
+        </div>
+        <div class="stat-card card text-center">
+            <div class="stat-number" id="customerSatisfaction">4.6</div>
+            <div class="stat-label">Satisfaction Score</div>
+        </div>
+    </div>
 
-                <!-- Analytics Charts -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-top: var(--spacing-xl);">
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">User Growth</h3>
-                        </div>
-                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
-                            <p>User registration and growth trends over time</p>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Revenue Trends</h3>
-                        </div>
-                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
-                            <p>Monthly revenue and commission tracking</p>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Geographic Distribution</h3>
-                        </div>
-                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
-                            <p>User distribution across Sri Lankan provinces</p>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Platform Usage</h3>
-                        </div>
-                        <div class="card-content" style="text-align: center; padding: 40px; color: #999;">
-                            <p>Daily active users and session analytics</p>
-                        </div>
+    <!-- Analytics Charts -->
+    <div class="analytics-grid">
+        <!-- User Growth Chart -->
+        <div class="analytics-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">📊</div>
+                    <div>
+                        <h3>User Growth</h3>
+                        <p>Registration trends over time</p>
                     </div>
                 </div>
-
-                <!-- Top Performers -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: var(--spacing-xl);">
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Top Farmers</h3>
-                        </div>
-                        <div class="card-content">
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Ranjith Fernando</div>
-                                <div style="color: #666; font-size: 0.9rem;">Rs. 45,200 revenue</div>
-                            </div>
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Kumari Silva</div>
-                                <div style="color: #666; font-size: 0.9rem;">Rs. 38,500 revenue</div>
-                            </div>
-                        </div>
+                <div class="card-actions">
+                    <select class="time-filter">
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option selected>Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="line-chart">
+                    <svg viewBox="0 0 400 200" class="chart-svg">
+                        <!-- Grid lines -->
+                        <line x1="50" y1="50" x2="50" y2="150" stroke="#e0e0e0" stroke-width="1"/>
+                        <line x1="50" y1="150" x2="350" y2="150" stroke="#e0e0e0" stroke-width="1"/>
+                        
+                        <!-- Data line -->
+                        <path d="M50,120 L100,100 L150,80 L200,110 L250,70 L300,90 L350,60" 
+                              fill="none" stroke="var(--primary-color)" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- Data points -->
+                        <circle cx="50" cy="120" r="4" fill="var(--primary-color)"/>
+                        <circle cx="100" cy="100" r="4" fill="var(--primary-color)"/>
+                        <circle cx="150" cy="80" r="4" fill="var(--primary-color)"/>
+                        <circle cx="200" cy="110" r="4" fill="var(--primary-color)"/>
+                        <circle cx="250" cy="70" r="4" fill="var(--primary-color)"/>
+                        <circle cx="300" cy="90" r="4" fill="var(--primary-color)"/>
+                        <circle cx="350" cy="60" r="4" fill="var(--primary-color)"/>
+                    </svg>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: var(--primary-color)"></span>
+                        <span>New Registrations</span>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Top Buyers</h3>
-                        </div>
-                        <div class="card-content">
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Green Valley Restaurant</div>
-                                <div style="color: #666; font-size: 0.9rem;">Rs. 28,900 spent</div>
-                            </div>
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Fresh Market Ltd</div>
-                                <div style="color: #666; font-size: 0.9rem;">Rs. 22,150 spent</div>
-                            </div>
-                        </div>
+        <!-- Revenue Trends Chart -->
+        <div class="analytics-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">💰</div>
+                    <div>
+                        <h3>Revenue Trends</h3>
+                        <p>Monthly revenue tracking</p>
                     </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Top Transporters</h3>
+                </div>
+                <div class="card-actions">
+                    <select class="time-filter">
+                        <option>Q1 2024</option>
+                        <option selected>Q2 2024</option>
+                        <option>Q3 2024</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="bar-chart">
+                    <div class="bars">
+                        <div class="bar-container">
+                            <div class="bar" style="height: 60%" data-value="Rs. 1.2M"></div>
+                            <span class="bar-label">Jan</span>
                         </div>
-                        <div class="card-content">
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Express Delivery Co</div>
-                                <div style="color: #666; font-size: 0.9rem;">127 deliveries</div>
-                            </div>
-                            <div style="margin-bottom: 16px;">
-                                <div style="font-weight: 600;">Island Transport</div>
-                                <div style="color: #666; font-size: 0.9rem;">89 deliveries</div>
-                            </div>
+                        <div class="bar-container">
+                            <div class="bar" style="height: 75%" data-value="Rs. 1.5M"></div>
+                            <span class="bar-label">Feb</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar" style="height: 85%" data-value="Rs. 1.7M"></div>
+                            <span class="bar-label">Mar</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar" style="height: 70%" data-value="Rs. 1.4M"></div>
+                            <span class="bar-label">Apr</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar" style="height: 95%" data-value="Rs. 1.9M"></div>
+                            <span class="bar-label">May</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar" style="height: 100%" data-value="Rs. 2.4M"></div>
+                            <span class="bar-label">Jun</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Geographic Distribution -->
+        <div class="analytics-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">🗺️</div>
+                    <div>
+                        <h3>Geographic Distribution</h3>
+                        <p>Users across provinces</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="map-distribution">
+                    <div class="province-stats">
+                        <div class="province-item">
+                            <span class="province-name">Western</span>
+                            <div class="province-bar">
+                                <div class="province-fill" style="width: 85%"></div>
+                            </div>
+                            <span class="province-value">42%</span>
+                        </div>
+                        <div class="province-item">
+                            <span class="province-name">Central</span>
+                            <div class="province-bar">
+                                <div class="province-fill" style="width: 65%"></div>
+                            </div>
+                            <span class="province-value">28%</span>
+                        </div>
+                        <div class="province-item">
+                            <span class="province-name">Southern</span>
+                            <div class="province-bar">
+                                <div class="province-fill" style="width: 45%"></div>
+                            </div>
+                            <span class="province-value">18%</span>
+                        </div>
+                        <div class="province-item">
+                            <span class="province-name">Other</span>
+                            <div class="province-bar">
+                                <div class="province-fill" style="width: 25%"></div>
+                            </div>
+                            <span class="province-value">12%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Usage -->
+        <div class="analytics-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon">📱</div>
+                    <div>
+                        <h3>Platform Usage</h3>
+                        <p>Daily active users & sessions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="usage-metrics-grid">
+                    <div class="usage-metric">
+                        <div class="metric-value">1,247</div>
+                        <div class="metric-label">Daily Active Users</div>
+                        <div class="metric-trend positive">+8%</div>
+                    </div>
+                    <div class="usage-metric">
+                        <div class="metric-value">4.2m</div>
+                        <div class="metric-label">Avg. Session</div>
+                        <div class="metric-trend positive">+12s</div>
+                    </div>
+                    <div class="usage-metric">
+                        <div class="metric-value">3.8</div>
+                        <div class="metric-label">Pages/Session</div>
+                        <div class="metric-trend positive">+0.4</div>
+                    </div>
+                </div>
+                <div class="session-chart">
+                    <div class="session-bars">
+                        <div class="session-bar" style="height: 40%"></div>
+                        <div class="session-bar" style="height: 60%"></div>
+                        <div class="session-bar" style="height: 75%"></div>
+                        <div class="session-bar" style="height: 85%"></div>
+                        <div class="session-bar" style="height: 65%"></div>
+                        <div class="session-bar" style="height: 95%"></div>
+                        <div class="session-bar" style="height: 100%"></div>
+                    </div>
+                    <div class="session-labels">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers -->
+    <div class="performers-section">
+        <h2 style="margin-bottom: var(--spacing-lg);">🏆 Top Performers</h2>
+        <div class="performers-grid">
+            <!-- Top Farmers -->
+            <div class="performer-card">
+                <div class="performer-header">
+                    <div class="performer-icon">👨‍🌾</div>
+                    <h3>Top Farmers</h3>
+                    <div class="performer-badge">Revenue</div>
+                </div>
+                <div class="performer-list">
+                    <div class="performer-item featured">
+                        <div class="rank">1</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #FFD700, #FFA500);">RF</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Ranjith Fernando</div>
+                            <div class="performer-detail">Colombo • Vegetables</div>
+                        </div>
+                        <div class="performer-value">Rs. 45,200</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">2</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #C0C0C0, #A0A0A0);">KS</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Kumari Silva</div>
+                            <div class="performer-detail">Kandy • Fruits</div>
+                        </div>
+                        <div class="performer-value">Rs. 38,500</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">3</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #CD7F32, #A56C28);">SP</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Saman Perera</div>
+                            <div class="performer-detail">Gampaha • Grains</div>
+                        </div>
+                        <div class="performer-value">Rs. 32,100</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Buyers -->
+            <div class="performer-card">
+                <div class="performer-header">
+                    <div class="performer-icon">🛒</div>
+                    <h3>Top Buyers</h3>
+                    <div class="performer-badge">Spending</div>
+                </div>
+                <div class="performer-list">
+                    <div class="performer-item featured">
+                        <div class="rank">1</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #FFD700, #FFA500);">GV</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Green Valley Restaurant</div>
+                            <div class="performer-detail">Colombo 03 • Premium</div>
+                        </div>
+                        <div class="performer-value">Rs. 28,900</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">2</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #C0C0C0, #A0A0A0);">FM</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Fresh Market Ltd</div>
+                            <div class="performer-detail">Negombo • Wholesale</div>
+                        </div>
+                        <div class="performer-value">Rs. 22,150</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">3</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #CD7F32, #A56C28);">OS</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Organic Store</div>
+                            <div class="performer-detail">Galle • Organic</div>
+                        </div>
+                        <div class="performer-value">Rs. 18,750</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Transporters -->
+            <div class="performer-card">
+                <div class="performer-header">
+                    <div class="performer-icon">🚚</div>
+                    <h3>Top Transporters</h3>
+                    <div class="performer-badge">Deliveries</div>
+                </div>
+                <div class="performer-list">
+                    <div class="performer-item featured">
+                        <div class="rank">1</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #FFD700, #FFA500);">ED</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Express Delivery Co</div>
+                            <div class="performer-detail">Islandwide • Express</div>
+                        </div>
+                        <div class="performer-value">127</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">2</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #C0C0C0, #A0A0A0);">IT</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Island Transport</div>
+                            <div class="performer-detail">Western Province</div>
+                        </div>
+                        <div class="performer-value">89</div>
+                    </div>
+                    <div class="performer-item">
+                        <div class="rank">3</div>
+                        <div class="performer-avatar" style="background: linear-gradient(135deg, #CD7F32, #A56C28);">QT</div>
+                        <div class="performer-info">
+                            <div class="performer-name">Quick Transports</div>
+                            <div class="performer-detail">Central Province</div>
+                        </div>
+                        <div class="performer-value">76</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Notifications -->
             <div id="notifications-section" class="content-section" style="display: none;">
@@ -899,128 +1162,249 @@
 
             <!-- Settings -->
             <div id="settings-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">System Settings</h1>
+    <div class="settings-header">
+        <h1>⚙️ System Settings</h1>
+        <p>Manage platform configuration and system preferences</p>
+    </div>
+
+    <div class="settings-grid">
+        <!-- Platform Settings -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-icon">🏛️</div>
+                <div>
+                    <h3>Platform Settings</h3>
+                    <p>Basic platform configuration</p>
                 </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
-                    <!-- Platform Settings -->
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Platform Settings</h3>
-                        </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="platformSettingsForm">
-                                <div class="form-group">
-                                    <label for="platformName">Platform Name</label>
-                                    <input type="text" id="platformName" name="platformName" class="form-control" value="AgroLink">
-                                </div>
-                                <div class="form-group">
-                                    <label for="platformCommission">Platform Commission (%)</label>
-                                    <input type="number" id="platformCommission" name="commission" class="form-control" value="5" step="0.1">
-                                </div>
-                                <div class="form-group">
-                                    <label for="minOrderValue">Minimum Order Value (Rs.)</label>
-                                    <input type="number" id="minOrderValue" name="minOrderValue" class="form-control" value="500">
-                                </div>
-                                <div class="form-group">
-                                    <label for="deliveryFee">Standard Delivery Fee (Rs.)</label>
-                                    <input type="number" id="deliveryFee" name="deliveryFee" class="form-control" value="150">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Save Platform Settings</button>
-                            </form>
+            </div>
+            <div class="settings-card-body">
+                <form id="platformSettingsForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="platformName" class="form-label">Platform Name</label>
+                        <input type="text" id="platformName" name="platformName" class="form-control" value="AgroLink" placeholder="Enter platform name">
+                    </div>
+                    <div class="form-group">
+                        <label for="platformCommission" class="form-label">Platform Commission</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="platformCommission" name="commission" class="form-control" value="5" step="0.1" min="0" max="50">
+                            <span class="input-suffix">%</span>
                         </div>
                     </div>
-
-                    <!-- Payment Settings -->
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Payment Settings</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="minOrderValue" class="form-label">Minimum Order</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="minOrderValue" name="minOrderValue" class="form-control" value="500" min="0">
+                                <span class="input-suffix">Rs.</span>
+                            </div>
                         </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="paymentSettingsForm">
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableCOD" checked> Enable Cash on Delivery
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableBankTransfer" checked> Enable Bank Transfer
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableMobilePayment" checked> Enable Mobile Payment
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableCardPayment" checked> Enable Card Payment (Sandbox)
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="paymentTimeout">Payment Timeout (minutes)</label>
-                                    <input type="number" id="paymentTimeout" name="timeout" class="form-control" value="15">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Save Payment Settings</button>
-                            </form>
+                        <div class="form-group">
+                            <label for="deliveryFee" class="form-label">Delivery Fee</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="deliveryFee" name="deliveryFee" class="form-control" value="150" min="0">
+                                <span class="input-suffix">Rs.</span>
+                            </div>
                         </div>
                     </div>
+                    <button type="submit" class="btn btn-primary btn-full">Save Changes</button>
+                </form>
+            </div>
+        </div>
 
-                    <!-- Notification Settings -->
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Notification Settings</h3>
+        <!-- Payment Settings -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-icon">💳</div>
+                <div>
+                    <h3>Payment Methods</h3>
+                    <p>Configure payment options</p>
+                </div>
+            </div>
+            <div class="settings-card-body">
+                <form id="paymentSettingsForm" class="settings-form">
+                    <div class="toggle-group">
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">💵</span>
+                                <div>
+                                    <div class="toggle-title">Cash on Delivery</div>
+                                    <div class="toggle-description">Allow customers to pay on delivery</div>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableCOD" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <form id="notificationSettingsForm">
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableEmailNotifications" checked> Email Notifications
-                                    </label>
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">🏦</span>
+                                <div>
+                                    <div class="toggle-title">Bank Transfer</div>
+                                    <div class="toggle-description">Enable bank transfer payments</div>
                                 </div>
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enableSMSNotifications" checked> SMS Notifications
-                                    </label>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableBankTransfer" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">📱</span>
+                                <div>
+                                    <div class="toggle-title">Mobile Payment</div>
+                                    <div class="toggle-description">Enable mobile payment gateways</div>
                                 </div>
-                                <div class="form-group">
-                                    <label style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                        <input type="checkbox" id="enablePushNotifications" checked> Push Notifications
-                                    </label>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableMobilePayment" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">💳</span>
+                                <div>
+                                    <div class="toggle-title">Card Payments</div>
+                                    <div class="toggle-description">Credit/debit card processing</div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="supportEmail">Support Email</label>
-                                    <input type="email" id="supportEmail" name="supportEmail" class="form-control" value="support@agrolink.lk">
-                                </div>
-                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
-                            </form>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableCardPayment" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="paymentTimeout" class="form-label">Payment Timeout</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="paymentTimeout" name="timeout" class="form-control" value="15" min="1" max="60">
+                            <span class="input-suffix">minutes</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Update Payment Settings</button>
+                </form>
+            </div>
+        </div>
 
-                    <!-- System Maintenance -->
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3 class="card-title">System Maintenance</h3>
+        <!-- Notification Settings -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-icon">📧</div>
+                <div>
+                    <h3>Notifications</h3>
+                    <p>Communication preferences</p>
+                </div>
+            </div>
+            <div class="settings-card-body">
+                <form id="notificationSettingsForm" class="settings-form">
+                    <div class="toggle-group">
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">✉️</span>
+                                <div>
+                                    <div class="toggle-title">Email Notifications</div>
+                                    <div class="toggle-description">Send email alerts and updates</div>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableEmailNotifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </div>
-                        <div style="padding: var(--spacing-lg);">
-                            <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('backup')">Create System Backup</button>
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">📱</span>
+                                <div>
+                                    <div class="toggle-title">SMS Notifications</div>
+                                    <div class="toggle-description">Text message alerts</div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cleanup')">Clean Database</button>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableSMSNotifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label">
+                                <span class="toggle-icon">🔔</span>
+                                <div>
+                                    <div class="toggle-title">Push Notifications</div>
+                                    <div class="toggle-description">Browser & mobile push alerts</div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <button class="btn btn-secondary w-full mb-md" onclick="performMaintenance('cache')">Clear Cache</button>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-warning w-full" onclick="performMaintenance('maintenance')">Enable Maintenance Mode</button>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enablePushNotifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="supportEmail" class="form-label">Support Email</label>
+                        <input type="email" id="supportEmail" name="supportEmail" class="form-control" value="support@agrolink.lk" placeholder="support@example.com">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Save Preferences</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- System Maintenance -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-icon">🔧</div>
+                <div>
+                    <h3>System Maintenance</h3>
+                    <p>System operations and tools</p>
+                </div>
+            </div>
+            <div class="settings-card-body">
+                <div class="maintenance-actions">
+                    <div class="maintenance-item">
+                        <div class="maintenance-info">
+                            <span class="maintenance-icon">🗄️</span>
+                            <div>
+                                <div class="maintenance-title">System Backup</div>
+                                <div class="maintenance-description">Create a full system backup</div>
                             </div>
                         </div>
+                        <button class="btn btn-outline" onclick="performMaintenance('backup')">Run Backup</button>
+                    </div>
+                    <div class="maintenance-item">
+                        <div class="maintenance-info">
+                            <span class="maintenance-icon">🧹</span>
+                            <div>
+                                <div class="maintenance-title">Database Cleanup</div>
+                                <div class="maintenance-description">Remove temporary data</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="performMaintenance('cleanup')">Clean Now</button>
+                    </div>
+                    <div class="maintenance-item">
+                        <div class="maintenance-info">
+                            <span class="maintenance-icon">💾</span>
+                            <div>
+                                <div class="maintenance-title">Clear Cache</div>
+                                <div class="maintenance-description">Refresh system cache</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="performMaintenance('cache')">Clear Cache</button>
+                    </div>
+                    <div class="maintenance-item">
+                        <div class="maintenance-info">
+                            <span class="maintenance-icon">⚠️</span>
+                            <div>
+                                <div class="maintenance-title">Maintenance Mode</div>
+                                <div class="maintenance-description">Temporarily disable platform</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-warning" onclick="performMaintenance('maintenance')">Enable</button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
         </main>
     </div>
 
@@ -1043,19 +1427,17 @@
                             <input type="email" id="userEmail" name="email" class="form-control" required>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="userRole">Role *</label>
-                        <select id="userRole" name="role" class="form-control" required>
-                            <option value="">Select Role</option>
-                            <option value="farmer">Farmer</option>
-                            <option value="buyer">Buyer</option>
-                            <option value="transporter">Transporter</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-
+                    
                     <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="userRole">Role *</label>
+                            <select id="userRole" name="role" class="form-control" required>
+                                <option value="">Select Role</option>
+                                <option value="farmer">Farmer</option>
+                                <option value="buyer">Buyer</option>
+                                <option value="transporter">Transporter</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="userPass">Password *</label>
                             <input type="password" id="userPass" name="password" class="form-control" required minlength="8">
@@ -1072,7 +1454,7 @@
                         <!-- Validation errors will appear here -->
                     </div>
                     
-                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                    <div style="display: flex; gap: 15px; margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Add User</button>
                         <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
                     </div>
@@ -1110,7 +1492,6 @@
                                 <option value="farmer">Farmer</option>
                                 <option value="buyer">Buyer</option>
                                 <option value="transporter">Transporter</option>
-                                <option value="admin">Admin</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1124,7 +1505,7 @@
                         <!-- Validation errors will appear here -->
                     </div>
                     
-                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                    <div style="display: flex; gap: 15px; margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary" id="updateSubmitBtn">Update User</button>
                         <button type="button" class="btn btn-secondary" onclick="closeUpdateUserModal()">Cancel</button>
                     </div>
@@ -1624,7 +2005,7 @@
             document.getElementById('updateName').value = user.name;
             document.getElementById('updateEmail').value = user.email;
             document.getElementById('updateRole').value = user.role;
-            document.getElementById('updatePass').value = ''; // Clear password field for security
+            document.getElementById('updatePass').value = user.pass; // Clear password field for security
             document.getElementById('updateUserMessage').style.display = 'none';
             document.getElementById('updateUserFormErrors').style.display = 'none';
         }

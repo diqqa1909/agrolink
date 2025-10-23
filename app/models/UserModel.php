@@ -42,9 +42,9 @@ class UserModel
     public function insert($data)
     {
         // Hash password before inserting
-        if (isset($data['password'])) {
+        /* if (isset($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        }
+        } */
 
         // Remove unwanted data
         if (!empty($this->allowedColumns)) {
