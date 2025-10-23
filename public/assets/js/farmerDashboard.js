@@ -1169,6 +1169,17 @@ function uploadPhoto() {
 // utilities
 function escapeHtml(str){ return String(str ?? '').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[s])); }
 
+// Delivery action functions
+function viewDeliveryDetails(deliveryId) {
+    showNotification(`Viewing details for delivery ${deliveryId}`, 'info');
+    // TODO: Implement delivery details modal
+}
+
+function trackDelivery(deliveryId) {
+    showNotification(`Tracking delivery ${deliveryId}`, 'info');
+    // TODO: Implement delivery tracking modal/page
+}
+
 // Export functions
 window.showSection = showSection;
 window.editProduct = editProduct;
@@ -1181,3 +1192,5 @@ window.viewCropRequestDetails = viewCropRequestDetails;
 window.declineCropRequest = declineCropRequest;
 window.updateProfile = updateProfile;
 window.uploadPhoto = uploadPhoto;
+window.viewDeliveryDetails = viewDeliveryDetails;
+window.trackDelivery = trackDelivery;
