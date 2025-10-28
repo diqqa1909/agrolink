@@ -12,18 +12,16 @@
     <?php require 'components/navbar.view.php' ?>
 
     <!-- Hero Section -->
-    <section id="home" class="hero" style="background: url('<?= ROOT ?>/assets/imgs/hero-farm.jpg') center center/cover no-repeat; min-height: 500px; position: relative;">
-        <div class="container" style="position: relative; z-index: 2;">
-            <div class="hero-content">
-                <h1>Trade Smarter. Deliver Faster.</h1>
-                <p>A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
-                <div class="hero-actions">
+    <section id="home" class="hero" style="background: url('<?= ROOT ?>/assets/imgs/hero-farm3.jpg') center/cover no-repeat; min-height: 68vh; position: relative;">
+        <!-- lighter overlay for readability -->
+        <div class="hero-overlay" style="position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.16) 40%, rgba(0,0,0,0.20) 100%);"></div>
+        <div class="container" style="position: relative; z-index: 2; min-height: 68vh; display:flex; align-items:center; justify-content:center;">
+            <div class="hero-content" style="max-width: 780px; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); text-align:center;">
+                <h1 style="margin-bottom: 12px; color:#ffffff;">Trade Smarter. Deliver Faster.</h1>
+                <p style="margin-bottom: 20px; font-size: 1.2rem; line-height: 1.7; color: rgba(255,255,255,0.92);">A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
+                <div class="hero-actions" style="display:flex; gap: 12px; flex-wrap: wrap; justify-content:center;">
                     <a href="<?= ROOT ?>/login" class="btn btn-primary btn-large">Login</a>
                     <a href="<?= ROOT ?>/register" class="btn btn-secondary btn-large">Register Now</a>
-                </div>
-            </div>
-            <div class="hero-image">
-                <div style="width: 100%; height: 400px; background: transparent; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--primary-green); font-size: 4rem; gap: 2rem;">
                 </div>
             </div>
         </div>
@@ -94,7 +92,6 @@
                         <li>Track sales & payments</li>
                         <li>Connect directly with buyers</li>
                     </ul>
-                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Farmer</a>
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
@@ -107,7 +104,6 @@
                         <li>Track deliveries</li>
                         <li>Request specific crops</li>
                     </ul>
-                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Buyer</a>
                 </div>
                 <div class="role-card">
                     <div class="role-icon">
@@ -119,8 +115,10 @@
                         <li>Update delivery status</li>
                         <li>Earn more with reliable clients</li>
                     </ul>
-                    <a href="<?= ROOT ?>/register" class="btn btn-primary mt-md">Register as Transporter</a>
                 </div>
+            </div>
+            <div style="text-align:center; margin-top: 24px;">
+                <a href="<?= ROOT ?>/register" class="btn btn-primary btn-large">Register Now</a>
             </div>
     </section>
 
@@ -188,8 +186,8 @@
                 <div class="card">
                     <h3>Contact Information</h3>
                     <p><strong>Email:</strong> agrolink.lk@gmail.com</p>
-                    <p><strong>Phone:</strong> +94 xxx xxx xxx</p>
-                    <p><strong>Address:</strong> UCSC, University of Colombo<br>Sri Lanka</p>
+                    <p><strong>Phone:</strong> +94 11 2559 259</p>
+                    <p><strong>Address:</strong> UCSC Building Complex, Reid Avenue, Colombo 07,<br>Sri Lanka</p>
                 </div>
                 <div class="card">
                     <h3>Quick Contact</h3>

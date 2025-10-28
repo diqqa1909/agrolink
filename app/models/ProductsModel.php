@@ -12,15 +12,15 @@ class ProductsModel
             $sql = "INSERT INTO {$this->table}
                     (farmer_id, name, price, quantity, description, image, location, category, listing_date)
                     VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
-            
+
             $result = $this->write($sql, $data);
-            
+
             if ($result === false) {
                 error_log("ProductsModel::create - Insert failed for data: " . print_r($data, true));
             } else {
                 error_log("ProductsModel::create - Insert successful, ID: " . $result);
             }
-            
+
             return $result;
         } catch (Exception $e) {
             error_log("ProductsModel::create - Exception: " . $e->getMessage());
@@ -31,12 +31,19 @@ class ProductsModel
 
     public function updateByFarmer(int $id, int $farmerId, array $data)
     {
-        $sql = "UPDATE {$this->table}
-                SET name=:name, price=:price, quantity=:quantity, description=:description, location=:location
-                WHERE id=:id AND farmer_id=:farmer_id";
-        $data['id'] = $id;
-        $data['farmer_id'] = $farmerId;
-        return $this->write($sql, $data);
+        // Allow dynamic updates for provided fields
+        $allowed = ['name', 'price', 'quantity', 'description', 'location', 'category', 'listing_date', 'image'];
+        $set = [];
+        $params = ['id' => $id, 'farmer_id' => $farmerId];
+        foreach ($allowed as $field) {
+            if (array_key_exists($field, $data)) {
+                $set[] = "$field=:$field";
+                $params[$field] = $data[$field];
+            }
+        }
+        if (empty($set)) return false;
+        $sql = "UPDATE {$this->table} SET " . implode(',', $set) . " WHERE id=:id AND farmer_id=:farmer_id";
+        return $this->write($sql, $params);
     }
 
     public function deleteByFarmer(int $id, int $farmerId)
@@ -65,7 +72,7 @@ class ProductsModel
     {
         $params = [];
         $where = "p.quantity > 0";
-        
+
         if (!empty($filters['search'])) {
             $where .= " AND (p.name LIKE :search OR p.description LIKE :search)";
             $params['search'] = '%' . $filters['search'] . '%';
@@ -84,7 +91,7 @@ class ProductsModel
                 JOIN users u ON u.id = p.farmer_id
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
-        
+
         $result = $this->query($sql, $params);
         return $result ?: [];
     }

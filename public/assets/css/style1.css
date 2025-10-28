@@ -733,3 +733,98 @@ body { font-family: var(--font-primary); }
   }
 }
 
+/* Floating Alert Styles */
+.floating-alert {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    margin-bottom: 16px;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 4px solid;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.floating-alert.show {
+    transform: translateX(0);
+    opacity: 1;
+    max-height: 200px;
+}
+
+.floating-alert-error {
+    border-left-color: var(--danger);
+    background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+}
+
+.floating-alert-success {
+    border-left-color: var(--success);
+    background: linear-gradient(135deg, #f0fff4 0%, #fff 100%);
+}
+
+.floating-alert-warning {
+    border-left-color: var(--warning);
+    background: linear-gradient(135deg, #fffaf0 0%, #fff 100%);
+}
+
+.floating-alert-info {
+    border-left-color: var(--info);
+    background: linear-gradient(135deg, #f0f9ff 0%, #fff 100%);
+}
+
+.floating-alert-content {
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.floating-alert-message {
+    flex: 1;
+    color: var(--text-dark);
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.floating-alert-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.floating-alert-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #666;
+}
+
+/* Progress bar for auto-dismiss */
+.floating-alert::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.3;
+    transform: scaleX(1);
+    transform-origin: left;
+    animation: progressBar 5s linear;
+}
+
+@keyframes progressBar {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}

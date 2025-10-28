@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    <div id="floatingAlerts" style="position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 400px;"></div>
     <div class="split-container">
         <!-- Left: Quote & Image -->
         <div
@@ -35,9 +36,11 @@
         <div class="split-right">
             <div class="form-box">
                 <?php if (!empty($errors)): ?>
-                    <div class="alert">
-                        <?= implode("<br>", $errors) ?>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showFloatingAlert('<?= implode("<br>", $errors) ?>', 'error');
+                        });
+                    </script>
                 <?php endif ?>
 
                 <h1>Welcome Back</h1>
@@ -91,7 +94,73 @@
         window.APP_ROOT = "<?= ROOT ?>";
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <!-- <script src="<?= ROOT ?>/assets/js/auth.js"></script> -->
+    <script>
+        // Show success toast if redirected with ?registered=1 (no server flash needed)
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('registered') === '1') {
+                const msg = 'Registration successful!';
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showFloatingAlert(msg, 'error');
+                        });
+                if (typeof showNotification === 'function') {
+                    /* showNotification(msg, 'success'); */
+                } else {
+                    // simple fallback alert box if notification util isn't yet available
+                    var box = document.createElement('div');
+                    box.className = 'alert';
+                    box.textContent = msg;
+                    var formBox = document.querySelector('.form-box');
+                    if (formBox) formBox.insertBefore(box, formBox.firstChild);
+                }
+                // Clean URL to avoid re-trigger on refresh
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('registered');
+                    window.history.replaceState({}, document.title, url.toString());
+                } catch (e) {
+                    /* no-op */ }
+            }
+        })();
+    </script>
+    <!-- Debug logging for login submit (does not prevent submit) -->
+    <script>
+        (function() {
+            const form = document.getElementById('loginForm');
+            if (!form) {
+                console.warn('[LoginForm] not found on page');
+                return;
+            }
+            console.log('[LoginForm] script attached', {
+                method: form.method,
+                action: form.action || 'current URL',
+                time: new Date().toISOString()
+            });
+            form.addEventListener('submit', function() {
+                try {
+                    const fd = new FormData(form);
+                    const email = fd.get('email');
+                    const password = fd.get('password');
+                    const emailInput = document.getElementById('email');
+                    const passwordInput = document.getElementById('password');
+                    console.log('[LoginForm] submit event', {
+                        hasEmail: !!email,
+                        hasPassword: !!password,
+                        emailValue: email,
+                        passwordLength: password ? String(password).length : 0,
+                        rawEmailInput: emailInput ? emailInput.value : null,
+                        rawPasswordLength: passwordInput ? String(passwordInput.value).length : null,
+                        method: form.method,
+                        action: form.action || window.location.href,
+                        userAgent: navigator.userAgent,
+                        time: new Date().toISOString()
+                    });
+                } catch (err) {
+                    console.error('[LoginForm] error reading form data', err);
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

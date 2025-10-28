@@ -14,13 +14,36 @@
 <body>
     <!-- Top Navigation -->
     <?php
-    $username = $_SESSION['USER']->name ?? 'Buyer';
+    /* $username = $_SESSION['USER']->name ?? 'Buyer';
     $role = $_SESSION['USER']->role ?? 'buyer';
-    include '../app/views/components/dashboardNavBar.view.php';
+    include '../app/views/components/dashboardNavBar.view.php'; */
     ?>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="logo-section">
+            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
+        </div>
+        <div class="user-section">
+            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
+                <div>
+                    <div class="user-avatar" id="userAvatar">AD</div>
+
+                </div>
+                <div>
+                    <div class="user-name" id="adminName"><?=$username?></div>
+                    <div class="user-role">Buyer</div>
+                </div><!-- 
+                <button class="logout-btn" onclick="logout()">Logout</button> -->
+                <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
+                        <button type="submit" class="logout-btn btn login-link">Logout</button>
+                    </form>
+        </div>
+    </nav>
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
+        
         <!-- Sidebar -->
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -153,12 +176,12 @@
                 <!-- Stats Grid -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                       <!-- <div class="stat-icon primary">📦</div>-->
+                        <!-- <div class="stat-icon primary">📦</div>-->
                         <div class="stat-number">8</div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
-                       <!-- <div class="stat-icon warning">⏳</div>-->
+                        <!-- <div class="stat-icon warning">⏳</div>-->
                         <div class="stat-number">3</div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
@@ -168,7 +191,7 @@
                         <div class="stat-label">Total Spent</div>
                     </div>
                     <div class="stat-card">
-                       <!-- <div class="stat-icon info">❤️</div>-->
+                        <!-- <div class="stat-icon info">❤️</div>-->
                         <div class="stat-number">12</div>
                         <div class="stat-label">Wishlist Items</div>
                     </div>
@@ -244,84 +267,197 @@
                 </div>
             </div>
 
-            <!-- Profile Section -->
-            <div id="profile-section" class="content-section" style="display: none;">
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <h1>My Profile</h1>
-                        <p>Manage your personal information and preferences</p>
-                        <div class="profile-photo-container">
-                            <div class="profile-photo-wrapper">
-                                <div class="profile-photo-placeholder">
-                                    <?= strtoupper(substr($username, 0, 2)) ?>
-                                </div>
+            <!-- Profile Section (modern, aligned with Farmer UI) -->
+            <div id="profile-section" class="content-section profile-section" style="display: none;">
+                <!-- Profile Header with Photo -->
+                <div class="profile-header-modern">
+                    <div class="profile-banner">
+                        <div class="banner-pattern"></div>
+                    </div>
+                    <div class="profile-header-content">
+                        <div class="profile-photo-section">
+                            <div class="profile-photo-wrapper-modern">
+                                <img id="profilePhoto" src="" alt="Profile">
+                                <button class="photo-edit-btn" onclick="uploadPhoto()" title="Change Photo">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </button>
                             </div>
+                        </div>
+                        <div class="profile-header-info">
+                            <h1 class="profile-name"><?= htmlspecialchars($_SESSION['USER']->name ?? 'Buyer') ?></h1>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="profile-form-modern">
+                    <div class="form-section-header">
+                        <h2>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Personal Information
+                        </h2>
+                    </div>
+                    <div class="profile-form-grid-modern">
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                Full Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="profileName" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                Email Address <span class="required">*</span>
+                            </label>
+                            <input type="email" id="profileEmail" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>" placeholder="your.email@example.com">
+                        </div>
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </label>
+                            <input type="tel" id="profilePhone" class="form-input-modern" placeholder="+94 77 123 4567">
+                        </div>
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                City <span class="required">*</span>
+                            </label>
+                            <input type="text" id="profileLocation" class="form-input-modern" placeholder="City">
+                        </div>
+                        <div class="form-group-modern full-width">
+                            <label class="form-label-modern">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                Delivery Address <span class="required">*</span>
+                            </label>
+                            <textarea id="profileAddress" class="form-input-modern" rows="3" placeholder="Enter your full delivery address"></textarea>
                         </div>
                     </div>
 
-                    <div class="profile-form-section">
-                        <div class="profile-form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Full Name <span class="required">*</span></label>
-                                <input type="text" class="form-input" value="<?= htmlspecialchars($username) ?>" placeholder="Enter your full name">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Email Address <span class="required">*</span></label>
-                                <input type="email" class="form-input" value="buyer@example.com" placeholder="your.email@example.com">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Phone Number <span class="required">*</span></label>
-                                <input type="tel" class="form-input" value="+94 77 123 4567" placeholder="+94 XX XXX XXXX">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">City</label>
-                                <input type="text" class="form-input" value="Colombo" placeholder="Enter your city">
-                            </div>
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label class="form-label">Delivery Address</label>
-                                <textarea class="form-input" rows="3" placeholder="Enter your full delivery address">123, Main Street, Colombo 07, Sri Lanka</textarea>
-                            </div>
-                        </div>
-
-                        <div class="profile-actions">
-                            <button class="btn btn-primary" onclick="showNotification('Profile updated successfully!', 'success')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                    <polyline points="7 3 7 8 15 8"></polyline>
-                                </svg>
-                                Save Changes
-                            </button>
-                            <button class="btn btn-secondary" onclick="showNotification('Changes discarded', 'info')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="1 4 1 10 7 10"></polyline>
-                                    <polyline points="23 20 23 14 17 14"></polyline>
-                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
-                                </svg>
-                                Reset
-                            </button>
-                        </div>
+                    <div class="profile-actions-modern">
+                        <button class="btn btn-save-profile" onclick="updateProfile()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Save Changes
+                        </button>
+                        <button class="btn btn-reset-profile" onclick="loadProfileData()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                            </svg>
+                            Reset
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Profile Stats -->
-                    <div class="profile-stats-card">
-                        <h3>Account Statistics</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-label">Member Since</div>
-                                <div class="stat-value">Jan 2024</div>
+                <!-- Account Statistics -->
+                <div class="profile-stats-modern">
+                    <div class="stats-header">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            Account Overview
+                        </h3>
+                        <p>Your activity at a glance</p>
+                    </div>
+                    <div class="stats-grid-modern">
+                        <div class="stat-card-modern stat-primary">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Orders</div>
-                                <div class="stat-value">47</div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Member Since</div>
+                                <div class="stat-value-modern">Jan 2024</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Spent</div>
-                                <div class="stat-value">Rs. 28.4K</div>
+                        </div>
+                        <div class="stat-card-modern stat-success">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Reviews Given</div>
-                                <div class="stat-value">23</div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Total Orders</div>
+                                <div class="stat-value-modern">47</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern stat-info">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Wishlist Items</div>
+                                <div class="stat-value-modern">12</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern stat-warning">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Reviews Given</div>
+                                <div class="stat-value-modern">23</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern stat-purple">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Avg. Response Time</div>
+                                <div class="stat-value-modern">~ 2h</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern stat-gradient">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label-modern">Total Spent</div>
+                                <div class="stat-value-modern">Rs. 28.4K</div>
                             </div>
                         </div>
                     </div>
@@ -386,20 +522,22 @@
                     <?php else: ?>
                         <?php foreach ($products as $product): ?>
                             <div class="product-card"
+                                data-id="<?= htmlspecialchars($product->id) ?>"
                                 data-name="<?= strtolower(htmlspecialchars($product->name)) ?>"
                                 data-category="<?= strtolower(htmlspecialchars($product->category)) ?>"
                                 data-location="<?= strtolower(htmlspecialchars($product->location)) ?>"
                                 data-price="<?= htmlspecialchars($product->price) ?>"
-                                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>">
+                                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>"
+                                data-image="<?= !empty($product->image) ? htmlspecialchars($product->image) : '' ?>">
 
                                 <div class="product-image">
                                     <?php if (!empty($product->image) && file_exists("assets/images/products/" . $product->image)): ?>
                                         <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($product->image) ?>"
                                             alt="<?= htmlspecialchars($product->name) ?>">
                                     <?php else: ?>
-                                        <div class="product-placeholder">
-                                            <?= getCategoryEmoji($product->category) ?>
-                                        </div>
+                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
+                                            alt="<?= htmlspecialchars($product->name) ?>"
+                                            style="opacity: 0.6;">
                                     <?php endif; ?>
                                 </div>
 
@@ -822,26 +960,12 @@
 
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
+        window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
+        window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 
 </html>
-
-<?php
-// Helper function for category emojis
-function getCategoryEmoji($category)
-{
-    $emojis = [
-        'vegetables' => '🥬',
-        'fruits' => '🍎',
-        'cereals' => '🌾',
-        'legumes' => '🫘',
-        'spices' => '🌶️',
-        'yams' => '🍠',
-        'leafy' => '🥬'
-    ];
-    return $emojis[strtolower($category)] ?? '🌱';
-}
-?>
