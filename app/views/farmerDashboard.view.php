@@ -208,16 +208,6 @@
                 </div>
             </div>
 
-            <!-- Crop Requests Management (Dummy UI) -->
-            <div id="crop-requests-section" class="content-section" style="display: none;">
-                <div class="content-card">
-                    <h3 class="card-title">Crop Requests from Buyers</h3>
-                    <div class="card-content" id="cropRequestsContainer">
-                        <!-- Filled by JS: loadCropRequestsData() -->
-                    </div>
-                </div>
-            </div>
-
             <!-- Orders Management -->
             <div id="orders-section" class="content-section" style="display: none;">
                 <div class="content-header">
@@ -337,6 +327,64 @@
                     </div>
                     <div class="card-content" id="deliveriesList">
                         <!-- Filled by JS: loadPendingDeliveriesData() -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crop Requests Management (dummy) -->
+            <div id="crop-requests-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">Crop Requests from Buyers</h1>
+                    <p class="content-subtitle">Review special requests and accept the ones you can fulfill</p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-content">
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #4CAF50;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3 style="margin: 0;">Request #CR001</h3>
+                                        <p style="margin: 4px 0 0 0; color: #666;">Buyer: Fresh Mart Supermarket</p>
+                                    </div>
+                                    <span class="order-status delivered">ACTIVE</span>
+                                </div>
+                                <div style="margin-top: 16px;">
+                                    <p style="margin: 4px 0;"><strong>Crop Needed:</strong> Organic Tomatoes</p>
+                                    <p style="margin: 4px 0;"><strong>Quantity:</strong> 200kg</p>
+                                    <p style="margin: 4px 0;"><strong>Target Price:</strong> Rs. 130/kg</p>
+                                    <p style="margin: 4px 0;"><strong>Delivery By:</strong> Oct 25, 2025</p>
+                                    <p style="margin: 4px 0;"><strong>Delivery Location:</strong> Colombo</p>
+                                </div>
+                                <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" onclick="showNotification('Request accepted!', 'success')">Accept Request</button>
+                                    <button class="btn btn-danger" onclick="showNotification('Request declined', 'warning')">Decline Request</button>
+                                    <button class="btn btn-outline" onclick="showNotification('Viewing request details', 'info')">View Details</button>
+                                </div>
+                            </div>
+
+                            <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #3B82F6;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3 style="margin: 0;">Request #CR002</h3>
+                                        <p style="margin: 4px 0 0 0; color: #666;">Buyer: Green Leaf Restaurant</p>
+                                    </div>
+                                    <span class="order-status pending">ACTIVE</span>
+                                </div>
+                                <div style="margin-top: 16px;">
+                                    <p style="margin: 4px 0;"><strong>Crop Needed:</strong> Fresh Spinach</p>
+                                    <p style="margin: 4px 0;"><strong>Quantity:</strong> 50kg</p>
+                                    <p style="margin: 4px 0;"><strong>Target Price:</strong> Rs. 80/kg</p>
+                                    <p style="margin: 4px 0;"><strong>Delivery By:</strong> Oct 23, 2025</p>
+                                    <p style="margin: 4px 0;"><strong>Delivery Location:</strong> Kandy</p>
+                                </div>
+                                <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" onclick="showNotification('Request accepted!', 'success')">Accept Request</button>
+                                    <button class="btn btn-danger" onclick="showNotification('Request declined', 'warning')">Decline Request</button>
+                                    <button class="btn btn-outline" onclick="showNotification('Viewing request details', 'info')">View Details</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

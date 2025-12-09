@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDeliveriesFilters();
   loadDummyAnalyticsData();
   loadProfileData();
-  loadCropRequestsData();
     loadDummyFeedbackData();
 });
 // Edit product form
@@ -797,73 +796,6 @@ function loadDummyAnalyticsData() {
     if (conversionRateEl) conversionRateEl.textContent = '78%';
 }
 
-// Load Crop Requests Data
-function loadCropRequestsData() {
-    const cropRequestsContainer = document.getElementById('cropRequestsContainer');
-    if (!cropRequestsContainer) return;
-    
-    cropRequestsContainer.innerHTML = `
-        <div style="margin-bottom: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #4CAF50;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <strong style="font-size: 1.1rem;">Request #CR001</strong>
-                <span style="color: #4CAF50; font-weight: bold;">Active</span>
-            </div>
-            <div style="margin: 10px 0;">
-                <div style="color: #666; margin-bottom: 5px;"><strong>Buyer:</strong> Fresh Mart Supermarket</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Crop Needed:</strong> Organic Tomatoes</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Quantity:</strong> 200kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Target Price:</strong> Rs. 130/kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Delivery By:</strong> Oct 25, 2025</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Location:</strong> Colombo</div>
-            </div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="acceptCropRequest('CR001')">Accept Request</button>
-                <button class="btn btn-danger" onclick="declineCropRequest('CR001')">Decline Request</button>
-                <button class="btn btn-outline" onclick="viewCropRequestDetails('CR001')">View Details</button>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #3b82f6;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <strong style="font-size: 1.1rem;">Request #CR002</strong>
-                <span style="color: #3b82f6; font-weight: bold;">Active</span>
-            </div>
-            <div style="margin: 10px 0;">
-                <div style="color: #666; margin-bottom: 5px;"><strong>Buyer:</strong> Green Leaf Restaurant</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Crop Needed:</strong> Fresh Spinach</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Quantity:</strong> 50kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Target Price:</strong> Rs. 80/kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Delivery By:</strong> Oct 23, 2025</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Location:</strong> Kandy</div>
-            </div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="acceptCropRequest('CR002')">Accept Request</button>
-                <button class="btn btn-danger" onclick="declineCropRequest('CR002')">Decline Request</button>
-                <button class="btn btn-outline" onclick="viewCropRequestDetails('CR002')">View Details</button>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f59e0b;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <strong style="font-size: 1.1rem;">Request #CR003</strong>
-                <span style="color: #f59e0b; font-weight: bold;">Urgent</span>
-            </div>
-            <div style="margin: 10px 0;">
-                <div style="color: #666; margin-bottom: 5px;"><strong>Buyer:</strong> Paradise Hotel</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Crop Needed:</strong> Red Onions</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Quantity:</strong> 100kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Target Price:</strong> Rs. 90/kg</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Delivery By:</strong> Oct 22, 2025</div>
-                <div style="color: #666; margin-bottom: 5px;"><strong>Location:</strong> Galle</div>
-            </div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="acceptCropRequest('CR003')">Accept Request</button>
-                <button class="btn btn-danger" onclick="declineCropRequest('CR003')">Decline Request</button>
-                <button class="btn btn-outline" onclick="viewCropRequestDetails('CR003')">View Details</button>
-            </div>
-        </div>
-    `;
-}
 
 // Reviews & Complaints
 function loadDummyFeedbackData(){
@@ -1092,20 +1024,6 @@ function trackOrder(id) {
     showNotification(`Tracking order ${id}`, 'info');
 }
 
-// Crop Request Actions
-function acceptCropRequest(id) {
-    showNotification(`Crop request ${id} accepted successfully!`, 'success');
-    setTimeout(() => loadCropRequestsData(), 1000);
-}
-
-function viewCropRequestDetails(id) {
-    showNotification(`Viewing crop request ${id} details`, 'info');
-}
-
-function declineCropRequest(id) {
-    showNotification(`Crop request ${id} declined.`, 'warning');
-    setTimeout(() => loadCropRequestsData(), 1000);
-}
 
 // Profile form handlers
 function updateProfile() {
@@ -1187,9 +1105,6 @@ window.deleteProduct = deleteProduct;
 window.viewOrder = viewOrder;
 window.markAsReady = markAsReady;
 window.trackOrder = trackOrder;
-window.acceptCropRequest = acceptCropRequest;
-window.viewCropRequestDetails = viewCropRequestDetails;
-window.declineCropRequest = declineCropRequest;
 window.updateProfile = updateProfile;
 window.uploadPhoto = uploadPhoto;
 window.viewDeliveryDetails = viewDeliveryDetails;

@@ -13,11 +13,11 @@
 
 <body>
     <!-- Top Navigation -->
-    <?php
-    /* $username = $_SESSION['USER']->name ?? 'Buyer';
+    <?php /*
+     $username = $_SESSION['USER']->name ?? 'Buyer';
     $role = $_SESSION['USER']->role ?? 'buyer';
-    include '../app/views/components/dashboardNavBar.view.php'; */
-    ?>
+    include '../app/views/components/dashboardNavBar.view.php'; 
+    */?>
 
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
@@ -33,7 +33,7 @@
                 <div>
                     <div class="user-name" id="adminName"><?=$username?></div>
                     <div class="user-role">Buyer</div>
-                </div><!-- 
+                </div> <!--
                 <button class="logout-btn" onclick="logout()">Logout</button> -->
                 <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
                         <button type="submit" class="logout-btn btn login-link">Logout</button>
@@ -60,7 +60,7 @@
                         Dashboard
                     </a>
                 </li>
-                <li>
+                <li>                 
                     <a href="#" class="menu-link" data-section="products">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -118,17 +118,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="menu-link" data-section="requests">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                        </div>
-                        Requests
-                    </a>
-                </li>
-                <li>
                     <a href="#" class="menu-link" data-section="reviews">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,6 +128,17 @@
                     </a>
                 </li>
                 <li>
+                <a href="#" class="menu-link" data-section="requests">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        Requests
+                    </a>
+                </li>
+                <li>    
                     <a href="#" class="menu-link" data-section="notifications">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -305,7 +305,7 @@
                     </div>
                     <div class="profile-form-grid-modern">
                         <div class="form-group-modern">
-                            <label class="form-label-modern">
+                            <label class="form-label-modern" for="profileName">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="12" cy="7" r="4"></circle>
@@ -315,7 +315,7 @@
                             <input type="text" id="profileName" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" placeholder="Enter your full name">
                         </div>
                         <div class="form-group-modern">
-                            <label class="form-label-modern">
+                            <label class="form-label-modern" for="profileEmail">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                                     <polyline points="22,6 12,13 2,6"></polyline>
@@ -325,14 +325,14 @@
                             <input type="email" id="profileEmail" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>" placeholder="your.email@example.com">
                         </div>
                         <div class="form-group-modern">
-                            <label class="form-label-modern">
+                            <label class="form-label-modern" for="profilePhone">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                             </label>
                             <input type="tel" id="profilePhone" class="form-input-modern" placeholder="+94 77 123 4567">
                         </div>
                         <div class="form-group-modern">
-                            <label class="form-label-modern">
+                            <label class="form-label-modern" for="profileLocation">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                     <circle cx="12" cy="10" r="3"></circle>
@@ -342,7 +342,7 @@
                             <input type="text" id="profileLocation" class="form-input-modern" placeholder="City">
                         </div>
                         <div class="form-group-modern full-width">
-                            <label class="form-label-modern">
+                            <label class="form-label-modern" for="profileAddress">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -478,35 +478,47 @@
                     </div>
                     <div class="card-content">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="filterProducts()">
-                            <select id="categoryFilter" class="form-control" onchange="filterProducts()">
-                                <option value="">All Categories</option>
-                                <option value="vegetables">Vegetables</option>
-                                <option value="fruits">Fruits</option>
-                                <option value="cereals">Cereals</option>
-                                <option value="legumes">Legumes</option>
-                                <option value="spices">Spices</option>
-                                <option value="yams">Yams</option>
-                                <option value="leafy">Leafy Greens</option>
-                            </select>
-                            <select id="locationFilter" class="form-control" onchange="filterProducts()">
-                                <option value="">All Locations</option>
-                                <option value="colombo">Colombo</option>
-                                <option value="kandy">Kandy</option>
-                                <option value="matale">Matale</option>
-                                <option value="anuradhapura">Anuradhapura</option>
-                                <option value="galle">Galle</option>
-                                <option value="nuwara eliya">Nuwara Eliya</option>
-                                <option value="badulla">Badulla</option>
-                                <option value="kurunegala">Kurunegala</option>
-                            </select>
-                            <select id="priceFilter" class="form-control" onchange="filterProducts()">
-                                <option value="">All Prices</option>
-                                <option value="0-100">Under Rs. 100</option>
-                                <option value="100-200">Rs. 100 - Rs. 200</option>
-                                <option value="200-500">Rs. 200 - Rs. 500</option>
-                                <option value="500+">Above Rs. 500</option>
-                            </select>
+                            <div>
+                                <label for="searchInput" style="display: none;">Search Products</label>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="filterProducts()" aria-label="Search products">
+                            </div>
+                            <div>
+                                <label for="categoryFilter" style="display: none;">Filter by Category</label>
+                                <select id="categoryFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by category">
+                                    <option value="">All Categories</option>
+                                    <option value="vegetables">Vegetables</option>
+                                    <option value="fruits">Fruits</option>
+                                    <option value="cereals">Cereals</option>
+                                    <option value="legumes">Legumes</option>
+                                    <option value="spices">Spices</option>
+                                    <option value="yams">Yams</option>
+                                    <option value="leafy">Leafy Greens</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="locationFilter" style="display: none;">Filter by Location</label>
+                                <select id="locationFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by location">
+                                    <option value="">All Locations</option>
+                                    <option value="colombo">Colombo</option>
+                                    <option value="kandy">Kandy</option>
+                                    <option value="matale">Matale</option>
+                                    <option value="anuradhapura">Anuradhapura</option>
+                                    <option value="galle">Galle</option>
+                                    <option value="nuwara eliya">Nuwara Eliya</option>
+                                    <option value="badulla">Badulla</option>
+                                    <option value="kurunegala">Kurunegala</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="priceFilter" style="display: none;">Filter by Price</label>
+                                <select id="priceFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by price">
+                                    <option value="">All Prices</option>
+                                    <option value="0-100">Under Rs. 100</option>
+                                    <option value="100-200">Rs. 100 - Rs. 200</option>
+                                    <option value="200-500">Rs. 200 - Rs. 500</option>
+                                    <option value="500+">Above Rs. 500</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -550,14 +562,19 @@
                                     <p class="product-description">
                                         <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>
                                     </p>
-                                    <div class="product-price">Rs. <?= number_format($product->price, 2) ?>/kg</div>
-                                    <div class="product-stock">
-                                        <?= htmlspecialchars($product->quantity) ?>kg available
-                                    </div>
-                                    <button class="btn btn-primary btn-add-cart"
-                                        onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
-                                        🛒 Add to Cart
-                                    </button>
+                            <div class="product-price">Rs. <?= number_format($product->price, 2) ?>/kg</div>
+                            <div class="product-stock">
+                                <?= htmlspecialchars($product->quantity) ?>kg available
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-primary btn-add-cart"
+                                    onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                                    🛒 Add to Cart
+                                </button>
+                                <button class="btn btn-outline" onclick="addToWishlist(<?= $product->id ?>, event)">
+                                    ❤️ Wishlist
+                                </button>
+                            </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -729,59 +746,53 @@
             <div id="wishlist-section" class="content-section" style="display: none;">
                 <div class="content-header">
                     <h1 class="content-title">My Wishlist</h1>
-                    <p class="content-subtitle">Products you want to buy later</p>
+                    <p class="content-subtitle">Products you plan to purchase later</p>
                 </div>
 
-                <div class="products-grid">
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="<?= ROOT ?>/assets/imgs/C.jpeg" alt="Organic Carrots" class="product-image">
+                <div class="products-grid" id="wishlist-list">
+                    <?php if (empty($wishlistItems)): ?>
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
+                            <h3>Your wishlist is empty</h3>
+                            <p>Browse products and click “Wishlist” to save them here.</p>
                         </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Carrots</h3>
-                            <p class="product-farmer">Nimal Bandara (Nuwara Eliya)</p>
-                            <div class="product-price">Rs. 200/kg</div>
-                            <div class="product-stock">25kg available</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <button class="btn btn-primary btn-sm" onclick="showNotification('Added to cart!', 'success')">Add to Cart</button>
-                                <button class="btn btn-danger btn-sm" onclick="showNotification('Removed from wishlist', 'info')">Remove</button>
+                    <?php else: ?>
+                        <?php foreach ($wishlistItems as $item): ?>
+                            <div class="product-card" data-wishlist-product="<?= (int)$item->product_id ?>">
+                                <div class="product-image">
+                                    <?php if (!empty($item->image) && file_exists("assets/images/products/" . $item->image)): ?>
+                                        <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($item->image) ?>"
+                                            alt="<?= htmlspecialchars($item->name) ?>">
+                                    <?php else: ?>
+                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
+                                            alt="<?= htmlspecialchars($item->name) ?>"
+                                            style="opacity: 0.6;">
+                                    <?php endif; ?>
+                                </div>
+                                <div class="product-info">
+                                    <h3 class="product-name"><?= htmlspecialchars($item->name ?? 'Product unavailable') ?></h3>
+                                    <div class="product-price">
+                                        <?= isset($item->price) ? 'Rs. ' . number_format($item->price, 2) . '/kg' : 'Price unavailable' ?>
+                                    </div>
+                                    <div class="product-stock">
+                                        <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
+                                        <button class="btn btn-primary btn-sm"
+                                            onclick="addToCart(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
+                                            🛒 Add to Cart
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="<?= ROOT ?>/assets/imgs/corn.jpeg" alt="Sweet Corn" class="product-image">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name"> Corn</h3>
-                            <p class="product-farmer">Lakshmi Fernando (Badulla)</p>
-                            <div class="product-price">Rs. 160/kg</div>
-                            <div class="product-stock">35kg available</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <button class="btn btn-primary btn-sm" onclick="showNotification('Added to cart!', 'success')">Add to Cart</button>
-                                <button class="btn btn-danger btn-sm" onclick="showNotification('Removed from wishlist', 'info')">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="<?= ROOT ?>/assets/imgs/B.jpeg" alt="Brinjal" class="product-image">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Brinjal</h3>
-                            <p class="product-farmer">Chaminda Silva (Kurunegala)</p>
-                            <div class="product-price">Rs. 140/kg</div>
-                            <div class="product-stock">45kg available</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <button class="btn btn-primary btn-sm" onclick="showNotification('Added to cart!', 'success')">Add to Cart</button>
-                                <button class="btn btn-danger btn-sm" onclick="showNotification('Removed from wishlist', 'info')">Remove</button>
-                            </div>
-                        </div>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
+
 
             <!-- Requests Section -->
             <div id="requests-section" class="content-section" style="display: none;">

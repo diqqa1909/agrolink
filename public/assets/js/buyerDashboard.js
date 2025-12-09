@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCartBadge();
     // Initialize profile defaults for modern profile UI
     loadProfileData();
+    loadWishlist();
     
     // Listen for hash changes (when navigating from external pages)
     window.addEventListener('hashchange', function() {
@@ -81,6 +82,10 @@ function showSection(sectionName) {
         top: 0,
         behavior: 'smooth'
     });
+    
+    if (sectionName === 'wishlist') {
+        loadWishlist();
+    }
 }
 
 // Show Notification
@@ -581,6 +586,160 @@ function proceedToCheckout() {
     // window.location.href = window.APP_ROOT + '/checkout';
 }
 
+// ==================== WISHLIST FUNCTIONS ====================
+
+function addToWishlist(productId, evt) {
+    const btn = evt?.currentTarget || evt?.target || null;
+    const originalText = btn ? btn.textContent : null;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+    }
+
+    const formData = new FormData();
+    formData.append('product_id', productId);
+
+    fetch(window.APP_ROOT + '/Wishlist/add', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message || 'Added to wishlist', 'success');
+            loadWishlist();
+        } else {
+            showNotification(data.error || 'Failed to add to wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Wishlist add error:', error);
+        showNotification('An error occurred while adding to wishlist', 'error');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+}
+
+function removeFromWishlist(productId) {
+    if (!confirm('Remove this product from your wishlist?')) {
+        return;
+    }
+
+    fetch(window.APP_ROOT + '/Wishlist/remove/' + productId, {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message || 'Removed from wishlist', 'success');
+            loadWishlist();
+        } else {
+            showNotification(data.error || 'Failed to remove product', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Wishlist remove error:', error);
+        showNotification('An error occurred while removing product', 'error');
+    });
+}
+
+function loadWishlist() {
+    const container = document.getElementById('wishlist-list');
+    if (!container) return;
+
+    fetch(window.APP_ROOT + '/Wishlist/index', {
+        method: 'GET',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            renderWishlist(data.items || []);
+        } else {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+                    <h3>${escapeHtml(data.error || 'Failed to load wishlist')}</h3>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Load wishlist error:', error);
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+                <h3>Unable to load wishlist</h3>
+                <p>${escapeHtml(error.message)}</p>
+            </div>
+        `;
+    });
+}
+
+function renderWishlist(items) {
+    const container = document.getElementById('wishlist-list');
+    if (!container) return;
+
+    if (!items.length) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
+                <h3>Your wishlist is empty</h3>
+                <p>Browse products and click “Wishlist” to save them here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = items.map(item => {
+        const image = item.image 
+            ? `${window.APP_ROOT}/assets/images/products/${escapeHtml(item.image)}`
+            : `${window.APP_ROOT}/assets/images/default-product.svg`;
+
+        const price = (item.price !== null && item.price !== undefined)
+            ? `Rs. ${Number(item.price).toFixed(2)}/kg`
+            : 'Price unavailable';
+
+        const stock = (item.available_quantity !== null && item.available_quantity !== undefined)
+            ? `${escapeHtml(item.available_quantity)}kg available`
+            : '';
+
+        return `
+            <div class="product-card" data-wishlist-product="${item.product_id}">
+                <div class="product-image">
+                    <img src="${image}" alt="${escapeHtml(item.name || 'Product')}" ${item.image ? '' : 'style="opacity:0.6;"'}>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${escapeHtml(item.name || 'Product unavailable')}</h3>
+                    <div class="product-price">${price}</div>
+                    <div class="product-stock">${stock}</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
+                        <button class="btn btn-primary btn-sm"
+                            onclick="addToCart(${item.product_id}, '${escapeHtml(item.name || 'Product')}', ${item.price || 0}, ${item.available_quantity || 0})">
+                            🛒 Add to Cart
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(${item.product_id})">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function escapeHtml(text = '') {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Export functions to window
 window.showSection = showSection;
 window.showNotification = showNotification;
@@ -597,3 +756,6 @@ window.proceedToCheckout = proceedToCheckout;
 window.loadProfileData = loadProfileData;
 window.updateProfile = updateProfile;
 window.uploadPhoto = uploadPhoto;
+window.addToWishlist = addToWishlist;
+window.removeFromWishlist = removeFromWishlist;
+window.loadWishlist = loadWishlist;
