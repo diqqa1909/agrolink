@@ -88,22 +88,7 @@ function showSection(sectionName) {
     }
 }
 
-// Show Notification
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    document.querySelectorAll('.notification').forEach(n => n.remove());
-    
-    // Create notification
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('notification-hide');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+// showNotification is defined in main.js and available globally
 
 // Profile: populate defaults and avatar (modern profile UI)
 function loadProfileData() {
@@ -742,7 +727,6 @@ function escapeHtml(text = '') {
 
 // Export functions to window
 window.showSection = showSection;
-window.showNotification = showNotification;
 window.filterProducts = filterProducts;
 window.addToCart = addToCart;
 window.updateCartBadge = updateCartBadge;

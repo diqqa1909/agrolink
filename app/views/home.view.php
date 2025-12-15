@@ -21,7 +21,7 @@
                 <p style="margin-bottom: 20px; font-size: 1.2rem; line-height: 1.7; color: rgba(255,255,255,0.92);">A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade.</p>
                 <div class="hero-actions" style="display:flex; gap: 12px; flex-wrap: wrap; justify-content:center;">
                     <a href="<?= ROOT ?>/login" class="btn btn-primary btn-large">Login</a>
-                    <a href="<?= ROOT ?>/register" class="btn btn-secondary btn-large">Register Now</a>
+                    <a href="<?= ROOT ?>/register" class="btn btn-secondary btn-large">Register</a>
                 </div>
             </div>
         </div>

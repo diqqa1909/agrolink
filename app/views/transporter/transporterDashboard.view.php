@@ -14,32 +14,10 @@
 <body>
     <!-- Include Navbar Component -->
     <?php
-    /* $username = $_SESSION['USER']->name ?? 'Transporter';
+    $username = $_SESSION['USER']->name ?? 'Transporter';
     $role = $_SESSION['USER']->role ?? 'transporter';
-    include '../app/views/components/dashboardNavBar.view.php'; */
+    include '../app/views/components/dashboardNavBar.view.php';
     ?>
-
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="logo-section">
-            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
-        </div>
-        <div class="user-section">
-            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
-                <div>
-                    <div class="user-avatar" id="userAvatar">AD</div>
-
-                </div>
-                <div>
-                    <div class="user-name" id="adminName"><?=$username?></div>
-                    <div class="user-role">Transporter</div>
-                </div><!-- 
-                <button class="logout-btn" onclick="logout()">Logout</button> -->
-                <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
-                        <button type="submit" class="logout-btn btn logout-link">Logout</button>
-                    </form>
-        </div>
-    </nav>
 
     <div class="dashboard">
 
@@ -271,7 +249,7 @@
                                         <div class="buyer-name">Anu K.</div>
                                         <div class="review-sub">Colombo → Kandy • #ORD-2025-014</div>
                                     </div>
-                                  <div class="rating-stars">⭐⭐⭐⭐⭐</div> 
+                                    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
                                 </div>
                                 <div class="review-body">Very punctual and careful with the produce. Highly recommended!</div>
                                 <div class="review-footer">
@@ -288,7 +266,7 @@
                                         <div class="buyer-name">Ruwan S.</div>
                                         <div class="review-sub">Galle → Colombo • #ORD-2025-011</div>
                                     </div>
-                                  <div class="rating-stars">⭐⭐⭐⭐☆</div>
+                                    <div class="rating-stars">⭐⭐⭐⭐☆</div>
                                 </div>
                                 <div class="review-body">Good service. One small delay due to traffic but communicated well.</div>
                                 <div class="review-footer">

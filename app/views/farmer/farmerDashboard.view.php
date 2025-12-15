@@ -11,32 +11,10 @@
 <body>
     <!-- Include Navbar Component -->
     <?php
-    /* $username = $_SESSION['USER']->name ?? 'Farmer';
+    $username = $_SESSION['USER']->name ?? 'Farmer';
     $role = $_SESSION['USER']->role ?? 'farmer';
-    include '../app/views/components/dashboardNavBar.view.php'; */
+    include '../app/views/components/dashboardNavBar.view.php';
     ?>
-
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="logo-section">
-            <img src="<?=ROOT?>/assets/imgs/Logo.png" alt="AgroLink">
-        </div>
-        <div class="user-section">
-            <!-- <div class="user-info"></div> --> <!--REMOVED THIS DIV! CHECK JS-->
-                <div>
-                    <div class="user-avatar" id="userAvatar">AD</div>
-
-                </div>
-                <div>
-                    <div class="user-name" id="adminName"><?=$username?></div>
-                    <div class="user-role">Farmer</div>
-                </div><!-- 
-                <button class="logout-btn" onclick="logout()">Logout</button> -->
-                <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
-                        <button type="submit" class="logout-btn btn logout-link">Logout</button>
-                    </form>
-        </div>
-    </nav>
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
@@ -113,7 +91,7 @@
                         Crop Requests
                     </a></li>
                 <!-- Move Profile link to end -->
-                <li><a href="#" class="menu-link" data-section="profile">
+                <li><a href="<?= ROOT ?>/farmerprofile" class="menu-link">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -416,219 +394,11 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Profile Management -->
-            <div id="profile-section" class="content-section profile-section" style="display: none;">
-                <!-- Profile Header with Photo -->
-                <div class="profile-header-modern">
-                    <div class="profile-banner">
-                        <div class="banner-pattern"></div>
-                    </div>
-                    <div class="profile-header-content">
-                        <div class="profile-photo-section">
-                            <div class="profile-photo-wrapper-modern">
-                                <img id="profilePhoto" src="" alt="Profile">
-                                <button class="photo-edit-btn" onclick="uploadPhoto()" title="Change Photo">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                        <circle cx="12" cy="13" r="4"></circle>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="profile-header-info">
-                            <h1 class="profile-name"><?= htmlspecialchars($_SESSION['USER']->name ?? 'Farmer') ?></h1>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile Form -->
-                <div class="profile-form-modern">
-                    <div class="form-section-header">
-                        <h2>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            Personal Information
-                        </h2>
-                    </div>
-                    <div class="profile-form-grid-modern">
-                        <div class="form-group-modern">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                Full Name <span class="required">*</span>
-                            </label>
-                            <input type="text" id="profileName" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" placeholder="Enter your full name">
-                        </div>
-                        <div class="form-group-modern">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
-                                Email Address <span class="required">*</span>
-                            </label>
-                            <input type="email" id="profileEmail" class="form-input-modern" value="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>" placeholder="your.email@example.com">
-                        </div>
-                        <div class="form-group-modern">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                </svg>
-                                Phone Number <span class="required">*</span>
-                            </label>
-                            <input type="tel" id="profilePhone" class="form-input-modern" placeholder="+94 77 123 4567">
-                        </div>
-                        <div class="form-group-modern">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                    <circle cx="12" cy="10" r="3"></circle>
-                                </svg>
-                                Location <span class="required">*</span>
-                            </label>
-                            <input type="text" id="profileLocation" class="form-input-modern" placeholder="City, Province">
-                        </div>
-                        <div class="form-group-modern full-width">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                                </svg>
-                                Crops Selling <span class="required">*</span>
-                            </label>
-                            <input type="text" id="profileCrops" class="form-input-modern" placeholder="e.g., Tomatoes, Rice, Mangoes, Carrots">
-                            <span class="form-hint-modern">Separate multiple crops with commas</span>
-                        </div>
-                        <div class="form-group-modern full-width">
-                            <label class="form-label-modern">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                                </svg>
-                                Full Address <span class="required">*</span>
-                            </label>
-                            <textarea id="profileAddress" class="form-input-modern" rows="3" placeholder="Enter your complete farm address"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="profile-actions-modern">
-                        <button class="btn btn-save-profile" onclick="updateProfile()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            Save Changes
-                        </button>
-                        <button class="btn btn-reset-profile" onclick="loadProfileData()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="1 4 1 10 7 10"></polyline>
-                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                            </svg>
-                            Reset
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Account Statistics -->
-                <div class="profile-stats-modern">
-                    <div class="stats-header">
-                        <h3>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="20" x2="18" y2="10"></line>
-                                <line x1="12" y1="20" x2="12" y2="4"></line>
-                                <line x1="6" y1="20" x2="6" y2="14"></line>
-                            </svg>
-                            Account Overview
-                        </h3>
-                        <p>Your farming journey at a glance</p>
-                    </div>
-                    <div class="stats-grid-modern">
-                        <div class="stat-card-modern stat-primary">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Member Since</div>
-                                <div class="stat-value-modern">Jan 2024</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-modern stat-success">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Products Listed</div>
-                                <div class="stat-value-modern">24</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-modern stat-info">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="9" cy="21" r="1"></circle>
-                                    <circle cx="20" cy="21" r="1"></circle>
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Orders Fulfilled</div>
-                                <div class="stat-value-modern">142</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-modern stat-warning">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Average Rating</div>
-                                <div class="stat-value-modern">4.8/5</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-modern stat-purple">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Response Time</div>
-                                <div class="stat-value-modern">&lt; 2h</div>
-                            </div>
-                        </div>
-                        <div class="stat-card-modern stat-gradient">
-                            <div class="stat-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                </svg>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-label-modern">Total Earnings</div>
-                                <div class="stat-value-modern">Rs. 842K</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics section removed as requested -->
         </main>
+    </div>
+
+    <!-- Profile section moved to standalone page: farmerProfile.view.php -->
+    </main>
     </div>
 
     <!-- Add Product Modal -->

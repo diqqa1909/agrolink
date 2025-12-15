@@ -1,6 +1,6 @@
 <?php
 
-class ProductsController
+class FarmerProductsController
 {
     use Controller;
 
@@ -12,16 +12,31 @@ class ProductsController
     }
 
     /**
+     * Farmer products page (renders shared layout)
+     */
+    public function index()
+    {
+        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'farmer') {
+            return redirect('login');
+        }
+
+        $data = [
+            'pageTitle'   => 'My Products',
+            'activePage'  => 'products',
+            'contentView' => '../app/views/farmer/farmerProductsContent.view.php',
+        ];
+
+        $this->view('components/farmerLayout', $data);
+    }
+
+    /**
      * Create a new product (Farmer only)
      */
     public function create()
     {
-        // Clean output buffer
         if (ob_get_level()) ob_clean();
-
         header('Content-Type: application/json');
 
-        // Check if user is logged in
         if (!isset($_SESSION['USER'])) {
             http_response_code(401);
             echo json_encode([
@@ -31,12 +46,7 @@ class ProductsController
             exit;
         }
 
-        // Check if user is a farmer
         $userRole = trim(strtolower($_SESSION['USER']->role ?? ''));
-
-        // Debug logging
-        error_log("User Role (trimmed): " . $userRole);
-        error_log("Session USER: " . print_r($_SESSION['USER'], true));
 
         if ($userRole !== 'farmer') {
             http_response_code(403);
@@ -61,7 +71,6 @@ class ProductsController
         try {
             $farmer_id = $_SESSION['USER']->id;
 
-            // Validation
             $errors = [];
 
             $category = trim($_POST['category'] ?? '');
@@ -72,11 +81,9 @@ class ProductsController
             $listing_date = trim($_POST['listing_date'] ?? '');
             $description = trim($_POST['description'] ?? '');
 
-            // Validate required fields
             if (empty($category)) {
                 $errors['category'] = 'Category is required';
             }
-
             if (empty($name)) {
                 $errors['name'] = 'Product name is required';
             } elseif (strlen($name) < 3) {
@@ -84,48 +91,38 @@ class ProductsController
             } elseif (strlen($name) > 100) {
                 $errors['name'] = 'Product name is too long (max 100 characters)';
             }
-
             if (empty($price)) {
                 $errors['price'] = 'Price is required';
             } elseif (!is_numeric($price) || $price <= 0) {
                 $errors['price'] = 'Price must be a positive number';
             }
-
             if (empty($quantity)) {
                 $errors['quantity'] = 'Quantity is required';
             } elseif (!is_numeric($quantity) || $quantity < 10) {
                 $errors['quantity'] = 'Minimum quantity is 10kg';
             }
-
             if (empty($location)) {
-                // Use farmer's location from profile if available
                 $location = $_SESSION['USER']->location ?? '';
-
-                // If still empty, show error
                 if (empty($location)) {
                     $errors['location'] = 'Location is required';
                 }
             }
-
             if (empty($listing_date)) {
                 $errors['listing_date'] = 'Listing date is required';
             } else {
                 $date = DateTime::createFromFormat('Y-m-d', $listing_date);
                 $today = new DateTime();
                 $today->setTime(0, 0, 0);
-
                 if (!$date || $date < $today) {
                     $errors['listing_date'] = 'Listing date cannot be in the past';
                 }
             }
 
-            // Handle image upload
             $imageName = null;
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                 $filename = $_FILES['image']['name'];
                 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
                 if (!in_array($ext, $allowed)) {
                     $errors['image'] = 'Invalid image format. Allowed: ' . implode(', ', $allowed);
                 } elseif ($_FILES['image']['size'] > 5 * 1024 * 1024) {
@@ -133,11 +130,9 @@ class ProductsController
                 } else {
                     $imageName = uniqid('product_') . '.' . $ext;
                     $uploadPath = '../public/assets/images/products/';
-
                     if (!is_dir($uploadPath)) {
                         mkdir($uploadPath, 0777, true);
                     }
-
                     if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $imageName)) {
                         $errors['image'] = 'Failed to upload image';
                         $imageName = null;
@@ -145,7 +140,6 @@ class ProductsController
                 }
             }
 
-            // If validation fails, return errors
             if (!empty($errors)) {
                 http_response_code(422);
                 echo json_encode([
@@ -156,20 +150,18 @@ class ProductsController
                 exit;
             }
 
-            // Prepare data for insertion
             $data = [
-                'farmer_id' => $farmer_id,
-                'category' => $category,
-                'name' => $name,
-                'price' => (float)$price,
-                'quantity' => (int)$quantity,
-                'location' => $location,
+                'farmer_id'    => $farmer_id,
+                'category'     => $category,
+                'name'         => $name,
+                'price'        => (float)$price,
+                'quantity'     => (int)$quantity,
+                'location'     => $location,
                 'listing_date' => $listing_date,
-                'description' => $description,
-                'image' => $imageName
+                'description'  => $description,
+                'image'        => $imageName
             ];
 
-            // Insert product using ProductsModel
             $result = $this->productModel->create($data);
 
             if ($result) {
@@ -196,21 +188,6 @@ class ProductsController
         exit;
     }
 
-    // Buyer-facing list page
-    public function index()
-    {
-        $filters = [
-            'search'    => $_GET['search']    ?? '',
-            'max_price' => $_GET['max_price'] ?? '',
-            'location'  => $_GET['location']  ?? '',
-        ];
-        $data = [
-            'products' => $this->productModel->getAvailable($filters),
-            'filters'  => $filters,
-        ];
-        $this->view('products', $data);
-    }
-
     // Return farmer's products (JSON)
     public function farmerList()
     {
@@ -222,21 +199,17 @@ class ProductsController
         echo json_encode(['success' => true, 'products' => $items]);
     }
 
-    // Buyer products list (JSON) - for buyer dashboard
+    // Buyer products list (JSON) - optional, kept for compatibility
     public function buyerList()
     {
         header('Content-Type: application/json');
-
-        // Optional: check if user is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'buyer') {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Access denied']);
             return;
         }
 
         $conditions = [];
-
-        // Add filters if provided
         if (!empty($_GET['category'])) {
             $conditions['category'] = $_GET['category'];
         }
@@ -266,7 +239,6 @@ class ProductsController
             return;
         }
 
-        // Ensure the product exists and belongs to this farmer
         $current = $this->productModel->getById($id);
         if (!$current || (int)$current->farmer_id !== (int)$_SESSION['USER']->id) {
             http_response_code(403);
@@ -274,7 +246,6 @@ class ProductsController
             return;
         }
 
-        // Validate required fields
         $name = trim($_POST['name'] ?? '');
         $category = trim($_POST['category'] ?? '');
         $price = $_POST['price'] ?? '';
@@ -299,7 +270,6 @@ class ProductsController
             }
         }
 
-        // Optional image upload
         $newImageName = null;
         if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
             if ($_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -344,7 +314,6 @@ class ProductsController
         $ok = $this->productModel->updateByFarmer($id, (int)$_SESSION['USER']->id, $payload);
 
         if ($ok) {
-            // Optionally remove old image when replaced
             if ($newImageName && !empty($current->image)) {
                 $oldPath = '../public/assets/images/products/' . $current->image;
                 if (is_file($oldPath)) @unlink($oldPath);
@@ -368,7 +337,6 @@ class ProductsController
             return;
         }
 
-        // Get the product first to check ownership and get image filename
         $product = $this->productModel->getById($id);
         if (!$product || (int)$product->farmer_id !== (int)$_SESSION['USER']->id) {
             http_response_code(403);
@@ -378,7 +346,6 @@ class ProductsController
 
         $ok = $this->productModel->deleteByFarmer($id, (int)$_SESSION['USER']->id);
         if ($ok) {
-            // Delete the associated image file if it exists
             if (!empty($product->image)) {
                 $imagePath = '../public/assets/images/products/' . $product->image;
                 if (is_file($imagePath)) {
@@ -404,7 +371,6 @@ class ProductsController
         echo json_encode(['success' => true, 'product' => $item]);
     }
 
-    // Helpers
     private function requireFarmer()
     {
         if (!isset($_SESSION['USER'])) {
