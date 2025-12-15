@@ -75,14 +75,7 @@ class RequestModel
             'status' => isset($data['status']) ? $data['status'] : 'pending'
         ];
 
-        // Log for debugging
-        error_log("RequestModel::create - SQL: " . $sql);
-        error_log("RequestModel::create - Params: " . print_r($params, true));
-
         $result = $this->write($sql, $params);
-        
-        // Log result
-        error_log("RequestModel::create - Result: " . var_export($result, true));
         
         // write() returns the insert ID (int) if successful, true for UPDATE/DELETE, or false on failure
         return $result;

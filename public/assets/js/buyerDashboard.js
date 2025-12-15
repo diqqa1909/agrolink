@@ -721,7 +721,7 @@ function renderWishlist(items) {
                     <div class="product-stock">${stock}</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
                         <button class="btn btn-primary btn-sm"
-                            onclick="addToCart(${item.product_id}, '${escapeHtml(item.name || 'Product')}', ${item.price || 0}, ${item.available_quantity || 0})">
+                            onclick="addToCart(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
                             🛒 Add to Cart
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(${item.product_id})">

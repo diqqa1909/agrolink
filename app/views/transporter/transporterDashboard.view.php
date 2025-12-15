@@ -36,7 +36,7 @@
                 </div><!-- 
                 <button class="logout-btn" onclick="logout()">Logout</button> -->
                 <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
-                        <button type="submit" class="logout-btn btn login-link">Logout</button>
+                        <button type="submit" class="logout-btn btn logout-link">Logout</button>
                     </form>
         </div>
     </nav>
