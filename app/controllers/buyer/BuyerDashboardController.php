@@ -3,9 +3,11 @@ class BuyerDashboardController{
     use Controller;
     
     private $cartModel;
+    private $wishlistModel;
     
     public function __construct() {
         $this->cartModel = new CartModel();
+        $this->wishlistModel = new WishlistModel();
     }
     
     public function index() {
@@ -25,11 +27,13 @@ class BuyerDashboardController{
         
         // Fetch all available products with farmer details
         $products = $productModel->getWithFarmerDetails();
+        $wishlistItems = $this->wishlistModel->getByUserId($user_id);
         
         $data = [
             'username' => $_SESSION['USER']->name,
             'cartItemCount' => $cartItemCount,
-            'products' => $products ?: []
+            'products' => $products ?: [],
+            'wishlistItems' => $wishlistItems ?: []
         ];
         
         // Load the view
