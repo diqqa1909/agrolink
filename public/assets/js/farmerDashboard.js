@@ -1,6 +1,6 @@
 // Farmer Dashboard Specific Functionality
 
-const API_BASE = (window.APP_ROOT || '') + '/products';
+const API_BASE = (window.APP_ROOT || '') + '/farmerproducts';
 
 document.addEventListener('DOMContentLoaded', function() {
   initializeFarmerNavigation();
@@ -365,9 +365,16 @@ function initializeFarmerNavigation() {
     // Menu navigation
     document.querySelectorAll('.menu-link').forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
             const section = this.dataset.section;
-            showSection(section);
+            const href = this.getAttribute('href');
+            
+            // Only prevent default if it's an internal section link
+            if (section) {
+                e.preventDefault();
+                showSection(section);
+            } else {
+                // Allow default navigation for external links like /farmerprofile
+            }
         });
     });
 }
@@ -1180,6 +1187,335 @@ function trackDelivery(deliveryId) {
     // TODO: Implement delivery tracking modal/page
 }
 
+// ==================== PROFILE MANAGEMENT ====================
+
+/**
+ * Load profile data from server and populate form
+ */
+function loadProfileData() {
+    const form = document.getElementById('profileForm');
+    if (!form) return;
+
+    // Call JSON endpoint so DB values persist across sessions
+    fetch(`${window.APP_ROOT}/farmerprofile?ajax=1`, {
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Failed to fetch profile');
+        return r.json();
+    })
+    .then(res => {
+        if (res.success && res.profile) {
+            const profile = res.profile;
+            
+            // Populate form fields
+            document.getElementById('profilePhone').value = profile.phone || '';
+            document.getElementById('profileDistrict').value = profile.district || '';
+            document.getElementById('profileCrops').value = profile.crops_selling || '';
+            document.getElementById('profileAddress').value = profile.full_address || '';
+            
+            // Update profile photo
+            if (profile.profile_photo) {
+                const photoUrl = `${window.APP_ROOT}/assets/images/farmer-profiles/${profile.profile_photo}`;
+                document.getElementById('profilePhotoDisplay').src = photoUrl;
+            }
+            
+            // Update statistics
+            updateProfileStatistics();
+        }
+    })
+    .catch(err => {
+        console.log('Profile data loading info:', err.message);
+    });
+}
+
+/**
+ * Save profile data via AJAX
+ */
+function saveProfileData() {
+    const form = document.getElementById('profileForm');
+    if (!form) return;
+
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+    });
+
+    // Validate form
+    const formData = new FormData(form);
+    const data = {
+        phone: formData.get('phone') || '',
+        district: formData.get('district') || '',
+        crops_selling: formData.get('crops_selling') || '',
+        full_address: formData.get('full_address') || ''
+    };
+
+    // Show loading state
+    const saveBtn = document.querySelector('.btn-save-profile');
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    fetch(`${window.APP_ROOT}/farmerprofile/saveProfile`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        credentials: 'include',
+        body: new URLSearchParams(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+
+        if (res.success) {
+            showNotification(res.message || 'Profile updated successfully', 'success');
+            loadProfileData();
+        } else {
+            // Display validation errors
+            if (res.errors && typeof res.errors === 'object') {
+                Object.keys(res.errors).forEach(field => {
+                    const errorEl = document.getElementById(`error-${field}`);
+                    if (errorEl) {
+                        errorEl.textContent = res.errors[field];
+                        errorEl.classList.add('show');
+                    }
+                });
+                showNotification('Please fix the errors below', 'error');
+            } else {
+                showNotification(res.error || 'Failed to update profile', 'error');
+            }
+        }
+    })
+    .catch(err => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        showNotification('Error saving profile', 'error');
+        console.error('Profile save error:', err);
+    });
+}
+
+/**
+ * Reset form to original values
+ */
+function resetProfileForm() {
+    loadProfileData();
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+    });
+    showNotification('Form reset to original values', 'info');
+}
+
+/**
+ * Handle profile photo upload
+ */
+function initializeProfilePhotoUpload() {
+    const photoInput = document.getElementById('profilePhotoInput');
+    if (!photoInput) return;
+
+    photoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('Please select a valid image file (JPG, PNG, or WebP)', 'error');
+            photoInput.value = '';
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('Image size must be less than 5MB', 'error');
+            photoInput.value = '';
+            return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const previewContainer = document.getElementById('photoPreviewContainer');
+            const preview = document.getElementById('photoPreview');
+            
+            preview.src = event.target.result;
+            previewContainer.style.display = 'block';
+            
+            // Auto-upload after preview
+            uploadProfilePhoto(file);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Upload profile photo to server
+ */
+function uploadProfilePhoto(file) {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    fetch(`${window.APP_ROOT}/farmerprofile/uploadPhoto`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        
+        if (res.success) {
+            // Update main photo display
+            document.getElementById('profilePhotoDisplay').src = res.photoUrl;
+            
+            // Hide preview after successful upload
+            setTimeout(() => {
+                previewContainer.style.display = 'none';
+                document.getElementById('profilePhotoInput').value = '';
+            }, 1500);
+            
+            showNotification('Profile photo updated successfully', 'success');
+        } else {
+            showNotification(res.error || 'Failed to upload photo', 'error');
+            previewContainer.style.display = 'none';
+            document.getElementById('profilePhotoInput').value = '';
+        }
+    })
+    .catch(err => {
+        showNotification('Error uploading photo', 'error');
+        console.error('Photo upload error:', err);
+        document.getElementById('photoPreviewContainer').style.display = 'none';
+        document.getElementById('profilePhotoInput').value = '';
+    });
+}
+
+/**
+ * Open change password modal
+ */
+/**
+ * Change password modal helpers (use global openModal/closeModal)
+ */
+function openChangePasswordModal() {
+    openModal('changePasswordModal');
+    // Reset form
+    const form = document.getElementById('changePasswordForm');
+    if (form) {
+        form.reset();
+        // Clear errors
+        form.querySelectorAll('.error-message').forEach(el => {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+    }
+}
+
+function closeChangePasswordModal() {
+    closeModal('changePasswordModal');
+}
+
+/**
+ * Handle password change form submission
+ */
+function initializePasswordChangeForm() {
+    const form = document.getElementById('changePasswordForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        document.querySelectorAll('#changePasswordModal .error-message').forEach(el => {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Changing...';
+
+        const formData = new URLSearchParams({
+            currentPassword,
+            newPassword,
+            confirmPassword
+        });
+
+        fetch(`${window.APP_ROOT}/farmerprofile/changePassword`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            credentials: 'include',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+
+            if (res.success) {
+                showNotification('Password changed successfully', 'success');
+                closeChangePasswordModal();
+                form.reset();
+            } else {
+                // Display validation errors
+                if (res.errors && typeof res.errors === 'object') {
+                    Object.keys(res.errors).forEach(field => {
+                        const errorEl = document.getElementById(`error-${field}`);
+                        if (errorEl) {
+                            errorEl.textContent = res.errors[field];
+                            errorEl.classList.add('show');
+                        }
+                    });
+                } else {
+                    showNotification(res.error || 'Failed to change password', 'error');
+                }
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            showNotification('Error changing password', 'error');
+            console.error('Password change error:', err);
+        });
+    });
+}
+
+/**
+ * Update profile statistics
+ */
+function updateProfileStatistics() {
+    // These will be populated with real data from database
+    // For now, they get dummy data from loadDummyDashboardData
+    
+    // Get statistics from already loaded dashboard data
+    const totalProducts = document.getElementById('totalProducts')?.textContent || '0';
+    
+    document.getElementById('statTotalProducts').textContent = totalProducts;
+    document.getElementById('statTotalOrders').textContent = '0'; // TODO: Get from database
+    document.getElementById('statTotalEarnings').textContent = 'Rs. 0'; // TODO: Get from database
+}
+
+/**
+ * Initialize profile functionality on page load
+ */
+function initializeProfileFunctionality() {
+    initializeProfilePhotoUpload();
+    initializePasswordChangeForm();
+    loadProfileData();
+}
+
+// Run profile initialization when page loads
+document.addEventListener('DOMContentLoaded', initializeProfileFunctionality);
+
 // Export functions
 window.showSection = showSection;
 window.editProduct = editProduct;
@@ -1194,3 +1530,10 @@ window.updateProfile = updateProfile;
 window.uploadPhoto = uploadPhoto;
 window.viewDeliveryDetails = viewDeliveryDetails;
 window.trackDelivery = trackDelivery;
+
+// Profile functions
+window.saveProfileData = saveProfileData;
+window.resetProfileForm = resetProfileForm;
+window.openChangePasswordModal = openChangePasswordModal;
+window.closeChangePasswordModal = closeChangePasswordModal;
+window.loadProfileData = loadProfileData;
