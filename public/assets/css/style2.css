@@ -1132,11 +1132,14 @@ table td {
 /* Modern Profile Header */
 .profile-header-modern {
   background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
-  border-radius: 20px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  margin-bottom: 30px;
+  max-width: 1100px;
+  margin: 0 auto 40px auto;
   color: #fff;
+  text-align: center;
+  padding: 40px 20px;
 }
 
 .profile-banner {
@@ -1165,73 +1168,90 @@ table td {
 
 .profile-photo-section {
   flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
 }
 
-.profile-photo-wrapper-modern {
-  width: 160px;
-  height: 160px;
+.profile-photo-container {
+  width: 190px;
+  height: 190px;
   border-radius: 50%;
   overflow: hidden;
-  border: 6px solid var(--white);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: 5px solid white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   position: relative;
-  background: var(--white);
-}
-
-.profile-photo-wrapper-modern img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.photo-status-badge {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 22px;
-  height: 22px;
-  background: var(--white);
-  border-radius: 50%;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.photo-status-badge svg {
-  color: #4CAF50;
+.profile-photo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.3s ease;
 }
 
-.photo-edit-btn {
+.profile-photo-container:hover img {
+  filter: brightness(0.7);
+}
+
+.photo-actions-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.profile-photo-container:hover .photo-actions-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.photo-action-btn {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
-  border: 3px solid var(--white);
   border-radius: 50%;
+  background: white;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.photo-edit-btn:hover {
-  transform: translate(-50%, -50%) scale(1.08);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+.photo-action-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
-.photo-edit-btn svg {
-  color: var(--white);
+.photo-action-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #43A047;
+}
+
+.photo-action-btn:last-child svg {
+  color: #EF5350;
 }
 
 .profile-header-info {
   flex: 1;
   padding-bottom: 8px;
+  text-align: left;
 }
 
 .profile-name {
@@ -1242,12 +1262,25 @@ table td {
   letter-spacing: -0.5px;
 }
 
+#profileDisplayName {
+  font-size: 28px;
+  color: white;
+  margin: 0 0 5px 0;
+  font-weight: 600;
+}
+
+#profileDisplayEmail {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-size: 14px;
+}
+
 .profile-role {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 0.95rem;
-  color: #2E7D32;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   padding: 6px 14px;
   background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
@@ -1316,6 +1349,68 @@ table td {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+}
+
+#photoOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+#photoOverlay > div {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+#photoOverlay button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+#photoOverlay button:first-child {
+  background: #4CAF50;
+  color: white;
+}
+
+#photoOverlay button:first-child:hover {
+  background: #45a049;
+  transform: scale(1.1);
+}
+
+#photoOverlay button:last-child {
+  background: #f44336;
+  color: white;
+}
+
+#photoOverlay button:last-child:hover {
+  background: #da190b;
+  transform: scale(1.1);
+}
+
+#photoOverlay svg {
+  width: 18px;
+  height: 18px;
 }
 
 .photo-upload-overlay {
@@ -1506,12 +1601,18 @@ table td {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 30px;
   overflow: hidden;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 32px;
+  box-sizing: border-box;
 }
 
 .form-section-header {
   background: linear-gradient(135deg, #F1F8F4 0%, #E8F5E9 100%);
   padding: 25px 40px;
   border-bottom: 2px solid #E8F5E9;
+  margin: 0 -32px;
 }
 
 .form-section-header h2 {
@@ -1611,8 +1712,6 @@ textarea.form-input-modern {
   display: flex;
   gap: 15px;
   padding: 25px 40px;
-  background: #FAFAFA;
-  border-top: 2px solid #F5F5F5;
 }
 
 .btn-save-profile {
@@ -1749,6 +1848,8 @@ textarea.form-input-modern {
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  max-width: 1100px;
+  margin: 0 auto 30px auto;
 }
 
 .stats-header {

@@ -876,33 +876,6 @@ function renderComplaintsList(items){
     }).join('');
 }
 
-// Load Profile Data
-function loadProfileData() {
-    const profilePhotoEl = document.getElementById('profilePhoto');
-    const profileNameEl = document.getElementById('profileName');
-    const profileEmailEl = document.getElementById('profileEmail');
-    const profilePhoneEl = document.getElementById('profilePhone');
-    const profileLocationEl = document.getElementById('profileLocation');
-    const profileCropsEl = document.getElementById('profileCrops');
-    const profileAddressEl = document.getElementById('profileAddress');
-    
-    // Use avatar placeholder service instead of missing image
-    if (profilePhotoEl) {
-        profilePhotoEl.src = 'https://ui-avatars.com/api/?name=Farmer&background=4CAF50&color=fff&size=150';
-        profilePhotoEl.alt = 'Farmer Profile';
-    }
-
-    // Set name/email from logged-in user when available
-    const uname = (window.USER_NAME || '').trim();
-    const uemail = (window.USER_EMAIL || '').trim();
-    if (profileNameEl) profileNameEl.value = uname || profileNameEl.value || 'Ranjith Fernando';
-    if (profileEmailEl) profileEmailEl.value = uemail || profileEmailEl.value || 'ranjith@farm.lk';
-    if (profilePhoneEl) profilePhoneEl.value = '+94 77 234 5678';
-    if (profileLocationEl) profileLocationEl.value = 'Matale, Central Province';
-    if (profileCropsEl) profileCropsEl.value = 'Tomatoes, Rice, Mangoes, Carrots, Potatoes';
-    if (profileAddressEl) profileAddressEl.value = '456 Farm Road, Matale, Central Province, Sri Lanka';
-}
-
 // Populate table with EXACT database columns
 function populateProductsTable(products) {
     const tbody = document.getElementById('productsTableBody');
@@ -1107,44 +1080,129 @@ function trackDelivery(deliveryId) {
 
 // ==================== PROFILE MANAGEMENT ====================
 
+// Store original profile data for reset functionality
+let originalProfileData = null;
+
 /**
  * Load profile data from server and populate form
  */
 function loadProfileData() {
+    console.log('=== loadProfileData() called ===');
     const form = document.getElementById('profileForm');
-    if (!form) return;
+    if (!form) {
+        console.error('Profile form not found!');
+        return;
+    }
+    console.log('Profile form found, fetching data...');
 
     // Call JSON endpoint so DB values persist across sessions
-    fetch(`${window.APP_ROOT}/farmerprofile?ajax=1`, {
+    const url = `${window.APP_ROOT}/farmerprofile?ajax=1&t=${Date.now()}`;
+    console.log('Fetching from URL:', url);
+    fetch(url, {
         credentials: 'include',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        cache: 'no-cache'
     })
     .then(r => {
+        console.log('Fetch response status:', r.status, r.statusText);
         if (!r.ok) throw new Error('Failed to fetch profile');
         return r.json();
     })
     .then(res => {
+        console.log('Profile data loaded:', res);
+        console.log('Profile object:', res.profile);
         if (res.success && res.profile) {
             const profile = res.profile;
+            console.log('Populating form with profile data...');
             
-            // Populate form fields
-            document.getElementById('profilePhone').value = profile.phone || '';
-            document.getElementById('profileDistrict').value = profile.district || '';
-            document.getElementById('profileCrops').value = profile.crops_selling || '';
-            document.getElementById('profileAddress').value = profile.full_address || '';
+            // Populate form fields with latest database values
+            const nameField = document.getElementById('profileName');
+            const emailField = document.getElementById('profileEmail');
+            const phoneField = document.getElementById('profilePhone');
+            const districtField = document.getElementById('profileDistrict');
+            const cropsField = document.getElementById('profileCrops');
+            const addressField = document.getElementById('profileAddress');
+            
+            console.log('Field elements found:', {
+                name: !!nameField,
+                email: !!emailField,
+                phone: !!phoneField,
+                district: !!districtField,
+                crops: !!cropsField,
+                address: !!addressField
+            });
+            
+            if (nameField) {
+                nameField.value = profile.name || '';
+                console.log('Set name field:', nameField.value);
+            }
+            if (emailField) {
+                emailField.value = profile.email || '';
+                console.log('Set email field:', emailField.value);
+            }
+            if (phoneField) {
+                phoneField.value = profile.phone || '';
+                console.log('Set phone field:', phoneField.value);
+            }
+            if (districtField) {
+                districtField.value = profile.district || '';
+                console.log('Set district field:', districtField.value);
+            }
+            if (cropsField) {
+                cropsField.value = profile.crops_selling || '';
+                console.log('Set crops field:', cropsField.value);
+            }
+            if (addressField) {
+                addressField.value = profile.full_address || '';
+                console.log('Set address field:', addressField.value);
+            }
+            
+            // Store original data on first load for reset functionality
+            if (!originalProfileData) {
+                originalProfileData = {
+                    name: profile.name || '',
+                    email: profile.email || '',
+                    phone: profile.phone || '',
+                    district: profile.district || '',
+                    crops_selling: profile.crops_selling || '',
+                    full_address: profile.full_address || ''
+                };
+                console.log('Original profile data stored for reset:', originalProfileData);
+            }
+            
+            // Update display header with name and email
+            const displayName = document.getElementById('profileDisplayName');
+            const displayEmail = document.getElementById('profileDisplayEmail');
+            
+            if (displayName) {
+                displayName.textContent = profile.name || '';
+                console.log('Set display name:', displayName.textContent);
+            }
+            if (displayEmail) {
+                displayEmail.textContent = profile.email || '';
+                console.log('Set display email:', displayEmail.textContent);
+            }
             
             // Update profile photo
             if (profile.profile_photo) {
                 const photoUrl = `${window.APP_ROOT}/assets/images/farmer-profiles/${profile.profile_photo}`;
-                document.getElementById('profilePhotoDisplay').src = photoUrl;
+                const photoDisplay = document.getElementById('profilePhotoDisplay');
+                if (photoDisplay) {
+                    photoDisplay.src = photoUrl;
+                    console.log('Updated profile photo:', photoUrl);
+                }
             }
             
             // Update statistics
             updateProfileStatistics();
+            console.log('=== Profile data loaded successfully ===');
+        } else {
+            console.error('Profile load failed:', res.error || 'Unknown error');
         }
     })
     .catch(err => {
-        console.log('Profile data loading info:', err.message);
+        console.error('Profile data loading error:', err);
+        console.error('Error stack:', err.stack);
     });
 }
 
@@ -1152,8 +1210,12 @@ function loadProfileData() {
  * Save profile data via AJAX
  */
 function saveProfileData() {
+    console.log('=== saveProfileData() called ===');
     const form = document.getElementById('profileForm');
-    if (!form) return;
+    if (!form) {
+        console.error('Profile form not found!');
+        return;
+    }
 
     // Clear previous errors
     document.querySelectorAll('.error-message').forEach(el => {
@@ -1164,11 +1226,14 @@ function saveProfileData() {
     // Validate form
     const formData = new FormData(form);
     const data = {
+        name: formData.get('name') || '',
+        email: formData.get('email') || '',
         phone: formData.get('phone') || '',
         district: formData.get('district') || '',
         crops_selling: formData.get('crops_selling') || '',
         full_address: formData.get('full_address') || ''
     };
+    console.log('Form data to save:', data);
 
     // Show loading state
     const saveBtn = document.querySelector('.btn-save-profile');
@@ -1176,7 +1241,11 @@ function saveProfileData() {
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
-    fetch(`${window.APP_ROOT}/farmerprofile/saveProfile`, {
+    const saveUrl = `${window.APP_ROOT}/farmerprofile/saveProfile`;
+    console.log('Saving to URL:', saveUrl);
+    console.log('Request body:', new URLSearchParams(data).toString());
+
+    fetch(saveUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -1184,15 +1253,23 @@ function saveProfileData() {
         credentials: 'include',
         body: new URLSearchParams(data)
     })
-    .then(r => r.json())
+    .then(r => {
+        console.log('Save response status:', r.status, r.statusText);
+        return r.json();
+    })
     .then(res => {
+        console.log('Save profile response:', res);
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
 
         if (res.success) {
+            console.log('Profile saved successfully, reloading data...');
             showNotification(res.message || 'Profile updated successfully', 'success');
+            // Reload profile data immediately to show updated values from database
             loadProfileData();
         } else {
+            console.error('Profile save failed:', res.error);
+            console.error('Validation errors:', res.errors);
             // Display validation errors
             if (res.errors && typeof res.errors === 'object') {
                 Object.keys(res.errors).forEach(field => {
@@ -1213,19 +1290,65 @@ function saveProfileData() {
         saveBtn.textContent = originalText;
         showNotification('Error saving profile', 'error');
         console.error('Profile save error:', err);
+        console.error('Error stack:', err.stack);
     });
 }
 
 /**
- * Reset form to original values
+ * Reset form to original values (before any edits)
  */
 function resetProfileForm() {
-    loadProfileData();
+    console.log('=== resetProfileForm() called ===');
+    
+    if (!originalProfileData) {
+        console.warn('No original profile data stored, loading from server...');
+        loadProfileData();
+        return;
+    }
+    
+    console.log('Restoring to original profile data:', originalProfileData);
+    
+    // Restore form fields to original values
+    const nameField = document.getElementById('profileName');
+    const emailField = document.getElementById('profileEmail');
+    const phoneField = document.getElementById('profilePhone');
+    const districtField = document.getElementById('profileDistrict');
+    const cropsField = document.getElementById('profileCrops');
+    const addressField = document.getElementById('profileAddress');
+    
+    if (nameField) {
+        nameField.value = originalProfileData.name;
+        console.log('Restored name field:', nameField.value);
+    }
+    if (emailField) {
+        emailField.value = originalProfileData.email;
+        console.log('Restored email field:', emailField.value);
+    }
+    if (phoneField) {
+        phoneField.value = originalProfileData.phone;
+        console.log('Restored phone field:', phoneField.value);
+    }
+    if (districtField) {
+        districtField.value = originalProfileData.district;
+        console.log('Restored district field:', districtField.value);
+    }
+    if (cropsField) {
+        cropsField.value = originalProfileData.crops_selling;
+        console.log('Restored crops field:', cropsField.value);
+    }
+    if (addressField) {
+        addressField.value = originalProfileData.full_address;
+        console.log('Restored address field:', addressField.value);
+    }
+    
+    // Clear error messages
     document.querySelectorAll('.error-message').forEach(el => {
         el.classList.remove('show');
         el.textContent = '';
     });
+    
     showNotification('Form reset to original values', 'info');
+    console.log('=== Form reset complete ===');
 }
 
 /**
@@ -1233,6 +1356,7 @@ function resetProfileForm() {
  */
 function initializeProfilePhotoUpload() {
     const photoInput = document.getElementById('profilePhotoInput');
+    
     if (!photoInput) return;
 
     photoInput.addEventListener('change', function(e) {
@@ -1260,8 +1384,12 @@ function initializeProfilePhotoUpload() {
             const previewContainer = document.getElementById('photoPreviewContainer');
             const preview = document.getElementById('photoPreview');
             
-            preview.src = event.target.result;
-            previewContainer.style.display = 'block';
+            if (preview) {
+                preview.src = event.target.result;
+            }
+            if (previewContainer) {
+                previewContainer.style.display = 'block';
+            }
             
             // Auto-upload after preview
             uploadProfilePhoto(file);
@@ -1285,21 +1413,26 @@ function uploadProfilePhoto(file) {
     .then(r => r.json())
     .then(res => {
         const previewContainer = document.getElementById('photoPreviewContainer');
+        const photoDisplay = document.getElementById('profilePhotoDisplay');
         
-        if (res.success) {
-            // Update main photo display
-            document.getElementById('profilePhotoDisplay').src = res.photoUrl;
+        if (res.success && res.photoUrl) {
+            console.log('Photo uploaded successfully, URL:', res.photoUrl);
+            // Update main photo display with fresh URL (add timestamp to bypass cache)
+            if (photoDisplay) {
+                photoDisplay.src = res.photoUrl + '?t=' + Date.now();
+                console.log('Updated profile photo:', photoDisplay.src);
+            }
             
             // Hide preview after successful upload
             setTimeout(() => {
-                previewContainer.style.display = 'none';
+                if (previewContainer) previewContainer.style.display = 'none';
                 document.getElementById('profilePhotoInput').value = '';
             }, 1500);
             
             showNotification('Profile photo updated successfully', 'success');
         } else {
             showNotification(res.error || 'Failed to upload photo', 'error');
-            previewContainer.style.display = 'none';
+            if (previewContainer) previewContainer.style.display = 'none';
             document.getElementById('profilePhotoInput').value = '';
         }
     })
@@ -1446,9 +1579,193 @@ window.uploadPhoto = uploadPhoto;
 window.viewDeliveryDetails = viewDeliveryDetails;
 window.trackDelivery = trackDelivery;
 
+/**
+ * Remove profile photo
+ */
+function removeProfilePhoto() {
+    if (!confirm('Are you sure you want to remove your profile photo?')) {
+        return;
+    }
+
+    fetch(`${window.APP_ROOT}/farmerprofile/removePhoto`, {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            const photoDisplay = document.getElementById('profilePhotoDisplay');
+            if (photoDisplay) {
+                photoDisplay.src = `${window.APP_ROOT}/assets/images/farmer-profiles/default-profile.png?t=${Date.now()}`;
+            }
+            showNotification('Profile photo removed successfully', 'success');
+        } else {
+            showNotification(res.error || 'Failed to remove photo', 'error');
+        }
+    })
+    .catch(err => {
+        showNotification('Error removing photo', 'error');
+        console.error('Photo removal error:', err);
+    });
+}
+
 // Profile functions
 window.saveProfileData = saveProfileData;
 window.resetProfileForm = resetProfileForm;
 window.openChangePasswordModal = openChangePasswordModal;
 window.closeChangePasswordModal = closeChangePasswordModal;
 window.loadProfileData = loadProfileData;
+window.removeProfilePhoto = removeProfilePhoto;
+
+// Profile Photo Upload Functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Only initialize photo upload if we're on the profile page
+    if (document.getElementById('profilePhotoWrapper')) {
+        console.log('=== Profile Photo System Initializing ===');
+        const photoDisplay = document.getElementById('profilePhotoDisplay');
+        const photoOverlay = document.getElementById('photoOverlay');
+        const photoWrapper = document.getElementById('profilePhotoWrapper');
+        let lastPreviewUrl = '';
+
+        console.log('Current photo src on load:', photoDisplay ? photoDisplay.src : 'Photo element not found');
+        console.log('APP_ROOT:', window.APP_ROOT);
+
+        if (photoDisplay && photoOverlay && photoWrapper) {
+            const showOverlay = () => {
+                photoOverlay.style.opacity = '1';
+            };
+            const hideOverlay = () => {
+                photoOverlay.style.opacity = '0';
+            };
+
+            photoWrapper.addEventListener('mouseenter', showOverlay);
+            photoWrapper.addEventListener('mouseleave', hideOverlay);
+            photoOverlay.addEventListener('mouseenter', showOverlay);
+            photoOverlay.addEventListener('mouseleave', hideOverlay);
+        }
+
+        // Create hidden file input for photo selection
+        const profilePhotoInput = document.createElement('input');
+        profilePhotoInput.type = 'file';
+        profilePhotoInput.accept = 'image/*';
+        profilePhotoInput.style.display = 'none';
+        document.body.appendChild(profilePhotoInput);
+
+        // Handle profile photo file input change
+        profilePhotoInput.addEventListener('change', function(e) {
+            console.log('=== File input changed ===');
+            const file = e.target.files[0];
+            console.log('Selected file:', file ? file.name : 'No file');
+            console.log('File type:', file ? file.type : 'N/A');
+            console.log('File size:', file ? file.size + ' bytes' : 'N/A');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    console.log('FileReader loaded, preview URL length:', event.target.result.length);
+                    lastPreviewUrl = event.target.result;
+                    photoDisplay.src = lastPreviewUrl;
+                    console.log('Preview set, now uploading...');
+                    uploadProfilePhoto(file);
+                };
+                reader.onerror = function(error) {
+                    console.error('FileReader error:', error);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Make the edit button trigger file selection
+        const editButton = photoOverlay.querySelector('button:first-child');
+        if (editButton) {
+            editButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                profilePhotoInput.click();
+            });
+        }
+    }
+});
+
+// Upload profile photo
+function uploadProfilePhoto(file) {
+    console.log('=== Starting upload to server ===');
+    const formData = new FormData();
+    formData.append('photo', file);
+    console.log('FormData created, uploading to:', window.APP_ROOT + '/farmerprofile/uploadPhoto');
+
+    fetch(window.APP_ROOT + '/farmerprofile/uploadPhoto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('=== Server Response Received ===');
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            console.log('Response headers:', response.headers);
+            return response.text().then(text => {
+                console.log('Raw response text:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                    throw new Error('Invalid JSON response: ' + text);
+                }
+            });
+        })
+        .then(data => {
+            console.log('=== Parsed Response Data ===');
+            console.log('Full data object:', data);
+            console.log('data.success:', data.success);
+            console.log('data.photoUrl:', data.photoUrl);
+            console.log('data.filename:', data.filename);
+            console.log('data.error:', data.error);
+            console.log('data.message:', data.message);
+
+            if (data.success) {
+                const serverUrl = data.photoUrl || data.url || data.path || data.imagePath || data.filePath;
+                console.log('Extracted server photo URL:', serverUrl);
+
+                if (serverUrl) {
+                    // URL from server already includes full path, just add cache buster
+                    const fullUrl = serverUrl + '?v=' + Date.now();
+                    console.log('=== Setting Photo Display ===');
+                    console.log('Full URL to display:', fullUrl);
+
+                    const imgElement = document.getElementById('profilePhotoDisplay');
+                    console.log('Image element exists:', !!imgElement);
+
+                    if (imgElement) {
+                        imgElement.src = fullUrl;
+                        console.log('Photo src updated to:', imgElement.src);
+
+                        // Verify image loads
+                        imgElement.onload = function() {
+                            console.log('✓ Image loaded successfully!');
+                        };
+                        imgElement.onerror = function() {
+                            console.error('✗ Image failed to load! Check if file exists at:', fullUrl);
+                        };
+                    }
+
+                    alert('Profile photo uploaded successfully!');
+                } else {
+                    console.warn('⚠ No photoUrl in response, using preview');
+                    console.log('Available keys in response:', Object.keys(data));
+                    if (lastPreviewUrl) {
+                        document.getElementById('profilePhotoDisplay').src = lastPreviewUrl;
+                    }
+                }
+            } else {
+                console.error('=== Upload Failed ===');
+                console.error('Error details:', data);
+                alert('Error: ' + (data.error || data.message || 'Failed to upload photo'));
+            }
+        })
+        .catch(error => {
+            console.error('=== Upload Exception ===');
+            console.error('Error object:', error);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            alert('Error uploading photo: ' + error.message);
+        });
+}

@@ -76,6 +76,15 @@ class FarmerModel
     }
 
     /**
+     * Remove profile photo (set to NULL)
+     */
+    public function removeProfilePhoto($userId)
+    {
+        $sql = "UPDATE {$this->table} SET profile_photo = NULL, updated_at = NOW() WHERE user_id = :user_id";
+        return $this->write($sql, ['user_id' => $userId]);
+    }
+
+    /**
      * Get old profile photo filename for deletion
      */
     public function getOldPhotoFilename($userId)
@@ -91,6 +100,26 @@ class FarmerModel
     public function validateProfile($data)
     {
         $errors = [];
+
+        // Validate name (if provided)
+        if (!empty($data['name'])) {
+            if (strlen($data['name']) < 2) {
+                $errors['name'] = 'Full name must be at least 2 characters';
+            } elseif (strlen($data['name']) > 100) {
+                $errors['name'] = 'Full name is too long (max 100 characters)';
+            } elseif (!preg_match('/^[a-zA-Z\s\-\.]+$/', $data['name'])) {
+                $errors['name'] = 'Full name can only contain letters, spaces, hyphens, and dots';
+            }
+        }
+
+        // Validate email (if provided)
+        if (!empty($data['email'])) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors['email'] = 'Please enter a valid email address';
+            } elseif (strlen($data['email']) > 100) {
+                $errors['email'] = 'Email is too long (max 100 characters)';
+            }
+        }
 
         // Validate phone (optional but if provided, must be valid)
         if (!empty($data['phone'])) {

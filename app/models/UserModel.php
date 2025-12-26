@@ -56,10 +56,18 @@ class UserModel
         }
 
         $keys = array_keys($data);
-        $query = "insert into $this->table (".implode(",", $keys).") values (:".implode(",:", $keys).")";
+        $query = "insert into $this->table (" . implode(",", $keys) . ") values (:" . implode(",:", $keys) . ")";
 
         $this->query($query, $data);
         return 1;
+    }
+
+    /**
+     * Find user by email
+     */
+    public function findByEmail($email)
+    {
+        return $this->first(['email' => $email]);
     }
 
     public function update($id, $data, $id_column = 'id')
@@ -82,10 +90,10 @@ class UserModel
         $query = "update $this->table set ";
 
         foreach ($keys as $key) {
-            $query .= $key . " = :". $key . ", ";
+            $query .= $key . " = :" . $key . ", ";
         }
 
-        $query = trim($query,", ");
+        $query = trim($query, ", ");
         $query .= " where $id_column = :$id_column ";
 
         $data[$id_column] = $id;
