@@ -18,7 +18,7 @@
                     <?='Hi, '.$username?>
                     <!-- Logout Form -->
                     <form method="POST" action="<?=ROOT?>/logout" style="display: inline;">
-                        <button type="submit" class="btn btn-secondary login-link">Logout</button>
+                        <button type="submit" class="btn btn-secondary logout-link">Logout</button>
                     </form>
                 </div>
             <?php } ?>

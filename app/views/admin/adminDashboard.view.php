@@ -15,7 +15,6 @@
     include '../app/views/components/dashboardNavBar.view.php';
     ?>
 
-
     <!-- Dashboard Layout -->
     <div class="dashboard">
         <!-- Sidebar -->
