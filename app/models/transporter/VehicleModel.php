@@ -17,8 +17,8 @@ class VehicleModel
 
     public function getByUserId($user_id)
     {
-        $query = "SELECT * FROM $this->table WHERE transporter_id = :transporter_id ORDER BY created_at DESC";
-        $result = $this->query($query, ['transporter_id' => $user_id]);
+        $query = "SELECT * FROM $this->table WHERE user_id = :user_id ORDER BY created_at DESC";
+        $result = $this->query($query, ['user_id' => $user_id]);
         return is_array($result) ? $result : [];
     }
 
