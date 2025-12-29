@@ -39,16 +39,16 @@ class FarmerProfileController
             $profile = $this->farmerModel->getProfileByUserId($userId);
         }
 
-        // Load and display the profile view through farmerLayout
+        // Load and display the profile view through farmerDashboard layout
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
-            'contentView' => '../app/views/farmer/farmerProfile.view.php'
+            'contentView' => '../app/views/farmer/farmerProfileContent.view.php'
         ];
 
-        $this->view('components/farmerLayout', $data);
+        $this->view('farmer/farmerMain', $data);
     }
 
     /**
