@@ -132,22 +132,47 @@ function addToCart(productId) {
 }
 
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('agrolink_cart', JSON.stringify(cart));
-    updateCartUI();
-    showNotification('Product removed from cart', 'success');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    fetch(`${window.APP_ROOT}/cart/remove/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the page to update cart
+            window.location.reload();
+        } else {
+            showNotification(data.message || 'Failed to remove item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to remove item', 'error');
+    })
+    .finally(() => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    });
 }
 
 function updateCartQuantity(productId, change) {
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
+    const quantityElement = document.querySelector(`[data-product-id="${productId}"] .quantity-display`);
+    const newQuantity = Math.max(1, parseInt(quantityElement.textContent) + change);
+
     fetch(`${window.APP_ROOT}/cart/update/${productId}`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: `quantity=${Math.max(1, parseInt(document.querySelector(`[data-product-id="${productId}"] .quantity-display`).textContent) + change)}`
+        body: JSON.stringify({ product_id: productId, quantity: newQuantity })
     })
     .then(response => response.json())
     .then(data => {

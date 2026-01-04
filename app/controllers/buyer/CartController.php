@@ -32,10 +32,13 @@ class CartController
         $data = [
             'cartItems' => $cartItems ?: [],
             'cartItemCount' => $cartItemCount,
-            'cartTotal' => $cartTotal
+            'cartTotal' => $cartTotal,
+            'pageTitle' => 'Shopping Cart',
+            'activePage' => 'cart',
+            'contentView' => '../app/views/buyer/cart.view.php'
         ];
 
-        $this->view('cart', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**
@@ -126,10 +129,20 @@ class CartController
         }
 
         $user_id = $_SESSION['USER']->id;
-        $product_id = $id ?? ($_POST['product_id'] ?? null);
-        $quantity = (int)($_POST['quantity'] ?? 0);
+        
+        // Handle both JSON and form-encoded data
+        $data = [];
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (strpos($contentType, 'application/json') !== false) {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        } else {
+            $data = $_POST;
+        }
+        
+        $product_id = $id ?? ($data['product_id'] ?? null);
+        $quantity = (int)($data['quantity'] ?? 0);
 
-        if (!$product_id || $quantity < 0) {
+        if (!$product_id || $quantity < 1) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Invalid data']);
             exit;
@@ -165,7 +178,17 @@ class CartController
         if (!$this->requireBuyer()) exit;
 
         $user_id = $_SESSION['USER']->id;
-        $product_id = $id ?? ($_POST['product_id'] ?? null);
+        
+        // Handle both JSON and form-encoded data
+        $data = [];
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (strpos($contentType, 'application/json') !== false) {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        } else {
+            $data = $_POST;
+        }
+        
+        $product_id = $id ?? ($data['product_id'] ?? null);
 
         if (!$product_id) {
             http_response_code(400);

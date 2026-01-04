@@ -1,154 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buyer Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-
-<body>
-    <!-- Top Navigation -->
-    <?php
-    $username = $_SESSION['USER']->name ?? 'Buyer';
-    $role = $_SESSION['USER']->role ?? 'buyer';
-    include '../app/views/components/dashboardNavBar.view.php';
-    ?>
-
-    <!-- Dashboard Layout -->
-    <div class="dashboard">
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li>
-                    <a href="#" class="menu-link active" data-section="dashboard">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                        </div>
-                        Dashboard
-                    </a>
-                </li>
-                <li>                 
-                    <a href="#" class="menu-link" data-section="products">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                        </div>
-                        Products
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="menu-link" data-section="orders">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                            </svg>
-                        </div>
-                        Orders
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="menu-link" data-section="tracking">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </div>
-                        Tracking
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="menu-link" data-section="wishlist">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                        </div>
-                        Wishlist
-                    </a>
-                </li>
-                <li>
-                    <a href="<?= ROOT ?>/cart" class="menu-link">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="9" cy="21" r="1"></circle>
-                                <circle cx="20" cy="21" r="1"></circle>
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                        </div>
-                        Cart
-                        <span class="cart-badge">0</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="menu-link" data-section="reviews">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </div>
-                        Reviews
-                    </a>
-                </li>
-                <li>
-                <a href="#" class="menu-link" data-section="requests">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                        </div>
-                        Requests
-                    </a>
-                </li>
-                <li>    
-                    <a href="#" class="menu-link" data-section="notifications">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                            </svg>
-                        </div>
-                        Notifications
-                        <span class="badge">5</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="menu-link" data-section="profile">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </div>
-                        Profile
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Dashboard Section -->
-            <div id="dashboard-section" class="content-section">
-                <div class="content-header">
-                    <h1 class="content-title">Dashboard Overview</h1>
-                    <p class="content-subtitle">Welcome back, <?= htmlspecialchars($username) ?>! Here's what's happening with your orders.</p>
-                </div>
+<!-- Dashboard Section -->
+<div id="dashboard-section" class="content-section">
+    <div class="content-header">
+        <h1 class="content-title">Dashboard Overview</h1>
+        <p class="content-subtitle">Welcome back, <?= htmlspecialchars($username) ?>! Here's what's happening with your orders.</p>
+    </div>
 
                 <!-- Stats Grid -->
                 <div class="dashboard-stats">
@@ -543,14 +398,21 @@
                             <div class="product-stock">
                                 <?= htmlspecialchars($product->quantity) ?>kg available
                             </div>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn btn-primary btn-add-cart"
-                                    onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
-                                    🛒 Add to Cart
+                            <div style="width:100%;">
+                                <button class="btn btn-primary btn-buy-now" style="width:100%; margin-bottom:8px;align-items: center; justify-content: center;" 
+                                    onclick="buyNow(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                                    Buy Now
                                 </button>
-                                <button class="btn btn-outline" onclick="addToWishlist(<?= $product->id ?>, event)">
-                                    ❤️ Wishlist
-                                </button>
+
+                                <div style="display:flex; gap:8px; width:100%;">
+                                    <button class="btn btn-primary btn-add-cart" style="flex:1;align-items: center; justify-content: center;"
+                                        onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                                         Add to Cart
+                                    </button>
+                                    <button class="btn btn-outline" style="flex:1;align-items: center; justify-content: center;" onclick="addToWishlist(<?= $product->id ?>, event)">
+                                         Wishlist
+                                    </button>
+                                </div>
                             </div>
                                 </div>
                             </div>
@@ -729,13 +591,17 @@
                 <div class="products-grid" id="wishlist-list">
                     <?php if (empty($wishlistItems)): ?>
                         <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
+                            <div style="font-size: 3rem; margin-bottom: 20px;"></div>
                             <h3>Your wishlist is empty</h3>
                             <p>Browse products and click “Wishlist” to save them here.</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($wishlistItems as $item): ?>
-                            <div class="product-card" data-wishlist-product="<?= (int)$item->product_id ?>">
+                            <div class="product-card" 
+                                 data-wishlist-product="<?= (int)$item->product_id ?>"
+                                 data-id="<?= (int)$item->product_id ?>"
+                                 data-name="<?= strtolower(htmlspecialchars($item->name ?? 'Product')) ?>"
+                                 data-image="<?= !empty($item->image) ? htmlspecialchars($item->image) : '' ?>">
                                 <div class="product-image">
                                     <?php if (!empty($item->image) && file_exists("assets/images/products/" . $item->image)): ?>
                                         <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($item->image) ?>"
@@ -755,10 +621,10 @@
                                         <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
                                     </div>
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                                        <button class="btn btn-primary btn-sm"
-                                            onclick="addToCart(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
-                                            🛒 Add to Cart
-                                        </button>
+                                                                                <button class="btn btn-primary btn-sm"
+                                                                                        onclick="addToCartAjax(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
+                                                                                            Add to Cart
+                                                                                </button>
                                         <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
                                             Remove
                                         </button>
@@ -801,7 +667,13 @@
                             <label>Additional Details</label>
                             <textarea class="form-control" rows="4" placeholder="Describe your requirements..."></textarea>
                         </div>
-                        <button class="btn btn-primary" onclick="showNotification('Request submitted successfully!', 'success')">Submit Request</button>
+                        <button class="btn btn-primary" 
+                            style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important; border: none !important; padding: 12px 32px !important; font-size: 1rem !important; font-weight: 600 !important; border-radius: 8px !important; color: white !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;"
+                            onmouseover="this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.5)'; this.style.transform='translateY(-2px)';"
+                            onmouseout="this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'; this.style.transform='translateY(0)';"
+                            onclick="showNotification('Request submitted successfully!', 'success')">
+                            ✓ Submit Request
+                        </button>
                     </div>
                 </div>
 
@@ -819,7 +691,13 @@
                                 <span class="order-status pending">PENDING</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Target Price: Rs. 80/kg</p>
-                            <button class="btn btn-sm btn-outline" onclick="showNotification('Request details viewed', 'info')">View Details</button>
+                            <button class="btn btn-sm btn-outline" 
+                                style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3) !important;"
+                                onmouseover="this.style.boxShadow='0 5px 14px rgba(33, 150, 243, 0.5)'; this.style.transform='translateY(-2px)';"
+                                onmouseout="this.style.boxShadow='0 3px 10px rgba(33, 150, 243, 0.3)'; this.style.transform='translateY(0)';"
+                                onclick="showNotification('Request details viewed', 'info')">
+                                📋 View Details
+                            </button>
                         </div>
 
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
@@ -831,7 +709,13 @@
                                 <span class="order-status delivered">FULFILLED</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Final Price: Rs. 120/kg</p>
-                            <button class="btn btn-sm btn-outline" onclick="showNotification('Request details viewed', 'info')">View Details</button>
+                            <button class="btn btn-sm btn-outline" 
+                                style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3) !important;"
+                                onmouseover="this.style.boxShadow='0 5px 14px rgba(255, 152, 0, 0.5)'; this.style.transform='translateY(-2px)';"
+                                onmouseout="this.style.boxShadow='0 3px 10px rgba(255, 152, 0, 0.3)'; this.style.transform='translateY(0)';"
+                                onclick="showNotification('Request details viewed', 'info')">
+                                📋 View Details
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -943,17 +827,3 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-
-    <script>
-        window.APP_ROOT = "<?= ROOT ?>";
-        window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
-        window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
-    </script>
-    <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
-</body>
-
-</html>

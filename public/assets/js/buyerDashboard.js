@@ -115,7 +115,7 @@ function loadProfileData() {
     if (profileAddressEl && !profileAddressEl.value) profileAddressEl.value = '123, Main Street, Colombo 07, Sri Lanka';
 }
 
-// Profile: simple client-side validation and save feedback
+// Profile: simple client-side validation and save feedback (for dashboard profile section)
 function updateProfile() {
     const name = document.getElementById('profileName')?.value?.trim();
     const email = document.getElementById('profileEmail')?.value?.trim();
@@ -128,6 +128,22 @@ function updateProfile() {
         return;
     }
     showNotification('Profile updated successfully!', 'success');
+}
+
+// Buyer Profile CRUD functions (for dedicated profile page)
+function loadBuyerProfileData() {
+    // This function is defined in buyerProfileContent.view.php
+    // If called from dashboard, it will load profile data
+    if (typeof window.loadBuyerProfileData === 'function') {
+        window.loadBuyerProfileData();
+    }
+}
+
+function saveBuyerProfile() {
+    // This function is defined in buyerProfileContent.view.php
+    if (typeof window.saveBuyerProfile === 'function') {
+        window.saveBuyerProfile();
+    }
 }
 
 // Profile: upload photo button handler
@@ -245,8 +261,22 @@ function filterProducts() {
 
 // Add to cart function - AJAX call to backend
 function addToCart(productId, productName, price, maxQuantity) {
-    // Show loading
-    const btn = event?.target;
+    // Debug: log call
+    try { console.log('addToCart called:', productId, productName, price, maxQuantity); } catch(e){}
+
+    // Show loading / find caller button more robustly
+    let btn = null;
+    try {
+        btn = (typeof event !== 'undefined' && event?.target) ||
+              document.querySelector(`.product-card[data-id="${productId}"] .btn-add-cart`) ||
+              document.querySelector(`.product-card[data-wishlist-product="${productId}"] .btn-add-cart`) ||
+              document.querySelector(`.product-card[data-id="${productId}"] button`) ||
+              document.querySelector(`.product-card[data-wishlist-product="${productId}"] button`) ||
+              null;
+    } catch (e) {
+        btn = null;
+    }
+
     const originalText = btn?.textContent;
     if (btn) {
         btn.disabled = true;
@@ -254,7 +284,9 @@ function addToCart(productId, productName, price, maxQuantity) {
     }
     
     // Get product details from the card (prefer by id for reliability)
+    // Check for both regular product cards and wishlist product cards
     const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
+                        document.querySelector(`.product-card[data-wishlist-product="${productId}"]`) ||
                         document.querySelector(`.product-card[data-name="${productName.toLowerCase()}"]`);
     // Determine image filename to send to server
     let imageFile = '';
@@ -267,7 +299,13 @@ function addToCart(productId, productName, price, maxQuantity) {
             const src = imgEl?.getAttribute('src') || '';
             if (src && !/default-product\.svg$/i.test(src)) {
                 try {
-                    imageFile = src.split('/').pop();
+                    // Extract filename from full URL path
+                    const urlParts = src.split('/');
+                    imageFile = urlParts[urlParts.length - 1];
+                    // Remove query params if any
+                    if (imageFile.includes('?')) {
+                        imageFile = imageFile.split('?')[0];
+                    }
                 } catch (e) {
                     imageFile = '';
                 }
@@ -355,6 +393,77 @@ function updateCartBadge(count) {
     })
     .catch(error => {
         console.error('Error fetching cart data:', error);
+    });
+}
+
+// Buy Now: clear cart, add only this product, then redirect to checkout
+function buyNow(productId, productName, price, maxQuantity) {
+    const btn = event?.target;
+    const originalText = btn?.textContent;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+    }
+
+    const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
+                        document.querySelector(`.product-card[data-name="${(productName || '').toLowerCase()}"]`);
+    let imageFile = '';
+    if (productCard) {
+        imageFile = productCard.getAttribute('data-image') || '';
+        if (!imageFile) {
+            const imgEl = productCard.querySelector('.product-image img');
+            const src = imgEl?.getAttribute('src') || '';
+            if (src && !/default-product\.svg$/i.test(src)) {
+                try { imageFile = src.split('/').pop(); } catch (e) { imageFile = ''; }
+            }
+        }
+    }
+
+    const fallbackEmoji = productCard?.querySelector('.product-placeholder')?.textContent || '🌱';
+
+    // First, clear the cart
+    fetch(window.APP_ROOT + '/Cart/clear', {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(resp => resp.json())
+    .then(clearData => {
+        // Then add only this product
+        const formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('product_name', productName);
+        formData.append('product_price', price);
+        formData.append('quantity', 1);
+        formData.append('product_image', imageFile || fallbackEmoji);
+        formData.append('buy_now', '1'); // Flag to indicate buy now
+
+        return fetch(window.APP_ROOT + '/Cart/add', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+    })
+    .then(resp => resp.json())
+    .then(data => {
+        if (data && data.success) {
+            updateCartBadge(data.cartItemCount);
+            // Redirect to checkout page with buy now flag
+            window.location.href = window.APP_ROOT + '/Checkout?buy_now=1&product_id=' + productId;
+        } else {
+            showNotification(data.message || 'Failed to proceed to checkout', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Buy Now error:', err);
+        showNotification('An error occurred while processing Buy Now', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
     });
 }
 
@@ -566,9 +675,8 @@ function recalculateCartTotal() {
 
 // Proceed to checkout
 function proceedToCheckout() {
-    showNotification('Proceeding to checkout...', 'info');
-    // TODO: Implement checkout page
-    // window.location.href = window.APP_ROOT + '/checkout';
+    // Redirect to checkout page
+    window.location.href = window.APP_ROOT + '/Checkout';
 }
 
 // ==================== WISHLIST FUNCTIONS ====================
@@ -696,7 +804,7 @@ function renderWishlist(items) {
             : '';
 
         return `
-            <div class="product-card" data-wishlist-product="${item.product_id}">
+            <div class="product-card" data-wishlist-product="${item.product_id}" data-id="${item.product_id}" data-name="${escapeHtml((item.name || 'Product').toLowerCase())}" data-image="${item.image || ''}">
                 <div class="product-image">
                     <img src="${image}" alt="${escapeHtml(item.name || 'Product')}" ${item.image ? '' : 'style="opacity:0.6;"'}>
                 </div>
@@ -705,8 +813,8 @@ function renderWishlist(items) {
                     <div class="product-price">${price}</div>
                     <div class="product-stock">${stock}</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                        <button class="btn btn-primary btn-sm"
-                            onclick="addToCart(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
+                        <button class="btn btn-primary btn-sm btn-add-cart"
+                            onclick="addToCartAjax(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
                             🛒 Add to Cart
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(${item.product_id})">
@@ -743,3 +851,4 @@ window.uploadPhoto = uploadPhoto;
 window.addToWishlist = addToWishlist;
 window.removeFromWishlist = removeFromWishlist;
 window.loadWishlist = loadWishlist;
+window.addToCartAjax = addToCart;

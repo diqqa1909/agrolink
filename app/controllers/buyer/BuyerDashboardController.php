@@ -11,8 +11,6 @@ class BuyerDashboardController{
     }
     
     public function index() {
-        $data = [];
-        
         // Check if user is logged in and is a buyer
         if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer'){
             redirect('login');
@@ -33,10 +31,13 @@ class BuyerDashboardController{
             'username' => $_SESSION['USER']->name,
             'cartItemCount' => $cartItemCount,
             'products' => $products ?: [],
-            'wishlistItems' => $wishlistItems ?: []
+            'wishlistItems' => $wishlistItems ?: [],
+            'pageTitle' => 'Buyer Dashboard',
+            'activePage' => 'dashboard',
+            'contentView' => '../app/views/buyer/buyerDashboard.view.php'
         ];
         
-        // Load the view
-        $this->view('buyerDashboard', $data);
+        // Load the layout wrapper
+        $this->view('components/buyerLayout', $data);
     }
 }

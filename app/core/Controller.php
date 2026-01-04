@@ -14,6 +14,13 @@ trait Controller
             return;
         }
 
+        // Try components subdirectory
+        $componentsView = "../app/views/components/" . basename($name) . ".view.php";
+        if (file_exists($componentsView)) {
+            require $componentsView;
+            return;
+        }
+
         // Try role-based subdirectories (admin, buyer, farmer, transporter)
         $roles = ['admin', 'buyer', 'farmer', 'transporter'];
         foreach ($roles as $role) {
