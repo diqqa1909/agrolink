@@ -26,7 +26,7 @@ class FarmerProductsController
             'contentView' => '../app/views/farmer/farmerProductsContent.view.php',
         ];
 
-        $this->view('components/farmerLayout', $data);
+        $this->view('farmer/farmerMain', $data);
     }
 
     /**

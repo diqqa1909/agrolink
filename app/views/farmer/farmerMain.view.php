@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?? 'Farmer Dashboard' ?> - AgroLink</title>
+    <title>Farmer Dashboard - AgroLink</title>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
 </head>
 
@@ -12,6 +12,7 @@
     <?php
     $username = $_SESSION['USER']->name ?? 'Farmer';
     $role = $_SESSION['USER']->role ?? 'farmer';
+    $activePage = 'dashboard';
     include '../app/views/components/dashboardNavBar.view.php';
     ?>
 
@@ -129,7 +130,6 @@
         </main>
     </div>
 
-    <!-- Make ROOT available to JS -->
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
         window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
@@ -137,6 +137,7 @@
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script src="<?= ROOT ?>/assets/js/farmerDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 
 </html>

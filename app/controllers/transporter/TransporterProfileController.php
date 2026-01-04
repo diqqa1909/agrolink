@@ -1,20 +1,20 @@
 <?php
 
-class BuyerProfileController
+class TransporterProfileController
 {
     use Controller;
 
-    protected $buyerModel;
+    protected $transporterModel;
     protected $userModel;
 
     public function __construct()
     {
-        $this->buyerModel = new BuyerModel();
+        $this->transporterModel = new TransporterModel();
         $this->userModel = new UserModel();
     }
 
     /**
-     * Display buyer profile page
+     * Display transporter profile page
      */
     public function index()
     {
@@ -24,31 +24,31 @@ class BuyerProfileController
         }
 
         // Regular page view
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
             return redirect('login');
         }
 
         $userId = $_SESSION['USER']->id;
 
-        // Get buyer profile
-        $profile = $this->buyerModel->getProfileByUserId($userId);
+        // Get transporter profile
+        $profile = $this->transporterModel->getProfileByUserId($userId);
 
         // If no profile exists, create empty one
         if (!$profile) {
-            $this->buyerModel->createProfile($userId, []);
-            $profile = $this->buyerModel->getProfileByUserId($userId);
+            $this->transporterModel->createProfile($userId, []);
+            $profile = $this->transporterModel->getProfileByUserId($userId);
         }
 
-        // Load and display the profile view through buyerLayout
+        // Load and display the profile view through transporterLayout
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
-            'contentView' => '../app/views/buyer/buyerProfile.view.php'
+            'contentView' => '../app/views/transporter/transporterProfile.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('components/transporterLayout', $data);
     }
 
     /**
@@ -59,7 +59,7 @@ class BuyerProfileController
         if (!$filename) {
             return null;
         }
-        return rtrim(ROOT, '/') . '/assets/images/buyer-profiles/' . rawurlencode($filename);
+        return rtrim(ROOT, '/') . '/assets/images/transporter-profiles/' . rawurlencode($filename);
     }
 
     /**
@@ -70,7 +70,7 @@ class BuyerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -80,12 +80,12 @@ class BuyerProfileController
         }
 
         $userId = $_SESSION['USER']->id;
-        $profile = $this->buyerModel->getProfileByUserId($userId);
+        $profile = $this->transporterModel->getProfileByUserId($userId);
 
         if (!$profile) {
             // Create default profile if doesn't exist
-            $this->buyerModel->createProfile($userId, []);
-            $profile = $this->buyerModel->getProfileByUserId($userId);
+            $this->transporterModel->createProfile($userId, []);
+            $profile = $this->transporterModel->getProfileByUserId($userId);
         }
 
         // Add computed photo URL for the frontend
@@ -103,7 +103,7 @@ class BuyerProfileController
     }
 
     /**
-     * Save/Update buyer profile via AJAX
+     * Save/Update transporter profile via AJAX
      */
     public function saveProfile()
     {
@@ -111,7 +111,7 @@ class BuyerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -135,15 +135,13 @@ class BuyerProfileController
                 'email' => trim($_POST['email'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
-                'apartment_code' => trim($_POST['apartment_code'] ?? ''),
-                'street_number' => trim($_POST['street_number'] ?? ''),
-                'street_name' => trim($_POST['street_name'] ?? ''),
-                'city' => trim($_POST['city'] ?? ''),
-                'postal_code' => trim($_POST['postal_code'] ?? '')
+                'license_number' => trim($_POST['license_number'] ?? ''),
+                'availability' => trim($_POST['availability'] ?? ''),
+                'rating' => trim($_POST['rating'] ?? '')
             ];
 
             // Validate profile data at model level
-            $validation = $this->buyerModel->validateProfile($data);
+            $validation = $this->transporterModel->validateProfile($data);
 
             if ($validation !== true) {
                 http_response_code(422);
@@ -191,23 +189,21 @@ class BuyerProfileController
                 }
             }
 
-            // Prepare profile data (exclude name and email from buyer profile update)
+            // Prepare profile data (exclude name and email from transporter profile update)
             $profileData = [
                 'phone' => $data['phone'],
                 'district' => $data['district'],
-                'apartment_code' => $data['apartment_code'],
-                'street_number' => $data['street_number'],
-                'street_name' => $data['street_name'],
-                'city' => $data['city'],
-                'postal_code' => $data['postal_code']
+                'license_number' => $data['license_number'],
+                'availability' => $data['availability'],
+                'rating' => $data['rating']
             ];
 
             // Update profile
-            $result = $this->buyerModel->updateProfile($userId, $profileData);
+            $result = $this->transporterModel->updateProfile($userId, $profileData);
 
             if ($result) {
                 // Get updated profile
-                $profile = $this->buyerModel->getProfileByUserId($userId);
+                $profile = $this->transporterModel->getProfileByUserId($userId);
 
                 http_response_code(200);
                 echo json_encode([
@@ -242,7 +238,7 @@ class BuyerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -343,7 +339,7 @@ class BuyerProfileController
             if ($publicPath === false) {
                 throw new RuntimeException('Public directory not found');
             }
-            $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'buyer-profiles' . DIRECTORY_SEPARATOR;
+            $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'transporter-profiles' . DIRECTORY_SEPARATOR;
 
             // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
@@ -363,7 +359,7 @@ class BuyerProfileController
             }
 
             // Delete old profile photo if exists (handle full URL vs filename safely)
-            $oldFilename = $this->buyerModel->getOldPhotoFilename($userId);
+            $oldFilename = $this->transporterModel->getOldPhotoFilename($userId);
             if ($oldFilename) {
                 $oldBasename = basename($oldFilename);
                 $oldPath = $uploadDir . $oldBasename;
@@ -373,7 +369,7 @@ class BuyerProfileController
             }
 
             // Update database with new filename (only filename)
-            $result = $this->buyerModel->updateProfilePhoto($userId, $uniqueFilename);
+            $result = $this->transporterModel->updateProfilePhoto($userId, $uniqueFilename);
 
             if ($result) {
                 http_response_code(200);
@@ -403,8 +399,7 @@ class BuyerProfileController
         exit;
     }
 
-    /**
-     * Remove profile photo
+    /**     * Remove profile photo
      */
     public function removePhoto()
     {
@@ -412,7 +407,7 @@ class BuyerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -431,13 +426,13 @@ class BuyerProfileController
             $userId = $_SESSION['USER']->id;
 
             // Get current photo filename
-            $currentPhoto = $this->buyerModel->getOldPhotoFilename($userId);
+            $currentPhoto = $this->transporterModel->getOldPhotoFilename($userId);
 
             // Delete physical file if it exists
             if ($currentPhoto) {
                 $publicPath = realpath(__DIR__ . '/../../../public');
                 if ($publicPath !== false) {
-                    $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'buyer-profiles' . DIRECTORY_SEPARATOR;
+                    $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'transporter-profiles' . DIRECTORY_SEPARATOR;
                     $filePath = $uploadDir . basename($currentPhoto);
 
                     if (is_file($filePath)) {
@@ -447,7 +442,7 @@ class BuyerProfileController
             }
 
             // Update database to remove photo reference
-            $result = $this->buyerModel->removeProfilePhoto($userId);
+            $result = $this->transporterModel->removeProfilePhoto($userId);
 
             if ($result) {
                 http_response_code(200);
@@ -472,8 +467,7 @@ class BuyerProfileController
         exit;
     }
 
-    /**
-     * Change password via AJAX
+    /**     * Change password via AJAX
      */
     public function changePassword()
     {
@@ -504,7 +498,7 @@ class BuyerProfileController
             $confirmPassword = $_POST['confirmPassword'] ?? '';
 
             // Validate at model level
-            $validation = $this->buyerModel->validatePasswordChange(
+            $validation = $this->transporterModel->validatePasswordChange(
                 $userId,
                 $currentPassword,
                 $newPassword,
@@ -522,7 +516,7 @@ class BuyerProfileController
             }
 
             // Change password
-            $result = $this->buyerModel->changePassword($userId, $newPassword);
+            $result = $this->transporterModel->changePassword($userId, $newPassword);
 
             if ($result) {
                 http_response_code(200);

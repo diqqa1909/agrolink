@@ -10,7 +10,7 @@
             </div>
         </div>
         <div>
-            <div class="user-name" id="adminName"><?= $username ?? 'User' ?></div>
+            <div class=\"user-name\" id=\"adminName\" style=\"text-transform: capitalize;\"><?= ucwords($username ?? 'User') ?></div>
             <div class="user-role"><?= ucfirst($role ?? 'User') ?></div>
         </div>
         <form method="POST" action="<?= ROOT ?>/logout" style="display: inline;">

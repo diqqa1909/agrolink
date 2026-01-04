@@ -15,6 +15,6 @@ class FarmerDashboardController
             'contentView' => '../app/views/farmer/farmerDashboardContent.view.php'
         ];
 
-        $this->view('components/farmerLayout', $data);
+        $this->view('farmer/farmerMain', $data);
     }
 }

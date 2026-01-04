@@ -1,40 +1,41 @@
 <?php
 
-class FarmerModel
+class TransporterModel
 {
     use Database;
 
-    protected $table = 'farmer_profiles';
+    protected $table = 'transporter_profiles';
     protected $userTable = 'users';
 
     /**
-     * Get farmer profile by user ID
+     * Get transporter profile by user ID
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT fp.*, u.name, u.email 
-                FROM {$this->table} fp
-                LEFT JOIN {$this->userTable} u ON u.id = fp.user_id
-                WHERE fp.user_id = :user_id";
+        $sql = "SELECT tp.*, u.name, u.email 
+                FROM {$this->table} tp
+                LEFT JOIN {$this->userTable} u ON u.id = tp.user_id
+                WHERE tp.user_id = :user_id";
 
         return $this->get_row($sql, ['user_id' => $userId]);
     }
 
     /**
-     * Create farmer profile
+     * Create transporter profile
      */
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, district, crops_selling, full_address, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :district, :crops_selling, :full_address, :profile_photo, NOW(), NOW())";
+                (user_id, phone, district, license_number, availability, rating, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :district, :license_number, :availability, :rating, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
             'phone' => $data['phone'] ?? null,
             'district' => $data['district'] ?? null,
-            'crops_selling' => $data['crops_selling'] ?? null,
-            'full_address' => $data['full_address'] ?? null,
+            'license_number' => $data['license_number'] ?? null,
+            'availability' => $data['availability'] ?? null,
+            'rating' => $data['rating'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
         ];
 
@@ -42,11 +43,11 @@ class FarmerModel
     }
 
     /**
-     * Update farmer profile
+     * Update transporter profile
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'district', 'crops_selling', 'full_address', 'profile_photo'];
+        $allowed = ['phone', 'district', 'license_number', 'availability', 'rating', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
@@ -164,21 +165,25 @@ class FarmerModel
             }
         }
 
-        // Validate crops selling (optional but if provided, must be valid)
-        if (!empty($data['crops_selling'])) {
-            if (strlen($data['crops_selling']) < 3) {
-                $errors['crops_selling'] = 'Crops information must be at least 3 characters';
-            } elseif (strlen($data['crops_selling']) > 500) {
-                $errors['crops_selling'] = 'Crops information is too long (max 500 characters)';
+        // Validate license_number (optional)
+        if (!empty($data['license_number'])) {
+            if (strlen($data['license_number']) > 20) {
+                $errors['license_number'] = 'License number is too long (max 20 characters)';
             }
         }
 
-        // Validate full address (optional but if provided, must be valid)
-        if (!empty($data['full_address'])) {
-            if (strlen($data['full_address']) < 5) {
-                $errors['full_address'] = 'Address must be at least 5 characters';
-            } elseif (strlen($data['full_address']) > 500) {
-                $errors['full_address'] = 'Address is too long (max 500 characters)';
+        // Validate availability (optional)
+        if (!empty($data['availability'])) {
+            $validAvailabilities = ['available', 'not available', 'busy'];
+            if (!in_array(strtolower($data['availability']), $validAvailabilities)) {
+                $errors['availability'] = 'Availability must be one of: available, not available, busy';
+            }
+        }
+
+        // Validate rating (optional)
+        if (!empty($data['rating'])) {
+            if (!is_numeric($data['rating']) || $data['rating'] < 0 || $data['rating'] > 5) {
+                $errors['rating'] = 'Rating must be a number between 0 and 5';
             }
         }
 

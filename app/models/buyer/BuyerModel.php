@@ -1,40 +1,43 @@
 <?php
 
-class FarmerModel
+class BuyerModel
 {
     use Database;
 
-    protected $table = 'farmer_profiles';
+    protected $table = 'buyer_profiles';
     protected $userTable = 'users';
 
     /**
-     * Get farmer profile by user ID
+     * Get buyer profile by user ID
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT fp.*, u.name, u.email 
-                FROM {$this->table} fp
-                LEFT JOIN {$this->userTable} u ON u.id = fp.user_id
-                WHERE fp.user_id = :user_id";
+        $sql = "SELECT bp.*, u.name, u.email 
+                FROM {$this->table} bp
+                LEFT JOIN {$this->userTable} u ON u.id = bp.user_id
+                WHERE bp.user_id = :user_id";
 
         return $this->get_row($sql, ['user_id' => $userId]);
     }
 
     /**
-     * Create farmer profile
+     * Create buyer profile
      */
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, district, crops_selling, full_address, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :district, :crops_selling, :full_address, :profile_photo, NOW(), NOW())";
+                (user_id, phone, apartment_code, street_number, street_name, city, district, postal_code, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :apartment_code, :street_number, :street_name, :city, :district, :postal_code, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
             'phone' => $data['phone'] ?? null,
+            'apartment_code' => $data['apartment_code'] ?? null,
+            'street_number' => $data['street_number'] ?? null,
+            'street_name' => $data['street_name'] ?? null,
+            'city' => $data['city'] ?? null,
             'district' => $data['district'] ?? null,
-            'crops_selling' => $data['crops_selling'] ?? null,
-            'full_address' => $data['full_address'] ?? null,
+            'postal_code' => $data['postal_code'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
         ];
 
@@ -42,11 +45,11 @@ class FarmerModel
     }
 
     /**
-     * Update farmer profile
+     * Update buyer profile
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'district', 'crops_selling', 'full_address', 'profile_photo'];
+        $allowed = ['phone', 'apartment_code', 'street_number', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
@@ -164,21 +167,38 @@ class FarmerModel
             }
         }
 
-        // Validate crops selling (optional but if provided, must be valid)
-        if (!empty($data['crops_selling'])) {
-            if (strlen($data['crops_selling']) < 3) {
-                $errors['crops_selling'] = 'Crops information must be at least 3 characters';
-            } elseif (strlen($data['crops_selling']) > 500) {
-                $errors['crops_selling'] = 'Crops information is too long (max 500 characters)';
+        // Validate apartment_code (optional)
+        if (!empty($data['apartment_code'])) {
+            if (strlen($data['apartment_code']) > 50) {
+                $errors['apartment_code'] = 'Apartment code is too long (max 50 characters)';
             }
         }
 
-        // Validate full address (optional but if provided, must be valid)
-        if (!empty($data['full_address'])) {
-            if (strlen($data['full_address']) < 5) {
-                $errors['full_address'] = 'Address must be at least 5 characters';
-            } elseif (strlen($data['full_address']) > 500) {
-                $errors['full_address'] = 'Address is too long (max 500 characters)';
+        // Validate street_number (optional)
+        if (!empty($data['street_number'])) {
+            if (strlen($data['street_number']) > 20) {
+                $errors['street_number'] = 'Street number is too long (max 20 characters)';
+            }
+        }
+
+        // Validate street_name (optional)
+        if (!empty($data['street_name'])) {
+            if (strlen($data['street_name']) > 100) {
+                $errors['street_name'] = 'Street name is too long (max 100 characters)';
+            }
+        }
+
+        // Validate city (optional)
+        if (!empty($data['city'])) {
+            if (strlen($data['city']) > 50) {
+                $errors['city'] = 'City is too long (max 50 characters)';
+            }
+        }
+
+        // Validate postal_code (optional)
+        if (!empty($data['postal_code'])) {
+            if (!preg_match('/^\d{5}$/', $data['postal_code'])) {
+                $errors['postal_code'] = 'Postal code must be 5 digits';
             }
         }
 

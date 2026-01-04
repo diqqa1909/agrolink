@@ -9,57 +9,33 @@
 </head>
 
 <body>
-    <?php
-    $role = $_SESSION['USER']->role ?? 'farmer';
-    include '../app/views/components/dashboardNavBar.view.php';
-    ?>
-
-    <div class="dashboard">
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li><a href="<?= ROOT ?>/farmerdashboard" class="menu-link">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                        </div>
-                        Dashboard
-                    </a></li>
-                <li><a href="<?= ROOT ?>/farmerprofile" class="menu-link active">
-                        <div class="menu-icon">
-                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                        Profile
-                    </a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="content-section">
-                <!-- Profile Header with Photo -->
-                <div class="profile-header-modern">
-                    <div class="profile-banner">
-                        <div class="banner-pattern"></div>
-                    </div>
-                    <div class="profile-header-content">
-                        <div class="profile-photo-section">
-                            <img id="profilePhotoDisplay" src="<?= ROOT ?>/assets/images/farmer-profiles/default-profile.png" alt="Profile Photo" class="profile-photo">
-                            <button type="button" class="btn btn-change-photo" onclick="document.getElementById('profilePhotoInput').click()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                </svg>
-                                Change Photo
-                            </button>
-                            <input type="file" id="profilePhotoInput" style="display: none;" accept="image/*">
-                            <div id="photoPreviewContainer" style="display: none; margin-top: 10px;">
-                                <p style="font-size: 0.85rem; color: #666;">Preview:</p>
-                                <img id="photoPreview" src="" alt="Photo Preview" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
+    <main class="main-content">
+        <div class="content-section">
+            <!-- Profile Header with Photo -->
+            <div class="profile-header-modern">
+                <div class="profile-banner">
+                    <div class="banner-pattern"></div>
+                </div>
+                <div class="profile-header-content">
+                    <div class="profile-photo-section">
+                        <div id="profilePhotoWrapper" class="profile-photo-wrapper">
+                            <img id="profilePhotoDisplay" src="<?= $photoUrl ?>" alt="Profile Photo" class="profile-photo">
+                            <!-- Photo Overlay Actions -->
+                            <div id="photoOverlay">
+                                <div>
+                                    <button type="button">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                        </svg>
+                                    </button>
+                                    <span></span>
+                                    <button type="button" onclick="removeProfilePhoto()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="profile-header-info">
@@ -79,36 +55,34 @@
                             </svg>
                             Personal Information
                         </h2>
-                        <p style="color: #999; font-size: 0.9rem; margin: 5px 0 0 0;">Update your farm and contact details</p>
                     </div>
 
                     <form id="profileForm" class="profile-form-grid-modern">
-                        <!-- Name (Read-only, from auth) -->
+                        <!-- Name (Editable, from auth) -->
                         <div class="form-group-modern">
-                            <label for="profileName">Full Name</label>
-                            <input type="text" id="profileName" value="<?= esc($username ?? '') ?>" class="form-control" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
-                            <small style="color: #999;">From authentication. Contact admin to change.</small>
+                            <label for="profileName" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Full Name *</label>
+                            <input type="text" id="profileName" name="name" value="<?= esc($username ?? '') ?>" class="form-control" placeholder="Enter your full name" style="text-align: left;">
                         </div>
 
                         <!-- Email (Read-only, from auth) -->
                         <div class="form-group-modern">
-                            <label for="profileEmail">Email Address</label>
-                            <input type="email" id="profileEmail" value="<?= esc($_SESSION['USER']->email ?? '') ?>" class="form-control" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
-                            <small style="color: #999;">From authentication. Contact admin to change.</small>
+                            <label for="profileEmail" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Email Address</label>
+                            <input type="email" id="profileEmail" value="<?= esc($_SESSION['USER']->email ?? '') ?>" class="form-control" readonly style="background-color: #f5f5f5; cursor: not-allowed; text-align: left;">
+                            <small style="color: #999; display: block; text-align: left; margin-top: 5px;">From authentication. Contact admin to change.</small>
                         </div>
 
                         <!-- Phone -->
                         <div class="form-group-modern">
-                            <label for="profilePhone">Phone Number *</label>
-                            <input type="tel" id="profilePhone" name="phone" class="form-control" placeholder="e.g., +94 71 123 4567" value="<?= esc($profile->phone ?? '') ?>">
-                            <small style="color: #666;">Sri Lankan format: +94XXXXXXXXX or 0XXXXXXXXX</small>
+                            <label for="profilePhone" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Phone Number *</label>
+                            <input type="tel" id="profilePhone" name="phone" class="form-control" placeholder="e.g., +94 71 123 4567" value="<?= esc($profile->phone ?? '') ?>" style="text-align: left;">
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Sri Lankan format: +94XXXXXXXXX or 0XXXXXXXXX</small>
                             <span class="error-message" id="error-phone"></span>
                         </div>
 
                         <!-- District -->
                         <div class="form-group-modern">
-                            <label for="profileDistrict">District *</label>
-                            <select id="profileDistrict" name="district" class="form-control">
+                            <label for="profileDistrict" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">District *</label>
+                            <select id="profileDistrict" name="district" class="form-control" style="text-align: left;">
                                 <option value="">-- Select District --</option>
                                 <option value="Ampara" <?= ($profile->district ?? '') === 'Ampara' ? 'selected' : '' ?>>Ampara</option>
                                 <option value="Anuradhapura" <?= ($profile->district ?? '') === 'Anuradhapura' ? 'selected' : '' ?>>Anuradhapura</option>
@@ -139,17 +113,17 @@
 
                         <!-- Crops Selling -->
                         <div class="form-group-modern full-width">
-                            <label for="profileCrops">Crops You're Selling *</label>
-                            <input type="text" id="profileCrops" name="crops_selling" class="form-control" placeholder="e.g., Tomatoes, Carrots, Potatoes" value="<?= esc($profile->crops_selling ?? '') ?>">
-                            <small style="color: #666;">List the main crops/products you sell</small>
+                            <label for="profileCrops" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Crops You're Selling *</label>
+                            <input type="text" id="profileCrops" name="crops_selling" class="form-control" placeholder="e.g., Tomatoes, Carrots, Potatoes" value="<?= esc($profile->crops_selling ?? '') ?>" style="text-align: left;">
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">List the main crops/products you sell</small>
                             <span class="error-message" id="error-crops_selling"></span>
                         </div>
 
                         <!-- Full Address -->
                         <div class="form-group-modern full-width">
-                            <label for="profileAddress">Farm Address *</label>
-                            <textarea id="profileAddress" name="full_address" class="form-control" placeholder="Enter your complete farm address" rows="3"><?= esc($profile->full_address ?? '') ?></textarea>
-                            <small style="color: #666;">Street, area, postal code</small>
+                            <label for="profileAddress" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Farm Address *</label>
+                            <textarea id="profileAddress" name="full_address" class="form-control" placeholder="Enter your complete farm address" rows="2" style="text-align: left;"><?= esc($profile->full_address ?? '') ?></textarea>
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Street, area, postal code</small>
                             <span class="error-message" id="error-full_address"></span>
                         </div>
                     </form>
@@ -163,7 +137,7 @@
                             </svg>
                             Save Changes
                         </button>
-                        <button type="button" class="btn btn-reset-profile" onclick="resetProfileForm()">
+                        <button type="button" class="btn btn-reset-profile" onclick="resetProfileForm()" style="background-color: #fff; color: #344054; border: 1px solid #d0d5dd;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23 4 23 10 17 10" />
                                 <path d="M20.49 15a9 9 0 1 1-2-8.12" />
@@ -182,14 +156,14 @@
 
                 <!-- Account Statistics -->
                 <div class="profile-stats-modern">
-                    <div class="stats-header">
-                        <h3>
+                    <div class="stats-header" style="text-align: left;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 2v20m10-10H2" />
                             </svg>
-                            Farm Statistics
+                            Profile Statistics
                         </h3>
-                        <p>Your farming journey at a glance</p>
+                        <p style="margin: 6px 0 0 0; text-align: left;">Your farming journey at a glance</p>
                     </div>
                     <div class="stats-grid-modern">
                         <div class="stat-card-modern stat-primary">
@@ -262,8 +236,7 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+    </main>
 
     <!-- Make ROOT available to JS -->
     <script>
