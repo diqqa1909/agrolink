@@ -408,7 +408,8 @@ class BuyerProfileController
         exit;
     }
 
-    /**     * Remove profile photo
+    /**
+     * Remove profile photo
      */
     public function removePhoto()
     {
@@ -476,7 +477,8 @@ class BuyerProfileController
         exit;
     }
 
-    /**     * Change password via AJAX
+    /**
+     * Change password via AJAX
      */
     public function changePassword()
     {

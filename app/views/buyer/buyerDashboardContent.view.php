@@ -388,13 +388,17 @@
                 <div class="products-grid" id="wishlist-list">
                     <?php if (empty($wishlistItems)): ?>
                         <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
+                            <div style="font-size: 3rem; margin-bottom: 20px;"></div>
                             <h3>Your wishlist is empty</h3>
                             <p>Browse products and click "Wishlist" to save them here.</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($wishlistItems as $item): ?>
-                            <div class="product-card" data-wishlist-product="<?= (int)$item->product_id ?>">
+                            <div class="product-card" 
+                                 data-wishlist-product="<?= (int)$item->product_id ?>"
+                                 data-id="<?= (int)$item->product_id ?>"
+                                 data-name="<?= strtolower(htmlspecialchars($item->name ?? 'Product')) ?>"
+                                 data-image="<?= !empty($item->image) ? htmlspecialchars($item->image) : '' ?>">
                                 <div class="product-image">
                                     <?php if (!empty($item->image) && file_exists("assets/images/products/" . $item->image)): ?>
                                         <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($item->image) ?>"
@@ -414,10 +418,10 @@
                                         <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
                                     </div>
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                                        <button class="btn btn-primary btn-sm"
-                                            onclick="addToCart(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
-                                            🛒 Add to Cart
-                                        </button>
+                                                                                <button class="btn btn-primary btn-sm"
+                                                                                        onclick="addToCartAjax(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
+                                                                                            Add to Cart
+                                                                                </button>
                                         <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
                                             Remove
                                         </button>
@@ -460,7 +464,13 @@
                             <label>Additional Details</label>
                             <textarea class="form-control" rows="4" placeholder="Describe your requirements..."></textarea>
                         </div>
-                        <button class="btn btn-primary" onclick="showNotification('Request submitted successfully!', 'success')">Submit Request</button>
+                        <button class="btn btn-primary" 
+                            style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important; border: none !important; padding: 12px 32px !important; font-size: 1rem !important; font-weight: 600 !important; border-radius: 8px !important; color: white !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;"
+                            onmouseover="this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.5)'; this.style.transform='translateY(-2px)';"
+                            onmouseout="this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'; this.style.transform='translateY(0)';"
+                            onclick="showNotification('Request submitted successfully!', 'success')">
+                            ✓ Submit Request
+                        </button>
                     </div>
                 </div>
 
@@ -478,7 +488,13 @@
                                 <span class="order-status pending">PENDING</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Target Price: Rs. 80/kg</p>
-                            <button class="btn btn-sm btn-outline" onclick="showNotification('Request details viewed', 'info')">View Details</button>
+                            <button class="btn btn-sm btn-outline" 
+                                style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3) !important;"
+                                onmouseover="this.style.boxShadow='0 5px 14px rgba(33, 150, 243, 0.5)'; this.style.transform='translateY(-2px)';"
+                                onmouseout="this.style.boxShadow='0 3px 10px rgba(33, 150, 243, 0.3)'; this.style.transform='translateY(0)';"
+                                onclick="showNotification('Request details viewed', 'info')">
+                                📋 View Details
+                            </button>
                         </div>
 
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
@@ -490,7 +506,13 @@
                                 <span class="order-status delivered">FULFILLED</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Final Price: Rs. 120/kg</p>
-                            <button class="btn btn-sm btn-outline" onclick="showNotification('Request details viewed', 'info')">View Details</button>
+                            <button class="btn btn-sm btn-outline" 
+                                style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3) !important;"
+                                onmouseover="this.style.boxShadow='0 5px 14px rgba(255, 152, 0, 0.5)'; this.style.transform='translateY(-2px)';"
+                                onmouseout="this.style.boxShadow='0 3px 10px rgba(255, 152, 0, 0.3)'; this.style.transform='translateY(0)';"
+                                onclick="showNotification('Request details viewed', 'info')">
+                                📋 View Details
+                            </button>
                         </div>
                     </div>
                 </div>
