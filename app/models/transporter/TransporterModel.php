@@ -26,16 +26,15 @@ class TransporterModel
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, district, license_number, availability, rating, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :district, :license_number, :availability, :rating, :profile_photo, NOW(), NOW())";
+                (user_id, phone, district, transporter_type, service_areas, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :district, :transporter_type, :service_areas, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
-            'phone' => $data['phone'] ?? null,
-            'district' => $data['district'] ?? null,
-            'license_number' => $data['license_number'] ?? null,
-            'availability' => $data['availability'] ?? null,
-            'rating' => $data['rating'] ?? null,
+            'phone' => $data['phone'] ?? '',
+            'district' => $data['district'] ?? '',
+            'transporter_type' => $data['transporter_type'] ?? '',
+            'service_areas' => $data['service_areas'] ?? '',
             'profile_photo' => $data['profile_photo'] ?? null
         ];
 
@@ -47,7 +46,7 @@ class TransporterModel
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'district', 'license_number', 'availability', 'rating', 'profile_photo'];
+        $allowed = ['phone', 'district', 'transporter_type', 'service_areas', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 

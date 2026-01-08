@@ -331,7 +331,7 @@
         }
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
+    <script src="<?= ROOT ?>/assets/js/buyer/buyerDashboard.js"></script>
 </body>
 
 </html>

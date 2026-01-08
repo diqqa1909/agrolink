@@ -3,8 +3,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeBuyerDashboard();
     updateCartBadge();
-    // Initialize profile defaults for modern profile UI
-    loadProfileData();
     loadWishlist();
     
     // Listen for hash changes (when navigating from external pages)

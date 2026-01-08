@@ -119,7 +119,9 @@
         window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/farmerDashboard.js"></script>
+    <?php if (isset($pageScript)): ?>
+        <script src="<?= ROOT ?>/assets/js/farmer/<?= $pageScript ?>"></script>
+    <?php endif; ?>
     <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 

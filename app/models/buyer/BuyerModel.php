@@ -26,14 +26,13 @@ class BuyerModel
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, apartment_code, street_number, street_name, city, district, postal_code, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :apartment_code, :street_number, :street_name, :city, :district, :postal_code, :profile_photo, NOW(), NOW())";
+                (user_id, phone, apartment_code, street_name, city, district, postal_code, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :apartment_code, :street_name, :city, :district, :postal_code, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
             'phone' => $data['phone'] ?? null,
             'apartment_code' => $data['apartment_code'] ?? null,
-            'street_number' => $data['street_number'] ?? null,
             'street_name' => $data['street_name'] ?? null,
             'city' => $data['city'] ?? null,
             'district' => $data['district'] ?? null,
@@ -49,7 +48,7 @@ class BuyerModel
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'apartment_code', 'street_number', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
+        $allowed = ['phone', 'apartment_code', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
@@ -171,13 +170,6 @@ class BuyerModel
         if (!empty($data['apartment_code'])) {
             if (strlen($data['apartment_code']) > 50) {
                 $errors['apartment_code'] = 'Apartment code is too long (max 50 characters)';
-            }
-        }
-
-        // Validate street_number (optional)
-        if (!empty($data['street_number'])) {
-            if (strlen($data['street_number']) > 20) {
-                $errors['street_number'] = 'Street number is too long (max 20 characters)';
             }
         }
 

@@ -16,12 +16,16 @@ class TransporterDashboardController {
             return;
         }
 
+        $data['pageTitle'] = 'Dashboard';
+        $data['activePage'] = 'dashboard';
         $data['username'] = $_SESSION['USER']->name;
+        $data['pageScript'] = 'transporterDashboard.js';
+        $data['contentView'] = '../app/views/transporter/transporterDashboard.view.php';
 
         $vehicleModel = new VehicleModel();
         $data['vehicles'] = $vehicleModel->getByUserId($_SESSION['USER']->id);
         
-        $this->view('transporterDashboard', $data);
+        $this->view('transporter/transporterMain', $data);
     }
 
     public function addVehicle() {

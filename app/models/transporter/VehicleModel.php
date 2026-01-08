@@ -6,7 +6,7 @@ class VehicleModel
 
     protected $table = 'vehicles';
     protected $allowedColumns = [
-        'transporter_id',
+        'user_id',
         'type',
         'registration',
         'capacity',
