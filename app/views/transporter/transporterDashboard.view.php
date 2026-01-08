@@ -668,11 +668,11 @@
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const section = this.getAttribute('data-section');
                 if (section) {
                     showSection(section);
-                    
+
                     menuLinks.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 }
@@ -918,7 +918,7 @@
         // Update profile photo if it exists on this page
         const profilePhoto = document.getElementById('profilePhoto');
         const displayName = document.getElementById('displayProfileName');
-        
+
         if (profilePhoto) {
             const encoded = encodeURIComponent(uname);
             profilePhoto.src = `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=150`;
@@ -931,7 +931,7 @@
         const profileNameEl = document.getElementById('profileName');
         const profileEmailEl = document.getElementById('profileEmail');
         const profilePhoneEl = document.getElementById('profilePhone');
-        
+
         if (profileNameEl && profileEmailEl && profilePhoneEl) {
             if (user) {
                 profileNameEl.value = user.name || uname;
