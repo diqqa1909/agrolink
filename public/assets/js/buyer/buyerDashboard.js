@@ -332,13 +332,26 @@ function addToCart(productId, productName, price, maxQuantity) {
         console.log('Response status:', response.status);
         console.log('Response ok:', response.ok);
         
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        
-        return response.json();
+        // Get the response text first to see what's being returned
+        return response.text().then(text => {
+            console.log('Raw response text:', text);
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('❌ Content-Type is not JSON:', contentType);
+                throw new Error('Server returned non-JSON response: ' + contentType);
+            }
+            
+            // Try to parse as JSON
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('❌ Failed to parse JSON:', e);
+                console.error('Text was:', text);
+                throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+            }
+        });
     })
     .then(data => {
         console.log('Response data:', data);
@@ -680,79 +693,156 @@ function proceedToCheckout() {
 // ==================== WISHLIST FUNCTIONS ====================
 
 function addToWishlist(productId, evt) {
-    const btn = evt?.currentTarget || evt?.target || null;
+    console.log('🎯 addToWishlist called with productId:', productId, 'event:', evt);
+    
+    // Get button element - handle event object passed as second parameter
+    let btn = null;
+    if (evt && typeof evt === 'object') {
+        btn = evt.currentTarget || evt.target;
+        console.log('✓ Button found from event:', btn);
+    }
+    
+    // Fallback: find button by product ID if not found in event
+    if (!btn) {
+        btn = document.querySelector(`.product-card[data-id="${productId}"] button:contains("Wishlist")`) ||
+              document.querySelector(`.product-card[data-id="${productId}"] .btn-outline`);
+        console.log('✓ Button found by fallback selector:', btn);
+    }
+    
     const originalText = btn ? btn.textContent : null;
     if (btn) {
         btn.disabled = true;
         btn.textContent = 'Adding...';
+        console.log('✓ Button disabled and text changed to "Adding..."');
     }
 
     const formData = new FormData();
     formData.append('product_id', productId);
+    console.log('📤 Sending POST to:', window.APP_ROOT + '/Wishlist/add');
 
     fetch(window.APP_ROOT + '/Wishlist/add', {
         method: 'POST',
         body: formData,
         credentials: 'include'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📥 Response received:', response.status, response.statusText);
+        const contentType = response.headers.get('content-type');
+        console.log('📋 Content-Type:', contentType);
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('✅ Wishlist add response data:', data);
         if (data.success) {
             showNotification(data.message || 'Added to wishlist', 'success');
-            loadWishlist();
+            // Update button appearance
+            if (btn) {
+                btn.style.opacity = '0.6';
+                btn.style.pointerEvents = 'none';
+                console.log('✓ Button appearance updated');
+            }
+            // Reload wishlist if visible
+            const wishlistSection = document.getElementById('wishlist-list');
+            if (wishlistSection && wishlistSection.style.display !== 'none') {
+                console.log('🔄 Wishlist section visible, reloading...');
+                loadWishlist();
+            } else {
+                console.log('⚠️ Wishlist section not visible or not found');
+            }
         } else {
+            console.error('❌ Wishlist add failed:', data.error);
             showNotification(data.error || 'Failed to add to wishlist', 'error');
         }
     })
     .catch(error => {
-        console.error('Wishlist add error:', error);
+        console.error('❌ Wishlist add error:', error);
         showNotification('An error occurred while adding to wishlist', 'error');
     })
     .finally(() => {
         if (btn) {
             btn.disabled = false;
             btn.textContent = originalText;
+            console.log('✓ Button re-enabled');
         }
     });
 }
 
 function removeFromWishlist(productId) {
+    console.log('🗑️ removeFromWishlist called with productId:', productId);
+    
     if (!confirm('Remove this product from your wishlist?')) {
+        console.log('❌ User cancelled wishlist removal');
         return;
     }
+
+    console.log('📤 Sending POST to:', window.APP_ROOT + '/Wishlist/remove/' + productId);
 
     fetch(window.APP_ROOT + '/Wishlist/remove/' + productId, {
         method: 'POST',
         credentials: 'include'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📥 Response received:', response.status, response.statusText);
+        const contentType = response.headers.get('content-type');
+        console.log('📋 Content-Type:', contentType);
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('✅ Wishlist remove response data:', data);
         if (data.success) {
             showNotification(data.message || 'Removed from wishlist', 'success');
             loadWishlist();
         } else {
+            console.error('❌ Wishlist remove failed:', data.error);
             showNotification(data.error || 'Failed to remove product', 'error');
         }
     })
     .catch(error => {
-        console.error('Wishlist remove error:', error);
+        console.error('❌ Wishlist remove error:', error);
         showNotification('An error occurred while removing product', 'error');
     });
 }
 
 function loadWishlist() {
+    console.log('📚 loadWishlist() called');
+    console.log('🔍 Looking for wishlist-list container...');
+    
     const container = document.getElementById('wishlist-list');
-    if (!container) return;
+    console.log('Container found:', !!container, container);
+    
+    if (!container) {
+        console.warn('⚠️ Wishlist container not found in DOM');
+        return;
+    }
 
-    fetch(window.APP_ROOT + '/Wishlist/index', {
+    console.log('📤 Sending GET to:', window.APP_ROOT + '/Wishlist/get');
+
+    fetch(window.APP_ROOT + '/Wishlist/get', {
         method: 'GET',
         credentials: 'include'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📥 Response received:', response.status, response.statusText);
+        const contentType = response.headers.get('content-type');
+        console.log('📋 Content-Type:', contentType);
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('✅ Wishlist data received:', data);
         if (data.success) {
+            console.log('📦 Items count:', data.items ? data.items.length : 0);
             renderWishlist(data.items || []);
         } else {
+            console.error('❌ Failed to load wishlist:', data.error);
             container.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                     <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
@@ -762,7 +852,7 @@ function loadWishlist() {
         }
     })
     .catch(error => {
-        console.error('Load wishlist error:', error);
+        console.error('❌ Load wishlist error:', error);
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                 <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
@@ -774,21 +864,33 @@ function loadWishlist() {
 }
 
 function renderWishlist(items) {
+    console.log('🎨 renderWishlist() called with items:', items);
+    console.log('📦 Items count:', items ? items.length : 0);
+    
     const container = document.getElementById('wishlist-list');
-    if (!container) return;
+    console.log('Container element:', container);
+    
+    if (!container) {
+        console.error('❌ Container #wishlist-list not found in DOM');
+        return;
+    }
 
-    if (!items.length) {
+    if (!items || !items.length) {
+        console.log('📭 Wishlist is empty, rendering empty state');
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                 <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
                 <h3>Your wishlist is empty</h3>
-                <p>Browse products and click “Wishlist” to save them here.</p>
+                <p>Browse products and click "Wishlist" to save them here.</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = items.map(item => {
+    console.log('📦 Rendering ' + items.length + ' items...');
+    
+    const html = items.map((item, idx) => {
+        console.log('  Item ' + idx + ':', item);
         const image = item.image 
             ? `${window.APP_ROOT}/assets/images/products/${escapeHtml(item.image)}`
             : `${window.APP_ROOT}/assets/images/default-product.svg`;
@@ -811,11 +913,11 @@ function renderWishlist(items) {
                     <div class="product-price">${price}</div>
                     <div class="product-stock">${stock}</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                        <button class="btn btn-primary btn-sm btn-add-cart"
-                            onclick="addToCartAjax(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
+                        <button class="btn btn-primary btn-sm btn-add-cart" style="padding: 6px 12px; font-size: 0.85rem;"
+                            onclick="console.log('🛒 ADD TO CART clicked, product:', ${item.product_id}); addToCart(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
                             🛒 Add to Cart
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(${item.product_id})">
+                        <button class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 0.85rem; text-align: center;" onclick="console.log('🗑️ REMOVE clicked'); removeFromWishlist(${item.product_id})">
                             Remove
                         </button>
                     </div>
@@ -823,9 +925,17 @@ function renderWishlist(items) {
             </div>
         `;
     }).join('');
+    
+    console.log('✅ HTML generated, length: ' + html.length);
+    container.innerHTML = html;
+    console.log('✅ Container HTML updated with wishlist items');
 }
 
 function escapeHtml(text = '') {
+    // Check if text is null, undefined, or not a string
+    if (!text || typeof text !== 'string') {
+        return '';
+    }
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;

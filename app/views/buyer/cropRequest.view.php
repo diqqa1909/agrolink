@@ -1,5 +1,5 @@
 <?php
-// Content-only view for crop requests. Rendered inside buyerLayout which provides navbar, head, scripts.
+// Content-only view for crop requests. Rendered inside buyerMain which provides navbar, head, scripts.
 ?>
 
 <div class="container" style="margin-top: 20px; margin-bottom: 40px;">

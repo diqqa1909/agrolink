@@ -37,7 +37,7 @@ class CropRequestController
             'contentView' => '../buyer/cropRequest.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**
@@ -80,7 +80,7 @@ class CropRequestController
             'contentView' => '../buyer/cropRequest.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**
@@ -129,7 +129,7 @@ class CropRequestController
             'contentView' => '../buyer/cropRequest.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**
@@ -157,7 +157,7 @@ class CropRequestController
             'contentView' => '../buyer/cropRequest.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**

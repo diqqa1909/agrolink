@@ -21,7 +21,35 @@ class WishlistController
         return true;
     }
 
+    /**
+     * Display wishlist page (HTML view)
+     */
     public function index()
+    {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            redirect('login');
+            return;
+        }
+
+        $user_id = $_SESSION['USER']->id;
+        $wishlistItems = $this->wishlistModel->getByUserId($user_id);
+
+        $data = [
+            'pageTitle' => 'My Wishlist',
+            'activePage' => 'wishlist',
+            'username' => $_SESSION['USER']->name,
+            'wishlistItems' => $wishlistItems ?: [],
+            'pageScript' => 'buyerDashboard.js',
+            'contentView' => '../app/views/buyer/wishlist.view.php'
+        ];
+
+        $this->view('buyer/buyerMain', $data);
+    }
+
+    /**
+     * Get wishlist items as JSON (AJAX endpoint)
+     */
+    public function get()
     {
         header('Content-Type: application/json');
 

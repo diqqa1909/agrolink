@@ -70,7 +70,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/buyerwishlist" class="menu-link <?= ($activePage ?? '') === 'wishlist' ? 'active' : '' ?>">
+                    <a href="<?= ROOT ?>/wishlist" class="menu-link <?= ($activePage ?? '') === 'wishlist' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -142,9 +142,31 @@
         <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Include the page-specific content
+            // Resolve and include the page-specific content with a few fallbacks so relative paths work
             if (isset($contentView)) {
-                include $contentView;
+                $viewToInclude = null;
+
+                $candidates = [
+                    $contentView,
+                    __DIR__ . '/' . $contentView,
+                    __DIR__ . '/../' . $contentView,
+                    dirname(__DIR__) . '/' . $contentView,
+                    __DIR__ . '/../../' . $contentView,
+                ];
+
+                foreach ($candidates as $cand) {
+                    $candNorm = str_replace('\\', '/', $cand);
+                    if (file_exists($candNorm)) {
+                        $viewToInclude = $candNorm;
+                        break;
+                    }
+                }
+
+                if ($viewToInclude) {
+                    include $viewToInclude;
+                } else {
+                    echo '<div style="padding:20px;color:#c00;">View not found: ' . htmlspecialchars($contentView) . '</div>';
+                }
             }
             ?>
         </main>

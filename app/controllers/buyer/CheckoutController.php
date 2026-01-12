@@ -84,7 +84,7 @@ class CheckoutController
             'contentView' => '../app/views/buyer/checkout.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**

@@ -90,9 +90,9 @@
                     </div>
                     <div class="card-content">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <button class="btn btn-primary" onclick="showSection('products')">Browse Products</button>
+                            <a href="<?= ROOT ?>/buyerproducts" class="btn btn-primary" style="text-decoration: none; text-align: center;">Browse Products</a>
                             <button class="btn btn-secondary" onclick="showSection('orders')">View All Orders</button>
-                            <button class="btn btn-outline" onclick="showSection('wishlist')">My Wishlist</button>
+                            <a href="<?= ROOT ?>/wishlist" class="btn btn-outline" style="text-decoration: none; text-align: center;">My Wishlist</a>
                             <button class="btn btn-outline" onclick="showSection('tracking')">Track Orders</button>
                         </div>
                     </div>
@@ -100,123 +100,7 @@
             </div>
 
 
-            <!-- Products Section -->
-            <div id="products-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Browse Products</h1>
-                    <p class="content-subtitle">Discover fresh produce from local farmers</p>
-                </div>
 
-                <!-- Filter Section -->
-                <div class="content-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Filter Products</h3>
-                    </div>
-                    <div class="card-content">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                            <div>
-                                <label for="searchInput" style="display: none;">Search Products</label>
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="filterProducts()" aria-label="Search products">
-                            </div>
-                            <div>
-                                <label for="categoryFilter" style="display: none;">Filter by Category</label>
-                                <select id="categoryFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by category">
-                                    <option value="">All Categories</option>
-                                    <option value="vegetables">Vegetables</option>
-                                    <option value="fruits">Fruits</option>
-                                    <option value="cereals">Cereals</option>
-                                    <option value="legumes">Legumes</option>
-                                    <option value="spices">Spices</option>
-                                    <option value="yams">Yams</option>
-                                    <option value="leafy">Leafy Greens</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="locationFilter" style="display: none;">Filter by Location</label>
-                                <select id="locationFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by location">
-                                    <option value="">All Locations</option>
-                                    <option value="colombo">Colombo</option>
-                                    <option value="kandy">Kandy</option>
-                                    <option value="matale">Matale</option>
-                                    <option value="anuradhapura">Anuradhapura</option>
-                                    <option value="galle">Galle</option>
-                                    <option value="nuwara eliya">Nuwara Eliya</option>
-                                    <option value="badulla">Badulla</option>
-                                    <option value="kurunegala">Kurunegala</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="priceFilter" style="display: none;">Filter by Price</label>
-                                <select id="priceFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by price">
-                                    <option value="">All Prices</option>
-                                    <option value="0-100">Under Rs. 100</option>
-                                    <option value="100-200">Rs. 100 - Rs. 200</option>
-                                    <option value="200-500">Rs. 200 - Rs. 500</option>
-                                    <option value="500+">Above Rs. 500</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
-                <div class="products-grid" id="productsGrid">
-                    <?php if (empty($products)): ?>
-                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 20px;">🌾</div>
-                            <h3>No products available yet</h3>
-                            <p>Check back later for fresh products from our farmers!</p>
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($products as $product): ?>
-                            <div class="product-card"
-                                data-id="<?= htmlspecialchars($product->id) ?>"
-                                data-name="<?= strtolower(htmlspecialchars($product->name)) ?>"
-                                data-category="<?= strtolower(htmlspecialchars($product->category)) ?>"
-                                data-location="<?= strtolower(htmlspecialchars($product->location)) ?>"
-                                data-price="<?= htmlspecialchars($product->price) ?>"
-                                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>"
-                                data-image="<?= !empty($product->image) ? htmlspecialchars($product->image) : '' ?>">
-
-                                <div class="product-image">
-                                    <?php if (!empty($product->image) && file_exists("assets/images/products/" . $product->image)): ?>
-                                        <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($product->image) ?>"
-                                            alt="<?= htmlspecialchars($product->name) ?>">
-                                    <?php else: ?>
-                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
-                                            alt="<?= htmlspecialchars($product->name) ?>"
-                                            style="opacity: 0.6;">
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="product-info">
-                                    <h3 class="product-name"><?= htmlspecialchars($product->name) ?></h3>
-                                    <p class="product-farmer">
-                                        <?= htmlspecialchars($product->farmer_name ?? 'Unknown Farmer') ?>
-                                        (<?= htmlspecialchars($product->location ?? 'Unknown Location') ?>)
-                                    </p>
-                                    <p class="product-description">
-                                        <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>
-                                    </p>
-                                    <div class="product-price">Rs. <?= number_format($product->price, 2) ?>/kg</div>
-                                    <div class="product-stock">
-                                        <?= htmlspecialchars($product->quantity) ?>kg available
-                                    </div>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button class="btn btn-primary btn-add-cart"
-                                            onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
-                                            🛒 Add to Cart
-                                        </button>
-                                        <button class="btn btn-outline" onclick="addToWishlist(<?= $product->id ?>, event)">
-                                            ❤️ Wishlist
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
 
             <!-- Orders Section -->
             <div id="orders-section" class="content-section" style="display: none;">
@@ -378,60 +262,6 @@
                 </div>
             </div>
 
-            <!-- Wishlist Section -->
-            <div id="wishlist-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">My Wishlist</h1>
-                    <p class="content-subtitle">Products you plan to purchase later</p>
-                </div>
-
-                <div class="products-grid" id="wishlist-list">
-                    <?php if (empty($wishlistItems)): ?>
-                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 20px;"></div>
-                            <h3>Your wishlist is empty</h3>
-                            <p>Browse products and click "Wishlist" to save them here.</p>
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($wishlistItems as $item): ?>
-                            <div class="product-card" 
-                                 data-wishlist-product="<?= (int)$item->product_id ?>"
-                                 data-id="<?= (int)$item->product_id ?>"
-                                 data-name="<?= strtolower(htmlspecialchars($item->name ?? 'Product')) ?>"
-                                 data-image="<?= !empty($item->image) ? htmlspecialchars($item->image) : '' ?>">
-                                <div class="product-image">
-                                    <?php if (!empty($item->image) && file_exists("assets/images/products/" . $item->image)): ?>
-                                        <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($item->image) ?>"
-                                            alt="<?= htmlspecialchars($item->name) ?>">
-                                    <?php else: ?>
-                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
-                                            alt="<?= htmlspecialchars($item->name) ?>"
-                                            style="opacity: 0.6;">
-                                    <?php endif; ?>
-                                </div>
-                                <div class="product-info">
-                                    <h3 class="product-name"><?= htmlspecialchars($item->name ?? 'Product unavailable') ?></h3>
-                                    <div class="product-price">
-                                        <?= isset($item->price) ? 'Rs. ' . number_format($item->price, 2) . '/kg' : 'Price unavailable' ?>
-                                    </div>
-                                    <div class="product-stock">
-                                        <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
-                                    </div>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                                                                                <button class="btn btn-primary btn-sm"
-                                                                                        onclick="addToCartAjax(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
-                                                                                            Add to Cart
-                                                                                </button>
-                                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
 
 
             <!-- Requests Section -->
@@ -464,7 +294,7 @@
                             <label>Additional Details</label>
                             <textarea class="form-control" rows="4" placeholder="Describe your requirements..."></textarea>
                         </div>
-                        <button class="btn btn-primary" 
+                        <button class="btn btn-primary"
                             style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important; border: none !important; padding: 12px 32px !important; font-size: 1rem !important; font-weight: 600 !important; border-radius: 8px !important; color: white !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;"
                             onmouseover="this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.5)'; this.style.transform='translateY(-2px)';"
                             onmouseout="this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'; this.style.transform='translateY(0)';"
@@ -488,7 +318,7 @@
                                 <span class="order-status pending">PENDING</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Target Price: Rs. 80/kg</p>
-                            <button class="btn btn-sm btn-outline" 
+                            <button class="btn btn-sm btn-outline"
                                 style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3) !important;"
                                 onmouseover="this.style.boxShadow='0 5px 14px rgba(33, 150, 243, 0.5)'; this.style.transform='translateY(-2px)';"
                                 onmouseout="this.style.boxShadow='0 3px 10px rgba(33, 150, 243, 0.3)'; this.style.transform='translateY(0)';"
@@ -506,7 +336,7 @@
                                 <span class="order-status delivered">FULFILLED</span>
                             </div>
                             <p style="color: #666; margin: 0 0 12px 0;">Final Price: Rs. 120/kg</p>
-                            <button class="btn btn-sm btn-outline" 
+                            <button class="btn btn-sm btn-outline"
                                 style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3) !important;"
                                 onmouseover="this.style.boxShadow='0 5px 14px rgba(255, 152, 0, 0.5)'; this.style.transform='translateY(-2px)';"
                                 onmouseout="this.style.boxShadow='0 3px 10px rgba(255, 152, 0, 0.3)'; this.style.transform='translateY(0)';"

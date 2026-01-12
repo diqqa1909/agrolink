@@ -2,6 +2,16 @@
 
 const API_BASE = (window.APP_ROOT || '') + '/farmerproducts';
 
+// Escape HTML to prevent XSS
+function escapeHtml(text = '') {
+    if (!text || typeof text !== 'string') {
+        return '';
+    }
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Edit product form
 let editProductBound = false;
 
@@ -103,13 +113,27 @@ function initializeEditForm(){
 
 // Load products from backend
 function loadFarmerProducts() {
+  console.log('🔄 Loading farmer products from:', `${API_BASE}/farmerList`);
   fetch(`${API_BASE}/farmerList`, { credentials: 'include' })
-    .then(r => r.json())
-    .then(res => {
-      if (res.success) populateProductsTable(res.products);
-      else showNotification(res.error || 'Failed to load', 'error');
+    .then(r => {
+      console.log('📥 Response status:', r.status);
+      return r.json().then(data => ({ status: r.status, data }));
     })
-    .catch(() => showNotification('Failed to load products', 'error'));
+    .then(({ status, data }) => {
+      console.log('✅ Response data:', data);
+      if (status === 200 && data.success) {
+        console.log('📦 Products loaded:', data.products);
+        populateProductsTable(data.products);
+      } else {
+        const error = data.error || 'Failed to load products';
+        console.error('❌ Error:', error, 'Status:', status);
+        showNotification(error, 'error');
+      }
+    })
+    .catch(err => {
+      console.error('❌ Fetch error:', err);
+      showNotification('Failed to load products: ' + err.message, 'error');
+    });
 }
 
 // Submit add product
