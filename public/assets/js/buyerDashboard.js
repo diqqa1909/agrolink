@@ -1,13 +1,12 @@
+
 // Buyer Dashboard JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeBuyerDashboard();
     updateCartBadge();
-    // Initialize profile defaults for modern profile UI
     loadProfileData();
     loadWishlist();
     
-    // Listen for hash changes (when navigating from external pages)
     window.addEventListener('hashchange', function() {
         const hash = window.location.hash.substring(1);
         if (hash && document.getElementById(hash + '-section')) {
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Also check hash after a short delay (for external navigation)
     setTimeout(function() {
         const hash = window.location.hash.substring(1);
         if (hash && document.getElementById(hash + '-section')) {
@@ -24,29 +22,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-// Initialize Dashboard
 function initializeBuyerDashboard() {
-    // Check for hash fragment in URL
-    const hash = window.location.hash.substring(1); // Remove the # symbol
+    const hash = window.location.hash.substring(1);
     
     if (hash && document.getElementById(hash + '-section')) {
-        // Show the section specified in the hash
         showSection(hash);
     } else {
-        // Show dashboard section by default
         if (document.getElementById('dashboard-section')) {
             showSection('dashboard');
         }
     }
     
-    // Add click handlers to menu links
     document.querySelectorAll('.menu-link').forEach(link => {
         link.addEventListener('click', function(e) {
-            // Check if it's the cart link (external)
             if (this.getAttribute('href') !== '#') {
-                return; // Allow default behavior for cart link
+                return;
             }
-            
             e.preventDefault();
             const section = this.dataset.section;
             if (section) {
@@ -56,20 +47,16 @@ function initializeBuyerDashboard() {
     });
 }
 
-// Show Section Function
 function showSection(sectionName) {
-    // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
     
-    // Show selected section
     const targetSection = document.getElementById(sectionName + '-section');
     if (targetSection) {
         targetSection.style.display = 'block';
     }
     
-    // Update active menu link
     document.querySelectorAll('.menu-link').forEach(link => {
         link.classList.remove('active');
         if (link.dataset.section === sectionName) {
@@ -77,7 +64,6 @@ function showSection(sectionName) {
         }
     });
     
-    // Scroll to top smoothly
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -88,9 +74,6 @@ function showSection(sectionName) {
     }
 }
 
-// showNotification is defined in main.js and available globally
-
-// Profile: populate defaults and avatar (modern profile UI)
 function loadProfileData() {
     const profilePhotoEl = document.getElementById('profilePhoto');
     const profileNameEl = document.getElementById('profileName');
@@ -115,7 +98,6 @@ function loadProfileData() {
     if (profileAddressEl && !profileAddressEl.value) profileAddressEl.value = '123, Main Street, Colombo 07, Sri Lanka';
 }
 
-// Profile: simple client-side validation and save feedback (for dashboard profile section)
 function updateProfile() {
     const name = document.getElementById('profileName')?.value?.trim();
     const email = document.getElementById('profileEmail')?.value?.trim();
@@ -130,23 +112,6 @@ function updateProfile() {
     showNotification('Profile updated successfully!', 'success');
 }
 
-// Buyer Profile CRUD functions (for dedicated profile page)
-function loadBuyerProfileData() {
-    // This function is defined in buyerProfileContent.view.php
-    // If called from dashboard, it will load profile data
-    if (typeof window.loadBuyerProfileData === 'function') {
-        window.loadBuyerProfileData();
-    }
-}
-
-function saveBuyerProfile() {
-    // This function is defined in buyerProfileContent.view.php
-    if (typeof window.saveBuyerProfile === 'function') {
-        window.saveBuyerProfile();
-    }
-}
-
-// Profile: upload photo button handler
 function uploadPhoto() {
     let input = document.getElementById('photoUploadInput');
     if (!input) {
@@ -187,7 +152,6 @@ function uploadPhoto() {
     input.click();
 }
 
-// Filter products based on search and filters
 function filterProducts() {
     const searchInput = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const categoryFilter = document.getElementById('categoryFilter')?.value.toLowerCase() || '';
@@ -203,18 +167,10 @@ function filterProducts() {
         const location = card.getAttribute('data-location') || '';
         const price = parseFloat(card.getAttribute('data-price')) || 0;
         
-        // Search filter
-        const matchesSearch = searchInput === '' || 
-                             name.includes(searchInput) || 
-                             farmer.includes(searchInput);
-        
-        // Category filter
+        const matchesSearch = searchInput === '' || name.includes(searchInput) || farmer.includes(searchInput);
         const matchesCategory = categoryFilter === '' || category === categoryFilter;
-        
-        // Location filter
         const matchesLocation = locationFilter === '' || location.includes(locationFilter);
         
-        // Price filter
         let matchesPrice = true;
         if (priceFilter) {
             if (priceFilter === '0-100') {
@@ -228,7 +184,6 @@ function filterProducts() {
             }
         }
         
-        // Show/hide based on all filters
         if (matchesSearch && matchesCategory && matchesLocation && matchesPrice) {
             card.style.display = 'block';
         } else {
@@ -236,7 +191,6 @@ function filterProducts() {
         }
     });
     
-    // Check if no products match
     const visibleCards = document.querySelectorAll('.product-card[style="display: block;"]');
     const productsGrid = document.getElementById('productsGrid');
     
@@ -259,19 +213,15 @@ function filterProducts() {
     }
 }
 
-// Add to cart function - AJAX call to backend
 function addToCart(productId, productName, price, maxQuantity) {
-    // Debug: log call
-    try { console.log('addToCart called:', productId, productName, price, maxQuantity); } catch(e){}
+    console.log('addToCart called:', productId, productName, price, maxQuantity);
 
-    // Show loading / find caller button more robustly
     let btn = null;
     try {
         btn = (typeof event !== 'undefined' && event?.target) ||
               document.querySelector(`.product-card[data-id="${productId}"] .btn-add-cart`) ||
-              document.querySelector(`.product-card[data-wishlist-product="${productId}"] .btn-add-cart`) ||
+              document.querySelector(`.product-card[data-wishlist-product="${productId}"] .btn-add-cart-from-wishlist`) ||
               document.querySelector(`.product-card[data-id="${productId}"] button`) ||
-              document.querySelector(`.product-card[data-wishlist-product="${productId}"] button`) ||
               null;
     } catch (e) {
         btn = null;
@@ -283,26 +233,19 @@ function addToCart(productId, productName, price, maxQuantity) {
         btn.textContent = 'Adding...';
     }
     
-    // Get product details from the card (prefer by id for reliability)
-    // Check for both regular product cards and wishlist product cards
     const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
-                        document.querySelector(`.product-card[data-wishlist-product="${productId}"]`) ||
-                        document.querySelector(`.product-card[data-name="${productName.toLowerCase()}"]`);
-    // Determine image filename to send to server
+                        document.querySelector(`.product-card[data-wishlist-product="${productId}"]`);
+    
     let imageFile = '';
     if (productCard) {
-        // 1) Prefer explicit data-image from markup
         imageFile = productCard.getAttribute('data-image') || '';
-        // 2) Otherwise, try parsing the img src basename if present
         if (!imageFile) {
             const imgEl = productCard.querySelector('.product-image img');
             const src = imgEl?.getAttribute('src') || '';
             if (src && !/default-product\.svg$/i.test(src)) {
                 try {
-                    // Extract filename from full URL path
                     const urlParts = src.split('/');
                     imageFile = urlParts[urlParts.length - 1];
-                    // Remove query params if any
                     if (imageFile.includes('?')) {
                         imageFile = imageFile.split('?')[0];
                     }
@@ -312,10 +255,9 @@ function addToCart(productId, productName, price, maxQuantity) {
             }
         }
     }
-    // 3) Fallback to emoji if no image available
+    
     const fallbackEmoji = productCard?.querySelector('.product-placeholder')?.textContent || '🌱';
     
-    // Prepare data
     const formData = new FormData();
     formData.append('product_id', productId);
     formData.append('product_name', productName);
@@ -323,28 +265,21 @@ function addToCart(productId, productName, price, maxQuantity) {
     formData.append('quantity', 1);
     formData.append('product_image', imageFile || fallbackEmoji);
     
-    // Send AJAX request
     fetch(window.APP_ROOT + '/Cart/add', {
         method: 'POST',
         body: formData,
         credentials: 'include'
     })
     .then(response => {
-        // Log response for debugging
         console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
-        // Check if response is JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             throw new Error('Server returned non-JSON response');
         }
-        
         return response.json();
     })
     .then(data => {
         console.log('Response data:', data);
-        
         if (data.success) {
             showNotification(data.message, 'success');
             updateCartBadge(data.cartItemCount);
@@ -364,9 +299,7 @@ function addToCart(productId, productName, price, maxQuantity) {
     });
 }
 
-// Update cart badge count
 function updateCartBadge(count) {
-    // If count is provided, use it
     if (count !== undefined) {
         const badges = document.querySelectorAll('.cart-badge');
         badges.forEach(badge => {
@@ -376,7 +309,6 @@ function updateCartBadge(count) {
         return;
     }
     
-    // Otherwise, fetch from server
     fetch(window.APP_ROOT + '/Cart/getData', {
         method: 'GET',
         credentials: 'include'
@@ -396,7 +328,6 @@ function updateCartBadge(count) {
     });
 }
 
-// Buy Now: clear cart, add only this product, then redirect to checkout
 function buyNow(productId, productName, price, maxQuantity) {
     const btn = event?.target;
     const originalText = btn?.textContent;
@@ -405,8 +336,7 @@ function buyNow(productId, productName, price, maxQuantity) {
         btn.textContent = 'Processing...';
     }
 
-    const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
-                        document.querySelector(`.product-card[data-name="${(productName || '').toLowerCase()}"]`);
+    const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
     let imageFile = '';
     if (productCard) {
         imageFile = productCard.getAttribute('data-image') || '';
@@ -414,28 +344,30 @@ function buyNow(productId, productName, price, maxQuantity) {
             const imgEl = productCard.querySelector('.product-image img');
             const src = imgEl?.getAttribute('src') || '';
             if (src && !/default-product\.svg$/i.test(src)) {
-                try { imageFile = src.split('/').pop(); } catch (e) { imageFile = ''; }
+                try { 
+                    imageFile = src.split('/').pop(); 
+                } catch (e) { 
+                    imageFile = ''; 
+                }
             }
         }
     }
 
     const fallbackEmoji = productCard?.querySelector('.product-placeholder')?.textContent || '🌱';
 
-    // First, clear the cart
     fetch(window.APP_ROOT + '/Cart/clear', {
         method: 'POST',
         credentials: 'include'
     })
     .then(resp => resp.json())
     .then(clearData => {
-        // Then add only this product
         const formData = new FormData();
         formData.append('product_id', productId);
         formData.append('product_name', productName);
         formData.append('product_price', price);
         formData.append('quantity', 1);
         formData.append('product_image', imageFile || fallbackEmoji);
-        formData.append('buy_now', '1'); // Flag to indicate buy now
+        formData.append('buy_now', '1');
 
         return fetch(window.APP_ROOT + '/Cart/add', {
             method: 'POST',
@@ -447,7 +379,6 @@ function buyNow(productId, productName, price, maxQuantity) {
     .then(data => {
         if (data && data.success) {
             updateCartBadge(data.cartItemCount);
-            // Redirect to checkout page with buy now flag
             window.location.href = window.APP_ROOT + '/Checkout?buy_now=1&product_id=' + productId;
         } else {
             showNotification(data.message || 'Failed to proceed to checkout', 'error');
@@ -467,7 +398,6 @@ function buyNow(productId, productName, price, maxQuantity) {
     });
 }
 
-// Show loading overlay
 function showLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
@@ -475,7 +405,6 @@ function showLoading() {
     }
 }
 
-// Hide loading overlay
 function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
@@ -483,7 +412,6 @@ function hideLoading() {
     }
 }
 
-// Update quantity in cart - NO REFRESH
 function updateQuantity(productId, newQuantity) {
     if (newQuantity <= 0) {
         removeFromCart(productId);
@@ -515,16 +443,13 @@ function updateQuantity(productId, newQuantity) {
         if (data.success) {
             showNotification(data.message, 'success');
             
-            // Update the UI without refreshing
             const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
             if (cartItem) {
-                // Update quantity display
                 const quantityDisplay = cartItem.querySelector('.quantity-display');
                 if (quantityDisplay) {
                     quantityDisplay.textContent = newQuantity;
                 }
                 
-                // Update total price for this item
                 const priceElement = cartItem.querySelector('.cart-item-total-price');
                 const unitPriceText = cartItem.querySelector('.cart-item-unit-price')?.textContent || '0';
                 const unitPrice = parseFloat(unitPriceText.replace(/[^\d.]/g, '')) || 0;
@@ -532,10 +457,7 @@ function updateQuantity(productId, newQuantity) {
                     priceElement.textContent = 'Rs. ' + (unitPrice * newQuantity).toFixed(2);
                 }
                 
-                // Update cart badge
                 updateCartBadge(data.cartItemCount);
-                
-                // Recalculate cart total
                 recalculateCartTotal();
             }
         } else {
@@ -549,7 +471,6 @@ function updateQuantity(productId, newQuantity) {
     });
 }
 
-// Remove from cart - NO REFRESH
 function removeFromCart(productId) {
     if (!confirm('Are you sure you want to remove this item from your cart?')) {
         return;
@@ -579,7 +500,6 @@ function removeFromCart(productId) {
         if (data.success) {
             showNotification(data.message, 'success');
             
-            // Remove the item from DOM with animation
             const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
             if (cartItem) {
                 cartItem.style.transition = 'all 0.3s ease';
@@ -588,17 +508,12 @@ function removeFromCart(productId) {
                 
                 setTimeout(() => {
                     cartItem.remove();
-                    
-                    // Update cart badge
                     updateCartBadge(data.cartItemCount);
-                    
-                    // Recalculate cart total
                     recalculateCartTotal();
                     
-                    // Check if cart is empty
                     const remainingItems = document.querySelectorAll('.cart-item');
                     if (remainingItems.length === 0) {
-                        location.reload(); // Reload to show empty cart message
+                        location.reload();
                     }
                 }, 300);
             }
@@ -613,7 +528,6 @@ function removeFromCart(productId) {
     });
 }
 
-// Clear cart - WITH REFRESH
 function clearCart() {
     if (!confirm('Are you sure you want to clear your entire cart?')) {
         return;
@@ -642,7 +556,6 @@ function clearCart() {
     });
 }
 
-// Recalculate cart total (helper function)
 function recalculateCartTotal() {
     let total = 0;
     let itemCount = 0;
@@ -656,7 +569,6 @@ function recalculateCartTotal() {
         itemCount += quantity;
     });
     
-    // Update summary
     const summaryValue = document.querySelector('.cart-summary-value');
     if (summaryValue) {
         summaryValue.textContent = itemCount;
@@ -673,13 +585,9 @@ function recalculateCartTotal() {
     }
 }
 
-// Proceed to checkout
 function proceedToCheckout() {
-    // Redirect to checkout page
     window.location.href = window.APP_ROOT + '/Checkout';
 }
-
-// ==================== WISHLIST FUNCTIONS ====================
 
 function addToWishlist(productId, evt) {
     const btn = evt?.currentTarget || evt?.target || null;
@@ -784,7 +692,7 @@ function renderWishlist(items) {
             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                 <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
                 <h3>Your wishlist is empty</h3>
-                <p>Browse products and click “Wishlist” to save them here.</p>
+                <p>Browse products and click "Wishlist" to save them here.</p>
             </div>
         `;
         return;
@@ -803,8 +711,14 @@ function renderWishlist(items) {
             ? `${escapeHtml(item.available_quantity)}kg available`
             : '';
 
+        const isOutOfStock = !item.available_quantity || item.available_quantity <= 0;
+
         return `
-            <div class="product-card" data-wishlist-product="${item.product_id}" data-id="${item.product_id}" data-name="${escapeHtml((item.name || 'Product').toLowerCase())}" data-image="${item.image || ''}">
+            <div class="product-card" 
+                 data-wishlist-product="${item.product_id}" 
+                 data-id="${item.product_id}" 
+                 data-name="${escapeHtml((item.name || 'Product').toLowerCase())}" 
+                 data-image="${escapeHtml(item.image || '')}">
                 <div class="product-image">
                     <img src="${image}" alt="${escapeHtml(item.name || 'Product')}" ${item.image ? '' : 'style="opacity:0.6;"'}>
                 </div>
@@ -813,11 +727,17 @@ function renderWishlist(items) {
                     <div class="product-price">${price}</div>
                     <div class="product-stock">${stock}</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                        <button class="btn btn-primary btn-sm btn-add-cart"
-                            onclick="addToCartAjax(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
-                            🛒 Add to Cart
+                        <button class="btn btn-primary btn-sm btn-add-cart-from-wishlist"
+                            data-product-id="${item.product_id}"
+                            data-product-name="${escapeHtml(item.name || 'Product')}"
+                            data-product-price="${item.price || 0}"
+                            data-product-stock="${item.available_quantity || 0}"
+                            data-product-image="${escapeHtml(item.image || '')}"
+                            ${isOutOfStock ? 'disabled' : ''}>
+                            🛒 ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(${item.product_id})">
+                        <button class="btn btn-danger btn-sm btn-remove-from-wishlist" 
+                                data-product-id="${item.product_id}">
                             Remove
                         </button>
                     </div>
@@ -825,6 +745,32 @@ function renderWishlist(items) {
             </div>
         `;
     }).join('');
+
+    attachWishlistEventListeners();
+}
+
+function attachWishlistEventListeners() {
+    const addButtons = document.querySelectorAll('.btn-add-cart-from-wishlist');
+    addButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = parseInt(this.dataset.productId);
+            const productName = this.dataset.productName;
+            const productPrice = parseFloat(this.dataset.productPrice);
+            const productStock = parseFloat(this.dataset.productStock);
+            
+            addToCart(productId, productName, productPrice, productStock);
+        });
+    });
+    
+    const removeButtons = document.querySelectorAll('.btn-remove-from-wishlist');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = parseInt(this.dataset.productId);
+            removeFromWishlist(productId);
+        });
+    });
 }
 
 function escapeHtml(text = '') {
@@ -833,7 +779,6 @@ function escapeHtml(text = '') {
     return div.innerHTML;
 }
 
-// Export functions to window
 window.showSection = showSection;
 window.filterProducts = filterProducts;
 window.addToCart = addToCart;
@@ -851,4 +796,3 @@ window.uploadPhoto = uploadPhoto;
 window.addToWishlist = addToWishlist;
 window.removeFromWishlist = removeFromWishlist;
 window.loadWishlist = loadWishlist;
-window.addToCartAjax = addToCart;
