@@ -39,13 +39,21 @@ class FarmerProfileController
             $profile = $this->farmerModel->getProfileByUserId($userId);
         }
 
+        // Build photo URL
+        $photoUrl = null;
+        if (!empty($profile->photo)) {
+            $photoUrl = $this->buildPhotoUrl($profile->photo);
+        }
+
         // Load and display the profile view through farmerDashboard layout
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
-            'contentView' => '../app/views/farmer/farmerProfileContent.view.php'
+            'photoUrl' => $photoUrl,
+            'contentView' => '../app/views/farmer/farmerProfileContent.view.php',
+            'pageScript' => 'profile.js'
         ];
 
         $this->view('farmer/farmerMain', $data);

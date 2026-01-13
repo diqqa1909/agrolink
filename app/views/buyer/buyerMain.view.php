@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Buyer Dashboard' ?> - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,11 +20,10 @@
 
     <!-- Dashboard Layout -->
     <div class="dashboard">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <ul class="sidebar-menu">
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard" class="menu-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>">
+                    <a href="<?= ROOT ?>/buyerdashboard" class="menu-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -36,9 +35,8 @@
                         Dashboard
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard#products" class="menu-link <?= ($activePage ?? '') === 'products' ? 'active' : '' ?>" onclick="scrollToProducts && scrollToProducts(event)">
+                    <a href="<?= ROOT ?>/buyerproducts" class="menu-link <?= ($activePage ?? '') === 'products' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -49,9 +47,8 @@
                         Products
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard#orders" class="menu-link <?= ($activePage ?? '') === 'orders' ? 'active' : '' ?>" onclick="scrollToOrders && scrollToOrders(event)">
+                    <a href="<?= ROOT ?>/buyerorders" class="menu-link <?= ($activePage ?? '') === 'orders' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
@@ -61,9 +58,8 @@
                         Orders
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard#tracking" class="menu-link <?= ($activePage ?? '') === 'tracking' ? 'active' : '' ?>" onclick="scrollToTracking && scrollToTracking(event)">
+                    <a href="<?= ROOT ?>/buyertracking" class="menu-link <?= ($activePage ?? '') === 'tracking' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -73,9 +69,8 @@
                         Tracking
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard#wishlist" class="menu-link <?= ($activePage ?? '') === 'wishlist' ? 'active' : '' ?>" onclick="scrollToWishlist && scrollToWishlist(event)">
+                    <a href="<?= ROOT ?>/wishlist" class="menu-link <?= ($activePage ?? '') === 'wishlist' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -84,7 +79,6 @@
                         Wishlist
                     </a>
                 </li>
-
                 <li>
                     <a href="<?= ROOT ?>/cart" class="menu-link <?= ($activePage ?? '') === 'cart' ? 'active' : '' ?>">
                         <div class="menu-icon">
@@ -95,12 +89,21 @@
                             </svg>
                         </div>
                         Cart
-                        <span class="cart-badge"><?= $cartItemCount ?? 0 ?></span>
+                        <span class="cart-badge">0</span>
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/croprequest" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>">
+                    <a href="<?= ROOT ?>/buyerreviews" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </div>
+                        Reviews
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/buyerrequests" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -110,9 +113,8 @@
                         Requests
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerDashboard#notifications" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>" onclick="scrollToNotifications && scrollToNotifications(event)">
+                    <a href="<?= ROOT ?>/buyernotifications" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -120,11 +122,11 @@
                             </svg>
                         </div>
                         Notifications
+                        <span class="badge">5</span>
                     </a>
                 </li>
-
                 <li>
-                    <a href="<?= ROOT ?>/buyerProfile" class="menu-link <?= ($activePage ?? '') === 'profile' ? 'active' : '' ?>">
+                    <a href="<?= ROOT ?>/buyerprofile" class="menu-link <?= ($activePage ?? '') === 'profile' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -140,7 +142,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Include the page-specific content. Try several candidate paths so includes resolve correctly.
+            // Resolve and include the page-specific content with a few fallbacks so relative paths work
             if (isset($contentView)) {
                 $viewToInclude = null;
 
@@ -153,7 +155,6 @@
                 ];
 
                 foreach ($candidates as $cand) {
-                    // Normalize the path by removing duplicate slashes
                     $candNorm = str_replace('\\', '/', $cand);
                     if (file_exists($candNorm)) {
                         $viewToInclude = $candNorm;
@@ -164,21 +165,23 @@
                 if ($viewToInclude) {
                     include $viewToInclude;
                 } else {
-                    echo "<div style=\"padding:20px;color:#c00;\">View not found: " . htmlspecialchars($contentView) . "</div>";
+                    echo '<div style="padding:20px;color:#c00;">View not found: ' . htmlspecialchars($contentView) . '</div>';
                 }
             }
             ?>
         </main>
     </div>
 
-    <!-- Make ROOT available to JS -->
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
         window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
         window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
+    <?php if (isset($pageScript)): ?>
+        <script src="<?= ROOT ?>/assets/js/buyer/<?= $pageScript ?>"></script>
+    <?php endif; ?>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 
 </html>

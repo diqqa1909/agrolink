@@ -12,7 +12,8 @@ class FarmerDashboardController
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
-            'contentView' => '../app/views/farmer/farmerDashboardContent.view.php'
+            'contentView' => '../app/views/farmer/farmerDashboardContent.view.php',
+            'pageScript' => 'farmerDashboard.js'
         ];
 
         $this->view('farmer/farmerMain', $data);

@@ -7,24 +7,28 @@
             </div>
             <div class="profile-header-content">
                 <div class="profile-photo-section">
-                    <div id="profilePhotoWrapper" class="profile-photo-wrapper">
-                        <img id="profilePhotoDisplay" src="<?= $photoUrl ?>" alt="Profile Photo" class="profile-photo">
-                        <!-- Photo Overlay Actions -->
-                        <div id="photoOverlay">
-                            <div>
-                                <button type="button">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                    </svg>
-                                </button>
-                                <span></span>
-                                <button type="button" onclick="removeProfilePhoto()">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    </svg>
-                                </button>
-                            </div>
+                    <div id="profilePhotoWrapper" class="profile-photo-wrapper" style="position: relative; width: 120px; height: 120px; border-radius: 50%; overflow: hidden; cursor: pointer; display: inline-block;">
+                        <img id="profilePhotoDisplay" src="<?= $photoUrl ?>" class="profile-photo" style="display: block; width: 100%; height: 100%; object-fit: cover;">
+                        <!-- Default Icon (shown when no photo) -->
+                        <div id="defaultProfileIcon" style="position: absolute; top: 0; left: 0; width: 120px; height: 120px; background: #f0f0f0; border-radius: 50%; align-items: center; justify-content: center; display: none;">
+                            <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color: #bbb;">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <!-- Photo Overlay Actions (Hover) -->
+                        <div id="photoOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; justify-content: center; border-radius: 50%;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                            <button type="button" id="editPhotoBtn" title="Edit Photo" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                </svg>
+                            </button>
+                            <button type="button" id="deletePhotoBtn" title="Delete Photo" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                     <div class="profile-header-info">
@@ -234,4 +238,3 @@
     window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
 </script>
 <script src="<?= ROOT ?>/assets/js/main.js"></script>
-<script src="<?= ROOT ?>/assets/js/farmerDashboard.js"></script>

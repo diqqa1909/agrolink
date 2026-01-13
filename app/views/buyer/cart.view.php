@@ -141,3 +141,51 @@
         </div>
     </div>
 
+    <script>
+        window.APP_ROOT = "<?= ROOT ?>";
+
+        function scrollToProducts(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#products';
+        }
+
+        function scrollToOrders(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#orders';
+        }
+
+        function scrollToTracking(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#tracking';
+        }
+
+        function scrollToWishlist(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#wishlist';
+        }
+
+        function scrollToRequests(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#requests';
+        }
+
+        function scrollToReviews(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#reviews';
+        }
+
+        function scrollToNotifications(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#notifications';
+        }
+
+        function scrollToProfile(e) {
+            e.preventDefault();
+            window.location.href = '<?= ROOT ?>/buyerDashboard#profile';
+        }
+    </script>
+    <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/buyer/buyerDashboard.js"></script>
+</body>
+
+</html>

@@ -1,50 +1,115 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- Products Section - Content view rendered inside buyerMain layout -->
+<div class="content-header">
+    <h1 class="content-title">Browse Products</h1>
+    <p class="content-subtitle">Discover fresh produce from local farmers</p>
+</div>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products - AgroLink</title>
-  <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style.css">
-</head>
-
-<body>
-  <div class="container section">
-    <h1 class="section-title">Available Products</h1>
-
-    <form method="GET" class="grid grid-3 mb-md" style="gap:1rem;">
-      <input class="form-control" type="text" name="search" placeholder="Search..." value="<?= esc($filters['search'] ?? '') ?>">
-      <input class="form-control" type="number" step="0.01" name="max_price" placeholder="Max price" value="<?= esc($filters['max_price'] ?? '') ?>">
-      <input class="form-control" type="text" name="location" placeholder="Location" value="<?= esc($filters['location'] ?? '') ?>">
-      <button class="btn btn-primary">Filter</button>
-    </form>
-
-    <div class="product-grid">
-      <?php if (!empty($products)): foreach ($products as $p): ?>
-          <div class="product-card">
-            <img class="product-image" src="<?= ROOT ?>/<?= $p->image ?: 'assets/img/default-product.jpg' ?>" alt="<?= esc($p->name) ?>">
-            <div class="product-info">
-              <div class="product-name"><?= esc($p->name) ?></div>
-              <div class="product-price">Rs. <?= number_format($p->price, 2) ?></div>
-              <div class="product-meta">
-                <span>by <?= esc($p->farmer_name) ?></span>
-                <?php if ($p->location): ?>
-                  <span><?= esc($p->location) ?></span>
-                <?php endif; ?>
-              </div>
-              <p class="product-stock"><?= $p->quantity ?> available</p>
-              <button class="btn btn-primary btn-sm" onclick="addToCart('<?= $p->id ?>')">Add to cart</button>
-            </div>
-          </div>
-        <?php endforeach;
-      else: ?>
-        <p>No products found.</p>
-      <?php endif; ?>
+<!-- Filter Section -->
+<div class="content-card">
+    <div class="card-header">
+        <h3 class="card-title">Filter Products</h3>
     </div>
-  </div>
+    <div class="card-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+            <div>
+                <label for="searchInput" style="display: none;">Search Products</label>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="filterProducts()" aria-label="Search products">
+            </div>
+            <div>
+                <label for="categoryFilter" style="display: none;">Filter by Category</label>
+                <select id="categoryFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                    <option value="vegetables">Vegetables</option>
+                    <option value="fruits">Fruits</option>
+                    <option value="cereals">Cereals</option>
+                    <option value="legumes">Legumes</option>
+                    <option value="spices">Spices</option>
+                    <option value="yams">Yams</option>
+                    <option value="leafy">Leafy Greens</option>
+                </select>
+            </div>
+            <div>
+                <label for="locationFilter" style="display: none;">Filter by Location</label>
+                <select id="locationFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by location">
+                    <option value="">All Locations</option>
+                    <option value="colombo">Colombo</option>
+                    <option value="kandy">Kandy</option>
+                    <option value="matale">Matale</option>
+                    <option value="anuradhapura">Anuradhapura</option>
+                    <option value="galle">Galle</option>
+                    <option value="nuwara eliya">Nuwara Eliya</option>
+                    <option value="badulla">Badulla</option>
+                    <option value="kurunegala">Kurunegala</option>
+                </select>
+            </div>
+            <div>
+                <label for="priceFilter" style="display: none;">Filter by Price</label>
+                <select id="priceFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by price">
+                    <option value="">All Prices</option>
+                    <option value="0-100">Under Rs. 100</option>
+                    <option value="100-200">Rs. 100 - Rs. 200</option>
+                    <option value="200-500">Rs. 200 - Rs. 500</option>
+                    <option value="500+">Above Rs. 500</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <script src="<?= ROOT ?>/assets/js/main.js"></script>
-  <script src="<?= ROOT ?>/assets/js/buyerDashboard.js"></script>
-</body>
+<!-- Products Grid -->
+<div class="products-grid" id="productsGrid">
+    <?php if (empty($products)): ?>
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🌾</div>
+            <h3>No products available yet</h3>
+            <p>Check back later for fresh products from our farmers!</p>
+        </div>
+    <?php else: ?>
+        <?php foreach ($products as $product): ?>
+            <div class="product-card"
+                data-id="<?= htmlspecialchars($product->id) ?>"
+                data-name="<?= strtolower(htmlspecialchars($product->name)) ?>"
+                data-category="<?= strtolower(htmlspecialchars($product->category)) ?>"
+                data-location="<?= strtolower(htmlspecialchars($product->location)) ?>"
+                data-price="<?= htmlspecialchars($product->price) ?>"
+                data-farmer="<?= strtolower(htmlspecialchars($product->farmer_name ?? '')) ?>"
+                data-image="<?= !empty($product->image) ? htmlspecialchars($product->image) : '' ?>">
 
-</html>
+                <div class="product-image">
+                    <?php if (!empty($product->image) && file_exists("assets/images/products/" . $product->image)): ?>
+                        <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($product->image) ?>"
+                            alt="<?= htmlspecialchars($product->name) ?>">
+                    <?php else: ?>
+                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
+                            alt="<?= htmlspecialchars($product->name) ?>"
+                            style="opacity: 0.6;">
+                    <?php endif; ?>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name"><?= htmlspecialchars($product->name) ?></h3>
+                    <p class="product-farmer">
+                        <?= htmlspecialchars($product->farmer_name ?? 'Unknown Farmer') ?>
+                        (<?= htmlspecialchars($product->location ?? 'Unknown Location') ?>)
+                    </p>
+                    <p class="product-description">
+                        <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>
+                    </p>
+                    <div class="product-price">Rs. <?= number_format($product->price, 2) ?>/kg</div>
+                    <div class="product-stock">
+                        <?= htmlspecialchars($product->quantity) ?>kg available
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-add-cart"
+                            onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                            🛒 Add to Cart
+                        </button>
+                        <button class="btn btn-outline" onclick="addToWishlist(<?= $product->id ?>, event)">
+                            ❤️ Wishlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>

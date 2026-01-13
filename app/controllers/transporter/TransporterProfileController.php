@@ -33,22 +33,28 @@ class TransporterProfileController
         // Get transporter profile
         $profile = $this->transporterModel->getProfileByUserId($userId);
 
-        // If no profile exists, create empty one
+        // If no profile exists, create with defaults
         if (!$profile) {
-            $this->transporterModel->createProfile($userId, []);
+            $this->transporterModel->createProfile($userId, [
+                'phone' => '',
+                'district' => '',
+                'transporter_type' => '',
+                'service_areas' => ''
+            ]);
             $profile = $this->transporterModel->getProfileByUserId($userId);
         }
 
-        // Load and display the profile view through transporterLayout
+        // Load and display the profile view through transporterMain
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
-            'contentView' => '../app/views/transporter/transporterProfile.view.php'
+            'pageScript' => 'profile.js',
+            'contentView' => '../app/views/transporter/transporterProfileContent.view.php'
         ];
 
-        $this->view('components/transporterLayout', $data);
+        $this->view('transporter/transporterMain', $data);
     }
 
     /**
@@ -83,8 +89,13 @@ class TransporterProfileController
         $profile = $this->transporterModel->getProfileByUserId($userId);
 
         if (!$profile) {
-            // Create default profile if doesn't exist
-            $this->transporterModel->createProfile($userId, []);
+            // Create default profile with empty string defaults instead of nulls
+            $this->transporterModel->createProfile($userId, [
+                'phone' => '',
+                'district' => '',
+                'transporter_type' => '',
+                'service_areas' => ''
+            ]);
             $profile = $this->transporterModel->getProfileByUserId($userId);
         }
 
@@ -99,6 +110,114 @@ class TransporterProfileController
             'profile' => $profile,
             'photoUrl' => $photoUrl
         ]);
+        exit;
+    }
+
+    /**
+     * Get transporter profile data via AJAX (for profile.js)
+     */
+    public function getData()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]);
+            exit;
+        }
+
+        $userId = $_SESSION['USER']->id;
+        $user = $this->userModel->find($userId);
+        $profile = $this->transporterModel->getProfileByUserId($userId);
+
+        if (!$profile) {
+            $this->transporterModel->createProfile($userId, [
+                'phone' => '',
+                'district' => '',
+                'transporter_type' => '',
+                'service_areas' => ''
+            ]);
+            $profile = $this->transporterModel->getProfileByUserId($userId);
+        }
+
+        // Merge user and profile data
+        $mergedData = (object) array_merge((array) $user, (array) $profile);
+
+        // Get statistics
+        $stats = $this->getTransporterStats($userId);
+
+        echo json_encode([
+            'success' => true,
+            'user' => $mergedData,
+            'stats' => $stats
+        ]);
+        exit;
+    }
+
+    /**
+     * Save profile data via AJAX (for profile.js)
+     */
+    public function saveData()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
+        }
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $_SESSION['USER']->id;
+
+        // Validate required fields
+        if (empty($data['name']) || empty($data['email'])) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Name and email are required']);
+            exit;
+        }
+
+        try {
+            // Update user data (name, email)
+            $this->userModel->update($userId, [
+                'name' => trim($data['name']),
+                'email' => trim($data['email'])
+            ]);
+
+            // Update profile data
+            $profileData = [
+                'phone' => trim($data['phone'] ?? ''),
+                'district' => trim($data['district'] ?? ''),
+                'transporter_type' => trim($data['transporter_type'] ?? ''),
+                'service_areas' => trim($data['service_areas'] ?? '')
+            ];
+
+            $this->transporterModel->updateProfile($userId, $profileData);
+
+            // Update session
+            $_SESSION['USER']->name = $data['name'];
+            $_SESSION['USER']->email = $data['email'];
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Profile updated successfully'
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error saving profile: ' . $e->getMessage()
+            ]);
+        }
         exit;
     }
 
@@ -539,5 +658,20 @@ class TransporterProfileController
             ]);
         }
         exit;
+    }
+
+    /**
+     * Get transporter statistics
+     */
+    private function getTransporterStats($userId)
+    {
+        // This would typically query your database for delivery stats
+        // For now, returning sample data structure
+        return [
+            'total_deliveries' => 0,
+            'average_rating' => 0,
+            'on_time_rate' => 0,
+            'total_earnings' => 0
+        ];
     }
 }

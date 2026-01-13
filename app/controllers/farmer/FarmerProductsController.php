@@ -24,6 +24,7 @@ class FarmerProductsController
             'pageTitle'   => 'My Products',
             'activePage'  => 'products',
             'contentView' => '../app/views/farmer/farmerProductsContent.view.php',
+            'pageScript'  => 'products.js'
         ];
 
         $this->view('farmer/farmerMain', $data);
@@ -192,11 +193,22 @@ class FarmerProductsController
     public function farmerList()
     {
         header('Content-Type: application/json');
-        if (!$this->requireFarmer()) return;
+        
+        if (!isset($_SESSION['USER'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Not logged in']);
+            return;
+        }
+        
+        if (($_SESSION['USER']->role ?? '') !== 'farmer') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Not a farmer']);
+            return;
+        }
 
         $farmerId = (int)$_SESSION['USER']->id;
         $items = $this->productModel->getByFarmer($farmerId);
-        echo json_encode(['success' => true, 'products' => $items]);
+        echo json_encode(['success' => true, 'products' => $items ?: []]);
     }
 
     // Buyer products list (JSON) - optional, kept for compatibility

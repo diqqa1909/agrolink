@@ -39,16 +39,23 @@ class BuyerProfileController
             $profile = $this->buyerModel->getProfileByUserId($userId);
         }
 
-        // Load and display the profile view through buyerLayout
+        // Build photo URL if exists
+        $photoUrl = null;
+        if (!empty($profile->profile_photo)) {
+            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
+        }
+
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
-            'contentView' => '../app/views/buyer/buyerProfile.view.php'
+            'photoUrl' => $photoUrl,
+            'pageScript' => 'profile.js',
+            'contentView' => '../app/views/buyer/buyerProfileContent.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**
@@ -90,8 +97,8 @@ class BuyerProfileController
 
         // Add computed photo URL for the frontend
         $photoUrl = null;
-        if (!empty($profile->photo)) {
-            $photoUrl = $this->buildPhotoUrl($profile->photo);
+        if (!empty($profile->profile_photo)) {
+            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
         echo json_encode([
@@ -136,7 +143,6 @@ class BuyerProfileController
                 'phone' => trim($_POST['phone'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
                 'apartment_code' => trim($_POST['apartment_code'] ?? ''),
-                'street_number' => trim($_POST['street_number'] ?? ''),
                 'street_name' => trim($_POST['street_name'] ?? ''),
                 'city' => trim($_POST['city'] ?? ''),
                 'postal_code' => trim($_POST['postal_code'] ?? '')
@@ -196,7 +202,6 @@ class BuyerProfileController
                 'phone' => $data['phone'],
                 'district' => $data['district'],
                 'apartment_code' => $data['apartment_code'],
-                'street_number' => $data['street_number'],
                 'street_name' => $data['street_name'],
                 'city' => $data['city'],
                 'postal_code' => $data['postal_code']

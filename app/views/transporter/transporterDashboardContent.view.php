@@ -569,7 +569,6 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">Add New Vehicle</h3>
-            <span class="modal-close" data-modal-close>&times;</span>
         </div>
         <div class="modal-body">
             <form id="addVehicleForm">
@@ -656,43 +655,39 @@
 
         setupAddVehicleForm();
 
-        // Get section from URL query parameter or default to dashboard
-        const params = new URLSearchParams(window.location.search);
-        const section = params.get('section') || 'dashboard';
-        showSection(section);
+        showSection('dashboard');
     }
 
     function setupNavigation() {
-        const menuLinks = document.querySelectorAll('.menu-link[data-section]');
+        const menuLinks = document.querySelectorAll('.menu-link');
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-
                 const section = this.getAttribute('data-section');
-                if (section) {
-                    showSection(section);
+                showSection(section);
 
-                    menuLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                }
-                return false;
+                menuLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
             });
         });
     }
 
     function showSection(sectionName) {
-        // Hide all sections
         const sections = document.querySelectorAll('.content-section');
         sections.forEach(section => section.style.display = 'none');
 
-        // Show target section
         const targetSection = document.getElementById(sectionName + '-section');
         if (targetSection) {
             targetSection.style.display = 'block';
-        } else {
-            console.warn('Section not found:', sectionName + '-section');
         }
+
+        const menuLinks = document.querySelectorAll('.menu-link');
+        menuLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-section') === sectionName) {
+                link.classList.add('active');
+            }
+        });
     }
 
     function addTabStyles() {
@@ -915,10 +910,9 @@
         const uname = (window.USER_NAME || 'Transporter').trim() || 'Transporter';
         const uemail = (window.USER_EMAIL || '').trim();
 
-        // Update profile photo if it exists on this page
+        // Update profile photo
         const profilePhoto = document.getElementById('profilePhoto');
         const displayName = document.getElementById('displayProfileName');
-
         if (profilePhoto) {
             const encoded = encodeURIComponent(uname);
             profilePhoto.src = `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=150`;
@@ -927,20 +921,14 @@
             displayName.textContent = uname;
         }
 
-        // Populate form fields only if they exist (profile page only)
-        const profileNameEl = document.getElementById('profileName');
-        const profileEmailEl = document.getElementById('profileEmail');
-        const profilePhoneEl = document.getElementById('profilePhone');
-
-        if (profileNameEl && profileEmailEl && profilePhoneEl) {
-            if (user) {
-                profileNameEl.value = user.name || uname;
-                profileEmailEl.value = user.email || uemail;
-                profilePhoneEl.value = user.phone || '';
-            } else {
-                profileNameEl.value = uname;
-                profileEmailEl.value = uemail || '';
-            }
+        // Populate form fields
+        if (user) {
+            document.getElementById('profileName').value = user.name || uname;
+            document.getElementById('profileEmail').value = user.email || uemail;
+            document.getElementById('profilePhone').value = user.phone || '';
+        } else {
+            document.getElementById('profileName').value = uname;
+            document.getElementById('profileEmail').value = uemail || '';
         }
     }
 
@@ -1139,18 +1127,16 @@
         fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.vehicles && data.vehicles.length > 0) {
+                if (data.success && data.vehicles) {
                     displayVehicles(data.vehicles);
                     updateCurrentStatus(data.vehicles);
                 } else {
-                    // Show empty state with proper message
                     displayVehicles([]);
                     updateCurrentStatus([]);
                 }
             })
             .catch(error => {
                 console.error('Error loading vehicles:', error);
-                showNotification('Failed to load vehicles', 'error');
                 displayVehicles([]);
                 updateCurrentStatus([]);
             });

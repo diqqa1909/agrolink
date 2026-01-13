@@ -38,7 +38,7 @@ class CartController
             'contentView' => '../app/views/buyer/cart.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerMain', $data);
     }
 
     /**
