@@ -63,9 +63,26 @@ class BuyerModel
             return false;
         }
 
+        // First check if profile exists
+        $checkSql = "SELECT id FROM {$this->table} WHERE user_id = :user_id";
+        $profileExists = $this->get_row($checkSql, ['user_id' => $userId]);
+        
+        if (!$profileExists) {
+            // Profile doesn't exist, create it with the new data
+            $data['user_id'] = $userId;
+            return $this->createProfile($userId, $data);
+        }
+
         $sql = "UPDATE {$this->table} SET " . implode(', ', $set) . ", updated_at = NOW() WHERE user_id = :user_id";
 
-        return $this->write($sql, $params);
+        $result = $this->write($sql, $params);
+        
+        // write() returns:
+        // - true on successful UPDATE/DELETE (when lastInsertId is 0)
+        // - insert ID (int > 0) on successful INSERT
+        // - false on failure
+        // So for UPDATE: true/1 = success, false = failure
+        return $result !== false ? true : false;
     }
 
     /**

@@ -52,10 +52,10 @@ class BuyerProfileController
             'profile' => $profile,
             'photoUrl' => $photoUrl,
             'pageScript' => 'profile.js',
-            'contentView' => '../app/views/buyer/buyerProfileContent.view.php'
+            'contentView' => 'buyer/buyerProfileContent.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**
@@ -207,26 +207,36 @@ class BuyerProfileController
                 'postal_code' => $data['postal_code']
             ];
 
-            // Update profile
+            // Update profile (creates if doesn't exist)
             $result = $this->buyerModel->updateProfile($userId, $profileData);
 
-            if ($result) {
-                // Get updated profile
-                $profile = $this->buyerModel->getProfileByUserId($userId);
-
-                http_response_code(200);
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Profile updated successfully',
-                    'profile' => $profile
-                ]);
-            } else {
+            if ($result === false) {
                 http_response_code(500);
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to update profile'
+                    'error' => 'Failed to update profile - database error'
                 ]);
+                exit;
             }
+
+            // Get updated profile
+            $profile = $this->buyerModel->getProfileByUserId($userId);
+
+            if (!$profile) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Profile updated but failed to retrieve'
+                ]);
+                exit;
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'profile' => $profile
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode([

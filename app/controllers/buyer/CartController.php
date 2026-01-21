@@ -35,10 +35,10 @@ class CartController
             'cartTotal' => $cartTotal,
             'pageTitle' => 'Shopping Cart',
             'activePage' => 'cart',
-            'contentView' => '../app/views/buyer/cart.view.php'
+            'contentView' => 'buyer/cart.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**

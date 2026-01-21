@@ -34,10 +34,10 @@ class CropRequestController
             'requests' => $requests,
             'pageTitle' => 'My Crop Requests',
             'activePage' => 'requests',
-            'contentView' => '../buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**
@@ -77,10 +77,10 @@ class CropRequestController
             'action' => 'create',
             'pageTitle' => 'New Crop Request',
             'activePage' => 'requests',
-            'contentView' => '../buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**
@@ -126,10 +126,10 @@ class CropRequestController
             'action' => 'edit',
             'pageTitle' => 'Edit Crop Request',
             'activePage' => 'requests',
-            'contentView' => '../buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**
@@ -154,10 +154,10 @@ class CropRequestController
             'request' => $request,
             'pageTitle' => 'Crop Request Details',
             'activePage' => 'requests',
-            'contentView' => '../buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**

@@ -81,10 +81,10 @@ class CheckoutController
             'isBuyNow' => $isBuyNow,
             'pageTitle' => 'Checkout',
             'activePage' => 'checkout',
-            'contentView' => '../app/views/buyer/checkout.view.php'
+            'contentView' => 'buyer/checkout.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**

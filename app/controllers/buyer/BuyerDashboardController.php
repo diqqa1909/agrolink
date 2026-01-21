@@ -40,10 +40,10 @@ class BuyerDashboardController
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
             'pageScript' => 'buyerDashboard.js',
-            'contentView' => '../app/views/buyer/buyerDashboardContent.view.php'
+            'contentView' => 'buyer/buyerDashboard.view.php'
         ];
 
         // Load the view through main layout
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 }

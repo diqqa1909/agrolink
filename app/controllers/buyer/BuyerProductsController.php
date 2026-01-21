@@ -38,10 +38,10 @@ class BuyerProductsController
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
             'pageScript' => 'buyerDashboard.js',
-            'contentView' => '../app/views/buyer/products.view.php'
+            'contentView' => 'buyer/products.view.php'
         ];
 
         // Load the view through main layout
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 }

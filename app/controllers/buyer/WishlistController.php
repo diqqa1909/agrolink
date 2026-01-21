@@ -40,10 +40,10 @@ class WishlistController
             'username' => $_SESSION['USER']->name,
             'wishlistItems' => $wishlistItems ?: [],
             'pageScript' => 'buyerDashboard.js',
-            'contentView' => '../app/views/buyer/wishlist.view.php'
+            'contentView' => 'buyer/wishlist.view.php'
         ];
 
-        $this->view('buyer/buyerMain', $data);
+        $this->view('components/buyerLayout', $data);
     }
 
     /**

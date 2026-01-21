@@ -1,4 +1,4 @@
-<!-- Products Section - Content view rendered inside buyerMain layout -->
+<!-- Products Section - Content view rendered inside buyerLayout -->
 <div class="content-header">
     <h1 class="content-title">Browse Products</h1>
     <p class="content-subtitle">Discover fresh produce from local farmers</p>
@@ -99,14 +99,21 @@
                     <div class="product-stock">
                         <?= htmlspecialchars($product->quantity) ?>kg available
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="btn btn-primary btn-add-cart"
-                            onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
-                            🛒 Add to Cart
+                    <div style="width:100%;">
+                        <button class="btn btn-primary btn-buy-now" style="width:100%; margin-bottom:8px;align-items: center; justify-content: center;" 
+                            onclick="buyNow(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                            Buy Now
                         </button>
-                        <button class="btn btn-outline" onclick="addToWishlist(<?= $product->id ?>, event)">
-                            ❤️ Wishlist
-                        </button>
+
+                        <div style="display:flex; gap:8px; width:100%;">
+                            <button class="btn btn-primary btn-add-cart" style="flex:1;align-items: center; justify-content: center;"
+                                onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                                 Add to Cart
+                            </button>
+                            <button class="btn btn-outline" style="flex:1;align-items: center; justify-content: center;" onclick="addToWishlist(<?= $product->id ?>, event)">
+                                 Wishlist
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

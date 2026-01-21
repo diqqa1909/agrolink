@@ -1,20 +1,20 @@
 
 // Buyer Dashboard JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeBuyerDashboard();
     updateCartBadge();
     loadProfileData();
     loadWishlist();
-    
-    window.addEventListener('hashchange', function() {
+
+    window.addEventListener('hashchange', function () {
         const hash = window.location.hash.substring(1);
         if (hash && document.getElementById(hash + '-section')) {
             showSection(hash);
         }
     });
-    
-    setTimeout(function() {
+
+    setTimeout(function () {
         const hash = window.location.hash.substring(1);
         if (hash && document.getElementById(hash + '-section')) {
             showSection(hash);
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeBuyerDashboard() {
     const hash = window.location.hash.substring(1);
-    
+
     if (hash && document.getElementById(hash + '-section')) {
         showSection(hash);
     } else {
@@ -32,9 +32,9 @@ function initializeBuyerDashboard() {
             showSection('dashboard');
         }
     }
-    
+
     document.querySelectorAll('.menu-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             if (this.getAttribute('href') !== '#') {
                 return;
             }
@@ -51,24 +51,24 @@ function showSection(sectionName) {
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
-    
+
     const targetSection = document.getElementById(sectionName + '-section');
     if (targetSection) {
         targetSection.style.display = 'block';
     }
-    
+
     document.querySelectorAll('.menu-link').forEach(link => {
         link.classList.remove('active');
         if (link.dataset.section === sectionName) {
             link.classList.add('active');
         }
     });
-    
+
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
     });
-    
+
     if (sectionName === 'wishlist') {
         loadWishlist();
     }
@@ -123,7 +123,7 @@ function uploadPhoto() {
         document.body.appendChild(input);
     }
 
-    input.onchange = function(e) {
+    input.onchange = function (e) {
         const file = e.target.files[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
@@ -135,14 +135,14 @@ function uploadPhoto() {
                 return;
             }
             const reader = new FileReader();
-            reader.onload = function(ev) {
+            reader.onload = function (ev) {
                 const profilePhoto = document.getElementById('profilePhoto');
                 if (profilePhoto) {
                     profilePhoto.src = ev.target.result;
                     showNotification('Photo uploaded successfully!', 'success');
                 }
             };
-            reader.onerror = function() {
+            reader.onerror = function () {
                 showNotification('Failed to read image file', 'error');
             };
             reader.readAsDataURL(file);
@@ -157,20 +157,20 @@ function filterProducts() {
     const categoryFilter = document.getElementById('categoryFilter')?.value.toLowerCase() || '';
     const locationFilter = document.getElementById('locationFilter')?.value.toLowerCase() || '';
     const priceFilter = document.getElementById('priceFilter')?.value || '';
-    
+
     const productCards = document.querySelectorAll('.product-card');
-    
+
     productCards.forEach(card => {
         const name = card.getAttribute('data-name') || '';
         const farmer = card.getAttribute('data-farmer') || '';
         const category = card.getAttribute('data-category') || '';
         const location = card.getAttribute('data-location') || '';
         const price = parseFloat(card.getAttribute('data-price')) || 0;
-        
+
         const matchesSearch = searchInput === '' || name.includes(searchInput) || farmer.includes(searchInput);
         const matchesCategory = categoryFilter === '' || category === categoryFilter;
         const matchesLocation = locationFilter === '' || location.includes(locationFilter);
-        
+
         let matchesPrice = true;
         if (priceFilter) {
             if (priceFilter === '0-100') {
@@ -183,17 +183,17 @@ function filterProducts() {
                 matchesPrice = price > 500;
             }
         }
-        
+
         if (matchesSearch && matchesCategory && matchesLocation && matchesPrice) {
             card.style.display = 'block';
         } else {
             card.style.display = 'none';
         }
     });
-    
+
     const visibleCards = document.querySelectorAll('.product-card[style="display: block;"]');
     const productsGrid = document.getElementById('productsGrid');
-    
+
     if (visibleCards.length === 0 && productsGrid) {
         const existingMessage = productsGrid.querySelector('.no-results-message');
         if (!existingMessage) {
@@ -219,10 +219,10 @@ function addToCart(productId, productName, price, maxQuantity) {
     let btn = null;
     try {
         btn = (typeof event !== 'undefined' && event?.target) ||
-              document.querySelector(`.product-card[data-id="${productId}"] .btn-add-cart`) ||
-              document.querySelector(`.product-card[data-wishlist-product="${productId}"] .btn-add-cart-from-wishlist`) ||
-              document.querySelector(`.product-card[data-id="${productId}"] button`) ||
-              null;
+            document.querySelector(`.product-card[data-id="${productId}"] .btn-add-cart`) ||
+            document.querySelector(`.product-card[data-wishlist-product="${productId}"] .btn-add-cart-from-wishlist`) ||
+            document.querySelector(`.product-card[data-id="${productId}"] button`) ||
+            null;
     } catch (e) {
         btn = null;
     }
@@ -232,10 +232,10 @@ function addToCart(productId, productName, price, maxQuantity) {
         btn.disabled = true;
         btn.textContent = 'Adding...';
     }
-    
+
     const productCard = document.querySelector(`.product-card[data-id="${productId}"]`) ||
-                        document.querySelector(`.product-card[data-wishlist-product="${productId}"]`);
-    
+        document.querySelector(`.product-card[data-wishlist-product="${productId}"]`);
+
     let imageFile = '';
     if (productCard) {
         imageFile = productCard.getAttribute('data-image') || '';
@@ -255,65 +255,65 @@ function addToCart(productId, productName, price, maxQuantity) {
             }
         }
     }
-    
+
     const fallbackEmoji = productCard?.querySelector('.product-placeholder')?.textContent || '🌱';
-    
+
     const formData = new FormData();
     formData.append('product_id', productId);
     formData.append('product_name', productName);
     formData.append('product_price', price);
     formData.append('quantity', 1);
     formData.append('product_image', imageFile || fallbackEmoji);
-    
+
     fetch(window.APP_ROOT + '/Cart/add', {
         method: 'POST',
         body: formData,
         credentials: 'include'
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
-        // Get the response text first to see what's being returned
-        return response.text().then(text => {
-            console.log('Raw response text:', text);
-            
-            // Check if response is JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                console.error('❌ Content-Type is not JSON:', contentType);
-                throw new Error('Server returned non-JSON response: ' + contentType);
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            // Get the response text first to see what's being returned
+            return response.text().then(text => {
+                console.log('Raw response text:', text);
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('❌ Content-Type is not JSON:', contentType);
+                    throw new Error('Server returned non-JSON response: ' + contentType);
+                }
+
+                // Try to parse as JSON
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('❌ Failed to parse JSON:', e);
+                    console.error('Text was:', text);
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                }
+            });
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                showNotification(data.message, 'success');
+                updateCartBadge(data.cartItemCount);
+            } else {
+                showNotification(data.message || 'Failed to add to cart', 'error');
             }
-            
-            // Try to parse as JSON
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('❌ Failed to parse JSON:', e);
-                console.error('Text was:', text);
-                throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showNotification('An error occurred: ' + error.message, 'error');
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         });
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            showNotification(data.message, 'success');
-            updateCartBadge(data.cartItemCount);
-        } else {
-            showNotification(data.message || 'Failed to add to cart', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        showNotification('An error occurred: ' + error.message, 'error');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    });
 }
 
 function updateCartBadge(count) {
@@ -325,24 +325,24 @@ function updateCartBadge(count) {
         });
         return;
     }
-    
+
     fetch(window.APP_ROOT + '/Cart/getData', {
         method: 'GET',
         credentials: 'include'
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const badges = document.querySelectorAll('.cart-badge');
-            badges.forEach(badge => {
-                badge.textContent = data.cartItemCount;
-                badge.style.display = data.cartItemCount > 0 ? 'inline-block' : 'none';
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching cart data:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const badges = document.querySelectorAll('.cart-badge');
+                badges.forEach(badge => {
+                    badge.textContent = data.cartItemCount;
+                    badge.style.display = data.cartItemCount > 0 ? 'inline-block' : 'none';
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching cart data:', error);
+        });
 }
 
 function buyNow(productId, productName, price, maxQuantity) {
@@ -361,10 +361,10 @@ function buyNow(productId, productName, price, maxQuantity) {
             const imgEl = productCard.querySelector('.product-image img');
             const src = imgEl?.getAttribute('src') || '';
             if (src && !/default-product\.svg$/i.test(src)) {
-                try { 
-                    imageFile = src.split('/').pop(); 
-                } catch (e) { 
-                    imageFile = ''; 
+                try {
+                    imageFile = src.split('/').pop();
+                } catch (e) {
+                    imageFile = '';
                 }
             }
         }
@@ -376,43 +376,43 @@ function buyNow(productId, productName, price, maxQuantity) {
         method: 'POST',
         credentials: 'include'
     })
-    .then(resp => resp.json())
-    .then(clearData => {
-        const formData = new FormData();
-        formData.append('product_id', productId);
-        formData.append('product_name', productName);
-        formData.append('product_price', price);
-        formData.append('quantity', 1);
-        formData.append('product_image', imageFile || fallbackEmoji);
-        formData.append('buy_now', '1');
+        .then(resp => resp.json())
+        .then(clearData => {
+            const formData = new FormData();
+            formData.append('product_id', productId);
+            formData.append('product_name', productName);
+            formData.append('product_price', price);
+            formData.append('quantity', 1);
+            formData.append('product_image', imageFile || fallbackEmoji);
+            formData.append('buy_now', '1');
 
-        return fetch(window.APP_ROOT + '/Cart/add', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-        });
-    })
-    .then(resp => resp.json())
-    .then(data => {
-        if (data && data.success) {
-            updateCartBadge(data.cartItemCount);
-            window.location.href = window.APP_ROOT + '/Checkout?buy_now=1&product_id=' + productId;
-        } else {
-            showNotification(data.message || 'Failed to proceed to checkout', 'error');
+            return fetch(window.APP_ROOT + '/Cart/add', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+        })
+        .then(resp => resp.json())
+        .then(data => {
+            if (data && data.success) {
+                updateCartBadge(data.cartItemCount);
+                window.location.href = window.APP_ROOT + '/Checkout?buy_now=1&product_id=' + productId;
+            } else {
+                showNotification(data.message || 'Failed to proceed to checkout', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Buy Now error:', err);
+            showNotification('An error occurred while processing Buy Now', 'error');
             if (btn) {
                 btn.disabled = false;
                 btn.textContent = originalText;
             }
-        }
-    })
-    .catch(err => {
-        console.error('Buy Now error:', err);
-        showNotification('An error occurred while processing Buy Now', 'error');
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    });
+        });
 }
 
 function showLoading() {
@@ -436,56 +436,56 @@ function updateQuantity(productId, newQuantity) {
     }
 
     showLoading();
-    
+
     const formData = new FormData();
     formData.append('product_id', productId);
     formData.append('quantity', newQuantity);
-    
+
     fetch(window.APP_ROOT + '/Cart/update', {
         method: 'POST',
         body: formData,
         credentials: 'include'
     })
-    .then(response => {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Update response:', data);
-        hideLoading();
-        
-        if (data.success) {
-            showNotification(data.message, 'success');
-            
-            const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
-            if (cartItem) {
-                const quantityDisplay = cartItem.querySelector('.quantity-display');
-                if (quantityDisplay) {
-                    quantityDisplay.textContent = newQuantity;
-                }
-                
-                const priceElement = cartItem.querySelector('.cart-item-total-price');
-                const unitPriceText = cartItem.querySelector('.cart-item-unit-price')?.textContent || '0';
-                const unitPrice = parseFloat(unitPriceText.replace(/[^\d.]/g, '')) || 0;
-                if (priceElement) {
-                    priceElement.textContent = 'Rs. ' + (unitPrice * newQuantity).toFixed(2);
-                }
-                
-                updateCartBadge(data.cartItemCount);
-                recalculateCartTotal();
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
             }
-        } else {
-            showNotification(data.message || 'Failed to update cart', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Update error:', error);
-        hideLoading();
-        showNotification('An error occurred: ' + error.message, 'error');
-    });
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update response:', data);
+            hideLoading();
+
+            if (data.success) {
+                showNotification(data.message, 'success');
+
+                const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+                if (cartItem) {
+                    const quantityDisplay = cartItem.querySelector('.quantity-display');
+                    if (quantityDisplay) {
+                        quantityDisplay.textContent = newQuantity;
+                    }
+
+                    const priceElement = cartItem.querySelector('.cart-item-total-price');
+                    const unitPriceText = cartItem.querySelector('.cart-item-unit-price')?.textContent || '0';
+                    const unitPrice = parseFloat(unitPriceText.replace(/[^\d.]/g, '')) || 0;
+                    if (priceElement) {
+                        priceElement.textContent = 'Rs. ' + (unitPrice * newQuantity).toFixed(2);
+                    }
+
+                    updateCartBadge(data.cartItemCount);
+                    recalculateCartTotal();
+                }
+            } else {
+                showNotification(data.message || 'Failed to update cart', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Update error:', error);
+            hideLoading();
+            showNotification('An error occurred: ' + error.message, 'error');
+        });
 }
 
 function removeFromCart(productId) {
@@ -494,55 +494,55 @@ function removeFromCart(productId) {
     }
 
     showLoading();
-    
+
     const formData = new FormData();
     formData.append('product_id', productId);
-    
+
     fetch(window.APP_ROOT + '/Cart/remove', {
         method: 'POST',
         body: formData,
         credentials: 'include'
     })
-    .then(response => {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Remove response:', data);
-        hideLoading();
-        
-        if (data.success) {
-            showNotification(data.message, 'success');
-            
-            const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
-            if (cartItem) {
-                cartItem.style.transition = 'all 0.3s ease';
-                cartItem.style.opacity = '0';
-                cartItem.style.transform = 'translateX(-100px)';
-                
-                setTimeout(() => {
-                    cartItem.remove();
-                    updateCartBadge(data.cartItemCount);
-                    recalculateCartTotal();
-                    
-                    const remainingItems = document.querySelectorAll('.cart-item');
-                    if (remainingItems.length === 0) {
-                        location.reload();
-                    }
-                }, 300);
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
             }
-        } else {
-            showNotification(data.message || 'Failed to remove item', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Remove error:', error);
-        hideLoading();
-        showNotification('An error occurred: ' + error.message, 'error');
-    });
+            return response.json();
+        })
+        .then(data => {
+            console.log('Remove response:', data);
+            hideLoading();
+
+            if (data.success) {
+                showNotification(data.message, 'success');
+
+                const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+                if (cartItem) {
+                    cartItem.style.transition = 'all 0.3s ease';
+                    cartItem.style.opacity = '0';
+                    cartItem.style.transform = 'translateX(-100px)';
+
+                    setTimeout(() => {
+                        cartItem.remove();
+                        updateCartBadge(data.cartItemCount);
+                        recalculateCartTotal();
+
+                        const remainingItems = document.querySelectorAll('.cart-item');
+                        if (remainingItems.length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                }
+            } else {
+                showNotification(data.message || 'Failed to remove item', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Remove error:', error);
+            hideLoading();
+            showNotification('An error occurred: ' + error.message, 'error');
+        });
 }
 
 function clearCart() {
@@ -551,51 +551,51 @@ function clearCart() {
     }
 
     showLoading();
-    
+
     fetch(window.APP_ROOT + '/Cart/clear', {
         method: 'POST',
         credentials: 'include'
     })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showNotification(data.message, 'success');
-            setTimeout(() => location.reload(), 500);
-        } else {
-            showNotification(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        showNotification('An error occurred while clearing cart', 'error');
-        console.error('Error:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => location.reload(), 500);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('An error occurred while clearing cart', 'error');
+            console.error('Error:', error);
+        });
 }
 
 function recalculateCartTotal() {
     let total = 0;
     let itemCount = 0;
-    
+
     document.querySelectorAll('.cart-item').forEach(item => {
         const priceText = item.querySelector('.cart-item-total-price')?.textContent || '0';
         const price = parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
         const quantity = parseInt(item.querySelector('.quantity-display')?.textContent) || 0;
-        
+
         total += price;
         itemCount += quantity;
     });
-    
+
     const summaryValue = document.querySelector('.cart-summary-value');
     if (summaryValue) {
         summaryValue.textContent = itemCount;
     }
-    
+
     const subtotal = document.querySelectorAll('.cart-summary-row .cart-summary-value')[1];
     if (subtotal) {
         subtotal.textContent = 'Rs. ' + total.toFixed(2);
     }
-    
+
     const totalAmount = document.querySelector('.cart-summary-total-amount');
     if (totalAmount) {
         totalAmount.textContent = 'Rs. ' + total.toFixed(2);
@@ -608,21 +608,21 @@ function proceedToCheckout() {
 
 function addToWishlist(productId, evt) {
     console.log('🎯 addToWishlist called with productId:', productId, 'event:', evt);
-    
+
     // Get button element - handle event object passed as second parameter
     let btn = null;
     if (evt && typeof evt === 'object') {
         btn = evt.currentTarget || evt.target;
         console.log('✓ Button found from event:', btn);
     }
-    
+
     // Fallback: find button by product ID if not found in event
     if (!btn) {
         btn = document.querySelector(`.product-card[data-id="${productId}"] button:contains("Wishlist")`) ||
-              document.querySelector(`.product-card[data-id="${productId}"] .btn-outline`);
+            document.querySelector(`.product-card[data-id="${productId}"] .btn-outline`);
         console.log('✓ Button found by fallback selector:', btn);
     }
-    
+
     const originalText = btn ? btn.textContent : null;
     if (btn) {
         btn.disabled = true;
@@ -639,54 +639,54 @@ function addToWishlist(productId, evt) {
         body: formData,
         credentials: 'include'
     })
-    .then(response => {
-        console.log('📥 Response received:', response.status, response.statusText);
-        const contentType = response.headers.get('content-type');
-        console.log('📋 Content-Type:', contentType);
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('✅ Wishlist add response data:', data);
-        if (data.success) {
-            showNotification(data.message || 'Added to wishlist', 'success');
-            // Update button appearance
-            if (btn) {
-                btn.style.opacity = '0.6';
-                btn.style.pointerEvents = 'none';
-                console.log('✓ Button appearance updated');
+        .then(response => {
+            console.log('📥 Response received:', response.status, response.statusText);
+            const contentType = response.headers.get('content-type');
+            console.log('📋 Content-Type:', contentType);
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
             }
-            // Reload wishlist if visible
-            const wishlistSection = document.getElementById('wishlist-list');
-            if (wishlistSection && wishlistSection.style.display !== 'none') {
-                console.log('🔄 Wishlist section visible, reloading...');
-                loadWishlist();
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Wishlist add response data:', data);
+            if (data.success) {
+                showNotification(data.message || 'Added to wishlist', 'success');
+                // Update button appearance
+                if (btn) {
+                    btn.style.opacity = '0.6';
+                    btn.style.pointerEvents = 'none';
+                    console.log('✓ Button appearance updated');
+                }
+                // Reload wishlist if visible
+                const wishlistSection = document.getElementById('wishlist-list');
+                if (wishlistSection && wishlistSection.style.display !== 'none') {
+                    console.log('🔄 Wishlist section visible, reloading...');
+                    loadWishlist();
+                } else {
+                    console.log('⚠️ Wishlist section not visible or not found');
+                }
             } else {
-                console.log('⚠️ Wishlist section not visible or not found');
+                console.error('❌ Wishlist add failed:', data.error);
+                showNotification(data.error || 'Failed to add to wishlist', 'error');
             }
-        } else {
-            console.error('❌ Wishlist add failed:', data.error);
-            showNotification(data.error || 'Failed to add to wishlist', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('❌ Wishlist add error:', error);
-        showNotification('An error occurred while adding to wishlist', 'error');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = originalText;
-            console.log('✓ Button re-enabled');
-        }
-    });
+        })
+        .catch(error => {
+            console.error('❌ Wishlist add error:', error);
+            showNotification('An error occurred while adding to wishlist', 'error');
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                console.log('✓ Button re-enabled');
+            }
+        });
 }
 
 function removeFromWishlist(productId) {
     console.log('🗑️ removeFromWishlist called with productId:', productId);
-    
+
     if (!confirm('Remove this product from your wishlist?')) {
         console.log('❌ User cancelled wishlist removal');
         return;
@@ -698,38 +698,38 @@ function removeFromWishlist(productId) {
         method: 'POST',
         credentials: 'include'
     })
-    .then(response => {
-        console.log('📥 Response received:', response.status, response.statusText);
-        const contentType = response.headers.get('content-type');
-        console.log('📋 Content-Type:', contentType);
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('✅ Wishlist remove response data:', data);
-        if (data.success) {
-            showNotification(data.message || 'Removed from wishlist', 'success');
-            loadWishlist();
-        } else {
-            console.error('❌ Wishlist remove failed:', data.error);
-            showNotification(data.error || 'Failed to remove product', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('❌ Wishlist remove error:', error);
-        showNotification('An error occurred while removing product', 'error');
-    });
+        .then(response => {
+            console.log('📥 Response received:', response.status, response.statusText);
+            const contentType = response.headers.get('content-type');
+            console.log('📋 Content-Type:', contentType);
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Wishlist remove response data:', data);
+            if (data.success) {
+                showNotification(data.message || 'Removed from wishlist', 'success');
+                loadWishlist();
+            } else {
+                console.error('❌ Wishlist remove failed:', data.error);
+                showNotification(data.error || 'Failed to remove product', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Wishlist remove error:', error);
+            showNotification('An error occurred while removing product', 'error');
+        });
 }
 
 function loadWishlist() {
     console.log('📚 loadWishlist() called');
     console.log('🔍 Looking for wishlist-list container...');
-    
+
     const container = document.getElementById('wishlist-list');
     console.log('Container found:', !!container, container);
-    
+
     if (!container) {
         console.warn('⚠️ Wishlist container not found in DOM');
         return;
@@ -741,49 +741,49 @@ function loadWishlist() {
         method: 'GET',
         credentials: 'include'
     })
-    .then(response => {
-        console.log('📥 Response received:', response.status, response.statusText);
-        const contentType = response.headers.get('content-type');
-        console.log('📋 Content-Type:', contentType);
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('✅ Wishlist data received:', data);
-        if (data.success) {
-            console.log('📦 Items count:', data.items ? data.items.length : 0);
-            renderWishlist(data.items || []);
-        } else {
-            console.error('❌ Failed to load wishlist:', data.error);
-            container.innerHTML = `
+        .then(response => {
+            console.log('📥 Response received:', response.status, response.statusText);
+            const contentType = response.headers.get('content-type');
+            console.log('📋 Content-Type:', contentType);
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Wishlist data received:', data);
+            if (data.success) {
+                console.log('📦 Items count:', data.items ? data.items.length : 0);
+                renderWishlist(data.items || []);
+            } else {
+                console.error('❌ Failed to load wishlist:', data.error);
+                container.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                     <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
                     <h3>${escapeHtml(data.error || 'Failed to load wishlist')}</h3>
                 </div>
             `;
-        }
-    })
-    .catch(error => {
-        console.error('❌ Load wishlist error:', error);
-        container.innerHTML = `
+            }
+        })
+        .catch(error => {
+            console.error('❌ Load wishlist error:', error);
+            container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
                 <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
                 <h3>Unable to load wishlist</h3>
                 <p>${escapeHtml(error.message)}</p>
             </div>
         `;
-    });
+        });
 }
 
 function renderWishlist(items) {
     console.log('🎨 renderWishlist() called with items:', items);
     console.log('📦 Items count:', items ? items.length : 0);
-    
+
     const container = document.getElementById('wishlist-list');
     console.log('Container element:', container);
-    
+
     if (!container) {
         console.error('❌ Container #wishlist-list not found in DOM');
         return;
@@ -802,10 +802,10 @@ function renderWishlist(items) {
     }
 
     console.log('📦 Rendering ' + items.length + ' items...');
-    
+
     const html = items.map((item, idx) => {
         console.log('  Item ' + idx + ':', item);
-        const image = item.image 
+        const image = item.image
             ? `${window.APP_ROOT}/assets/images/products/${escapeHtml(item.image)}`
             : `${window.APP_ROOT}/assets/images/default-product.svg`;
 
@@ -832,12 +832,12 @@ function renderWishlist(items) {
                     <h3 class="product-name">${escapeHtml(item.name || 'Product unavailable')}</h3>
                     <div class="product-price">${price}</div>
                     <div class="product-stock">${stock}</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                        <button class="btn btn-primary btn-sm btn-add-cart" style="padding: 6px 12px; font-size: 0.85rem;"
-                            onclick="console.log('🛒 ADD TO CART clicked, product:', ${item.product_id}); addToCart(${item.product_id}, ${JSON.stringify(item.name || 'Product')}, ${item.price || 0}, ${item.available_quantity || 0})">
-                            🛒 Add to Cart
+                    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                        <button class="btn btn-primary" style="width: 100%; text-align: center; padding: 10px 16px;"
+                            onclick='addToCart(${item.product_id}, ${JSON.stringify(item.name || "Product")}, ${item.price || 0}, ${item.available_quantity || 0})'>
+                            Add to Cart
                         </button>
-                        <button class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 0.85rem; text-align: center;" onclick="console.log('🗑️ REMOVE clicked'); removeFromWishlist(${item.product_id})">
+                        <button class="btn btn-danger" style="width: 100%; text-align: center; padding: 10px 16px;" onclick="removeFromWishlist(${item.product_id})">
                             Remove
                         </button>
                     </div>
@@ -845,7 +845,7 @@ function renderWishlist(items) {
             </div>
         `;
     }).join('');
-    
+
     console.log('✅ HTML generated, length: ' + html.length);
     container.innerHTML = html;
     console.log('✅ Container HTML updated with wishlist items');

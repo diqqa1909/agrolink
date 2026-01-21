@@ -103,7 +103,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/buyerrequests" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>">
+                    <a href="<?= ROOT ?>/croprequest" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -142,15 +142,29 @@
         <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Resolve and include the page-specific content with a few fallbacks so relative paths work
+            // Resolve and include the page-specific content
             if (isset($contentView)) {
                 $viewToInclude = null;
 
+                // Clean up the path - remove ../ prefix if present
+                $cleanPath = $contentView;
+                while (strpos($cleanPath, '../') === 0) {
+                    $cleanPath = substr($cleanPath, 3);
+                }
+
+                // Try multiple candidate paths
                 $candidates = [
+                    // Absolute path (if full path given)
                     $contentView,
+                    // Relative to components directory
                     __DIR__ . '/' . $contentView,
+                    // Relative to views directory
                     __DIR__ . '/../' . $contentView,
+                    // Just the clean path relative to views
+                    __DIR__ . '/../' . $cleanPath,
+                    // Relative to app directory
                     dirname(__DIR__) . '/' . $contentView,
+                    // Root level
                     __DIR__ . '/../../' . $contentView,
                 ];
 

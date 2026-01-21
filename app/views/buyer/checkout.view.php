@@ -107,7 +107,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-large btn-continue">
+                        <button type="submit" class="btn btn-primary btn-large btn-continue"
+                                style="background-color: #28a745 !important; color: #ffffff !important; border: none !important; font-weight: 600 !important; font-size: 16px !important; padding: 12px 24px !important; border-radius: 4px !important; cursor: pointer !important; display: flex !important; justify-content: center !important; align-items: center !important; width: 100% !important;">
                             Continue
                         </button>
                     </form>
@@ -128,7 +129,7 @@
                         <div class="ship-to-phone">
                             <?= htmlspecialchars($buyerProfile->phone ?? '') ?>
                         </div>
-                        <a href="<?= ROOT ?>/buyerProfile" class="change-link">Change</a>
+                        <a href="<?= ROOT ?>/buyerprofile" class="change-link">Change</a>
                     </div>
                 </div>
             <?php endif; ?>

@@ -28,10 +28,34 @@ class App
             $found = false;
 
             foreach ($roles as $role) {
-                $roleController = "../app/controllers/{$role}/" . ucfirst($URL[0]) . "Controller.php";
+                $baseName = ucfirst($URL[0]);
+                $roleController = "../app/controllers/{$role}/" . $baseName . "Controller.php";
+                
+                // On Windows, file_exists is case-insensitive, so check if file exists
+                // We need to find the actual file name to get the correct class name
+                $actualFile = null;
                 if (file_exists($roleController)) {
-                    require $roleController;
-                    $this->controller = ucfirst($URL[0]) . 'Controller';
+                    $actualFile = $roleController;
+                } else {
+                    // Try to find file with different case (for camelCase like BuyerProfile)
+                    $dir = "../app/controllers/{$role}/";
+                    if (is_dir($dir)) {
+                        $files = scandir($dir);
+                        $searchPattern = strtolower($baseName . "Controller.php");
+                        foreach ($files as $file) {
+                            if (strtolower($file) === $searchPattern) {
+                                $actualFile = $dir . $file;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if ($actualFile && file_exists($actualFile)) {
+                    require $actualFile;
+                    // Extract actual class name from filename
+                    $filename = basename($actualFile, '.php');
+                    $this->controller = $filename;
                     $found = true;
                     unset($URL[0]);
                     break;

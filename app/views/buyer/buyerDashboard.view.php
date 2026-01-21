@@ -1,9 +1,9 @@
-            <!-- Dashboard Section -->
-            <div id="dashboard-section" class="content-section">
-                <div class="content-header">
-                    <h1 class="content-title">Dashboard Overview</h1>
-                    <p class="content-subtitle">Welcome back, <?= htmlspecialchars($username) ?>! Here's what's happening with your orders.</p>
-                </div>
+<!-- Dashboard Section -->
+<div id="dashboard-section" class="content-section">
+    <div class="content-header">
+        <h1 class="content-title">Dashboard Overview</h1>
+        <p class="content-subtitle">Welcome back, <?= htmlspecialchars($username) ?>! Here's what's happening with your orders.</p>
+    </div>
 
                 <!-- Stats Grid -->
                 <div class="dashboard-stats">
@@ -90,17 +90,14 @@
                     </div>
                     <div class="card-content">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <a href="<?= ROOT ?>/buyerproducts" class="btn btn-primary" style="text-decoration: none; text-align: center;">Browse Products</a>
+                            <button class="btn btn-primary" onclick="showSection('products')">Browse Products</button>
                             <button class="btn btn-secondary" onclick="showSection('orders')">View All Orders</button>
-                            <a href="<?= ROOT ?>/wishlist" class="btn btn-outline" style="text-decoration: none; text-align: center;">My Wishlist</a>
+                            <button class="btn btn-outline" onclick="showSection('wishlist')">My Wishlist</button>
                             <button class="btn btn-outline" onclick="showSection('tracking')">Track Orders</button>
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
 
             <!-- Orders Section -->
             <div id="orders-section" class="content-section" style="display: none;">
@@ -262,146 +259,8 @@
                 </div>
             </div>
 
-<<<<<<< HEAD:app/views/buyer/buyerDashboard.view.php
-            <!-- Wishlist Section -->
-            <div id="wishlist-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">My Wishlist</h1>
-                    <p class="content-subtitle">Products you plan to purchase later</p>
-                </div>
-
-                <div class="products-grid" id="wishlist-list">
-                    <?php if (empty($wishlistItems)): ?>
-                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 20px;"></div>
-                            <h3>Your wishlist is empty</h3>
-                            <p>Browse products and click “Wishlist” to save them here.</p>
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($wishlistItems as $item): ?>
-                            <div class="product-card" 
-                                 data-wishlist-product="<?= (int)$item->product_id ?>"
-                                 data-id="<?= (int)$item->product_id ?>"
-                                 data-name="<?= strtolower(htmlspecialchars($item->name ?? 'Product')) ?>"
-                                 data-image="<?= !empty($item->image) ? htmlspecialchars($item->image) : '' ?>">
-                                <div class="product-image">
-                                    <?php if (!empty($item->image) && file_exists("assets/images/products/" . $item->image)): ?>
-                                        <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($item->image) ?>"
-                                            alt="<?= htmlspecialchars($item->name) ?>">
-                                    <?php else: ?>
-                                        <img src="<?= ROOT ?>/assets/images/default-product.svg"
-                                            alt="<?= htmlspecialchars($item->name) ?>"
-                                            style="opacity: 0.6;">
-                                    <?php endif; ?>
-                                </div>
-                                <div class="product-info">
-                                    <h3 class="product-name"><?= htmlspecialchars($item->name ?? 'Product unavailable') ?></h3>
-                                    <div class="product-price">
-                                        <?= isset($item->price) ? 'Rs. ' . number_format($item->price, 2) . '/kg' : 'Price unavailable' ?>
-                                    </div>
-                                    <div class="product-stock">
-                                        <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
-                                    </div>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px;">
-                                                                                <button type="button" class="btn btn-primary btn-sm btn-add-cart"
-                                                                                        onclick="addToCartAjax(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
-                                                                                            Add to Cart
-                                                                                </button>
-                                        <button class="btn btn-danger btn-sm" onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
-
             <!-- Requests Section -->
-            <div id="requests-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Special Requests</h1>
-                    <p class="content-subtitle">Custom orders and bulk purchase inquiries</p>
-                </div>
-
-                <div class="content-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Submit New Request</h3>
-                    </div>
-                    <div class="card-content">
-                        <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" class="form-control" placeholder="What product do you need?">
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Quantity (kg)</label>
-                                <input type="number" class="form-control" placeholder="Enter quantity">
-                            </div>
-                            <div class="form-group">
-                                <label>Target Price (Rs/kg)</label>
-                                <input type="number" class="form-control" placeholder="Your budget">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Additional Details</label>
-                            <textarea class="form-control" rows="4" placeholder="Describe your requirements..."></textarea>
-                        </div>
-                        <button class="btn btn-primary"
-                            style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important; border: none !important; padding: 12px 32px !important; font-size: 1rem !important; font-weight: 600 !important; border-radius: 8px !important; color: white !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;"
-                            onmouseover="this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.5)'; this.style.transform='translateY(-2px)';"
-                            onmouseout="this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'; this.style.transform='translateY(0)';"
-                            onclick="showNotification('Request submitted successfully!', 'success')">
-                            ✓ Submit Request
-                        </button>
-                    </div>
-                </div>
-
-                <div class="content-card" style="margin-top: 24px;">
-                    <div class="card-header">
-                        <h3 class="card-title">Your Requests</h3>
-                    </div>
-                    <div class="card-content">
-                        <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div>
-                                    <h4 style="margin: 0 0 8px 0;">Organic Potatoes - 50kg</h4>
-                                    <p style="margin: 0; color: #666; font-size: 0.9rem;">Requested on Aug 10, 2025</p>
-                                </div>
-                                <span class="order-status pending">PENDING</span>
-                            </div>
-                            <p style="color: #666; margin: 0 0 12px 0;">Target Price: Rs. 80/kg</p>
-                            <button class="btn btn-sm btn-outline"
-                                style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3) !important;"
-                                onmouseover="this.style.boxShadow='0 5px 14px rgba(33, 150, 243, 0.5)'; this.style.transform='translateY(-2px)';"
-                                onmouseout="this.style.boxShadow='0 3px 10px rgba(33, 150, 243, 0.3)'; this.style.transform='translateY(0)';"
-                                onclick="showNotification('Request details viewed', 'info')">
-                                📋 View Details
-                            </button>
-                        </div>
-
-                        <div style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div>
-                                    <h4 style="margin: 0 0 8px 0;">Fresh Spinach - 20kg</h4>
-                                    <p style="margin: 0; color: #666; font-size: 0.9rem;">Requested on Aug 5, 2025</p>
-                                </div>
-                                <span class="order-status delivered">FULFILLED</span>
-                            </div>
-                            <p style="color: #666; margin: 0 0 12px 0;">Final Price: Rs. 120/kg</p>
-                            <button class="btn btn-sm btn-outline"
-                                style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important; color: white !important; border: none !important; padding: 10px 24px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.3s ease !important; box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3) !important;"
-                                onmouseover="this.style.boxShadow='0 5px 14px rgba(255, 152, 0, 0.5)'; this.style.transform='translateY(-2px)';"
-                                onmouseout="this.style.boxShadow='0 3px 10px rgba(255, 152, 0, 0.3)'; this.style.transform='translateY(0)';"
-                                onclick="showNotification('Request details viewed', 'info')">
-                                📋 View Details
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
->>>>>>> 39fd9e63c5c41e3d27d1e16d4a4443170b0d1564:app/views/buyer/buyerDashboardContent.view.php
+            
 
             <!-- Reviews Section -->
             <div id="reviews-section" class="content-section" style="display: none;">

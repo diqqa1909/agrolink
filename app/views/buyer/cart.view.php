@@ -115,9 +115,8 @@
                                     <button class="btn btn-primary btn-large btn-checkout" onclick="proceedToCheckout()">
                                         Proceed to Checkout
                                     </button>
-                                    <a href="<?= ROOT ?>/buyerDashboard#products"
+                                    <a href="<?= ROOT ?>/buyerProducts"
                                         class="btn btn-outline btn-large btn-continue"
-                                        onclick="scrollToProducts(event)"
                                         style="background: transparent; color: white; border: 2px solid white; padding: 14px; text-align: center; text-decoration: none; font-weight: 600;">
                                         Continue Shopping
                                     </a>
@@ -130,8 +129,6 @@
                     </div>
                 <?php endif; ?>
             </div>
-        </main>
-    </div>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
@@ -144,48 +141,93 @@
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
 
-        function scrollToProducts(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#products';
+        function proceedToCheckout() {
+            window.location.href = '<?= ROOT ?>/checkout';
         }
 
-        function scrollToOrders(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#orders';
+        function updateCartQuantity(productId, change) {
+            const formData = new FormData();
+            formData.append('product_id', productId);
+            
+            // Get current quantity
+            const quantityDisplay = document.querySelector(`[data-product-id="${productId}"] .quantity-display`);
+            const currentQuantity = parseInt(quantityDisplay.textContent) || 1;
+            const newQuantity = Math.max(1, currentQuantity + change);
+            
+            formData.append('quantity', newQuantity);
+            
+            fetch(window.APP_ROOT + '/Cart/update', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to update cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
         }
 
-        function scrollToTracking(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#tracking';
+        function removeFromCart(productId) {
+            if (!confirm('Are you sure you want to remove this item from your cart?')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('product_id', productId);
+            
+            fetch(window.APP_ROOT + '/Cart/remove', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to remove item');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
         }
 
-        function scrollToWishlist(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#wishlist';
+        function clearCart() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) {
+                return;
+            }
+            
+            fetch(window.APP_ROOT + '/Cart/clear', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to clear cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
         }
 
-        function scrollToRequests(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#requests';
-        }
-
-        function scrollToReviews(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#reviews';
-        }
-
-        function scrollToNotifications(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#notifications';
-        }
-
-        function scrollToProfile(e) {
-            e.preventDefault();
-            window.location.href = '<?= ROOT ?>/buyerDashboard#profile';
-        }
+        // Export functions to window
+        window.proceedToCheckout = proceedToCheckout;
+        window.updateCartQuantity = updateCartQuantity;
+        window.removeFromCart = removeFromCart;
+        window.clearCart = clearCart;
     </script>
-    <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/buyer/buyerDashboard.js"></script>
-</body>
-
-</html>
