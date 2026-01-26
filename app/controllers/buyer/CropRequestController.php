@@ -59,7 +59,7 @@ class CropRequestController
                 'target_price' => $_POST['target_price'] ?? '',
                 'delivery_date' => $_POST['delivery_date'] ?? '',
                 'location' => $_POST['location'] ?? '',
-                'status' => 'pending',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s')
             ];
 

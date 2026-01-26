@@ -1,5 +1,13 @@
 // AgroLink - Common Utilities & Shared Functions
 
+// Initialize global variables from body data attributes
+(function() {
+    const body = document.body;
+    window.APP_ROOT = body.dataset.appRoot || '';
+    window.USER_NAME = body.dataset.userName || '';
+    window.USER_EMAIL = body.dataset.userEmail || '';
+})();
+
 // Global state
 let cart = JSON.parse(localStorage.getItem('agrolink_cart')) || [];
 let currentUser = JSON.parse(localStorage.getItem('agrolink_user')) || null;

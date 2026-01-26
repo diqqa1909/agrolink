@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
 </head>
 
-<body>
+<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" data-user-email="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>">
     <?php
     $username = $_SESSION['USER']->name ?? 'Farmer';
     $role = $_SESSION['USER']->role ?? 'farmer';
@@ -130,16 +130,11 @@
         </main>
     </div>
 
-    <script>
-        window.APP_ROOT = "<?= ROOT ?>";
-        window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
-        window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
-    </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
     <?php if (isset($pageScript)): ?>
         <script src="<?= ROOT ?>/assets/js/farmer/<?= $pageScript ?>"></script>
     <?php endif; ?>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
 </body>
 
 </html>

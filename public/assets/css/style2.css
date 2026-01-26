@@ -124,8 +124,9 @@ ul {
 }
 
 .btn-outline:hover {
-  background-color: var(--primary-color);
-  color: var(--white);
+  background-color: rgba(101, 181, 124, 0.1);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
 }
 
 .btn-danger {

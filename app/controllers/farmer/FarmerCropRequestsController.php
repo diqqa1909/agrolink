@@ -1,5 +1,5 @@
 <?php
-class FarmerCropRequestController
+class FarmerCropRequestsController
 {
     use Controller;
 
@@ -27,7 +27,7 @@ class FarmerCropRequestController
             'requests' => $requests
         ];
 
-        $this->view('components/farmerLayout', $data);
+        $this->view('farmer/farmerMain', $data);
     }
 
     public function show($id)
@@ -51,7 +51,7 @@ class FarmerCropRequestController
             'request' => $request
         ];
 
-        $this->view('components/farmerLayout', $data);
+        $this->view('farmer/farmerMain', $data);
     }
 
     public function accept($id)
@@ -94,11 +94,11 @@ class FarmerCropRequestController
             return redirect('farmercroprequests');
         }
 
-        // Update status to rejected
-        $updated = $cropRequestModel->update($id, ['status' => 'rejected']);
+        // Update status to declined
+        $updated = $cropRequestModel->update($id, ['status' => 'declined']);
 
         if ($updated) {
-            $_SESSION['success'] = 'Crop request rejected';
+            $_SESSION['success'] = 'Crop request declined';
         } else {
             $_SESSION['error'] = 'Failed to reject crop request';
         }
