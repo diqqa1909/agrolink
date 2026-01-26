@@ -9,22 +9,22 @@
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <!-- <div class="stat-icon primary">📦</div>-->
-                        <div class="stat-number">8</div>
+                        <div class="stat-number"><?= $totalOrders ?? 0 ?></div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
                         <!-- <div class="stat-icon warning">⏳</div>-->
-                        <div class="stat-number">3</div>
+                        <div class="stat-number"><?= $pendingOrders ?? 0 ?></div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
                     <div class="stat-card">
                         <!--<div class="stat-icon success">💰</div>-->
-                        <div class="stat-number">Rs. 28,450</div>
+                        <div class="stat-number">Rs. <?= number_format($totalSpent ?? 0, 2) ?></div>
                         <div class="stat-label">Total Spent</div>
                     </div>
                     <div class="stat-card">
                         <!-- <div class="stat-icon info">❤️</div>-->
-                        <div class="stat-number">12</div>
+                        <div class="stat-number"><?= $wishlistCount ?? 0 ?></div>
                         <div class="stat-label">Wishlist Items</div>
                     </div>
                 </div>
@@ -41,42 +41,46 @@
                                 <thead>
                                     <tr>
                                         <th>Order ID</th>
-                                        <th>Product</th>
-                                        <th>Quantity</th>
-                                        <th>Farmer</th>
+                                        <th>Products</th>
+                                        <th>Items</th>
                                         <th>Total</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><strong>#ORD-2045</strong></td>
-                                        <td>Fresh Tomatoes</td>
-                                        <td>2kg</td>
-                                        <td>Ranjith Fernando (Matale)</td>
-                                        <td><strong>Rs. 240</strong></td>
-                                        <td>Aug 15, 2025</td>
-                                        <td><span class="order-status delivered">DELIVERED</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>#ORD-2044</strong></td>
-                                        <td>Green Beans</td>
-                                        <td>1kg</td>
-                                        <td>Kumari Silva (Kandy)</td>
-                                        <td><strong>Rs. 180</strong></td>
-                                        <td>Aug 18, 2025</td>
-                                        <td><span class="order-status pending">PENDING</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>#ORD-2043</strong></td>
-                                        <td>Red Rice</td>
-                                        <td>5kg</td>
-                                        <td>Sunil Perera (Anuradhapura)</td>
-                                        <td><strong>Rs. 475</strong></td>
-                                        <td>Aug 12, 2025</td>
-                                        <td><span class="order-status delivered">DELIVERED</span></td>
-                                    </tr>
+                                    <?php if (!empty($orders) && count($orders) > 0): ?>
+                                        <?php foreach (array_slice($orders, 0, 5) as $orderData): ?>
+                                            <?php 
+                                            $order = $orderData['order'];
+                                            $items = $orderData['items'];
+                                            $orderDate = date('M d, Y', strtotime($order->created_at));
+                                            $statusClass = strtolower($order->status);
+                                            ?>
+                                            <tr>
+                                                <td><strong>#ORD-<?= $order->id ?></strong></td>
+                                                <td>
+                                                    <?php 
+                                                    $productNames = array_slice(array_map(function($item) { 
+                                                        return htmlspecialchars($item->product_name); 
+                                                    }, $items), 0, 2);
+                                                    echo implode(', ', $productNames);
+                                                    if (count($items) > 2) echo ' +' . (count($items) - 2) . ' more';
+                                                    ?>
+                                                </td>
+                                                <td><?= $order->item_count ?? count($items) ?></td>
+                                                <td><strong>Rs. <?= number_format($order->order_total, 2) ?></strong></td>
+                                                <td><?= $orderDate ?></td>
+                                                <td><span class="order-status <?= $statusClass ?>"><?= strtoupper($order->status) ?></span></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                                                No orders yet. Start shopping to see your orders here!
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -90,9 +94,9 @@
                     </div>
                     <div class="card-content">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <button class="btn btn-primary" onclick="showSection('products')">Browse Products</button>
+                            <button class="btn btn-primary" onclick="window.location.href='<?= ROOT ?>/buyerproducts'">Browse Products</button>
                             <button class="btn btn-secondary" onclick="showSection('orders')">View All Orders</button>
-                            <button class="btn btn-outline" onclick="showSection('wishlist')">My Wishlist</button>
+                            <button class="btn btn-outline" onclick="window.location.href='<?= ROOT ?>/wishlist'">My Wishlist</button>
                             <button class="btn btn-outline" onclick="showSection('tracking')">Track Orders</button>
                         </div>
                     </div>
@@ -106,102 +110,84 @@
                     <p class="content-subtitle">Track and manage your order history</p>
                 </div>
 
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <h4 class="order-title">Order #ORD-2045</h4>
-                            <p style="color: #666; font-size: 0.9rem; margin-top: 4px;">Placed on Aug 15, 2025</p>
+                <?php if (!empty($orders) && count($orders) > 0): ?>
+                    <?php foreach ($orders as $orderData): ?>
+                        <?php 
+                        $order = $orderData['order'];
+                        $items = $orderData['items'];
+                        $orderDate = date('M d, Y', strtotime($order->created_at));
+                        $statusClass = strtolower($order->status);
+                        ?>
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <h4 class="order-title">Order #ORD-<?= $order->id ?></h4>
+                                    <p style="color: #666; font-size: 0.9rem; margin-top: 4px;">Placed on <?= $orderDate ?></p>
+                                </div>
+                                <span class="order-status <?= $statusClass ?>"><?= strtoupper($order->status) ?></span>
+                            </div>
+                            <div class="order-details">
+                                <div class="order-detail">
+                                    <span class="order-detail-label">Items</span>
+                                    <span class="order-detail-value"><?= count($items) ?> product(s)</span>
+                                </div>
+                                <div class="order-detail">
+                                    <span class="order-detail-label">Subtotal</span>
+                                    <span class="order-detail-value">Rs. <?= number_format($order->total_amount, 2) ?></span>
+                                </div>
+                                <div class="order-detail">
+                                    <span class="order-detail-label">Shipping</span>
+                                    <span class="order-detail-value">Rs. <?= number_format($order->shipping_cost, 2) ?></span>
+                                </div>
+                                <div class="order-detail">
+                                    <span class="order-detail-label">Total</span>
+                                    <span class="order-detail-value">Rs. <?= number_format($order->order_total, 2) ?></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Order Items -->
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
+                                <h5 style="margin-bottom: 12px; font-size: 0.95rem; color: #666;">Products:</h5>
+                                <?php foreach ($items as $item): ?>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                        <div>
+                                            <span style="font-weight: 500;"><?= htmlspecialchars($item->product_name) ?></span>
+                                            <span style="color: #666; font-size: 0.9rem;"> x <?= $item->quantity ?>kg</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-weight: 500;">Rs. <?= number_format($item->product_price * $item->quantity, 2) ?></span>
+                                            <?php if (!empty($item->farmer_name)): ?>
+                                                <span style="color: #666; font-size: 0.85rem; display: block; margin-top: 4px;">by <?= htmlspecialchars($item->farmer_name) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(<?= $order->id ?>)">View Details</button>
+                                <?php if ($order->status === 'pending' || $order->status === 'confirmed'): ?>
+                                    <button class="btn btn-sm btn-danger" onclick="cancelOrder(<?= $order->id ?>)">Cancel Order</button>
+                                <?php endif; ?>
+                                <?php if ($order->status === 'shipped'): ?>
+                                    <button class="btn btn-sm btn-secondary" onclick="trackOrder(<?= $order->id ?>)">Track Order</button>
+                                <?php endif; ?>
+                                <?php if ($order->status === 'delivered'): ?>
+                                    <button class="btn btn-sm btn-outline" onclick="reorderItems(<?= $order->id ?>)">Reorder</button>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <span class="order-status delivered">DELIVERED</span>
-                    </div>
-                    <div class="order-details">
-                        <div class="order-detail">
-                            <span class="order-detail-label">Product</span>
-                            <span class="order-detail-value">Fresh Tomatoes</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Quantity</span>
-                            <span class="order-detail-value">2kg</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Farmer</span>
-                            <span class="order-detail-value">Ranjith Fernando</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Total</span>
-                            <span class="order-detail-value">Rs. 240</span>
-                        </div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary" onclick="showNotification('Order details viewed', 'info')">View Details</button>
-                        <button class="btn btn-sm btn-secondary" onclick="showNotification('Reordering...', 'info')">Reorder</button>
-                        <button class="btn btn-sm btn-outline" onclick="showNotification('Review submitted', 'success')">Write Review</button>
-                    </div>
-                </div>
-
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <h4 class="order-title">Order #ORD-2044</h4>
-                            <p style="color: #666; font-size: 0.9rem; margin-top: 4px;">Placed on Aug 18, 2025</p>
-                        </div>
-                        <span class="order-status pending">PENDING</span>
-                    </div>
-                    <div class="order-details">
-                        <div class="order-detail">
-                            <span class="order-detail-label">Product</span>
-                            <span class="order-detail-value">Green Beans</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Quantity</span>
-                            <span class="order-detail-value">1kg</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Farmer</span>
-                            <span class="order-detail-value">Kumari Silva</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Total</span>
-                            <span class="order-detail-value">Rs. 180</span>
-                        </div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary" onclick="showNotification('Order details viewed', 'info')">View Details</button>
-                        <button class="btn btn-sm btn-danger" onclick="showNotification('Order cancelled', 'warning')">Cancel Order</button>
-                    </div>
-                </div>
-
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <h4 class="order-title">Order #ORD-2043</h4>
-                            <p style="color: #666; font-size: 0.9rem; margin-top: 4px;">Placed on Aug 12, 2025</p>
-                        </div>
-                        <span class="order-status shipped">SHIPPED</span>
-                    </div>
-                    <div class="order-details">
-                        <div class="order-detail">
-                            <span class="order-detail-label">Product</span>
-                            <span class="order-detail-value">Red Rice</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Quantity</span>
-                            <span class="order-detail-value">5kg</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Farmer</span>
-                            <span class="order-detail-value">Sunil Perera</span>
-                        </div>
-                        <div class="order-detail">
-                            <span class="order-detail-label">Total</span>
-                            <span class="order-detail-value">Rs. 475</span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="content-card">
+                        <div class="card-content" style="text-align: center; padding: 60px 20px;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">📦</div>
+                            <h3 style="margin-bottom: 12px; color: #2c3e50;">No Orders Yet</h3>
+                            <p style="color: #666; margin-bottom: 24px;">You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                            <button class="btn btn-primary" onclick="window.location.href='<?= ROOT ?>/buyerproducts'">Browse Products</button>
                         </div>
                     </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary" onclick="showNotification('Tracking order...', 'info')">Track Order</button>
-                        <button class="btn btn-sm btn-outline" onclick="showNotification('Order details viewed', 'info')">View Details</button>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Tracking Section -->
@@ -368,3 +354,34 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Order Details Modal -->
+            <div id="order-details-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+                <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out;">
+                    <span class="close-modal" onclick="closeOrderModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                    
+                    <div id="modal-body">
+                        <div style="text-align: center; padding: 40px;">
+                            <div class="loader" style="border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                            <p style="margin-top: 16px; color: #666;">Loading order details...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                @keyframes slideIn {
+                    from {transform: translateY(-50px); opacity: 0;}
+                    to {transform: translateY(0); opacity: 1;}
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .close-modal:hover,
+                .close-modal:focus {
+                    color: black;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+            </style>

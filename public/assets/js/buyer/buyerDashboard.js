@@ -878,3 +878,168 @@ window.uploadPhoto = uploadPhoto;
 window.addToWishlist = addToWishlist;
 window.removeFromWishlist = removeFromWishlist;
 window.loadWishlist = loadWishlist;
+
+// Order management functions
+function viewOrderDetails(orderId) {
+    const modal = document.getElementById('order-details-modal');
+    const modalBody = document.getElementById('modal-body');
+
+    if (modal) {
+        modal.style.display = 'block';
+        // Reset content to loading state
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div class="loader" style="border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <p style="margin-top: 16px; color: #666;">Loading order details...</p>
+            </div>
+        `;
+    }
+
+    fetch(window.APP_ROOT + '/BuyerOrders/details?id=' + orderId, {
+        method: 'GET',
+        credentials: 'include'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const order = data.order;
+                const items = data.items;
+                const orderDate = new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                let itemsHtml = '';
+                items.forEach(item => {
+                    const itemTotal = parseFloat(item.product_price) * parseInt(item.quantity);
+                    itemsHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500;">${escapeHtml(item.product_name)}</div>
+                            <div style="font-size: 0.85rem; color: #666;">${item.quantity} kg x Rs. ${parseFloat(item.product_price).toFixed(2)}</div>
+                            ${item.farmer_name ? `<div style="font-size: 0.8rem; color: #888;">Farmer: ${escapeHtml(item.farmer_name)}</div>` : ''}
+                        </div>
+                        <div style="font-weight: 500;">Rs. ${itemTotal.toFixed(2)}</div>
+                    </div>
+                `;
+                });
+
+                modalBody.innerHTML = `
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h2 style="margin: 0; color: #2c3e50;">Order #ORD-${order.id}</h2>
+                        <span class="order-status ${order.status.toLowerCase()}" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; text-transform: uppercase;">${order.status}</span>
+                    </div>
+                    <p style="margin: 0; color: #666;">Placed on ${orderDate}</p>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #2c3e50;">Items</h4>
+                    ${itemsHtml}
+                </div>
+
+                <div style="background: #f8f9fa; padding: 16px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #666;">Subtotal</span>
+                        <span>Rs. ${parseFloat(order.total_amount).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #666;">Shipping</span>
+                        <span>Rs. ${parseFloat(order.shipping_cost).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #dee2e6; padding-top: 8px; margin-top: 8px; font-weight: bold; font-size: 1.1rem;">
+                        <span>Total</span>
+                        <span style="color: #4CAF50;">Rs. ${parseFloat(order.order_total).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #2c3e50;">Delivery Details</h4>
+                    <p style="margin: 0 0 4px 0;"><strong>Address:</strong> ${escapeHtml(order.delivery_address)}</p>
+                    <p style="margin: 0 0 4px 0;"><strong>District:</strong> ${escapeHtml(order.district_name || order.delivery_city)}</p>
+                    <p style="margin: 0 0 4px 0;"><strong>Phone:</strong> ${escapeHtml(order.delivery_phone)}</p>
+                    <p style="margin: 0;"><strong>Payment Method:</strong> ${escapeHtml(order.payment_method)}</p>
+                </div>
+            `;
+            } else {
+                modalBody.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #dc3545;">
+                    <h3>Error</h3>
+                    <p>${data.message || 'Failed to load order details'}</p>
+                </div>
+            `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (modalBody) {
+                modalBody.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #dc3545;">
+                    <h3>Error</h3>
+                    <p>An error occurred while loading details</p>
+                </div>
+            `;
+            }
+        });
+}
+
+function closeOrderModal() {
+    const modal = document.getElementById('order-details-modal');
+    if (modal) {
+        modal.style.display = 'none';
+
+        // Also remove the hash if it was set to keep history clean (optional)
+        // history.pushState("", document.title, window.location.pathname + window.location.search);
+    }
+}
+
+// Close modal when clicking outside of it
+window.onclick = function (event) {
+    const modal = document.getElementById('order-details-modal');
+    if (event.target == modal) {
+        closeOrderModal();
+    }
+}
+
+function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('order_id', orderId);
+
+    fetch(window.APP_ROOT + '/BuyerOrders/cancel', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Order cancelled successfully', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showNotification(data.message || 'Failed to cancel order', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred', 'error');
+        });
+}
+
+function trackOrder(orderId) {
+    showNotification('Loading tracking information...', 'info');
+    // TODO: Implement order tracking
+    console.log('Track order:', orderId);
+}
+
+function reorderItems(orderId) {
+    showNotification('Adding items to cart...', 'info');
+    // TODO: Implement reorder functionality
+    console.log('Reorder items from order:', orderId);
+}
+
+window.viewOrderDetails = viewOrderDetails;
+window.cancelOrder = cancelOrder;
+window.trackOrder = trackOrder;
+window.reorderItems = reorderItems;
+window.closeOrderModal = closeOrderModal;

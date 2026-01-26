@@ -5,10 +5,12 @@ class CartController
     use Controller;
 
     protected $cartModel;
+    protected $productModel;
 
     public function __construct()
     {
         $this->cartModel = new CartModel();
+        $this->productModel = new ProductsModel();
     }
 
     /**
@@ -26,6 +28,23 @@ class CartController
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
+        
+        // Enrich cart items with product quantity information
+        foreach ($cartItems as $item) {
+            $product = $this->productModel->getById($item->product_id);
+            if ($product) {
+                $item->available_quantity = $product->quantity ?? 0;
+                // Ensure cart quantity doesn't exceed available quantity
+                if ($item->quantity > $item->available_quantity) {
+                    // Update cart quantity to max available
+                    $this->cartModel->updateQuantity($user_id, $item->product_id, $item->available_quantity);
+                    $item->quantity = $item->available_quantity;
+                }
+            } else {
+                $item->available_quantity = 0;
+            }
+        }
+        
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
         $cartTotal = $this->cartModel->getCartTotal($user_id);
 
@@ -72,12 +91,31 @@ class CartController
         }
 
         try {
+            // Check product availability before adding/updating
+            $product = $this->productModel->getById($data['product_id']);
+            if (!$product) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Product not found']);
+                exit;
+            }
+            
+            $availableQuantity = $product->quantity ?? 0;
+            
             // Check if product already exists in cart
             $existingItem = $this->cartModel->getCartItem($user_id, $data['product_id']);
 
             if ($existingItem) {
-                // Update quantity
+                // Update quantity - check if total doesn't exceed available
                 $newQuantity = $existingItem->quantity + $data['quantity'];
+                if ($newQuantity > $availableQuantity) {
+                    http_response_code(422);
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => "Only {$availableQuantity} kg available. Cannot add more."
+                    ]);
+                    exit;
+                }
+                
                 $updated = $this->cartModel->updateQuantity($user_id, $data['product_id'], $newQuantity);
 
                 if ($updated) {
@@ -92,6 +130,16 @@ class CartController
                     echo json_encode(['success' => false, 'message' => 'Failed to update cart']);
                 }
             } else {
+                // Add new item - check quantity doesn't exceed available
+                if ($data['quantity'] > $availableQuantity) {
+                    http_response_code(422);
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => "Only {$availableQuantity} kg available. Please select a lower quantity."
+                    ]);
+                    exit;
+                }
+                
                 // Add new item
                 $added = $this->cartModel->addToCart($data);
 
@@ -149,6 +197,26 @@ class CartController
         }
 
         try {
+            // Check product availability before updating
+            $product = $this->productModel->getById($product_id);
+            if (!$product) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Product not found']);
+                exit;
+            }
+            
+            $availableQuantity = $product->quantity ?? 0;
+            
+            // Validate quantity doesn't exceed available stock
+            if ($quantity > $availableQuantity) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "Only {$availableQuantity} kg available. Cannot select more than available stock."
+                ]);
+                exit;
+            }
+            
             $updated = $this->cartModel->updateQuantity($user_id, $product_id, $quantity);
 
             if ($updated) {

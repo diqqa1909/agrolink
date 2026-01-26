@@ -21,11 +21,7 @@
                     <option value="">All Categories</option>
                     <option value="vegetables">Vegetables</option>
                     <option value="fruits">Fruits</option>
-                    <option value="cereals">Cereals</option>
-                    <option value="legumes">Legumes</option>
                     <option value="spices">Spices</option>
-                    <option value="yams">Yams</option>
-                    <option value="leafy">Leafy Greens</option>
                 </select>
             </div>
             <div>
@@ -40,6 +36,23 @@
                     <option value="nuwara eliya">Nuwara Eliya</option>
                     <option value="badulla">Badulla</option>
                     <option value="kurunegala">Kurunegala</option>
+                    <option value="gampaha">Gampaha</option>
+                    <option value="jaffna">Jaffna</option>
+                    <option value="trincomalee">Trincomalee</option>
+                    <option value="batticaloa">Batticaloa</option>
+                    <option value="ampara">Ampara</option>
+                    <option value="polonnaruwa">Polonnaruwa</option>
+                    <option value="puttalam">Puttalam</option>
+                    <option value="ratnapura">Rathnapura</option>
+                    <option value="kilinochchi">Kilinochchi</option>
+                    <option value="mullaitivu">Mullaitivu</option>
+                    <option value="mannar">Mannar</option>
+                    <option value="matara">Matara</option>
+                    <option value="kegalle">Kegalle</option>
+                    <option value="kalutara">Kalutara</option>
+                    <option value="hambanthota">Hambanthota</option>
+                    <option value="monaragala">Monaragala</option>
+                    <option value="vavuniya">Vavuniya</option>
                 </select>
             </div>
             <div>
