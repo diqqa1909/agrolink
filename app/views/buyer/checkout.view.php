@@ -181,14 +181,28 @@
                                     <h4 class="order-item-name"><?= htmlspecialchars($item->product_name) ?></h4>
                                     <div class="order-item-quantity">
                                         <label>Quantity:</label>
-                                        <select class="quantity-select" data-product-id="<?= $item->product_id ?>" 
-                                                onchange="updateCheckoutQuantity(<?= $item->product_id ?>, this.value)">
-                                            <?php for ($i = 1; $i <= 10; $i++): ?>
-                                                <option value="<?= $i ?>" <?= $item->quantity == $i ? 'selected' : '' ?>>
-                                                    <?= $i ?>
-                                                </option>
-                                            <?php endfor; ?>
-                                        </select>
+                                        <?php 
+                                        $availableQty = $item->available_quantity ?? 0;
+                                        $maxQuantity = min($availableQty, 100); // Cap at 100 for UI, but respect available quantity
+                                        $currentQuantity = min($item->quantity, $maxQuantity);
+                                        
+                                        if ($maxQuantity <= 0): 
+                                        ?>
+                                            <span style="color: #d32f2f; font-weight: 500;">Out of Stock</span>
+                                        <?php else: ?>
+                                            <select class="quantity-select" data-product-id="<?= $item->product_id ?>" 
+                                                    data-max-quantity="<?= $availableQty ?>"
+                                                    onchange="updateCheckoutQuantity(<?= $item->product_id ?>, this.value, <?= $availableQty ?>)">
+                                                <?php for ($i = 1; $i <= $maxQuantity; $i++): ?>
+                                                    <option value="<?= $i ?>" <?= $currentQuantity == $i ? 'selected' : '' ?>>
+                                                        <?= $i ?> <?= $i == $maxQuantity && $maxQuantity == $availableQty ? '(Max)' : '' ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                            <span style="font-size: 0.85rem; color: #666; margin-left: 8px;">
+                                                (<?= $availableQty ?> kg available)
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="order-item-delivery">
                                         <div class="delivery-info">
@@ -224,6 +238,39 @@
                     <span class="order-summary-value">Rs. <?= number_format($deliveryFee, 2) ?></span>
                 </div>
 
+                <?php if ($shippingCalculation && $shippingCalculation['success']): ?>
+                    <div class="order-summary-shipping-details" style="font-size: 0.85rem; color: #666; padding: 8px 0; border-top: 1px solid #e0e0e0;">
+                        <?php 
+                        // Handle both single calculation and multiple calculations (multiple farmers)
+                        $calc = $shippingCalculation['calculation'];
+                        if (isset($calc['calculations']) && is_array($calc['calculations']) && !empty($calc['calculations'])) {
+                            // Multiple farmers - show summary
+                            $firstCalc = $calc['calculations'][0];
+                            ?>
+                            <div style="margin-top: 8px;">
+                                <span>Distance: <?= $firstCalc['total_distance_km'] ?? 'N/A' ?> km</span>
+                            </div>
+                            <div style="margin-top: 4px;">
+                                <span>Vehicle: <?= htmlspecialchars($firstCalc['selected_vehicle']['name'] ?? 'N/A') ?></span>
+                            </div>
+                            <?php if ($calc['multiple_farmers'] ?? false): ?>
+                                <div style="margin-top: 4px; font-size: 0.8rem; color: #999;">
+                                    (<?= $calc['farmer_count'] ?> farmers)
+                                </div>
+                            <?php endif; ?>
+                        <?php } else {
+                            // Single calculation structure
+                            ?>
+                            <div style="margin-top: 8px;">
+                                <span>Distance: <?= $calc['total_distance_km'] ?? 'N/A' ?> km</span>
+                            </div>
+                            <div style="margin-top: 4px;">
+                                <span>Vehicle: <?= htmlspecialchars($calc['selected_vehicle']['name'] ?? 'N/A') ?></span>
+                            </div>
+                        <?php } ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="order-summary-total">
                     <span class="order-summary-total-label">Order total:</span>
                     <span class="order-summary-total-amount">Rs. <?= number_format($orderTotal, 2) ?></span>
@@ -238,6 +285,30 @@
                         onclick="confirmPayment()">
                     Confirm and pay
                 </button>
+
+                <!-- Payment Method Section (shown after clicking Confirm and pay) -->
+                <div id="paymentMethodSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 12px;">Select a payment method</h4>
+                    <div class="payment-options">
+                        <div class="payment-option">
+                            <input type="radio" id="payment-cash" name="payment_method" value="cash_on_delivery" checked>
+                            <label for="payment-cash" class="payment-label">
+                                <span class="payment-icon">💵</span>
+                                <span>Cash on Delivery</span>
+                            </label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="radio" id="payment-bank" name="payment_method" value="bank_transfer">
+                            <label for="payment-bank" class="payment-label">
+                                <span class="payment-icon">🏦</span>
+                                <span>Bank Transfer</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button id="finalConfirmBtn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 16px;" onclick="finalConfirmOrder()">
+                        Complete Order
+                    </button>
+                </div>
 
                 <p class="payment-message" style="<?= !$hasDeliveryDetails ? 'display: block;' : 'display: none;' ?>">
                     Please complete delivery information to proceed
@@ -275,6 +346,9 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('phone', phone);
             formData.append('city', city);
             formData.append('delivery_address', deliveryAddress);
+            formData.append('address2', document.getElementById('address2')?.value || '');
+            formData.append('zipCode', document.getElementById('zipCode')?.value || '');
+            formData.append('state', document.getElementById('state')?.value || '');
             
             // Show loading
             const btn = this.querySelector('button[type="submit"]');
@@ -324,7 +398,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Update quantity in checkout
-function updateCheckoutQuantity(productId, quantity) {
+function updateCheckoutQuantity(productId, quantity, maxQuantity) {
+    // Validate quantity doesn't exceed available stock
+    if (maxQuantity && quantity > maxQuantity) {
+        alert('Cannot select more than ' + maxQuantity + ' kg. Only ' + maxQuantity + ' kg available.');
+        // Reset to max available
+        const select = document.querySelector(`select[data-product-id="${productId}"]`);
+        if (select) {
+            select.value = maxQuantity;
+            quantity = maxQuantity;
+        }
+        return;
+    }
+    
+    if (quantity <= 0) {
+        alert('Quantity must be at least 1');
+        return;
+    }
+    
     const formData = new FormData();
     formData.append('product_id', productId);
     formData.append('quantity', quantity);
@@ -340,26 +431,75 @@ function updateCheckoutQuantity(productId, quantity) {
             // Reload page to update totals
             window.location.reload();
         } else {
-            alert('Failed to update quantity');
+            alert('Failed to update quantity: ' + (data.message || 'Unknown error'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred');
+        alert('An error occurred while updating quantity');
     });
 }
 
-// Confirm payment
+// Confirm payment - show payment method selection
 function confirmPayment() {
-    if (!confirm('Are you sure you want to confirm and pay for this order?')) {
+    // Hide confirm button and show payment method section
+    const confirmBtn = document.getElementById('confirmPayBtn');
+    const paymentSection = document.getElementById('paymentMethodSection');
+    
+    if (confirmBtn && paymentSection) {
+        confirmBtn.style.display = 'none';
+        paymentSection.style.display = 'block';
+        // Scroll to payment section
+        paymentSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Final order confirmation
+function finalConfirmOrder() {
+    if (!confirm('Are you sure you want to place this order?')) {
         return;
     }
     
-    // TODO: Implement order placement and payment method selection
-    alert('Order placement functionality will be implemented next.');
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash_on_delivery';
+    
+    // Show loading
+    const btn = document.getElementById('finalConfirmBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    
+    const formData = new FormData();
+    formData.append('payment_method', paymentMethod);
+    
+    fetch(window.APP_ROOT + '/Checkout/placeOrder', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message || 'Order placed successfully!', 'success');
+            // Redirect to order confirmation page or orders list
+            setTimeout(() => {
+                window.location.href = window.APP_ROOT + '/buyerDashboard#orders';
+            }, 1500);
+        } else {
+            showNotification(data.message || 'Failed to place order', 'error');
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while placing order: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = originalText;
+    });
 }
 
 // Export functions to window
 window.updateCheckoutQuantity = updateCheckoutQuantity;
 window.confirmPayment = confirmPayment;
+window.finalConfirmOrder = finalConfirmOrder;
 </script>
