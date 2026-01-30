@@ -69,7 +69,7 @@
                         </div>
                         Deliveries
                     </a></li>
-                <li><a href="<?= ROOT ?>/farmerfeedback" class="menu-link <?= ($activePage ?? '') === 'feedback' ? 'active' : '' ?>">
+                <li><a href="<?= ROOT ?>/FarmerReviews" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />

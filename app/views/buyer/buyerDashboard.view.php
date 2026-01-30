@@ -153,12 +153,20 @@
                                         <div>
                                             <span style="font-weight: 500;"><?= htmlspecialchars($item->product_name) ?></span>
                                             <span style="color: #666; font-size: 0.9rem;"> x <?= $item->quantity ?>kg</span>
+                                            <?php if ($statusClass === 'delivered'): ?>
+                                                <button class="btn btn-sm btn-outline" 
+                                                        style="margin-top: 5px; display: block; padding: 2px 8px; font-size: 0.75rem;" 
+                                                        onclick="openReviewModal(<?= $order->id ?>, <?= $item->product_id ?>, <?= $item->farmer_id ?>, '<?= addslashes(htmlspecialchars($item->product_name)) ?>')">
+                                                    ★ Write Review
+                                                </button>
+                                            <?php endif; ?>
                                         </div>
                                         <div>
                                             <span style="font-weight: 500;">Rs. <?= number_format($item->product_price * $item->quantity, 2) ?></span>
                                             <?php if (!empty($item->farmer_name)): ?>
                                                 <span style="color: #666; font-size: 0.85rem; display: block; margin-top: 4px;">by <?= htmlspecialchars($item->farmer_name) ?></span>
                                             <?php endif; ?>
+
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -171,9 +179,6 @@
                                 <?php endif; ?>
                                 <?php if ($order->status === 'shipped'): ?>
                                     <button class="btn btn-sm btn-secondary" onclick="trackOrder(<?= $order->id ?>)">Track Order</button>
-                                <?php endif; ?>
-                                <?php if ($order->status === 'delivered'): ?>
-                                    <button class="btn btn-sm btn-outline" onclick="reorderItems(<?= $order->id ?>)">Reorder</button>
                                 <?php endif; ?>
                             </div>
                         </div>

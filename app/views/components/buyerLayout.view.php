@@ -12,6 +12,9 @@
 </head>
 
 <body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" data-user-email="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>">
+    <script>
+        window.APP_ROOT = "<?= ROOT ?>";
+    </script>
     <?php
     $username = $_SESSION['USER']->name ?? 'Buyer';
     $role = $_SESSION['USER']->role ?? 'buyer';
