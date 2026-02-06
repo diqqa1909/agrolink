@@ -36,6 +36,7 @@ CREATE TABLE `buyer_profiles` (
   `city` varchar(100) DEFAULT NULL,
   `district` varchar(100) DEFAULT NULL,
   `postal_code` varchar(20) DEFAULT NULL,
+  `additional_address_details` varchar(100) DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()

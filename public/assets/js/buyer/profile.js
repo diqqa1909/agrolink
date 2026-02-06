@@ -136,7 +136,8 @@ function saveProfileData() {
         apartment_code: formData.get('apartment_code') || '',
         street_name: formData.get('street_name') || '',
         city: formData.get('city') || '',
-        postal_code: formData.get('postal_code') || ''
+        postal_code: formData.get('postal_code') || '',
+        additional_address_details: formData.get('additional_address_details') || ''
     };
 
     const saveBtn = document.querySelector('.btn-save-profile');

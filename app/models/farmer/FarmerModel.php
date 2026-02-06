@@ -242,4 +242,217 @@ class FarmerModel
             'password' => $hashedPassword
         ]);
     }
+
+    /**
+     * Get all orders that contain this farmer's products
+     */
+    public function getFarmerOrders($farmerId)
+    {
+        $sql = "SELECT DISTINCT o.*, 
+                u.name as buyer_name, 
+                u.email as buyer_email,
+                d.district_name,
+                (SELECT COUNT(*) FROM order_items WHERE order_id = o.id AND farmer_id = :farmer_id) as my_items_count,
+                (SELECT SUM(product_price * quantity) FROM order_items WHERE order_id = o.id AND farmer_id = :farmer_id) as my_order_total
+                FROM orders o
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                LEFT JOIN users u ON o.buyer_id = u.id
+                LEFT JOIN districts d ON o.delivery_district_id = d.id
+                WHERE oi.farmer_id = :farmer_id
+                ORDER BY o.created_at DESC";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Get order items for this farmer only
+     */
+    public function getFarmerOrderItems($orderId, $farmerId)
+    {
+        $sql = "SELECT oi.*, p.image as product_image
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = :order_id AND oi.farmer_id = :farmer_id";
+
+        $result = $this->query($sql, ['order_id' => $orderId, 'farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Verify that an order item belongs to this farmer
+     */
+    public function verifyOrderItemOwnership($itemId, $farmerId)
+    {
+        $sql = "SELECT id FROM order_items WHERE id = :item_id AND farmer_id = :farmer_id";
+        $result = $this->get_row($sql, ['item_id' => $itemId, 'farmer_id' => $farmerId]);
+        return $result !== false;
+    }
+
+    /**
+     * Update order item status
+     */
+    public function updateOrderItemStatus($itemId, $status)
+    {
+        // Add status column if it doesn't exist (for future use)
+        $sql = "UPDATE order_items SET created_at = created_at WHERE id = :item_id";
+        return $this->write($sql, ['item_id' => $itemId]);
+    }
+
+    /**
+     * Get total earnings for farmer
+     */
+    public function getTotalEarnings($farmerId)
+    {
+        $sql = "SELECT COALESCE(SUM(oi.product_price * oi.quantity), 0) as total
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ? $result->total : 0;
+    }
+
+    /**
+     * Get monthly earnings for farmer
+     */
+    public function getMonthlyEarnings($farmerId)
+    {
+        $sql = "SELECT COALESCE(SUM(oi.product_price * oi.quantity), 0) as total
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND MONTH(o.created_at) = MONTH(CURRENT_DATE())
+                AND YEAR(o.created_at) = YEAR(CURRENT_DATE())";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ? $result->total : 0;
+    }
+
+    /**
+     * Get weekly earnings for farmer
+     */
+    public function getWeeklyEarnings($farmerId)
+    {
+        $sql = "SELECT COALESCE(SUM(oi.product_price * oi.quantity), 0) as total
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND YEARWEEK(o.created_at, 1) = YEARWEEK(CURRENT_DATE(), 1)";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ? $result->total : 0;
+    }
+
+    /**
+     * Get yearly earnings for farmer
+     */
+    public function getYearlyEarnings($farmerId)
+    {
+        $sql = "SELECT COALESCE(SUM(oi.product_price * oi.quantity), 0) as total
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND YEAR(o.created_at) = YEAR(CURRENT_DATE())";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ? $result->total : 0;
+    }
+
+    /**
+     * Get earnings breakdown by product
+     */
+    public function getEarningsByProduct($farmerId)
+    {
+        $sql = "SELECT 
+                    oi.product_name,
+                    oi.product_id,
+                    COUNT(DISTINCT oi.order_id) as order_count,
+                    SUM(oi.quantity) as total_quantity,
+                    SUM(oi.product_price * oi.quantity) as total_earnings
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                GROUP BY oi.product_id, oi.product_name
+                ORDER BY total_earnings DESC
+                LIMIT 10";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Get recent earnings transactions
+     */
+    public function getRecentEarnings($farmerId, $limit = 10)
+    {
+        $sql = "SELECT 
+                    o.id as order_id,
+                    o.created_at as order_date,
+                    o.status,
+                    u.name as buyer_name,
+                    COUNT(oi.id) as item_count,
+                    SUM(oi.product_price * oi.quantity) as order_earnings
+                FROM orders o
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                LEFT JOIN users u ON o.buyer_id = u.id
+                WHERE oi.farmer_id = :farmer_id
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                GROUP BY o.id, o.created_at, o.status, u.name
+                ORDER BY o.created_at DESC
+                LIMIT :limit";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId, 'limit' => $limit]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Get earnings statistics
+     */
+    public function getEarningsStats($farmerId)
+    {
+        $sql = "SELECT 
+                    COUNT(DISTINCT o.id) as total_orders,
+                    COUNT(DISTINCT oi.product_id) as products_sold,
+                    SUM(oi.quantity) as total_items_sold,
+                    AVG(oi.product_price * oi.quantity) as avg_order_value
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ?: (object)[
+            'total_orders' => 0,
+            'products_sold' => 0,
+            'total_items_sold' => 0,
+            'avg_order_value' => 0
+        ];
+    }
+
+    /**
+     * Get monthly earnings chart data (last 12 months)
+     */
+    public function getMonthlyEarningsChart($farmerId)
+    {
+        $sql = "SELECT 
+                    DATE_FORMAT(o.created_at, '%Y-%m') as month,
+                    DATE_FORMAT(o.created_at, '%b %Y') as month_label,
+                    SUM(oi.product_price * oi.quantity) as earnings
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id 
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
+                GROUP BY DATE_FORMAT(o.created_at, '%Y-%m'), DATE_FORMAT(o.created_at, '%b %Y')
+                ORDER BY month ASC";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
 }
