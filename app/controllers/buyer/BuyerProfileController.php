@@ -152,6 +152,7 @@ class BuyerProfileController
             $validation = $this->buyerModel->validateProfile($data);
 
             if ($validation !== true) {
+                error_log("Buyer Profile Validation Failed: " . json_encode($validation));
                 http_response_code(422);
                 echo json_encode([
                     'success' => false,
@@ -173,6 +174,7 @@ class BuyerProfileController
                     // Check if email is already taken by another user
                     $existingUser = $this->userModel->findByEmail($data['email']);
                     if ($existingUser && $existingUser->id !== $userId) {
+                        error_log("Buyer Profile Save: Email already in use: " . $data['email']);
                         http_response_code(422);
                         echo json_encode([
                             'success' => false,

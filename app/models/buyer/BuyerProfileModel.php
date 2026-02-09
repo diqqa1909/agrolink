@@ -107,9 +107,18 @@ class BuyerProfileModel
     {
         $errors = [];
 
+        // Validate required fields
+        $requiredFields = ['street_name', 'city', 'postal_code', 'district'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
+            }
+        }
+
         // Validate phone
         if (!empty($data['phone'])) {
-            if (!preg_match('/^(\+94|0)\d{9}$/', str_replace([' ', '-'], '', $data['phone']))) {
+            $cleanPhone = str_replace([' ', '-', '(', ')'], '', $data['phone']);
+            if (!preg_match('/^(\+94|0)\d{9}$/', $cleanPhone)) {
                 $errors['phone'] = 'Invalid phone number format';
             }
         }
