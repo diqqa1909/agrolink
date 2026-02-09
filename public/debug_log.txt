@@ -197,3 +197,163 @@ Headers: Array
     [Cookie] => PHPSESSID=pr8ctrr7nq4r6e379l2cdkdvca
 )
 
+2026-02-09 08:55:53 - placeOrder Called
+Session ID: ckm56nqlkjj7bkv39cmmplgk2o
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 35
+            [name] => W.P.Perera
+            [email] => wp@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-01-05 23:35:34
+            [updated_at] => 2026-01-21 19:47:49
+        )
+
+    [buy_now_product_id] => 38
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 158
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryTj7VjJEf6QJUVvdq
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=38
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=ckm56nqlkjj7bkv39cmmplgk2o
+)
+
+2026-02-09 18:52:06 - placeOrder Called
+Session ID: du9e123iv49eajvbvmklnq1h7r
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 35
+            [name] => W.P.Perera
+            [email] => wp@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-01-05 23:35:34
+            [updated_at] => 2026-01-21 19:47:49
+        )
+
+    [buy_now_product_id] => 44
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryXvWnn5aMAoA1H7Uf
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=44
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=du9e123iv49eajvbvmklnq1h7r
+)
+
+2026-02-09 21:04:06 - placeOrder Called
+Session ID: 43csa11u54jaokkkqq3sgoubml
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 43
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 158
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundarygNiQE1iRyllcQ7Bd
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=43
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=43csa11u54jaokkkqq3sgoubml
+)
+
+2026-02-09 21:29:59 - placeOrder Called
+Session ID: 43csa11u54jaokkkqq3sgoubml
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 35
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryUDXArIFyKvTaxiEb
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=35
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=43csa11u54jaokkkqq3sgoubml
+)
+

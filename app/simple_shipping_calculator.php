@@ -218,19 +218,19 @@ class SimpleShippingCalculator {
      */
     private function getAvailableVehicles($effectiveWeight) {
         try {
-            $maxWeight = $effectiveWeight * floatval($this->config['vehicle_size_multiplier_max']);
-            
+            // Find vehicles where effectiveWeight falls within their assigned weight range
+            // This ensures proper vehicle-to-load matching (no oversized vehicles for small loads)
             $stmt = $this->db->prepare(
-                "SELECT id, vehicle_name, max_weight_kg, base_fee_lkr, 
-                        cost_per_km_lkr, cost_per_kg_lkr
+                "SELECT id, vehicle_name, min_weight_kg, max_weight_kg, 
+                        base_fee_lkr, cost_per_km_lkr, cost_per_kg_lkr
                  FROM vehicle_types 
-                 WHERE max_weight_kg >= ? 
-                 AND max_weight_kg <= ?
+                 WHERE ? >= min_weight_kg 
+                 AND ? <= max_weight_kg
                  AND is_active = 1 
                  ORDER BY max_weight_kg ASC"
             );
             
-            $stmt->execute([$effectiveWeight, $maxWeight]);
+            $stmt->execute([$effectiveWeight, $effectiveWeight]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
             
         } catch (PDOException $e) {

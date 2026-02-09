@@ -190,18 +190,19 @@ class CheckoutController
             $firstItem = $farmerData['items'][0];
             $cropName = $firstItem->product_name;
 
-            // Get farmer's district from farmer profile
-            $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
-            
-            // Get farmer's district and town
-            $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? 'Colombo') : ($product->location ?? 'Colombo');
-            $farmerDistrictId = $this->getDistrictIdByName($farmerDistrictName);
-            
+            // Get farmer's district/town (Try new ID fields first)
+            $farmerDistrictId = $product->district_id ?? null;
+            $farmerTownId = $product->town_id ?? null;
+
             if (!$farmerDistrictId) {
-                continue; // Skip if can't find farmer district
+                // Get farmer's district from farmer profile
+                $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
+                
+                // Get farmer's district and town (legacy fallback)
+                $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? 'Colombo') : ($product->location ?? 'Colombo');
+                $farmerDistrictId = $this->getDistrictIdByName($farmerDistrictName);
+                $farmerTownId = $this->getTownIdByName($product->location ?? '', $farmerDistrictId);
             }
-            
-            $farmerTownId = $this->getTownIdByName($product->location ?? '', $farmerDistrictId);
 
             if ($totalWeight <= 0) {
                 continue;

@@ -42,22 +42,61 @@ class TransporterDashboardController
             }
 
             $vehicleModel = new VehicleModel();
+            
+            // Get vehicle type details if vehicle_type_id provided
+            $vehicleTypeId = $_POST['vehicle_type_id'] ?? null;
+            $type = $_POST['type'] ?? ''; // Fallback for compatibility
+            $capacity = $_POST['capacity'] ?? ''; // Fallback for compatibility
+            
+            // DEBUG LOG
+            error_log("=== ADD VEHICLE DEBUG ===");
+            error_log("vehicle_type_id: " . ($vehicleTypeId ?? 'NULL'));
+            
+            if ($vehicleTypeId) {
+                try {
+                    $vehicleType = $this->get_row(
+                        "SELECT vehicle_name, max_weight_kg FROM vehicle_types WHERE id = ? AND is_active = 1",
+                        [$vehicleTypeId]
+                    );
+                    
+                    if ($vehicleType) {
+                        $type = $vehicleType->vehicle_name;
+                        $capacity = $vehicleType->max_weight_kg;
+                        error_log("Fetched type: $type, capacity: $capacity");
+                    } else {
+                        error_log("Invalid vehicle type ID: $vehicleTypeId");
+                        $response['message'] = 'Invalid vehicle type selected';
+                        echo json_encode($response);
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    error_log("Error fetching vehicle type: " . $e->getMessage());
+                    $response['message'] = 'Database error';
+                    echo json_encode($response);
+                    exit;
+                }
+            }
 
             $data = [
-                'user_id' => $_SESSION['USER']->id,
-                'type' => $_POST['type'] ?? '',
+                'transporter_id' => $_SESSION['USER']->id,
+                'type' => $type,
                 'registration' => $_POST['registration'] ?? '',
-                'capacity' => $_POST['capacity'] ?? '',
+                'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? 'petrol',
                 'model' => $_POST['model'] ?? '',
                 'status' => 'active'
             ];
+            
+            error_log("Data to validate: " . json_encode($data));
 
             if ($vehicleModel->validate($data)) {
-                $vehicleModel->create($data);
+                error_log("Validation passed, calling create()");
+                $result = $vehicleModel->create($data);
+                error_log("Create result: " . json_encode($result));
                 $response['success'] = true;
                 $response['message'] = 'Vehicle added successfully!';
             } else {
+                error_log("Validation failed: " . json_encode($vehicleModel->errors));
                 $response['errors'] = $vehicleModel->errors;
                 $response['message'] = 'Validation failed';
             }
@@ -81,16 +120,44 @@ class TransporterDashboardController
             $vehicleModel = new VehicleModel();
 
             $vehicle = $vehicleModel->getById($id);
-            if (!$vehicle || $vehicle->user_id != $_SESSION['USER']->id) {
+            if (!$vehicle || $vehicle->transporter_id != $_SESSION['USER']->id) {
                 $response['message'] = 'Vehicle not found or unauthorized';
                 echo json_encode($response);
                 exit;
             }
 
+            // Get vehicle type details if vehicle_type_id provided
+            $vehicleTypeId = $_POST['vehicle_type_id'] ?? null;
+            $type = $_POST['type'] ?? $vehicle->type; // Fallback to existing
+            $capacity = $_POST['capacity'] ?? $vehicle->capacity; // Fallback to existing
+            
+            if ($vehicleTypeId) {
+                try {
+                    $vehicleType = $this->get_row(
+                        "SELECT vehicle_name, max_weight_kg FROM vehicle_types WHERE id = ? AND is_active = 1",
+                        [$vehicleTypeId]
+                    );
+                    
+                    if ($vehicleType) {
+                        $type = $vehicleType->vehicle_name;
+                        $capacity = $vehicleType->max_weight_kg;
+                    } else {
+                        $response['message'] = 'Invalid vehicle type selected';
+                        echo json_encode($response);
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    error_log("Error fetching vehicle type: " . $e->getMessage());
+                    $response['message'] = 'Database error';
+                    echo json_encode($response);
+                    exit;
+                }
+            }
+
             $data = [
-                'type' => $_POST['type'] ?? $vehicle->type,
+                'type' => $type,
                 'registration' => $_POST['registration'] ?? $vehicle->registration,
-                'capacity' => $_POST['capacity'] ?? $vehicle->capacity,
+                'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? $vehicle->fuel_type,
                 'model' => $_POST['model'] ?? $vehicle->model,
                 'status' => $_POST['status'] ?? $vehicle->status
@@ -149,6 +216,43 @@ class TransporterDashboardController
             $vehicles = $vehicleModel->getByUserId($_SESSION['USER']->id);
             $response['success'] = true;
             $response['vehicles'] = $vehicles ?: [];
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+
+    public function getVehicleTypes()
+    {
+        $response = ['success' => false, 'types' => []];
+
+        try {
+            $types = $this->query(
+                "SELECT id, vehicle_name, min_weight_kg, max_weight_kg 
+                 FROM vehicle_types 
+                 WHERE is_active = 1 
+                 ORDER BY min_weight_kg"
+            );
+            
+            if ($types) {
+                // Convert objects to arrays
+                $typesArray = array_map(function($obj) {
+                    return [
+                        'id' => $obj->id,
+                        'vehicle_name' => $obj->vehicle_name,
+                        'min_weight_kg' => $obj->min_weight_kg,
+                        'max_weight_kg' => $obj->max_weight_kg
+                    ];
+                }, $types);
+                $response['success'] = true;
+                $response['types'] = $typesArray;
+            } else {
+                $response['success'] = true;
+                $response['types'] = [];
+            }
+        } catch (Exception $e) {
+            error_log("Error fetching vehicle types: " . $e->getMessage());
+            $response['error'] = 'Failed to load vehicle types';
         }
 
         echo json_encode($response);

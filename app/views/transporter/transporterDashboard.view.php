@@ -455,7 +455,7 @@
                             <th>Vehicle</th>
                             <th>Registration</th>
                             <th>Type</th>
-                            <th>Capacity</th>
+                            <th style="display: none;">Capacity</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -463,6 +463,12 @@
                     <tbody id="vehiclesTableBody">
                     </tbody>
                 </table>
+                <style>
+                    /* Hide capacity column (4th column) in vehicles table */
+                    #vehiclesTableBody tr td:nth-child(4) {
+                        display: none;
+                    }
+                </style>
             </div>
         </div>
     </div>
@@ -576,13 +582,9 @@
                 <div class="grid grid-2">
                     <div class="form-group">
                         <label for="vehicleType">Vehicle Type *</label>
-                        <select id="vehicleType" name="type" class="form-control" required>
-                            <option value="">Select Type</option>
-                            <option value="bike">Motorcycle</option>
-                            <option value="threewheeler">Three-wheeler</option>
-                            <option value="car">Car</option>
-                            <option value="van">Van</option>
-                            <option value="truck">Truck</option>
+                        <select id="vehicleType" name="vehicle_type_id" class="form-control" required>
+                            <option value="">Select Type...</option>
+                            <!-- Populated by JavaScript -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -591,11 +593,15 @@
                     </div>
                 </div>
 
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label for="vehicleCapacity">Load Capacity (kg) *</label>
-                        <input type="number" id="vehicleCapacity" name="capacity" class="form-control" required>
+                <!-- Weight Range Display (auto-filled) -->
+                <div class="form-group" id ="weightRangeDisplay" style="display: none; margin-bottom: 20px;">
+                    <div style="padding: 12px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #65b57c;">
+                        <strong style="color: #2c3e50;">Weight Range:</strong> 
+                        <span id="weightRangeText" style="color: #2c3e50; font-weight: 600;"></span>
                     </div>
+                </div>
+
+                <div class="grid grid-2">
                     <div class="form-group">
                         <label for="vehicleFuelType">Fuel Type</label>
                         <select id="vehicleFuelType" name="fuel_type" class="form-control">
@@ -605,11 +611,10 @@
                             <option value="hybrid">Hybrid</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="vehicleModel">Vehicle Model</label>
-                    <input type="text" id="vehicleModel" name="model" class="form-control" placeholder="e.g., Toyota Hiace">
+                    <div class="form-group">
+                        <label for="vehicleModel">Vehicle Model</label>
+                        <input type="text" id="vehicleModel" name="model" class="form-control" placeholder="e.g., Toyota Hiace">
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
@@ -664,17 +669,34 @@
 
     function setupNavigation() {
         const menuLinks = document.querySelectorAll('.menu-link[data-section]');
+        console.log('Setup navigation for', menuLinks.length, 'links');
+        
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
                 const section = this.getAttribute('data-section');
+                console.log('Clicked section:', section);
+                
                 if (section) {
                     showSection(section);
+                    
+                    // Update URL without page reload
+                    const url = new URL(window.location);
+                    url.searchParams.set('section', section);
+                    window.history.pushState({}, '', url);
 
-                    menuLinks.forEach(l => l.classList.remove('active'));
+                    // Remove active from ALL menu links (including Profile)
+                    const allLinks = document.querySelectorAll('.menu-link');
+                    console.log('Removing active from', allLinks.length, 'links');
+                    allLinks.forEach(l => {
+                        l.classList.remove('active');
+                        console.log('Removed active from:', l.textContent.trim());
+                    });
+                    
                     this.classList.add('active');
+                    console.log('Added active to:', this.textContent.trim());
                 }
                 return false;
             });
@@ -682,16 +704,23 @@
     }
 
     function showSection(sectionName) {
+        console.log('showSection called with:', sectionName);
+        
         // Hide all sections
         const sections = document.querySelectorAll('.content-section');
+        console.log('Found sections:', sections.length);
         sections.forEach(section => section.style.display = 'none');
 
         // Show target section
         const targetSection = document.getElementById(sectionName + '-section');
+        console.log('Target section ID:', sectionName + '-section');
+        console.log('Target section element:', targetSection);
+        
         if (targetSection) {
             targetSection.style.display = 'block';
+            console.log('✓ Section displayed:', sectionName);
         } else {
-            console.warn('Section not found:', sectionName + '-section');
+            console.warn('✗ Section not found:', sectionName + '-section');
         }
     }
 
@@ -1301,7 +1330,7 @@
 
                 const formData = new FormData(form);
 
-                fetch('<?= ROOT ?>/TransporterDashboard/addVehicle', {
+                fetch('<?= ROOT ?>/transporterDashboard/addVehicle', {
                         method: 'POST',
                         body: formData
                     })
@@ -1350,7 +1379,21 @@
     }
 
     function showEditVehicleModal(vehicle) {
-        const modalHtml = `
+        // Fetch vehicle types to populate dropdown
+        fetch(`${window.APP_ROOT}/transporterDashboard/getVehicleTypes`, { credentials: 'include' })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success || !res.types) {
+                    showNotification('Failed to load vehicle types', 'error');
+                    return;
+                }
+                
+                const vehicleTypesOptions = res.types.map(t => {
+                    const isSelected = t.vehicle_name.toLowerCase() === vehicle.type.toLowerCase() ? 'selected' : '';
+                    return `<option value="${t.id}" data-min="${t.min_weight_kg}" data-max="${t.max_weight_kg}" ${isSelected}>${escapeHtml(t.vehicle_name)}</option>`;
+                }).join('');
+                
+                const modalHtml = `
                 <div id="editVehicleModal" class="modal" style="display: flex; align-items: center; justify-content: center;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
                     <div class="modal-content" onclick="event.stopPropagation()">
                         <div class="modal-header">
@@ -1361,13 +1404,9 @@
                                 <div class="grid grid-2">
                                     <div class="form-group">
                                         <label for="editVehicleType">Vehicle Type *</label>
-                                        <select id="editVehicleType" name="type" class="form-control" required>
-                                            <option value="">Select Type</option>
-                                            <option value="bike" ${vehicle.type === 'bike' ? 'selected' : ''}>Motorcycle</option>
-                                            <option value="threewheeler" ${vehicle.type === 'threewheeler' ? 'selected' : ''}>Three-wheeler</option>
-                                            <option value="car" ${vehicle.type === 'car' ? 'selected' : ''}>Car</option>
-                                            <option value="van" ${vehicle.type === 'van' ? 'selected' : ''}>Van</option>
-                                            <option value="truck" ${vehicle.type === 'truck' ? 'selected' : ''}>Truck</option>
+                                        <select id="editVehicleType" name="vehicle_type_id" class="form-control" required>
+                                            <option value="">Select Type...</option>
+                                            ${vehicleTypesOptions}
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -1376,11 +1415,11 @@
                                     </div>
                                 </div>
                                 
+                                <div id="editWeightRangeDisplay" style="display: none; padding: 10px; background: #f0f9ff; border-left: 3px solid #3b82f6; margin: 10px 0;">
+                                    <strong>Weight Range:</strong> <span id="editWeightRangeText"></span>
+                                </div>
+                                
                                 <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label for="editVehicleCapacity">Load Capacity (kg) *</label>
-                                        <input type="number" id="editVehicleCapacity" name="capacity" class="form-control" value="${vehicle.capacity}" required>
-                                    </div>
                                     <div class="form-group">
                                         <label for="editVehicleFuelType">Fuel Type</label>
                                         <select id="editVehicleFuelType" name="fuel_type" class="form-control">
@@ -1389,7 +1428,6 @@
                                             <option value="electric" ${vehicle.fuel_type === 'electric' ? 'selected' : ''}>Electric</option>
                                             <option value="hybrid" ${vehicle.fuel_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
                                         </select>
-                                    </div>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1422,7 +1460,40 @@
         }
 
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
+        
+        // Add event listener for vehicle type change to show weight range
+        const editVehicleTypeSelect = document.getElementById('editVehicleType');
+        if (editVehicleTypeSelect) {
+            // Show initial weight range if a type is selected
+            const selectedOption = editVehicleTypeSelect.options[editVehicleTypeSelect.selectedIndex];
+            if (selectedOption.value) {
+                const min = selectedOption.dataset.min;
+                const max = selectedOption.dataset.max;
+                document.getElementById('editWeightRangeText').textContent = `${min}-${max}kg`;
+                document.getElementById('editWeightRangeDisplay').style.display = 'block';
+            }
+            
+            editVehicleTypeSelect.addEventListener('change', function () {
+                const option = this.options[this.selectedIndex];
+                const display = document.getElementById('editWeightRangeDisplay');
+                const text = document.getElementById('editWeightRangeText');
+
+                if (option.value) {
+                    const min = option.dataset.min;
+                    const max = option.dataset.max;
+                    text.textContent = `${min}-${max}kg`;
+                    display.style.display = 'block';
+                } else {
+                    display.style.display = 'none';
+                }
+            });
+        }
+    })
+    .catch(err => {
+        console.error('Error loading vehicle types:', err);
+        showNotification('Failed to load vehicle types', 'error');
+    });
+}
 
     function closeEditModal() {
         const modal = document.getElementById('editVehicleModal');
@@ -1446,7 +1517,7 @@
         const form = event.target;
         const formData = new FormData(form);
 
-        fetch('<?= ROOT ?>/TransporterDashboard/editVehicle/' + vehicleId, {
+        fetch('<?= ROOT ?>/transporterDashboard/editVehicle/' + vehicleId, {
                 method: 'POST',
                 body: formData
             })

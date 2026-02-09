@@ -40,23 +40,19 @@
         <div class="modal-body">
             <form id="addProductForm" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="productName">Product Name *</label>
-                    <input type="text" id="productName" name="name" class="form-control" required placeholder="e.g., Fresh Tomatoes">
+                    <label for="productCategory">Category *</label>
+                    <select id="productCategory" name="category" class="form-control" required>
+                        <option value="">Select Category...</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="productCategory">Category *</label>
-                    <select id="productCategory" name="category" class="form-control" required>
-                        <option value="other">Other</option>
-                        <option value="vegetables">Vegetables</option>
-                        <option value="fruits">Fruits</option>
-                        <option value="cereals">Cereals & Grains</option>
-                        <option value="yams">Yams & Tubers</option>
-                        <option value="legumes">Legumes & Pulses</option>
-                        <option value="spices">Spices & Herbs</option>
-                        <option value="leafy">Leafy Greens</option>
+                    <label for="productMaster">Product *</label>
+                    <select id="productMaster" name="product_master_id" class="form-control" required disabled>
+                        <option value="">Select Category First</option>
                     </select>
                 </div>
+                <input type="hidden" id="productName" name="name" value="">
 
                 <div class="form-group">
                     <label for="productPrice">Price per KG (Rs.) *</label>
@@ -68,10 +64,19 @@
                     <input type="number" id="productQuantity" name="quantity" class="form-control" min="1" required placeholder="100">
                 </div>
 
-                <div class="form-group">
-                    <label for="productLocation">Farm Location *</label>
-                    <input type="text" id="productLocation" name="location" class="form-control" placeholder="e.g., Matale, Central Province" required>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">District</label>
+                        <select class="form-control" id="productDistrict" name="district_id" required>
+                            <option value="">Select District...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Town</label>
+                        <select class="form-control" id="productTown" name="town_id" required disabled>
+                            <option value="">Select District First</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="productLocation" name="location" value="auto">
 
                 <div class="form-group">
                     <label for="listingDate">Available From *</label>
@@ -107,23 +112,21 @@
                 <input type="hidden" id="editProductId">
 
                 <div class="form-group">
-                    <label for="editProductName">Product Name *</label>
-                    <input type="text" id="editProductName" name="name" class="form-control" required>
+                    <label for="editProductCategory">Category *</label>
+                    <select id="editProductCategory" name="category" class="form-control" required>
+                        <option value="">Select Category...</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="editProductCategory">Category *</label>
-                    <select id="editProductCategory" name="category" class="form-control" required>
-                        <option value="vegetables">Vegetables</option>
-                        <option value="fruits">Fruits</option>
-                        <option value="cereals">Cereals & Grains</option>
-                        <option value="yams">Yams & Tubers</option>
-                        <option value="legumes">Legumes & Pulses</option>
-                        <option value="spices">Spices & Herbs</option>
-                        <option value="leafy">Leafy Greens</option>
-                        <option value="other">Other</option>
+                    <label for="editProductMaster">Product *</label>
+                    <select id="editProductMaster" name="product_master_id" class="form-control" required disabled>
+                        <option value="">Select Category First</option>
                     </select>
                 </div>
+                <input type="hidden" id="editProductName" name="name" value="">
+
+
 
                 <div class="form-group">
                     <label for="editProductPrice">Price per KG (Rs.) *</label>
@@ -135,10 +138,19 @@
                     <input type="number" id="editProductQuantity" name="quantity" class="form-control" min="1" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="editProductLocation">Farm Location *</label>
-                    <input type="text" id="editProductLocation" name="location" class="form-control" required>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">District</label>
+                        <select class="form-control" id="editProductDistrict" name="district_id" required>
+                            <option value="">Select District...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Town</label>
+                        <select class="form-control" id="editProductTown" name="town_id" required disabled>
+                            <option value="">Select District First</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="editProductLocation" name="location" value="">
 
                 <div class="form-group">
                     <label for="editListingDate">Available From *</label>

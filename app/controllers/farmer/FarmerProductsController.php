@@ -5,10 +5,22 @@ class FarmerProductsController
     use Controller;
 
     protected $productModel;
+    protected $shippingCalculator;
 
     public function __construct()
     {
         $this->productModel = new ProductsModel();
+        
+        // Initialize shipping calculator for location helpers
+        require_once __DIR__ . '/../../simple_shipping_calculator.php';
+        try {
+            $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->shippingCalculator = new SimpleShippingCalculator($pdo);
+        } catch (PDOException $e) {
+            error_log("Shipping calculator initialization error: " . $e->getMessage());
+            $this->shippingCalculator = null;
+        }
     }
 
     /**
@@ -76,6 +88,7 @@ class FarmerProductsController
 
             $category = trim($_POST['category'] ?? '');
             $name = trim($_POST['name'] ?? '');
+            $productMasterId = !empty($_POST['product_master_id']) ? (int)$_POST['product_master_id'] : null;
             $price = trim($_POST['price'] ?? '');
             $quantity = trim($_POST['quantity'] ?? '');
             $location = trim($_POST['location'] ?? '');
@@ -85,6 +98,26 @@ class FarmerProductsController
             if (empty($category)) {
                 $errors['category'] = 'Category is required';
             }
+            
+            // If product_master_id provided, fetch standardized name from crop_volume_factors
+            if ($productMasterId) {
+                try {
+                    $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $stmt = $pdo->prepare("SELECT crop_name FROM crop_volume_factors WHERE id = ?");
+                    $stmt->execute([$productMasterId]);
+                    $cropData = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($cropData) {
+                        $name = $cropData['crop_name'];
+                    } else {
+                        $errors['product_master_id'] = 'Invalid product selected';
+                    }
+                } catch (PDOException $e) {
+                    error_log("Product lookup error: " . $e->getMessage());
+                    $errors['product_master_id'] = 'Database error';
+                }
+            }
+            
             if (empty($name)) {
                 $errors['name'] = 'Product name is required';
             } elseif (strlen($name) < 3) {
@@ -103,7 +136,38 @@ class FarmerProductsController
                 $errors['quantity'] = 'Minimum quantity is 10kg';
             }
             if (empty($location)) {
-                $location = $_SESSION['USER']->location ?? '';
+                // If using new dropdowns, construct location string
+                $districtId = $_POST['district_id'] ?? '';
+                $townId = $_POST['town_id'] ?? '';
+                
+                if (!empty($districtId) && !empty($townId) && $this->shippingCalculator) {
+                    $districts = $this->shippingCalculator->getAllDistricts();
+                    $districtName = '';
+                    foreach ($districts as $d) {
+                        if ($d['id'] == $districtId) {
+                            $districtName = $d['district_name'];
+                            break;
+                        }
+                    }
+                    
+                    $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+                    $townName = '';
+                    foreach ($towns as $t) {
+                        if ($t['id'] == $townId) {
+                            $townName = $t['town_name'];
+                            break;
+                        }
+                    }
+                    
+                    if ($districtName && $townName) {
+                        $location = $townName . ', ' . $districtName;
+                    }
+                }
+
+                if (empty($location)) {
+                    $location = $_SESSION['USER']->location ?? '';
+                }
+                
                 if (empty($location)) {
                     $errors['location'] = 'Location is required';
                 }
@@ -152,15 +216,18 @@ class FarmerProductsController
             }
 
             $data = [
-                'farmer_id'    => $farmer_id,
-                'category'     => $category,
-                'name'         => $name,
-                'price'        => (float)$price,
-                'quantity'     => (int)$quantity,
-                'location'     => $location,
-                'listing_date' => $listing_date,
-                'description'  => $description,
-                'image'        => $imageName
+                'farmer_id'         => $farmer_id,
+                'category'          => $category,
+                'name'              => $name,
+                'product_master_id' => $productMasterId,
+                'price'             => (float)$price,
+                'quantity'          => (int)$quantity,
+                'location'          => $location,
+                'listing_date'      => $listing_date,
+                'description'       => $description,
+                'image'             => $imageName,
+                'district_id'       => !empty($_POST['district_id']) ? (int)$_POST['district_id'] : null,
+                'town_id'           => !empty($_POST['town_id']) ? (int)$_POST['town_id'] : null
             ];
 
             $result = $this->productModel->create($data);
@@ -209,6 +276,89 @@ class FarmerProductsController
         $farmerId = (int)$_SESSION['USER']->id;
         $items = $this->productModel->getByFarmer($farmerId);
         echo json_encode(['success' => true, 'products' => $items ?: []]);
+    }
+
+    // Get all districts
+    public function getDistricts()
+    {
+        header('Content-Type: application/json');
+        if (!$this->shippingCalculator) {
+            echo json_encode(['success' => false, 'error' => 'Calculator not initialized']);
+            return;
+        }
+        $districts = $this->shippingCalculator->getAllDistricts();
+        echo json_encode(['success' => true, 'districts' => $districts]);
+    }
+
+    // Get towns by district
+    public function getTowns()
+    {
+        header('Content-Type: application/json');
+        $districtId = $_GET['district_id'] ?? 0;
+        if (!$this->shippingCalculator || !$districtId) {
+            echo json_encode(['success' => false, 'towns' => []]);
+            return;
+        }
+        $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+        echo json_encode(['success' => true, 'towns' => $towns]);
+    }
+
+    // Get all product categories
+    public function getCategories()
+    {
+        header('Content-Type: application/json');
+        if (!$this->shippingCalculator) {
+            echo json_encode(['success' => false, 'error' => 'Calculator not initialized']);
+            return;
+        }
+        
+        try {
+            $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $pdo->query(
+                "SELECT DISTINCT category FROM crop_volume_factors 
+                 WHERE category IS NOT NULL 
+                 ORDER BY category"
+            );
+            $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            echo json_encode(['success' => true, 'categories' => $categories]);
+        } catch (PDOException $e) {
+            error_log("Get categories error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Database error']);
+        }
+    }
+
+    // Get products by category
+    public function getProductsByCategory()
+    {
+        header('Content-Type: application/json');
+        $category = $_GET['category'] ?? '';
+        
+        if (!$category) {
+            echo json_encode(['success' => false, 'products' => []]);
+            return;
+        }
+        
+        try {
+            $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $pdo->prepare(
+                "SELECT id, crop_name, volume_factor 
+                 FROM crop_volume_factors 
+                 WHERE category = ? 
+                 ORDER BY crop_name"
+            );
+            $stmt->execute([$category]);
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'products' => $products]);
+        } catch (PDOException $e) {
+            error_log("Get products error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'products' => []]);
+        }
     }
 
     // Buyer products list (JSON) - optional, kept for compatibility
@@ -263,6 +413,33 @@ class FarmerProductsController
         $price = $_POST['price'] ?? '';
         $quantity = $_POST['quantity'] ?? '';
         $location = trim($_POST['location'] ?? '');
+        $districtId = $_POST['district_id'] ?? '';
+        $townId = $_POST['town_id'] ?? '';
+
+        // Construct location if IDs provided
+        if ((empty($location) || $location === 'auto') && !empty($districtId) && !empty($townId) && $this->shippingCalculator) {
+            $districts = $this->shippingCalculator->getAllDistricts();
+            $districtName = '';
+            foreach ($districts as $d) {
+                if ($d['id'] == $districtId) {
+                    $districtName = $d['district_name'];
+                    break;
+                }
+            }
+            
+            $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+            $townName = '';
+            foreach ($towns as $t) {
+                if ($t['id'] == $townId) {
+                    $townName = $t['town_name'];
+                    break;
+                }
+            }
+            
+            if ($districtName && $townName) {
+                $location = $townName . ', ' . $districtName;
+            }
+        }
         $listing_date = trim($_POST['listing_date'] ?? '');
 
         $errors = [];
@@ -318,6 +495,8 @@ class FarmerProductsController
             'quantity'     => (int)$quantity,
             'location'     => $location,
             'listing_date' => $listing_date,
+            'district_id'  => !empty($districtId) ? (int)$districtId : null,
+            'town_id'      => !empty($townId) ? (int)$townId : null
         ];
         if ($newImageName) {
             $payload['image'] = $newImageName;

@@ -1,6 +1,8 @@
 <?php
 trait Controller
 {
+    use Database;
+    
     public function view($name, $data = [])
     {
 

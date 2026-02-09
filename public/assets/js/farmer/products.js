@@ -12,20 +12,138 @@ function escapeHtml(text = '') {
     return div.innerHTML;
 }
 
+// Location Management
+function loadDistricts() {
+    fetch(`${API_BASE}/getDistricts`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.districts) {
+                const options = '<option value="">Select District...</option>' +
+                    res.districts.map(d => `<option value="${d.id}">${escapeHtml(d.district_name)}</option>`).join('');
+
+                const addSelect = document.getElementById('productDistrict');
+                if (addSelect) addSelect.innerHTML = options;
+
+                const editSelect = document.getElementById('editProductDistrict');
+                if (editSelect) editSelect.innerHTML = options;
+            }
+        })
+        .catch(console.error);
+}
+
+function loadTowns(districtId, townSelectId, selectedTownId = null) {
+    const select = document.getElementById(townSelectId);
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Loading...</option>';
+    select.disabled = true;
+
+    if (!districtId) {
+        select.innerHTML = '<option value="">Select District First</option>';
+        return;
+    }
+
+    fetch(`${API_BASE}/getTowns?district_id=${districtId}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.towns) {
+                select.innerHTML = '<option value="">Select Town...</option>' +
+                    res.towns.map(t => `<option value="${t.id}">${escapeHtml(t.town_name)}</option>`).join('');
+                select.disabled = false;
+
+                if (selectedTownId) {
+                    select.value = selectedTownId;
+                }
+            } else {
+                select.innerHTML = '<option value="">No towns found</option>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            select.innerHTML = '<option value="">Error loading towns</option>';
+        });
+}
+
+// Product Category/Master Management
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function loadCategories() {
+    fetch(`${API_BASE}/getCategories`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.categories) {
+                const options = '<option value="">Select Category...</option>' +
+                    res.categories.map(c => `<option value="${c}">${capitalize(c)}</option>`).join('');
+
+                const addSelect = document.getElementById('productCategory');
+                if (addSelect) addSelect.innerHTML = options;
+
+                const editSelect = document.getElementById('editProductCategory');
+                if (editSelect) editSelect.innerHTML = options;
+            }
+        })
+        .catch(console.error);
+}
+
+function loadProductsByCategory(category, productSelectId, selectedId = null) {
+    const select = document.getElementById(productSelectId);
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Loading...</option>';
+    select.disabled = true;
+
+    if (!category) {
+        select.innerHTML = '<option value="">Select Category First</option>';
+        return;
+    }
+
+    fetch(`${API_BASE}/getProductsByCategory?category=${category}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.products) {
+                select.innerHTML = '<option value="">Select Product...</option>' +
+                    res.products.map(p =>
+                        `<option value="${p.id}" data-name="${escapeHtml(p.crop_name)}">${escapeHtml(p.crop_name)}</option>`
+                    ).join('');
+                select.disabled = false;
+
+                if (selectedId) {
+                    select.value = selectedId;
+                    // Trigger name update
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption && selectedOption.dataset.name) {
+                        const nameField = productSelectId === 'productMaster' ?
+                            document.getElementById('productName') :
+                            document.getElementById('editProductName');
+                        if (nameField) nameField.value = selectedOption.dataset.name;
+                    }
+                }
+            } else {
+                select.innerHTML = '<option value="">No products found</option>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            select.innerHTML = '<option value="">Error loading products</option>';
+        });
+}
+
 // Edit product form
 let editProductBound = false;
 
-function initializeEditForm(){
+function initializeEditForm() {
     const form = document.getElementById('editProductForm');
     if (!form || editProductBound) return;
 
     // basic numeric constraints
     const qty = document.getElementById('editProductQuantity');
-    if (qty){ qty.setAttribute('min','1'); qty.setAttribute('step','1'); }
+    if (qty) { qty.setAttribute('min', '1'); qty.setAttribute('step', '1'); }
 
     // set min date to today
     const editDate = document.getElementById('editListingDate');
-    if (editDate){
+    if (editDate) {
         const today = new Date().toISOString().split('T')[0];
         editDate.setAttribute('min', today);
     }
@@ -34,36 +152,38 @@ function initializeEditForm(){
     const imageInput = document.getElementById('editProductImage');
     const imagePreview = document.getElementById('editImagePreview');
     const previewImg = document.getElementById('editPreviewImg');
-    if (imageInput && imagePreview && previewImg){
-        imageInput.addEventListener('change', (e)=>{
+    if (imageInput && imagePreview && previewImg) {
+        imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (!file){ imagePreview.style.display='none'; return; }
-            const allowedTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
-            if (!allowedTypes.includes(file.type)){
+            if (!file) { imagePreview.style.display = 'none'; return; }
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
                 showNotification('Please select a valid image file (JPG, PNG, GIF, or WebP)', 'error');
-                imageInput.value=''; imagePreview.style.display='none'; return;
+                imageInput.value = ''; imagePreview.style.display = 'none'; return;
             }
-            if (file.size > 5*1024*1024){
+            if (file.size > 5 * 1024 * 1024) {
                 showNotification('Image size must be less than 5MB', 'error');
-                imageInput.value=''; imagePreview.style.display='none'; return;
+                imageInput.value = ''; imagePreview.style.display = 'none'; return;
             }
             const reader = new FileReader();
-            reader.onload = ev => { previewImg.src = ev.target.result; imagePreview.style.display='block'; };
+            reader.onload = ev => { previewImg.src = ev.target.result; imagePreview.style.display = 'block'; };
             reader.readAsDataURL(file);
         });
     }
 
-    form.addEventListener('submit', async function(e){
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
         const id = document.getElementById('editProductId').value;
         const name = document.getElementById('editProductName').value.trim();
         const category = document.getElementById('editProductCategory').value;
         const price = document.getElementById('editProductPrice').value;
         const quantity = document.getElementById('editProductQuantity').value;
-        const location = document.getElementById('editProductLocation').value.trim();
+        // const location = document.getElementById('editProductLocation').value.trim(); // Now hidden/auto
+        const districtId = document.getElementById('editProductDistrict').value;
+        const townId = document.getElementById('editProductTown').value;
         const listing_date = document.getElementById('editListingDate').value;
 
-        if (!name || price === '' || quantity === '' || !location || !category || !listing_date){
+        if (!name || price === '' || quantity === '' || !districtId || !townId || !category || !listing_date) {
             showNotification('Please fill all required fields', 'error');
             return;
         }
@@ -73,39 +193,41 @@ function initializeEditForm(){
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Saving...';
 
-        try{
+        try {
             const fd = new FormData();
             fd.append('name', name);
             fd.append('category', category);
             fd.append('price', price);
             fd.append('quantity', quantity);
-            fd.append('location', location);
+            fd.append('location', 'auto'); // Auto-generated in backend
+            fd.append('district_id', districtId);
+            fd.append('town_id', townId);
             fd.append('listing_date', listing_date);
-            if (imageInput && imageInput.files && imageInput.files[0]){
+            if (imageInput && imageInput.files && imageInput.files[0]) {
                 fd.append('image', imageInput.files[0]);
             }
-            const r = await fetch(`${API_BASE}/update/${id}`, { method:'POST', body: fd, credentials: 'include' });
+            const r = await fetch(`${API_BASE}/update/${id}`, { method: 'POST', body: fd, credentials: 'include' });
             const res = await r.json();
-            if (!r.ok || !res.success){
+            if (!r.ok || !res.success) {
                 const msg = res?.error || 'Failed to update product';
                 showNotification(msg, 'error');
                 return;
             }
             showNotification('Product updated', 'success');
             closeModal('editProductModal');
-            if (imageInput){ imageInput.value=''; if (imagePreview){ imagePreview.style.display='none'; } }
+            if (imageInput) { imageInput.value = ''; if (imagePreview) { imagePreview.style.display = 'none'; } }
             loadFarmerProducts();
-        }catch(err){
+        } catch (err) {
             showNotification('Failed to update product: ' + err.message, 'error');
-        }finally{
+        } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = original;
         }
     });
 
     // Clear errors on input
-    form.querySelectorAll('.form-control').forEach(inp => inp.addEventListener('input', ()=>{
-        inp.style.borderColor=''; inp.style.background='';
+    form.querySelectorAll('.form-control').forEach(inp => inp.addEventListener('input', () => {
+        inp.style.borderColor = ''; inp.style.background = '';
     }));
 
     editProductBound = true;
@@ -113,27 +235,27 @@ function initializeEditForm(){
 
 // Load products from backend
 function loadFarmerProducts() {
-  console.log('🔄 Loading farmer products from:', `${API_BASE}/farmerList`);
-  fetch(`${API_BASE}/farmerList`, { credentials: 'include' })
-    .then(r => {
-      console.log('📥 Response status:', r.status);
-      return r.json().then(data => ({ status: r.status, data }));
-    })
-    .then(({ status, data }) => {
-      console.log('✅ Response data:', data);
-      if (status === 200 && data.success) {
-        console.log('📦 Products loaded:', data.products);
-        populateProductsTable(data.products);
-      } else {
-        const error = data.error || 'Failed to load products';
-        console.error('❌ Error:', error, 'Status:', status);
-        showNotification(error, 'error');
-      }
-    })
-    .catch(err => {
-      console.error('❌ Fetch error:', err);
-      showNotification('Failed to load products: ' + err.message, 'error');
-    });
+    console.log('🔄 Loading farmer products from:', `${API_BASE}/farmerList`);
+    fetch(`${API_BASE}/farmerList`, { credentials: 'include' })
+        .then(r => {
+            console.log('📥 Response status:', r.status);
+            return r.json().then(data => ({ status: r.status, data }));
+        })
+        .then(({ status, data }) => {
+            console.log('✅ Response data:', data);
+            if (status === 200 && data.success) {
+                console.log('📦 Products loaded:', data.products);
+                populateProductsTable(data.products);
+            } else {
+                const error = data.error || 'Failed to load products';
+                console.error('❌ Error:', error, 'Status:', status);
+                showNotification(error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('❌ Fetch error:', err);
+            showNotification('Failed to load products: ' + err.message, 'error');
+        });
 }
 
 // Submit add product
@@ -162,9 +284,9 @@ function initializeProductForms() {
     const imageInput = document.getElementById('productImage');
     const imagePreview = document.getElementById('imagePreview');
     const previewImg = document.getElementById('previewImg');
-    
+
     if (imageInput && imagePreview && previewImg) {
-        imageInput.addEventListener('change', function(e) {
+        imageInput.addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -174,7 +296,7 @@ function initializeProductForms() {
                     imagePreview.style.display = 'none';
                     return;
                 }
-                
+
                 const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
                     showNotification('Image size must be less than 5MB', 'error');
@@ -182,14 +304,14 @@ function initializeProductForms() {
                     imagePreview.style.display = 'none';
                     return;
                 }
-                
+
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     previewImg.src = event.target.result;
                     imagePreview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
-                
+
                 imageInput.style.borderColor = '';
                 imageInput.style.background = '';
             } else {
@@ -254,33 +376,33 @@ function initializeProductForms() {
         submitBtn.innerHTML = 'Adding...';
 
         try {
-            const r = await fetch(url, { 
-                method: 'POST', 
-                body: fd, 
-                credentials: 'include' 
+            const r = await fetch(url, {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
             });
-            
+
             const raw = await r.text();
             let res;
-            
-            try { 
+
+            try {
                 res = JSON.parse(raw);
             } catch (parseError) {
                 throw new Error(r.status + ' ' + r.statusText + ' (non-JSON response)');
             }
-            
+
             if (!r.ok || !res.success) {
                 if (res.errors) {
                     let errorMessages = [];
-                    
+
                     addProductForm.querySelectorAll('.form-control').forEach(input => {
                         input.style.borderColor = '';
                         input.style.background = '';
                     });
-                    
+
                     for (const [field, error] of Object.entries(res.errors)) {
                         errorMessages.push(error);
-                        
+
                         const fieldMap = {
                             'category': 'productCategory',
                             'name': 'productName',
@@ -290,7 +412,7 @@ function initializeProductForms() {
                             'listing_date': 'listingDate',
                             'image': 'productImage'
                         };
-                        
+
                         const inputId = fieldMap[field];
                         const input = document.getElementById(inputId);
                         if (input) {
@@ -298,7 +420,7 @@ function initializeProductForms() {
                             input.style.background = '#ffebee';
                         }
                     }
-                    
+
                     showNotification('Validation errors:\n' + errorMessages.join('\n'), 'error');
                 } else {
                     throw new Error(res.error || ('HTTP ' + r.status));
@@ -319,17 +441,17 @@ function initializeProductForms() {
             if (imgPreviewWrap) imgPreviewWrap.style.display = 'none';
             if (imgPreview) imgPreview.src = '';
             closeModal('addProductModal');
-            
+
             if (listingDateInput) {
                 const today = new Date().toISOString().split('T')[0];
                 listingDateInput.value = today;
             }
-            
+
             addProductForm.querySelectorAll('.form-control').forEach(input => {
                 input.style.borderColor = '';
                 input.style.background = '';
             });
-            
+
             loadFarmerProducts();
         } catch (err) {
             showNotification('Failed to add product: ' + err.message, 'error');
@@ -340,7 +462,7 @@ function initializeProductForms() {
     });
 
     addProductForm.querySelectorAll('.form-control').forEach(input => {
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             this.style.borderColor = '';
             this.style.background = '';
         });
@@ -363,23 +485,23 @@ function populateProductsTable(products) {
 
     products.forEach(p => {
         const row = document.createElement('tr');
-        
+
         const listingDate = p.listing_date ? new Date(p.listing_date).toLocaleDateString() : '-';
-        
+
         const categoryNames = {
             'vegetables': 'Vegetables', 'fruits': 'Fruits', 'cereals': 'Cereals',
             'yams': 'Yams', 'legumes': 'Legumes', 'spices': 'Spices',
             'leafy': 'Leafy', 'other': 'Other'
         };
         const categoryDisplay = categoryNames[p.category] || 'Other';
-        
+
         row.innerHTML = `
             <td>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    ${p.image ? 
-                        `<img src="${window.APP_ROOT || ''}/assets/images/products/${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 2px solid #E8F5E9;">` : 
-                        `<img src="${window.APP_ROOT || ''}/assets/images/default-product.svg" alt="${escapeHtml(p.name)}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 2px solid #E8F5E9; opacity: 0.5;">`
-                    }
+                    ${p.image ?
+                `<img src="${window.APP_ROOT || ''}/assets/images/products/${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 2px solid #E8F5E9;">` :
+                `<img src="${window.APP_ROOT || ''}/assets/images/default-product.svg" alt="${escapeHtml(p.name)}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 2px solid #E8F5E9; opacity: 0.5;">`
+            }
                     <div style="font-weight: 600;">${escapeHtml(p.name)}</div>
                 </div>
             </td>
@@ -411,53 +533,74 @@ function populateProductsTable(products) {
 
 // Product Actions
 async function editProduct(id) {
-    try{
-        const r = await fetch(`${API_BASE}/show/${id}`, { credentials:'include' });
+    try {
+        const r = await fetch(`${API_BASE}/show/${id}`, { credentials: 'include' });
         const res = await r.json();
-        if (!r.ok || !res.success || !res.product){
+        if (!r.ok || !res.success || !res.product) {
             showNotification(res.error || 'Failed to load product', 'error');
             return;
         }
         const p = res.product;
         document.getElementById('editProductId').value = p.id;
-        document.getElementById('editProductName').value = p.name || '';
+
+        // Set Category and Product (must be done before populating other fields)
         const catSel = document.getElementById('editProductCategory');
-        if (catSel) catSel.value = (p.category || 'other');
+        if (catSel && p.category) {
+            catSel.value = p.category;
+            // Load products for this category, then select the product
+            if (p.product_master_id) {
+                loadProductsByCategory(p.category, 'editProductMaster', p.product_master_id);
+            }
+        }
         document.getElementById('editProductPrice').value = p.price ?? '';
         document.getElementById('editProductQuantity').value = p.quantity ?? '';
-        document.getElementById('editProductLocation').value = p.location || '';
+        document.getElementById('editProductQuantity').value = p.quantity ?? '';
+        // document.getElementById('editProductLocation').value = p.location || '';
+
+        // Set District and Town
+        const distSelect = document.getElementById('editProductDistrict');
+        if (distSelect && p.district_id) {
+            distSelect.value = p.district_id;
+            loadTowns(p.district_id, 'editProductTown', p.town_id);
+        } else {
+            // Fallback if no district set? Reset town
+            if (distSelect) distSelect.value = "";
+            document.getElementById('editProductTown').innerHTML = '<option value="">Select District First</option>';
+            document.getElementById('editProductTown').disabled = true;
+        }
+
         const d = p.listing_date ? new Date(p.listing_date) : null;
         const iso = d && !isNaN(d) ? d.toISOString().split('T')[0] : '';
         const editDate = document.getElementById('editListingDate');
         if (editDate) editDate.value = iso;
         openModal('editProductModal');
-    }catch(err){
+    } catch (err) {
         showNotification('Failed to open edit form: ' + err.message, 'error');
     }
 }
 
 function deleteProduct(id) {
-  if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
-  
-  showNotification('Deleting product...', 'info');
-  
-  fetch(`${API_BASE}/delete/${id}`, {
-    method: 'POST',
-    credentials: 'include'
-  })
-  .then(r => r.json())
-  .then(res => {
-    if (res.success) {
-      showNotification('Product deleted successfully', 'success');
-      loadFarmerProducts();
-    } else {
-      showNotification(res.error || 'Failed to delete product', 'error');
-    }
-  })
-  .catch(err => {
-    console.error('Delete error:', err);
-    showNotification('Failed to delete product. Please try again.', 'error');
-  });
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+
+    showNotification('Deleting product...', 'info');
+
+    fetch(`${API_BASE}/delete/${id}`, {
+        method: 'POST',
+        credentials: 'include'
+    })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                showNotification('Product deleted successfully', 'success');
+                loadFarmerProducts();
+            } else {
+                showNotification(res.error || 'Failed to delete product', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Delete error:', err);
+            showNotification('Failed to delete product. Please try again.', 'error');
+        });
 }
 
 // Export functions
@@ -468,10 +611,44 @@ window.populateProductsTable = populateProductsTable;
 
 // Initialize on load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         initializeProductForms();
         initializeEditForm();
         loadFarmerProducts();
+        loadDistricts();
+        loadCategories(); // Load categories on page load
+
+        // Add listeners for district changes
+        document.getElementById('productDistrict')?.addEventListener('change', function () {
+            loadTowns(this.value, 'productTown');
+        });
+        document.getElementById('editProductDistrict')?.addEventListener('change', function () {
+            loadTowns(this.value, 'editProductTown');
+        });
+
+        // Add listeners for category changes
+        document.getElementById('productCategory')?.addEventListener('change', function () {
+            loadProductsByCategory(this.value, 'productMaster');
+        });
+        document.getElementById('editProductCategory')?.addEventListener('change', function () {
+            loadProductsByCategory(this.value, 'editProductMaster');
+        });
+
+        // Add listeners for product selection to auto-fill hidden name field
+        document.getElementById('productMaster')?.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const nameField = document.getElementById('productName');
+            if (selectedOption && selectedOption.dataset.name && nameField) {
+                nameField.value = selectedOption.dataset.name;
+            }
+        });
+        document.getElementById('editProductMaster')?.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const nameField = document.getElementById('editProductName');
+            if (selectedOption && selectedOption.dataset.name && nameField) {
+                nameField.value = selectedOption.dataset.name;
+            }
+        });
     });
 } else {
     initializeProductForms();
