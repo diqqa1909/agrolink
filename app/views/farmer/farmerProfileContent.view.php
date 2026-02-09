@@ -69,7 +69,6 @@
                         <label for="profilePhone" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Phone Number *</label>
                         <input type="tel" id="profilePhone" name="phone" class="form-control" placeholder="e.g., +94 71 123 4567" value="<?= esc($profile->phone ?? '') ?>" style="text-align: left;">
                         <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Sri Lankan format: +94XXXXXXXXX or 0XXXXXXXXX</small>
-                        <span class="error-message" id="error-phone"></span>
                     </div>
 
                     <!-- District -->
@@ -101,7 +100,6 @@
                             <option value="Trincomalee" <?= ($profile->district ?? '') === 'Trincomalee' ? 'selected' : '' ?>>Trincomalee</option>
                             <option value="Vavuniya" <?= ($profile->district ?? '') === 'Vavuniya' ? 'selected' : '' ?>>Vavuniya</option>
                         </select>
-                        <span class="error-message" id="error-district"></span>
                     </div>
 
                     <!-- Crops Selling -->
@@ -109,7 +107,6 @@
                         <label for="profileCrops" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Crops You're Selling *</label>
                         <input type="text" id="profileCrops" name="crops_selling" class="form-control" placeholder="e.g., Tomatoes, Carrots, Potatoes" value="<?= esc($profile->crops_selling ?? '') ?>" style="text-align: left;">
                         <small style="color: #666; display: block; text-align: left; margin-top: 5px;">List the main crops/products you sell</small>
-                        <span class="error-message" id="error-crops_selling"></span>
                     </div>
 
                     <!-- Full Address -->
@@ -117,7 +114,6 @@
                         <label for="profileAddress" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Farm Address *</label>
                         <textarea id="profileAddress" name="full_address" class="form-control" placeholder="Enter your complete farm address" rows="2" style="text-align: left;"><?= esc($profile->full_address ?? '') ?></textarea>
                         <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Street, area, postal code</small>
-                        <span class="error-message" id="error-full_address"></span>
                     </div>
                 </form>
 
@@ -204,20 +200,17 @@
                             <div class="form-group">
                                 <label for="currentPassword">Current Password *</label>
                                 <input type="password" id="currentPassword" name="currentPassword" class="form-control" required placeholder="Enter your current password">
-                                <span class="error-message" id="error-current"></span>
                             </div>
 
                             <div class="form-group">
                                 <label for="newPassword">New Password *</label>
                                 <input type="password" id="newPassword" name="newPassword" class="form-control" required placeholder="Enter new password (min 8 characters)">
                                 <small style="color: #666; margin-top: 5px; display: block;">At least 8 characters long</small>
-                                <span class="error-message" id="error-new"></span>
                             </div>
 
                             <div class="form-group">
                                 <label for="confirmPassword">Confirm Password *</label>
                                 <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="Confirm new password">
-                                <span class="error-message" id="error-confirm"></span>
                             </div>
 
                             <div class="modal-footer">
