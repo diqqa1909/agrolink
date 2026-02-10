@@ -116,9 +116,11 @@
     </div>
 
     <script>
+        // Set global variables FIRST before loading other scripts
         window.APP_ROOT = "<?= ROOT ?>";
         window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
         window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
+        console.log('APP_ROOT set to:', window.APP_ROOT);
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <?php if (isset($pageScript)): ?>

@@ -397,6 +397,7 @@ CREATE TABLE `orders` (
   `total_amount` decimal(10,2) NOT NULL COMMENT 'Product total before shipping',
   `shipping_cost` decimal(10,2) NOT NULL DEFAULT 0.00,
   `order_total` decimal(10,2) NOT NULL COMMENT 'Total including shipping',
+  `total_weight_kg` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Total weight of all items in kg',
   `payment_method` varchar(50) DEFAULT 'cash_on_delivery',
   `delivery_address` text NOT NULL,
   `delivery_city` varchar(100) NOT NULL,
@@ -412,14 +413,14 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `shipping_cost`, `order_total`, `payment_method`, `delivery_address`, `delivery_city`, `delivery_district_id`, `delivery_town_id`, `delivery_phone`, `status`, `created_at`, `updated_at`) VALUES
-(1, 11, 120.00, 150.00, 270.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 15:56:46', '2026-01-24 15:56:46'),
-(2, 11, 59.00, 150.00, 209.00, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 15:57:24', '2026-01-24 15:57:24'),
-(3, 11, 65.00, 150.00, 215.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 16:01:17', '2026-01-24 16:01:17'),
-(4, 11, 3600.00, 1538.25, 5138.25, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:32:45', '2026-01-24 17:32:45'),
-(5, 11, 3600.00, 1538.25, 5138.25, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:32:57', '2026-01-24 17:32:57'),
-(6, 11, 3600.00, 1538.25, 5138.25, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:33:32', '2026-01-24 17:33:32'),
-(7, 11, 700.00, 955.50, 1655.50, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:33:50', '2026-01-24 17:33:50');
+INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `shipping_cost`, `order_total`, `total_weight_kg`, `payment_method`, `delivery_address`, `delivery_city`, `delivery_district_id`, `delivery_town_id`, `delivery_phone`, `status`, `created_at`, `updated_at`) VALUES
+(1, 11, 120.00, 150.00, 270.00, 5.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 15:56:46', '2026-01-24 15:56:46'),
+(2, 11, 59.00, 150.00, 209.00, 2.50, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 15:57:24', '2026-01-24 15:57:24'),
+(3, 11, 65.00, 150.00, 215.00, 1.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 16:01:17', '2026-01-24 16:01:17'),
+(4, 11, 3600.00, 1538.25, 5138.25, 150.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:32:45', '2026-01-24 17:32:45'),
+(5, 11, 3600.00, 1538.25, 5138.25, 150.00, 'bank_transfer', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:32:57', '2026-01-24 17:32:57'),
+(6, 11, 3600.00, 1538.25, 5138.25, 150.00, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:33:32', '2026-01-24 17:33:32'),
+(7, 11, 700.00, 955.50, 1655.50, 75.00, 'cash_on_delivery', '35/4, Lake Rd', 'Matale', 5, 18, '0702242499', 'pending', '2026-01-24 17:33:50', '2026-01-24 17:33:50');
 
 -- --------------------------------------------------------
 
@@ -434,6 +435,7 @@ CREATE TABLE `order_items` (
   `product_name` varchar(255) NOT NULL,
   `product_price` decimal(10,2) NOT NULL,
   `quantity` int(11) NOT NULL,
+  `weight_kg` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Total weight of items in kg',
   `farmer_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -442,9 +444,41 @@ CREATE TABLE `order_items` (
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `product_price`, `quantity`, `farmer_id`, `created_at`) VALUES
-(1, 2, 35, 'pumpkin', 59.00, 1, 23, '2026-01-24 15:57:24'),
-(2, 3, 30, 'carrots', 65.00, 1, 23, '2026-01-24 16:01:17');
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `product_price`, `quantity`, `weight_kg`, `farmer_id`, `created_at`) VALUES
+(1, 2, 35, 'pumpkin', 59.00, 1, 2.50, 23, '2026-01-24 15:57:24'),
+(2, 3, 30, 'carrots', 65.00, 1, 1.00, 23, '2026-01-24 16:01:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `delivery_requests`
+--
+
+CREATE TABLE `delivery_requests` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `buyer_id` int(11) NOT NULL,
+  `buyer_name` varchar(255) NOT NULL,
+  `buyer_phone` varchar(20) NOT NULL,
+  `buyer_address` text NOT NULL,
+  `buyer_city` varchar(100) NOT NULL,
+  `buyer_district_id` int(11) DEFAULT NULL,
+  `farmer_id` int(11) NOT NULL,
+  `farmer_name` varchar(255) NOT NULL,
+  `farmer_phone` varchar(20) DEFAULT NULL,
+  `farmer_address` text DEFAULT NULL,
+  `farmer_city` varchar(100) DEFAULT NULL,
+  `farmer_district_id` int(11) DEFAULT NULL,
+  `total_weight_kg` decimal(10,2) NOT NULL,
+  `shipping_fee` decimal(10,2) NOT NULL,
+  `distance_km` decimal(10,2) DEFAULT NULL,
+  `required_vehicle_type_id` int(11) DEFAULT NULL COMMENT 'Minimum vehicle type needed based on weight',
+  `status` enum('pending','accepted','in_transit','delivered','cancelled') DEFAULT 'pending',
+  `transporter_id` int(11) DEFAULT NULL COMMENT 'Assigned transporter',
+  `accepted_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -482,9 +516,12 @@ CREATE TABLE `products` (
   `id` int(11) NOT NULL,
   `farmer_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `product_master_id` int(11) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `quantity` int(11) NOT NULL,
   `description` text DEFAULT NULL,
+  `district_id` int(11) DEFAULT NULL,
+  `town_id` int(11) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
   `category` varchar(50) NOT NULL DEFAULT 'other',
@@ -497,14 +534,14 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `farmer_id`, `name`, `price`, `quantity`, `description`, `image`, `location`, `category`, `listing_date`, `created_at`, `updated_at`) VALUES
-(30, 23, 'carrots', 65.00, 14, '', 'product_68f924a2f2789.webp', 'Kandy', 'vegetables', '2025-10-22', '2025-10-22 13:08:27', '2026-01-24 16:01:17'),
-(31, 23, 'tomatoes', 50.00, 20, '', 'product_68f924d735c46.jpg', 'Kandy', 'vegetables', '2025-10-22', '2025-10-22 13:09:19', '2025-10-22 13:09:19'),
-(32, 23, 'leaks', 70.00, 40, '', 'product_68f9262659a90.jpg', 'mathale', 'vegetables', '2025-10-22', '2025-10-22 13:14:54', '2025-10-22 13:14:54'),
-(35, 23, 'pumpkin', 59.00, 9, '', 'product_68f92bfcf3d31.jpeg', 'galle', 'vegetables', '2025-10-22', '2025-10-22 13:39:49', '2026-01-24 15:57:24'),
-(36, 29, 'Papaya', 120.00, 60, '', 'product_68f93e9f14c81.jpeg', 'Dabulla', 'fruits', '2025-10-24', '2025-10-22 20:29:19', '2025-10-22 20:29:19'),
-(37, 29, 'Banana', 100.00, 80, '', 'product_68f9436a272fb.webp', 'monaragala', 'fruits', '2025-10-23', '2025-10-22 20:49:46', '2025-10-22 20:49:46'),
-(38, 9, 'onion', 80.00, 100, '', 'product_69751058cae1f.jpg', 'Jaffna', 'vegetables', '2026-01-24', '2026-01-24 18:32:56', '2026-01-24 18:32:56');
+INSERT INTO `products` (`id`, `farmer_id`, `name`, `product_master_id`, `price`, `quantity`, `description`, `district_id`, `town_id`, `image`, `location`, `category`, `listing_date`, `created_at`, `updated_at`) VALUES
+(30, 23, 'carrots', NULL, 65.00, 14, '', NULL, NULL, 'product_68f924a2f2789.webp', 'Kandy', 'vegetables', '2025-10-22', '2025-10-22 13:08:27', '2026-01-24 16:01:17'),
+(31, 23, 'tomatoes', NULL, 50.00, 20, '', NULL, NULL, 'product_68f924d735c46.jpg', 'Kandy', 'vegetables', '2025-10-22', '2025-10-22 13:09:19', '2025-10-22 13:09:19'),
+(32, 23, 'leaks', NULL, 70.00, 40, '', NULL, NULL, 'product_68f9262659a90.jpg', 'mathale', 'vegetables', '2025-10-22', '2025-10-22 13:14:54', '2025-10-22 13:14:54'),
+(35, 23, 'pumpkin', NULL, 59.00, 9, '', NULL, NULL, 'product_68f92bfcf3d31.jpeg', 'galle', 'vegetables', '2025-10-22', '2025-10-22 13:39:49', '2026-01-24 15:57:24'),
+(36, 29, 'Papaya', NULL, 120.00, 60, '', NULL, NULL, 'product_68f93e9f14c81.jpeg', 'Dabulla', 'fruits', '2025-10-24', '2025-10-22 20:29:19', '2025-10-22 20:29:19'),
+(37, 29, 'Banana', NULL, 100.00, 80, '', NULL, NULL, 'product_68f9436a272fb.webp', 'monaragala', 'fruits', '2025-10-23', '2025-10-22 20:49:46', '2025-10-22 20:49:46'),
+(38, 9, 'onion', NULL, 80.00, 100, '', NULL, NULL, 'product_69751058cae1f.jpg', 'Jaffna', 'vegetables', '2026-01-24', '2026-01-24 18:32:56', '2026-01-24 18:32:56');
 
 -- --------------------------------------------------------
 
@@ -577,6 +614,12 @@ CREATE TABLE `transporter_profiles` (
   `user_id` int(11) NOT NULL,
   `company_name` varchar(255) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
+  `apartment_code` varchar(50) DEFAULT NULL,
+  `street_name` varchar(150) DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `district` varchar(100) DEFAULT NULL,
+  `postal_code` varchar(20) DEFAULT NULL,
+  `full_address` text DEFAULT NULL,
   `vehicle_type` varchar(100) DEFAULT NULL,
   `license_number` varchar(100) DEFAULT NULL,
   `availability` varchar(255) DEFAULT NULL,
@@ -659,6 +702,7 @@ CREATE TABLE `vehicles` (
 CREATE TABLE `vehicle_types` (
   `id` int(11) NOT NULL,
   `vehicle_name` varchar(50) NOT NULL,
+  `min_weight_kg` int(11) NOT NULL DEFAULT 0,
   `max_weight_kg` int(11) NOT NULL,
   `base_fee_lkr` decimal(10,2) NOT NULL,
   `cost_per_km_lkr` decimal(10,2) NOT NULL,
@@ -672,13 +716,13 @@ CREATE TABLE `vehicle_types` (
 -- Dumping data for table `vehicle_types`
 --
 
-INSERT INTO `vehicle_types` (`id`, `vehicle_name`, `max_weight_kg`, `base_fee_lkr`, `cost_per_km_lkr`, `cost_per_kg_lkr`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Bike', 20, 150.00, 5.00, 5.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
-(2, 'Threewheel', 100, 300.00, 7.00, 3.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
-(3, 'Small Van', 300, 500.00, 10.00, 2.50, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
-(4, 'Van', 600, 800.00, 15.00, 2.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
-(5, 'Small Lorry', 1500, 1200.00, 20.00, 1.50, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
-(6, 'Lorry', 3000, 1800.00, 25.00, 1.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09');
+INSERT INTO `vehicle_types` (`id`, `vehicle_name`, `min_weight_kg`, `max_weight_kg`, `base_fee_lkr`, `cost_per_km_lkr`, `cost_per_kg_lkr`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Bike', 0, 50, 150.00, 5.00, 5.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
+(2, 'Threewheel', 51, 150, 300.00, 7.00, 3.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
+(3, 'Small Van', 151, 300, 500.00, 10.00, 2.50, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
+(4, 'Van', 301, 500, 800.00, 15.00, 2.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
+(5, 'Small Lorry', 501, 750, 1200.00, 20.00, 1.50, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09'),
+(6, 'Lorry', 751, 1000, 1800.00, 25.00, 1.00, 1, '2026-01-24 14:29:09', '2026-01-24 14:29:09');
 
 -- --------------------------------------------------------
 
@@ -782,6 +826,19 @@ ALTER TABLE `order_items`
   ADD KEY `idx_order` (`order_id`),
   ADD KEY `idx_product` (`product_id`),
   ADD KEY `idx_farmer` (`farmer_id`);
+
+--
+-- Indexes for table `delivery_requests`
+--
+ALTER TABLE `delivery_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_order` (`order_id`),
+  ADD KEY `idx_buyer` (`buyer_id`),
+  ADD KEY `idx_farmer` (`farmer_id`),
+  ADD KEY `idx_transporter` (`transporter_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_weight` (`total_weight_kg`),
+  ADD KEY `idx_vehicle_type` (`required_vehicle_type_id`);
 
 --
 -- Indexes for table `platform_config`
@@ -900,6 +957,12 @@ ALTER TABLE `order_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `delivery_requests`
+--
+ALTER TABLE `delivery_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `platform_config`
 --
 ALTER TABLE `platform_config`
@@ -995,6 +1058,16 @@ ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   ADD CONSTRAINT `order_items_ibfk_3` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `delivery_requests`
+--
+ALTER TABLE `delivery_requests`
+  ADD CONSTRAINT `delivery_requests_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `delivery_requests_ibfk_2` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `delivery_requests_ibfk_3` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `delivery_requests_ibfk_4` FOREIGN KEY (`transporter_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `delivery_requests_ibfk_5` FOREIGN KEY (`required_vehicle_type_id`) REFERENCES `vehicle_types` (`id`);
 
 --
 -- Constraints for table `towns`

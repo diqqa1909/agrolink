@@ -20,12 +20,12 @@ CREATE TABLE `vehicle_types` (
 
 -- Insert Vehicle Types with Reasonable Pricing
 INSERT INTO `vehicle_types` (`vehicle_name`, `max_weight_kg`, `base_fee_lkr`, `cost_per_km_lkr`, `cost_per_kg_lkr`) VALUES
-('Bike', 20, 150.00, 20.00, 5.00),
-('Threewheel', 100, 300.00, 30.00, 3.00),
+('Bike', 50, 150.00, 20.00, 5.00),
+('Threewheel', 150, 300.00, 30.00, 3.00),
 ('Small Van', 300, 500.00, 40.00, 2.50),
-('Van', 600, 800.00, 50.00, 2.00),
-('Small Lorry', 1500, 1200.00, 65.00, 1.50),
-('Lorry', 3000, 1800.00, 80.00, 1.00);
+('Van', 500, 800.00, 50.00, 2.00),
+('Small Lorry', 750, 1200.00, 65.00, 1.50),
+('Lorry', 1000, 1800.00, 80.00, 1.00);
 
 -- =====================================================
 -- 2. UPDATE EXISTING VEHICLES TABLE

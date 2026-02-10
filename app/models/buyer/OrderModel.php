@@ -35,11 +35,16 @@ class OrderModel
     public function addOrderItem($itemData)
     {
         $sql = "INSERT INTO {$this->orderItemsTable} 
-                (order_id, product_id, product_name, product_price, quantity, farmer_id, created_at)
-                VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :farmer_id, NOW())";
+                (order_id, product_id, product_name, product_price, quantity, item_weight_kg, farmer_id, created_at)
+                VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, NOW())";
 
         $result = $this->write($sql, $itemData);
-        return $result !== false && $result !== 1;
+        
+        // DEBUG: Log the actual result from write()
+        error_log("OrderModel::addOrderItem - write() returned: " . var_export($result, true));
+        
+        // Return true if we got an insert ID (int) or true, false if we got false
+        return $result !== false;
     }
 
     /**
@@ -128,5 +133,14 @@ class OrderModel
             $this->write($sql, ['qty' => $item->quantity, 'id' => $item->product_id]);
         }
         return true;
+    }
+
+    /**
+     * Update order total weight
+     */
+    public function updateOrderWeight($orderId, $totalWeight)
+    {
+        $sql = "UPDATE {$this->table} SET total_weight_kg = :total_weight WHERE id = :order_id";
+        return $this->write($sql, ['order_id' => $orderId, 'total_weight' => $totalWeight]);
     }
 }
