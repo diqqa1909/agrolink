@@ -421,6 +421,15 @@ class CheckoutController
 
             // Group by farmer
             $farmerId = $this->getFarmerIdByProductId($item->product_id);
+            
+            // DEBUG: Log farmer ID retrieval
+            file_put_contents($logFile, "Product {$item->product_id} ({$item->product_name}) - Farmer ID: " . ($farmerId ?? 'NULL') . "\n", FILE_APPEND);
+            
+            if (!$farmerId) {
+                $errors[] = "Could not find farmer for product: {$item->product_name}";
+                continue;
+            }
+            
             if (!isset($itemsByFarmer[$farmerId])) {
                 $itemsByFarmer[$farmerId] = [];
             }
@@ -490,24 +499,60 @@ class CheckoutController
             $orderIds[] = $orderId;
 
             // --- STEP 3: ADD ITEMS & UPDATE STOCK FOR THIS SUB-ORDER ---
+            $totalWeight = 0;
             foreach ($farmerItems as $item) {
+                // Calculate weight for this item (assuming weight per unit)
+                // You can modify this logic based on your product weight structure
+                $product = $this->productModel->getById($item->product_id);
+                $itemWeight = 0;
+                
+                // Try to get weight from crop_volume_factors table
+                if ($product && !empty($product->name)) {
+                    $weightData = $this->getProductWeight($product->name);
+                    $itemWeight = $weightData * $item->quantity;
+                }
+                
+                // If no weight found, use default 1kg per unit
+                if ($itemWeight == 0) {
+                    $itemWeight = $item->quantity * 1.0; // Default 1kg per unit
+                }
+                
+                $totalWeight += $itemWeight;
+
                 $itemData = [
                     'order_id' => $orderId,
                     'product_id' => $item->product_id,
                     'product_name' => $item->product_name,
                     'product_price' => $item->product_price,
                     'quantity' => $item->quantity,
+                    'item_weight_kg' => $itemWeight,
                     'farmer_id' => $farmerId 
                 ];
 
-                if (!$this->orderModel->addOrderItem($itemData)) {
+                // DEBUG: Log item data before insertion
+                file_put_contents($logFile, "Inserting order item: " . json_encode($itemData) . "\n", FILE_APPEND);
+                
+                $addResult = $this->orderModel->addOrderItem($itemData);
+                
+                // DEBUG: Log insertion result
+                file_put_contents($logFile, "Add order item result: " . ($addResult ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
+                
+                if (!$addResult) {
                     error_log("Failed to add item {$item->product_name} to order {$orderId}");
+                    file_put_contents($logFile, "ERROR: Failed to add item {$item->product_name} to order {$orderId}\n", FILE_APPEND);
                 }
 
                 if (!$this->orderModel->updateProductQuantity($item->product_id, $item->quantity)) {
                     error_log("Failed to update quantity for {$item->product_name}");
                 }
             }
+
+            // Update order total weight (commented out - column doesn't exist in orders table)
+            // Weight is already stored in each order_item via item_weight_kg
+            // $this->orderModel->updateOrderWeight($orderId, $totalWeight);
+
+            // --- STEP 4: CREATE DELIVERY REQUEST FOR THIS ORDER ---
+            $this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile);
         }
 
         if (empty($orderIds)) {
@@ -543,5 +588,120 @@ class CheckoutController
     {
         $product = $this->productModel->getById($productId);
         return $product ? $product->farmer_id : null;
+    }
+
+    /**
+     * Get product weight from crop_volume_factors table
+     */
+    private function getProductWeight($cropName)
+    {
+        $dbModel = new CartModel(); // Use existing model to access Database trait
+        $sql = "SELECT avg_weight_kg_per_unit FROM crop_volume_factors WHERE crop_name = :crop_name LIMIT 1";
+        $result = $dbModel->query($sql, ['crop_name' => $cropName]);
+        
+        if ($result && is_array($result) && !empty($result)) {
+            return (float)$result[0]->avg_weight_kg_per_unit;
+        }
+        
+        return 1.0; // Default 1kg per unit
+    }
+
+    /**
+     * Create delivery request for transporters
+     */
+    private function createDeliveryRequest($orderId, $buyerId, $farmerId, $totalWeight, $shippingFee, $buyerProfile)
+    {
+        try {
+            // Get buyer details
+            $buyerSql = "SELECT name FROM users WHERE id = :id LIMIT 1";
+            $dbModel = new CartModel();
+            $buyerResult = $dbModel->query($buyerSql, ['id' => $buyerId]);
+            $buyerName = $buyerResult && is_array($buyerResult) && !empty($buyerResult) ? $buyerResult[0]->name : 'Unknown';
+
+            // Get farmer details
+            $farmerSql = "SELECT u.name, fp.phone, fp.full_address, fp.district 
+                         FROM users u 
+                         LEFT JOIN farmer_profiles fp ON u.id = fp.user_id 
+                         WHERE u.id = :id LIMIT 1";
+            $farmerResult = $dbModel->query($farmerSql, ['id' => $farmerId]);
+            
+            if (!$farmerResult || empty($farmerResult)) {
+                error_log("Failed to get farmer details for farmer_id: {$farmerId}");
+                return false;
+            }
+            
+            $farmer = $farmerResult[0];
+
+            // Determine required vehicle type based on weight
+            $vehicleTypeSql = "SELECT id FROM vehicle_types 
+                              WHERE min_weight_kg <= :weight 
+                              AND max_weight_kg >= :weight 
+                              AND is_active = 1 
+                              ORDER BY min_weight_kg ASC LIMIT 1";
+            $vehicleTypeResult = $dbModel->query($vehicleTypeSql, ['weight' => $totalWeight]);
+            $requiredVehicleTypeId = $vehicleTypeResult && !empty($vehicleTypeResult) ? $vehicleTypeResult[0]->id : null;
+
+            // Get district IDs
+            $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
+            $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? 'Colombo');
+
+            // Calculate distance (if available)
+            $distanceSql = "SELECT distance_km FROM district_distances 
+                           WHERE from_district_id = :from_id AND to_district_id = :to_id LIMIT 1";
+            $distanceResult = $dbModel->query($distanceSql, [
+                'from_id' => $farmerDistrictId,
+                'to_id' => $buyerDistrictId
+            ]);
+            $distance = $distanceResult && !empty($distanceResult) ? $distanceResult[0]->distance_km : null;
+
+            // Prepare buyer full address
+            $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' . 
+                                    ($buyerProfile->street_name ?? '') . ', ' . 
+                                    ($buyerProfile->city ?? ''));
+
+            // Insert delivery request
+            $insertSql = "INSERT INTO delivery_requests (
+                order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
+                farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
+                total_weight_kg, shipping_fee, distance_km, required_vehicle_type_id, status, created_at, updated_at
+            ) VALUES (
+                :order_id, :buyer_id, :buyer_name, :buyer_phone, :buyer_address, :buyer_city, :buyer_district_id,
+                :farmer_id, :farmer_name, :farmer_phone, :farmer_address, :farmer_city, :farmer_district_id,
+                :total_weight_kg, :shipping_fee, :distance_km, :required_vehicle_type_id, 'pending', NOW(), NOW()
+            )";
+
+            $params = [
+                'order_id' => $orderId,
+                'buyer_id' => $buyerId,
+                'buyer_name' => $buyerName,
+                'buyer_phone' => $buyerProfile->phone ?? '',
+                'buyer_address' => $buyerFullAddress,
+                'buyer_city' => $buyerProfile->city ?? '',
+                'buyer_district_id' => $buyerDistrictId,
+                'farmer_id' => $farmerId,
+                'farmer_name' => $farmer->name ?? 'Unknown',
+                'farmer_phone' => $farmer->phone ?? '',
+                'farmer_address' => $farmer->full_address ?? '',
+                'farmer_city' => $farmer->district ?? '',
+                'farmer_district_id' => $farmerDistrictId,
+                'total_weight_kg' => $totalWeight,
+                'shipping_fee' => $shippingFee,
+                'distance_km' => $distance,
+                'required_vehicle_type_id' => $requiredVehicleTypeId
+            ];
+
+            $result = $dbModel->query($insertSql, $params);
+            
+            if ($result) {
+                error_log("Delivery request created successfully for order {$orderId}");
+                return true;
+            } else {
+                error_log("Failed to create delivery request for order {$orderId}");
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Error creating delivery request: " . $e->getMessage());
+            return false;
+        }
     }
 }

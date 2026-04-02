@@ -1,15 +1,19 @@
-// Transporter profile management (uses TransporterProfileController endpoints)
-let transporterOriginalProfile = null;
+// Transporter Profile Management
+// Matched to transporter_profiles table: phone, company_name, license_number, vehicle_type, availability
 
-function avatarPlaceholder() {
-    const name = (window.USER_NAME || 'Transporter').trim() || 'Transporter';
-    const encoded = encodeURIComponent(name);
-    return `https://ui-avatars.com/api/?name=${encoded}&background=10b981&color=fff&size=180`;
+// Ensure APP_ROOT is defined (set in transporterMain.view.php, fallback if missing)
+if (typeof window.APP_ROOT === 'undefined' || !window.APP_ROOT) {
+    window.APP_ROOT = 'http://localhost/agrolink/public';
+    console.warn('APP_ROOT was undefined, using fallback:', window.APP_ROOT);
 }
 
+console.log('Profile.js loaded, APP_ROOT:', window.APP_ROOT);
+
+// Helper function to update profile photo display and default icon
 function setProfilePhoto(url) {
     const img = document.getElementById('profilePhotoDisplay');
     const defaultIcon = document.getElementById('defaultProfileIcon');
+    
     if (!img) return;
     
     if (url && url.length && url !== 'undefined') {
@@ -22,135 +26,184 @@ function setProfilePhoto(url) {
     }
 }
 
-function populateProfileForm(profile, photoUrl) {
-    const nameField = document.getElementById('profileName');
-    const emailField = document.getElementById('profileEmail');
-    const phoneField = document.getElementById('profilePhone');
-    const districtField = document.getElementById('profileDistrict');
-    const transporterTypeField = document.getElementById('profileTransporterType');
-    const serviceAreasField = document.getElementById('profileServiceAreas');
-
-    if (nameField) nameField.value = profile.name || '';
-    if (emailField) emailField.value = profile.email || '';
-    if (phoneField) phoneField.value = profile.phone || '';
-    if (districtField) districtField.value = profile.district || '';
-    if (transporterTypeField) transporterTypeField.value = profile.transporter_type || '';
-    if (serviceAreasField) serviceAreasField.value = profile.service_areas || '';
-
-    const displayName = document.getElementById('profileDisplayName');
-    const displayEmail = document.getElementById('profileDisplayEmail');
-    if (displayName) displayName.textContent = profile.name || '';
-    if (displayEmail) displayEmail.textContent = profile.email || '';
-
-    const resolvedPhoto = photoUrl || profile.profile_photo_url || profile.profile_photo;
-    setProfilePhoto(resolvedPhoto);
-    updateProfileStatistics(profile);
-
-    transporterOriginalProfile = {
-        name: profile.name || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        district: profile.district || '',
-        transporter_type: profile.transporter_type || '',
-        service_areas: profile.service_areas || '',
-        profile_photo: resolvedPhoto
-    };
+// Store original profile data for reset functionality (only declare if not exists)
+if (typeof originalProfileData === 'undefined') {
+    var originalProfileData = null;
 }
 
-function formatMonthYear(dateStr) {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr.replace(' ', 'T'));
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-}
-
-function updateProfileStatistics(profile) {
-    const memberSince = formatMonthYear(profile.created_at || profile.joined_at || '');
-    const statMember = document.getElementById('statMemberSince');
-    const statDeliveries = document.getElementById('statTotalDeliveries');
-    const statRating = document.getElementById('statAverageRating');
-    const statEarnings = document.getElementById('statTotalEarnings');
-
-    if (statMember) statMember.textContent = memberSince;
-    if (statDeliveries) statDeliveries.textContent = profile.total_deliveries ?? profile.deliveries_count ?? 0;
-    if (statRating) statRating.textContent = (profile.average_rating ?? profile.rating ?? 0).toFixed(1);
-    if (statEarnings) statEarnings.textContent = 'Rs. ' + (profile.total_earnings ?? 0).toLocaleString();
-}
-
-function clearFieldErrors(scope) {
-    const selector = scope ? `${scope} .error-message` : '.error-message';
-    document.querySelectorAll(selector).forEach(el => {
-        el.textContent = '';
-        el.classList.remove('show');
-    });
-}
-
+/**
+ * Load profile data from server and populate form
+ */
 function loadProfileData() {
-    const url = `${window.APP_ROOT}/transporterprofile?ajax=1&t=${Date.now()}`;
-    fetch(url, {
+    const form = document.getElementById('profileForm');
+    if (!form) {
+        console.error('Profile form not found');
+        return;
+    }
+
+    console.log('Loading transporter profile...');
+
+    fetch(`${window.APP_ROOT}/transporterprofile?ajax=1&t=${Date.now()}`, {
         credentials: 'include',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         cache: 'no-cache'
     })
-        .then(r => {
-            if (!r.ok) throw new Error('Failed to load profile');
-            return r.json();
-        })
-        .then(res => {
-            if (res.success && res.profile) {
-                populateProfileForm(res.profile, res.photoUrl);
-            } else {
-                showNotification(res.error || 'Could not load profile', 'error');
+    .then(r => {
+        if (!r.ok) throw new Error('Failed to fetch profile');
+        return r.json();
+    })
+    .then(res => {
+        if (res.success && res.profile) {
+            const profile = res.profile;
+            
+            console.log('Profile loaded:', profile);
+
+            // Populate form fields
+            const nameField = document.getElementById('profileName');
+            const emailField = document.getElementById('profileEmail');
+            const phoneField = document.getElementById('profilePhone');
+            const districtField = document.getElementById('profileDistrict');
+            const apartmentCodeField = document.getElementById('profileApartmentCode');
+            const streetNameField = document.getElementById('profileStreetName');
+            const cityField = document.getElementById('profileCity');
+            const postalCodeField = document.getElementById('profilePostalCode');
+            const fullAddressField = document.getElementById('profileFullAddress');
+            const companyNameField = document.getElementById('profileCompanyName');
+            const licenseNumberField = document.getElementById('profileLicenseNumber');
+            const vehicleTypeField = document.getElementById('profileVehicleType');
+            const availabilityField = document.getElementById('profileAvailability');
+            
+            if (nameField) nameField.value = profile.name || '';
+            if (emailField) emailField.value = profile.email || '';
+            if (phoneField) phoneField.value = profile.phone || '';
+            if (districtField) districtField.value = profile.district || '';
+            if (apartmentCodeField) apartmentCodeField.value = profile.apartment_code || '';
+            if (streetNameField) streetNameField.value = profile.street_name || '';
+            if (cityField) cityField.value = profile.city || '';
+            if (postalCodeField) postalCodeField.value = profile.postal_code || '';
+            if (fullAddressField) fullAddressField.value = profile.full_address || '';
+            if (companyNameField) companyNameField.value = profile.company_name || '';
+            if (licenseNumberField) licenseNumberField.value = profile.license_number || '';
+            if (vehicleTypeField) vehicleTypeField.value = profile.vehicle_type || '';
+            if (availabilityField) availabilityField.value = profile.availability || '';
+            
+            // Update header display (name and email in header section)
+            const displayName = document.getElementById('profileDisplayName');
+            const displayEmail = document.getElementById('profileDisplayEmail');
+            if (displayName) displayName.textContent = profile.name || '';
+            if (displayEmail) displayEmail.textContent = profile.email || '';
+            
+            // Store original data for reset
+            if (!originalProfileData) {
+                originalProfileData = { 
+                    name: profile.name || '',
+                    email: profile.email || '',
+                    phone: profile.phone || '',
+                    district: profile.district || '',
+                    apartment_code: profile.apartment_code || '',
+                    street_name: profile.street_name || '',
+                    city: profile.city || '',
+                    postal_code: profile.postal_code || '',
+                    full_address: profile.full_address || '',
+                    company_name: profile.company_name || '',
+                    license_number: profile.license_number || '',
+                    vehicle_type: profile.vehicle_type || '',
+                    availability: profile.availability || ''
+                };
             }
-        })
-        .catch(err => {
-            console.error('Profile load error:', err);
-            showNotification('Unable to load profile', 'error');
-        });
+            
+            // Set profile photo
+            if (res.photoUrl) {
+                setProfilePhoto(res.photoUrl);
+            } else {
+                setProfilePhoto(null);
+            }
+        } else {
+            console.error('Invalid profile response:', res);
+            showNotification(res.message || 'Failed to load profile', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Profile load error:', err);
+        showNotification('Error loading profile data', 'error');
+    });
 }
 
+/**
+ * Save profile data to server
+ */
 function saveProfileData() {
     const form = document.getElementById('profileForm');
     if (!form) return;
-    clearFieldErrors();
+    
+    console.log('Saving transporter profile...');
+    
+    // Clear previous errors
+    const errorElements = document.querySelectorAll('.error-message');
+    errorElements.forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+    });
 
-    const formData = new FormData(form);
-    const data = {
-        name: formData.get('name') || '',
-        email: formData.get('email') || '',
-        phone: formData.get('phone') || '',
-        district: formData.get('district') || '',
-        transporter_type: formData.get('transporter_type') || '',
-        service_areas: formData.get('service_areas') || ''
-    };
+    // Collect form data
+    const formData = new FormData();
+    formData.append('name', document.getElementById('profileName')?.value?.trim() || '');
+    formData.append('phone', document.getElementById('profilePhone')?.value?.trim() || '');
+    formData.append('district', document.getElementById('profileDistrict')?.value?.trim() || '');
+    formData.append('apartment_code', document.getElementById('profileApartmentCode')?.value?.trim() || '');
+    formData.append('street_name', document.getElementById('profileStreetName')?.value?.trim() || '');
+    formData.append('city', document.getElementById('profileCity')?.value?.trim() || '');
+    formData.append('postal_code', document.getElementById('profilePostalCode')?.value?.trim() || '');
+    formData.append('full_address', document.getElementById('profileFullAddress')?.value?.trim() || '');
+    formData.append('company_name', document.getElementById('profileCompanyName')?.value?.trim() || '');
+    formData.append('license_number', document.getElementById('profileLicenseNumber')?.value?.trim() || '');
+    formData.append('vehicle_type', document.getElementById('profileVehicleType')?.value?.trim() || '');
+    formData.append('availability', document.getElementById('profileAvailability')?.value?.trim() || '');
 
+    // Get button and disable it
     const saveBtn = document.querySelector('.btn-save-profile');
-    const originalText = saveBtn ? saveBtn.textContent : '';
     if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
+        saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Saving...';
     }
 
     fetch(`${window.APP_ROOT}/transporterprofile/saveProfile`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data)
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
     })
-        .then(r => r.json())
-        .then(res => {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-
-            if (res.success) {
-                showNotification(res.message || 'Profile updated', 'success');
-                loadProfileData();
-                return;
-            }
-
-            if (res.errors && typeof res.errors === 'object') {
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            console.log('Profile saved successfully');
+            showNotification(res.message || 'Profile updated successfully', 'success');
+            
+            // Update original data
+            originalProfileData = {
+                name: formData.get('name'),
+                email: document.getElementById('profileEmail')?.value || '',
+                phone: formData.get('phone'),
+                district: formData.get('district'),
+                apartment_code: formData.get('apartment_code'),
+                street_name: formData.get('street_name'),
+                city: formData.get('city'),
+                postal_code: formData.get('postal_code'),
+                full_address: formData.get('full_address'),
+                company_name: formData.get('company_name'),
+                license_number: formData.get('license_number'),
+                vehicle_type: formData.get('vehicle_type'),
+                availability: formData.get('availability')
+            };
+            
+            // Update display header
+            const displayName = document.getElementById('profileDisplayName');
+            if (displayName) displayName.textContent = formData.get('name');
+        } else {
+            console.error('Save profile failed:', res);
+            
+            // Display field-specific errors
+            if (res.errors) {
                 Object.keys(res.errors).forEach(field => {
                     const errorEl = document.getElementById(`error-${field}`);
                     if (errorEl) {
@@ -158,176 +211,326 @@ function saveProfileData() {
                         errorEl.classList.add('show');
                     }
                 });
-                showNotification('Please fix the highlighted fields', 'error');
-            } else {
-                showNotification(res.error || 'Failed to save profile', 'error');
             }
-        })
-        .catch(err => {
-            console.error('Profile save error:', err);
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-            showNotification('Unable to save profile', 'error');
-        });
+            
+            showNotification(res.message || 'Failed to update profile', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Profile save error:', err);
+        showNotification('Error updating profile', 'error');
+    })
+    .finally(() => {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg> Save Changes';
+        }
+    });
 }
 
+/**
+ * Reset profile form to original values
+ */
 function resetProfileForm() {
-    clearFieldErrors();
-    if (!transporterOriginalProfile) {
-        loadProfileData();
+    if (!originalProfileData) {
+        console.warn('No original profile data to reset');
         return;
     }
-    populateProfileForm(transporterOriginalProfile, transporterOriginalProfile.profile_photo || null);
+    
+    const nameField = document.getElementById('profileName');
+    const phoneField = document.getElementById('profilePhone');
+    const districtField = document.getElementById('profileDistrict');
+    const apartmentCodeField = document.getElementById('profileApartmentCode');
+    const streetNameField = document.getElementById('profileStreetName');
+    const cityField = document.getElementById('profileCity');
+    const postalCodeField = document.getElementById('profilePostalCode');
+    const fullAddressField = document.getElementById('profileFullAddress');
+    const companyNameField = document.getElementById('profileCompanyName');
+    const licenseNumberField = document.getElementById('profileLicenseNumber');
+    const vehicleTypeField = document.getElementById('profileVehicleType');
+    const availabilityField = document.getElementById('profileAvailability');
+    
+    if (nameField) nameField.value = originalProfileData.name || '';
+    if (phoneField) phoneField.value = originalProfileData.phone || '';
+    if (districtField) districtField.value = originalProfileData.district || '';
+    if (apartmentCodeField) apartmentCodeField.value = originalProfileData.apartment_code || '';
+    if (streetNameField) streetNameField.value = originalProfileData.street_name || '';
+    if (cityField) cityField.value = originalProfileData.city || '';
+    if (postalCodeField) postalCodeField.value = originalProfileData.postal_code || '';
+    if (fullAddressField) fullAddressField.value = originalProfileData.full_address || '';
+    if (companyNameField) companyNameField.value = originalProfileData.company_name || '';
+    if (licenseNumberField) licenseNumberField.value = originalProfileData.license_number || '';
+    if (vehicleTypeField) vehicleTypeField.value = originalProfileData.vehicle_type || '';
+    if (availabilityField) availabilityField.value = originalProfileData.availability || '';
+    
+    // Clear errors
+    const errorElements = document.querySelectorAll('.error-message');
+    errorElements.forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+    });
+    
+    showNotification('Form reset to original values', 'info');
 }
 
-function triggerProfilePhotoUpload() {
-    const inp = document.getElementById('profilePhotoInput');
-    if (inp) inp.click();
-}
-
+/**
+ * Upload profile photo
+ */
 function uploadProfilePhoto() {
-    const inp = document.getElementById('profilePhotoInput');
-    if (!inp || !inp.files || !inp.files.length) return;
-
-    const file = inp.files[0];
-    if (!file.type.startsWith('image/')) {
-        showNotification('Please select an image file (jpg, png, etc.)', 'error');
+    const fileInput = document.getElementById('photoFileInput');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        console.error('No file selected');
         return;
     }
+    
+    const file = fileInput.files[0];
+    console.log('Uploading photo:', file.name, file.size, 'bytes');
+    
+    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-        showNotification('File size must be less than 5MB', 'error');
+        showNotification('File too large. Maximum size is 5MB', 'error');
+        fileInput.value = '';
         return;
     }
-
-    const fd = new FormData();
-    fd.append('photo', file);
-
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Invalid file type. Use JPG, PNG, or WEBP', 'error');
+        fileInput.value = '';
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('photo', file);
+    
+    // Show loading state
+    const photoWrapper = document.getElementById('profilePhotoWrapper');
+    if (photoWrapper) {
+        photoWrapper.style.opacity = '0.6';
+        photoWrapper.style.pointerEvents = 'none';
+    }
+    
     fetch(`${window.APP_ROOT}/transporterprofile/uploadPhoto`, {
         method: 'POST',
         credentials: 'include',
-        body: fd
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
     })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                showNotification('Photo uploaded', 'success');
-                setProfilePhoto(res.url || res.photoUrl || res.photo_url);
-            } else {
-                showNotification(res.error || res.message || 'Photo upload failed', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Upload error:', err);
-            showNotification('Unable to upload photo', 'error');
-        })
-        .finally(() => {
-            inp.value = '';
-        });
+    .then(r => r.json())
+    .then(res => {
+        if (res.success && res.photoUrl) {
+            console.log('Photo uploaded:', res.photoUrl);
+            setProfilePhoto(res.photoUrl);
+            showNotification(res.message || 'Photo uploaded successfully', 'success');
+        } else {
+            console.error('Photo upload failed:', res);
+            showNotification(res.message || 'Failed to upload photo', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Photo upload error:', err);
+        showNotification('Error uploading photo', 'error');
+    })
+    .finally(() => {
+        fileInput.value = '';
+        if (photoWrapper) {
+            photoWrapper.style.opacity = '1';
+            photoWrapper.style.pointerEvents = 'auto';
+        }
+    });
 }
 
+/**
+ * Remove profile photo
+ */
 function removeProfilePhoto() {
-    if (!confirm('Remove your profile photo?')) return;
-    fetch(`${window.APP_ROOT}/transporterprofile/removePhoto`, {
-        method: 'POST',
-        credentials: 'include'
-    })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                showNotification('Photo removed', 'success');
-                setProfilePhoto(null);
-            } else {
-                showNotification(res.error || 'Failed to remove photo', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Remove photo error:', err);
-            showNotification('Unable to remove photo', 'error');
-        });
-}
-
-function openChangePasswordModal() {
-    const modal = document.getElementById('changePasswordModal');
-    if (modal) modal.style.display = 'flex';
-    clearFieldErrors('#changePasswordModal');
-}
-
-function closeChangePasswordModal() {
-    const modal = document.getElementById('changePasswordModal');
-    if (modal) modal.style.display = 'none';
-    clearFieldErrors('#changePasswordModal');
-    document.getElementById('changePasswordForm').reset();
-}
-
-function submitChangePassword() {
-    clearFieldErrors('#changePasswordModal');
-    const form = document.getElementById('changePasswordForm');
-    if (!form) return;
-
-    const fd = new FormData(form);
-    const data = {
-        current_password: fd.get('current_password') || '',
-        new_password: fd.get('new_password') || '',
-        confirm_password: fd.get('confirm_password') || ''
-    };
-
-    if (!data.current_password || !data.new_password || !data.confirm_password) {
-        showNotification('All fields are required', 'error');
+    if (!confirm('Are you sure you want to remove your profile photo?')) {
         return;
     }
+    
+    console.log('Removing profile photo...');
+    
+    fetch(`${window.APP_ROOT}/transporterprofile/removePhoto`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            console.log('Photo removed');
+            setProfilePhoto(null);
+            showNotification(res.message || 'Photo removed successfully', 'success');
+        } else {
+            console.error('Photo removal failed:', res);
+            showNotification(res.message || 'Failed to remove photo', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Photo removal error:', err);
+        showNotification('Error removing photo', 'error');
+    });
+}
 
-    if (data.new_password.length < 6) {
-        const errorEl = document.getElementById('error-new_password');
+/**
+ * Open change password modal
+ */
+function openChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Clear form and errors
+        const form = document.getElementById('changePasswordForm');
+        if (form) form.reset();
+        
+        const errorElements = modal.querySelectorAll('.error-message');
+        errorElements.forEach(el => {
+            el.textContent = '';
+            el.classList.remove('show');
+        });
+    }
+}
+
+/**
+ * Close change password modal
+ */
+function closeChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Submit password change
+ */
+function submitChangePassword() {
+    const form = document.getElementById('changePasswordForm');
+    if (!form) return;
+    
+    // Clear errors
+    const errorElements = form.querySelectorAll('.error-message');
+    errorElements.forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+    });
+    
+    const currentPassword = document.getElementById('currentPassword')?.value || '';
+    const newPassword = document.getElementById('newPassword')?.value || '';
+    const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+    
+    // Basic validation
+    if (!currentPassword) {
+        const errorEl = document.getElementById('error-current');
         if (errorEl) {
-            errorEl.textContent = 'Password must be at least 6 characters';
+            errorEl.textContent = 'Current password is required';
             errorEl.classList.add('show');
         }
         return;
     }
-
-    if (data.new_password !== data.confirm_password) {
-        const errorEl = document.getElementById('error-confirm_password');
+    
+    if (!newPassword || newPassword.length < 8) {
+        const errorEl = document.getElementById('error-new');
+        if (errorEl) {
+            errorEl.textContent = 'New password must be at least 8 characters';
+            errorEl.classList.add('show');
+        }
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        const errorEl = document.getElementById('error-confirm');
         if (errorEl) {
             errorEl.textContent = 'Passwords do not match';
             errorEl.classList.add('show');
         }
         return;
     }
-
+    
+    const formData = new FormData();
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+    
     fetch(`${window.APP_ROOT}/transporterprofile/changePassword`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data)
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
     })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                showNotification('Password changed successfully', 'success');
-                closeChangePasswordModal();
-            } else {
-                if (res.field) {
-                    const errorEl = document.getElementById(`error-${res.field}`);
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            showNotification(res.message || 'Password changed successfully', 'success');
+            closeChangePasswordModal();
+            form.reset();
+        } else {
+            // Display field-specific errors
+            if (res.errors) {
+                Object.keys(res.errors).forEach(field => {
+                    const errorEl = form.querySelector(`#error-${field}`);
                     if (errorEl) {
-                        errorEl.textContent = res.message || res.error;
+                        errorEl.textContent = res.errors[field];
                         errorEl.classList.add('show');
                     }
-                } else {
-                    showNotification(res.message || res.error || 'Failed to change password', 'error');
-                }
+                });
+            } else {
+                showNotification(res.message || 'Failed to change password', 'error');
             }
-        })
-        .catch(err => {
-            console.error('Change password error:', err);
-            showNotification('Unable to change password', 'error');
-        });
+        }
+    })
+    .catch(err => {
+        console.error('Password change error:', err);
+        showNotification('Error changing password', 'error');
+    });
 }
 
-// Auto-load on page ready
+// Event listeners setup
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('profileForm')) {
-        loadProfileData();
+    console.log('Transporter profile page loaded, APP_ROOT:', window.APP_ROOT);
+    
+    // Load profile data on page load
+    loadProfileData();
+    
+    // Photo upload button (edit button in overlay)
+    const editPhotoBtn = document.getElementById('editPhotoBtn');
+    if (editPhotoBtn) {
+        editPhotoBtn.addEventListener('click', function() {
+            const fileInput = document.getElementById('photoFileInput');
+            if (fileInput) fileInput.click();
+        });
+    }
+    
+    // Photo delete button (delete button in overlay)
+    const deletePhotoBtn = document.getElementById('deletePhotoBtn');
+    if (deletePhotoBtn) {
+        deletePhotoBtn.addEventListener('click', removeProfilePhoto);
+    }
+    
+    // File input change handler
+    const fileInput = document.getElementById('photoFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', uploadProfilePhoto);
+    }
+    
+    // Change password form submit handler
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitChangePassword();
+        });
+    }
+    
+    // Close modal on outside click
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeChangePasswordModal();
+            }
+        });
     }
 });
