@@ -166,11 +166,7 @@ class TransporterDashboardController
             }
 
             $data = [
-<<<<<<< HEAD
-                'type' => $type,
-=======
                 'type' => $newType,
->>>>>>> Transporters'_2
                 'registration' => $_POST['registration'] ?? $vehicle->registration,
                 'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? $vehicle->fuel_type,
@@ -239,37 +235,6 @@ class TransporterDashboardController
 
     public function getVehicleTypes()
     {
-<<<<<<< HEAD
-        $response = ['success' => false, 'types' => []];
-
-        try {
-            $types = $this->query(
-                "SELECT id, vehicle_name, min_weight_kg, max_weight_kg 
-                 FROM vehicle_types 
-                 WHERE is_active = 1 
-                 ORDER BY min_weight_kg"
-            );
-            
-            if ($types) {
-                // Convert objects to arrays
-                $typesArray = array_map(function($obj) {
-                    return [
-                        'id' => $obj->id,
-                        'vehicle_name' => $obj->vehicle_name,
-                        'min_weight_kg' => $obj->min_weight_kg,
-                        'max_weight_kg' => $obj->max_weight_kg
-                    ];
-                }, $types);
-                $response['success'] = true;
-                $response['types'] = $typesArray;
-            } else {
-                $response['success'] = true;
-                $response['types'] = [];
-            }
-        } catch (Exception $e) {
-            error_log("Error fetching vehicle types: " . $e->getMessage());
-            $response['error'] = 'Failed to load vehicle types';
-=======
         $response = ['success' => false, 'vehicleTypes' => []];
 
         if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
@@ -277,7 +242,6 @@ class TransporterDashboardController
             $types = $vehicleTypeModel->getActiveTypes();
             $response['success'] = true;
             $response['vehicleTypes'] = $types ?: [];
->>>>>>> Transporters'_2
         }
 
         echo json_encode($response);
