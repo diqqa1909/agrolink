@@ -55,46 +55,6 @@ class TransporterDashboardController
             }
 
             $vehicleModel = new VehicleModel();
-<<<<<<< HEAD
-            
-            // Get vehicle type details if vehicle_type_id provided
-            $vehicleTypeId = $_POST['vehicle_type_id'] ?? null;
-            $type = $_POST['type'] ?? ''; // Fallback for compatibility
-            $capacity = $_POST['capacity'] ?? ''; // Fallback for compatibility
-            
-            // DEBUG LOG
-            error_log("=== ADD VEHICLE DEBUG ===");
-            error_log("vehicle_type_id: " . ($vehicleTypeId ?? 'NULL'));
-            
-            if ($vehicleTypeId) {
-                try {
-                    $vehicleType = $this->get_row(
-                        "SELECT vehicle_name, max_weight_kg FROM vehicle_types WHERE id = ? AND is_active = 1",
-                        [$vehicleTypeId]
-                    );
-                    
-                    if ($vehicleType) {
-                        $type = $vehicleType->vehicle_name;
-                        $capacity = $vehicleType->max_weight_kg;
-                        error_log("Fetched type: $type, capacity: $capacity");
-                    } else {
-                        error_log("Invalid vehicle type ID: $vehicleTypeId");
-                        $response['message'] = 'Invalid vehicle type selected';
-                        echo json_encode($response);
-                        exit;
-                    }
-                } catch (Exception $e) {
-                    error_log("Error fetching vehicle type: " . $e->getMessage());
-                    $response['message'] = 'Database error';
-                    echo json_encode($response);
-                    exit;
-                }
-            }
-
-            $data = [
-                'transporter_id' => $_SESSION['USER']->id,
-                'type' => $type,
-=======
             $vehicleTypeModel = new VehicleTypeModel();
             
             // Get vehicle type to determine capacity
@@ -116,7 +76,6 @@ class TransporterDashboardController
             $data = [
                 'transporter_id' => $_SESSION['USER']->id,
                 'type' => $_POST['type'] ?? '',
->>>>>>> Transporters'_2
                 'registration' => $_POST['registration'] ?? '',
                 'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? 'petrol',
