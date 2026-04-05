@@ -179,7 +179,7 @@
                 </form>
 
                 <div class="profile-actions-modern">
-                    <button type="button" class="btn btn-save-profile" onclick="saveProfileData()">
+                    <button type="button" class="btn btn-save-profile" onclick="TransporterProfile.saveProfileData()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                             <polyline points="17 21 17 13 7 13 7 21" />
@@ -187,14 +187,14 @@
                         </svg>
                         Save Changes
                     </button>
-                    <button type="button" class="btn btn-reset-profile" onclick="resetProfileForm()" style="background-color: #fff; color: #344054; border: 1px solid #d0d5dd;">
+                    <button type="button" class="btn btn-reset-profile" onclick="TransporterProfile.resetProfileForm()" style="background-color: #fff; color: #344054; border: 1px solid #d0d5dd;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="23 4 23 10 17 10" />
                             <path d="M20.49 15a9 9 0 1 1-2-8.12" />
                         </svg>
                         Reset
                     </button>
-                    <button type="button" class="btn btn-secondary" onclick="openChangePasswordModal()">
+                    <button type="button" class="btn btn-secondary" onclick="TransporterProfile.openChangePasswordModal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -215,7 +215,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3>Change Password</h3>
-            <button type="button" class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+            <button type="button" class="modal-close" onclick="TransporterProfile.closeChangePasswordModal()">&times;</button>
         </div>
         <div class="modal-body">
             <form id="changePasswordForm">
@@ -240,11 +240,9 @@
 
                 <div style="display: flex; gap: 12px; margin-top: 24px;">
                     <button type="submit" class="btn btn-primary">Change Password</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="TransporterProfile.closeChangePasswordModal()">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script src="<?= ROOT ?>/assets/js/transporter/profile.js"></script>

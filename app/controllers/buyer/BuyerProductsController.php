@@ -28,6 +28,7 @@ class BuyerProductsController
 
         // Fetch all available products with farmer details
         $products = $this->productModel->getWithFarmerDetails();
+        $products = $this->attachDisplayDates($products ?: []);
         $wishlistItems = $this->wishlistModel->getByUserId($user_id);
 
         $data = [
@@ -43,5 +44,45 @@ class BuyerProductsController
 
         // Load the view through main layout
         $this->view('components/buyerLayout', $data);
+    }
+
+    private function attachDisplayDates(array $products): array
+    {
+        foreach ($products as $product) {
+            $baseDate = null;
+
+            if (!empty($product->listing_date)) {
+                $baseDate = strtotime($product->listing_date);
+            } elseif (!empty($product->created_at)) {
+                $baseDate = strtotime($product->created_at);
+            }
+
+            if (!$baseDate) {
+                $baseDate = time();
+            }
+
+            $shelfLifeDays = $this->getShelfLifeDays($product->category ?? 'other');
+            $product->display_added_date = date('M d, Y', $baseDate);
+            $product->display_best_use_date = date('M d, Y', strtotime("+{$shelfLifeDays} days", $baseDate));
+        }
+
+        return $products;
+    }
+
+    private function getShelfLifeDays(string $category): int
+    {
+        $map = [
+            'leafy' => 3,
+            'fruits' => 5,
+            'vegetables' => 4,
+            'yams' => 21,
+            'spices' => 21,
+            'legumes' => 21,
+            'other' => 10,
+            'cereals' => 30,
+        ];
+
+        $key = strtolower(trim($category));
+        return $map[$key] ?? 10;
     }
 }

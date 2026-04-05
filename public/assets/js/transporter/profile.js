@@ -9,6 +9,16 @@ if (typeof window.APP_ROOT === 'undefined' || !window.APP_ROOT) {
 
 console.log('Profile.js loaded, APP_ROOT:', window.APP_ROOT);
 
+function parseJsonResponse(response) {
+    return response.text().then(text => {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('Invalid server response');
+        }
+    });
+}
+
 // Helper function to update profile photo display and default icon
 function setProfilePhoto(url) {
     const img = document.getElementById('profilePhotoDisplay');
@@ -50,7 +60,7 @@ function loadProfileData() {
     })
     .then(r => {
         if (!r.ok) throw new Error('Failed to fetch profile');
-        return r.json();
+        return parseJsonResponse(r);
     })
     .then(res => {
         if (res.success && res.profile) {
@@ -173,7 +183,7 @@ function saveProfileData() {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
-    .then(r => r.json())
+    .then(parseJsonResponse)
     .then(res => {
         if (res.success) {
             console.log('Profile saved successfully');
@@ -317,7 +327,7 @@ function uploadProfilePhoto() {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
-    .then(r => r.json())
+    .then(parseJsonResponse)
     .then(res => {
         if (res.success && res.photoUrl) {
             console.log('Photo uploaded:', res.photoUrl);
@@ -356,7 +366,7 @@ function removeProfilePhoto() {
         credentials: 'include',
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(r => r.json())
+    .then(parseJsonResponse)
     .then(res => {
         if (res.success) {
             console.log('Photo removed');
@@ -460,7 +470,7 @@ function submitChangePassword() {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
-    .then(r => r.json())
+    .then(parseJsonResponse)
     .then(res => {
         if (res.success) {
             showNotification(res.message || 'Password changed successfully', 'success');
@@ -486,6 +496,26 @@ function submitChangePassword() {
         showNotification('Error changing password', 'error');
     });
 }
+
+// Namespaced API for inline handlers
+window.TransporterProfile = {
+    saveProfileData,
+    resetProfileForm,
+    openChangePasswordModal,
+    closeChangePasswordModal,
+    submitChangePassword,
+    removeProfilePhoto,
+    uploadProfilePhoto,
+    loadProfileData,
+    setProfilePhoto
+};
+
+// Backward-compatible aliases (temporary)
+window.saveProfileData = window.TransporterProfile.saveProfileData;
+window.resetProfileForm = window.TransporterProfile.resetProfileForm;
+window.openChangePasswordModal = window.TransporterProfile.openChangePasswordModal;
+window.closeChangePasswordModal = window.TransporterProfile.closeChangePasswordModal;
+window.removeProfilePhoto = window.TransporterProfile.removeProfilePhoto;
 
 // Event listeners setup
 document.addEventListener('DOMContentLoaded', function() {

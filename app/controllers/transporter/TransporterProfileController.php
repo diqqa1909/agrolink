@@ -76,6 +76,19 @@ class TransporterProfileController
     }
 
     /**
+     * Absolute path to transporter profile photo directory under public assets.
+     */
+    private function getPhotoUploadDirectory(): string
+    {
+        $publicPath = realpath(__DIR__ . '/../../../public');
+        if ($publicPath === false) {
+            throw new RuntimeException('Public directory not found');
+        }
+
+        return $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'transporter-profiles';
+    }
+
+    /**
      * Get profile data as JSON (for AJAX requests)
      */
     private function getProfileJson()
@@ -121,6 +134,8 @@ class TransporterProfileController
     public function saveProfile()
     {
         if (ob_get_level()) ob_clean();
+        ini_set('display_errors', '0');
+        ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
         // Check authentication
@@ -242,16 +257,25 @@ class TransporterProfileController
                 error_log("Update Profile Result: " . ($result ? "SUCCESS" : "FAILED"));
             }
 
-            echo json_encode([
-                'success' => true,
-                'message' => 'Profile updated successfully'
-            ]);
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Profile updated successfully'
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to update profile'
+                ]);
+            }
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            error_log('Transporter profile save error: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode([
                 'success' => false,
-                'error' => 'An error occurred while saving your profile'
+                'error' => 'Server error while saving profile'
             ]);
         }
 
@@ -264,6 +288,8 @@ class TransporterProfileController
     public function uploadPhoto()
     {
         if (ob_get_level()) ob_clean();
+        ini_set('display_errors', '0');
+        ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
         if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
@@ -278,68 +304,96 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        try {
+            $userId = $_SESSION['USER']->id;
 
-        // Check if file was uploaded
-        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
-            echo json_encode(['success' => false, 'error' => 'No photo uploaded']);
-            exit;
-        }
-
-        $file = $_FILES['photo'];
-
-        // Validate file type
-        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        $fileType = mime_content_type($file['tmp_name']);
-
-        if (!in_array($fileType, $allowedTypes)) {
-            echo json_encode(['success' => false, 'error' => 'Invalid file type. Only JPG, PNG, and WebP are allowed.']);
-            exit;
-        }
-
-        // Validate file size (5MB max)
-        if ($file['size'] > 5 * 1024 * 1024) {
-            echo json_encode(['success' => false, 'error' => 'File too large. Maximum size is 5MB.']);
-            exit;
-        }
-
-        // Create upload directory if it doesn't exist
-        $uploadDir = '../public/assets/images/transporter-profiles';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        // Generate unique filename
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'transporter_' . $userId . '_' . time() . '.' . $extension;
-        $uploadPath = $uploadDir . '/' . $filename;
-
-        // Delete old photo if exists
-        $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
-        if ($oldPhoto) {
-            $oldPath = $uploadDir . '/' . $oldPhoto;
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
+            // Check if file was uploaded
+            if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'error' => 'No photo uploaded']);
+                exit;
             }
+
+            $file = $_FILES['photo'];
+
+            // Validate file type
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            $fileType = mime_content_type($file['tmp_name']);
+
+            if (!in_array($fileType, $allowedTypes, true)) {
+                echo json_encode(['success' => false, 'error' => 'Invalid file type. Only JPG, PNG, and WebP are allowed.']);
+                exit;
+            }
+
+            // Validate file size (5MB max)
+            if ($file['size'] > 5 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'error' => 'File too large. Maximum size is 5MB.']);
+                exit;
+            }
+
+            // Create upload directory if it doesn't exist
+            $uploadDir = $this->getPhotoUploadDirectory();
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                    echo json_encode(['success' => false, 'error' => 'Failed to create upload directory']);
+                    exit;
+                }
+            }
+            if (!is_writable($uploadDir)) {
+                @chmod($uploadDir, 0777);
+            }
+            if (!is_writable($uploadDir)) {
+                echo json_encode(['success' => false, 'error' => 'Upload directory is not writable']);
+                exit;
+            }
+
+            // Generate unique filename
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $filename = 'transporter_' . $userId . '_' . time() . '.' . $extension;
+            $uploadPath = $uploadDir . DIRECTORY_SEPARATOR . $filename;
+
+            // Delete old photo if exists
+            $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
+            if ($oldPhoto) {
+                $oldPath = $uploadDir . DIRECTORY_SEPARATOR . $oldPhoto;
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            // Move uploaded file with debug logging
+            error_log("Attempting move_uploaded_file from {$file['tmp_name']} to {$uploadPath}");
+            error_log("Upload dir exists: " . (is_dir($uploadDir) ? "yes" : "no"));
+            error_log("Upload dir writable: " . (is_writable($uploadDir) ? "yes" : "no"));
+            error_log("Temp file exists: " . (file_exists($file['tmp_name']) ? "yes" : "no"));
+
+            if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                $error = "Failed to move uploaded file from {$file['tmp_name']} to {$uploadPath}";
+                error_log("MOVE_UPLOAD_FILE ERROR: " . $error);
+                echo json_encode(['success' => false, 'error' => 'Failed to save photo']);
+                exit;
+            }
+
+            error_log("File moved successfully to {$uploadPath}");
+
+            // Update database
+            $this->transporterModel->updateProfilePhoto($userId, $filename);
+
+            // Return new photo URL
+            $photoUrl = $this->buildPhotoUrl($filename);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Photo uploaded successfully',
+                'photoUrl' => $photoUrl
+            ]);
+        } catch (Throwable $e) {
+            error_log('Transporter photo upload error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server error while uploading photo'
+            ]);
         }
-
-        // Move uploaded file
-        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            echo json_encode(['success' => false, 'error' => 'Failed to save photo']);
-            exit;
-        }
-
-        // Update database
-        $this->transporterModel->updateProfilePhoto($userId, $filename);
-
-        // Return new photo URL
-        $photoUrl = $this->buildPhotoUrl($filename);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Photo uploaded successfully',
-            'photoUrl' => $photoUrl
-        ]);
         exit;
     }
 
@@ -349,6 +403,8 @@ class TransporterProfileController
     public function removePhoto()
     {
         if (ob_get_level()) ob_clean();
+        ini_set('display_errors', '0');
+        ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
         if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
@@ -363,27 +419,36 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        try {
+            $userId = $_SESSION['USER']->id;
 
-        // Get old photo filename
-        $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
+            // Get old photo filename
+            $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
 
-        if ($oldPhoto) {
-            $uploadDir = '../public/assets/images/transporter-profiles';
-            $oldPath = $uploadDir . '/' . $oldPhoto;
+            if ($oldPhoto) {
+                $uploadDir = $this->getPhotoUploadDirectory();
+                $oldPath = $uploadDir . DIRECTORY_SEPARATOR . $oldPhoto;
 
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
             }
+
+            // Update database
+            $this->transporterModel->removeProfilePhoto($userId);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Photo removed successfully'
+            ]);
+        } catch (Throwable $e) {
+            error_log('Transporter photo remove error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server error while removing photo'
+            ]);
         }
-
-        // Update database
-        $this->transporterModel->removeProfilePhoto($userId);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Photo removed successfully'
-        ]);
         exit;
     }
 

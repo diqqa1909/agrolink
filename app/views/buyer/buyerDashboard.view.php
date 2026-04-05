@@ -1,39 +1,39 @@
 <!-- Dashboard Section -->
-<div id="dashboard-section" class="content-section">
+<div id="dashboard-section" class="content-section buyer-dashboard-overview">
     <div class="content-header">
         <h1 class="content-title">Dashboard Overview</h1>
         <p class="content-subtitle">Welcome back, <?= htmlspecialchars($username) ?>! Here's what's happening with your orders.</p>
     </div>
 
                 <!-- Stats Grid -->
-                <div class="dashboard-stats">
-                    <div class="stat-card">
+                <div class="dashboard-stats buyer-dashboard-stats">
+                    <div class="stat-card buyer-dashboard-stat-card">
                         <!-- <div class="stat-icon primary">📦</div>-->
-                        <div class="stat-number"><?= $totalOrders ?? 0 ?></div>
+                        <div class="stat-number buyer-dashboard-stat-number"><?= $totalOrders ?? 0 ?></div>
                         <div class="stat-label">Total Orders</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card buyer-dashboard-stat-card">
                         <!-- <div class="stat-icon warning">⏳</div>-->
-                        <div class="stat-number"><?= $pendingOrders ?? 0 ?></div>
+                        <div class="stat-number buyer-dashboard-stat-number"><?= $pendingOrders ?? 0 ?></div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card buyer-dashboard-stat-card">
                         <!--<div class="stat-icon success">💰</div>-->
-                        <div class="stat-number">Rs. <?= number_format($totalSpent ?? 0, 2) ?></div>
+                        <div class="stat-number buyer-dashboard-stat-number">Rs. <?= number_format($totalSpent ?? 0, 2) ?></div>
                         <div class="stat-label">Total Spent</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card buyer-dashboard-stat-card">
                         <!-- <div class="stat-icon info">❤️</div>-->
-                        <div class="stat-number"><?= $wishlistCount ?? 0 ?></div>
+                        <div class="stat-number buyer-dashboard-stat-number"><?= $wishlistCount ?? 0 ?></div>
                         <div class="stat-label">Wishlist Items</div>
                     </div>
                 </div>
 
                 <!-- Recent Orders -->
-                <div class="content-card">
+                <div class="content-card buyer-dashboard-recent-orders-card">
                     <div class="card-header">
                         <h3 class="card-title">Recent Orders</h3>
-                        <button class="btn btn-outline btn-sm" onclick="showSection('orders')">View All</button>
+                        <button class="btn btn-outline btn-sm" onclick="BuyerDashboard.showSection('orders')">View All</button>
                     </div>
                     <div class="card-content">
                         <div class="table-responsive">
@@ -88,23 +88,23 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="content-card">
+                <div class="content-card buyer-dashboard-quick-actions-card">
                     <div class="card-header">
                         <h3 class="card-title">Quick Actions</h3>
                     </div>
                     <div class="card-content">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <button class="btn btn-primary" onclick="window.location.href='<?= ROOT ?>/buyerproducts'">Browse Products</button>
-                            <button class="btn btn-secondary" onclick="showSection('orders')">View All Orders</button>
-                            <button class="btn btn-outline" onclick="window.location.href='<?= ROOT ?>/wishlist'">My Wishlist</button>
-                            <button class="btn btn-outline" onclick="showSection('tracking')">Track Orders</button>
+                        <div class="buyer-dashboard-quick-actions-grid">
+                            <button class="btn btn-primary buyer-dashboard-quick-btn" onclick="window.location.href='<?= ROOT ?>/buyerproducts'">Browse Products</button>
+                            <button class="btn btn-secondary buyer-dashboard-quick-btn" onclick="BuyerDashboard.showSection('orders')">View All Orders</button>
+                            <button class="btn btn-outline buyer-dashboard-quick-btn" onclick="window.location.href='<?= ROOT ?>/wishlist'">My Wishlist</button>
+                            <button class="btn btn-outline buyer-dashboard-quick-btn" onclick="BuyerDashboard.showSection('tracking')">Track Orders</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Orders Section -->
-            <div id="orders-section" class="content-section" style="display: none;">
+            <div id="orders-section" class="content-section buyer-orders-section" style="display: none;">
                 <div class="content-header">
                     <h1 class="content-title">My Orders</h1>
                     <p class="content-subtitle">Track and manage your order history</p>
@@ -153,13 +153,6 @@
                                         <div>
                                             <span style="font-weight: 500;"><?= htmlspecialchars($item->product_name) ?></span>
                                             <span style="color: #666; font-size: 0.9rem;"> x <?= $item->quantity ?>kg</span>
-                                            <?php if ($statusClass === 'delivered'): ?>
-                                                <button class="btn btn-sm btn-outline" 
-                                                        style="margin-top: 5px; display: block; padding: 2px 8px; font-size: 0.75rem;" 
-                                                        onclick="openReviewModal(<?= $order->id ?>, <?= $item->product_id ?>, <?= $item->farmer_id ?>, '<?= addslashes(htmlspecialchars($item->product_name)) ?>')">
-                                                    ★ Write Review
-                                                </button>
-                                            <?php endif; ?>
                                         </div>
                                         <div>
                                             <span style="font-weight: 500;">Rs. <?= number_format($item->product_price * $item->quantity, 2) ?></span>
@@ -173,12 +166,19 @@
                             </div>
                             
                             <div class="action-buttons">
-                                <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(<?= $order->id ?>)">View Details</button>
+                                <button class="btn btn-sm btn-secondary" onclick="BuyerDashboard.viewOrderDetails(<?= $order->id ?>)">View Order Details</button>
+                                <?php if ($statusClass === 'delivered' && !empty($items)): ?>
+                                    <?php $firstReviewableItem = $items[0]; ?>
+                                    <button class="btn btn-sm btn-outline"
+                                            onclick="BuyerDashboard.openReviewModal(<?= $order->id ?>, <?= (int)$firstReviewableItem->product_id ?>, <?= (int)$firstReviewableItem->farmer_id ?>, '<?= addslashes(htmlspecialchars($firstReviewableItem->product_name)) ?>')">
+                                        ★ Write Review
+                                    </button>
+                                <?php endif; ?>
                                 <?php if ($order->status === 'pending' || $order->status === 'confirmed'): ?>
-                                    <button class="btn btn-sm btn-danger" onclick="cancelOrder(<?= $order->id ?>)">Cancel Order</button>
+                                    <button class="btn btn-sm btn-danger" onclick="BuyerDashboard.cancelOrder(<?= $order->id ?>)">Cancel Order</button>
                                 <?php endif; ?>
                                 <?php if ($order->status === 'shipped'): ?>
-                                    <button class="btn btn-sm btn-secondary" onclick="trackOrder(<?= $order->id ?>)">Track Order</button>
+                                    <button class="btn btn-sm btn-secondary" onclick="BuyerDashboard.trackOrder(<?= $order->id ?>)">Track Order</button>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -196,10 +196,10 @@
             </div>
 
             <!-- Tracking Section -->
-            <div id="tracking-section" class="content-section" style="display: none;">
+            <div id="tracking-section" class="content-section buyer-tracking-section" style="display: none;">
                 <div class="content-header">
                     <h1 class="content-title">Order Tracking</h1>
-                    <p class="content-subtitle">Track your delivery status in real-time</p>
+                    <p class="content-subtitle">Track ongoing order delivery statuses</p>
                 </div>
 
                 <div class="content-card">
@@ -207,45 +207,41 @@
                         <h3 class="card-title">Active Deliveries</h3>
                     </div>
                     <div class="card-content">
-                        <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; margin-bottom: 20px;">
-                            <h4 style="margin-bottom: 16px; color: #2c3e50;">Order #ORD-2044 - Green Beans</h4>
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #4CAF50; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">✓</div>
-                                    <div>
-                                        <strong>Order Confirmed</strong>
-                                        <p style="margin: 0; font-size: 0.875rem; color: #666;">Aug 18, 2025 - 10:30 AM</p>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #4CAF50; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">✓</div>
-                                    <div>
-                                        <strong>Being Prepared</strong>
-                                        <p style="margin: 0; font-size: 0.875rem; color: #666;">Aug 18, 2025 - 2:15 PM</p>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #ff9800; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">→</div>
-                                    <div>
-                                        <strong>Out for Delivery</strong>
-                                        <p style="margin: 0; font-size: 0.875rem; color: #666;">Expected today by 6:00 PM</p>
-                                    </div>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 12px; opacity: 0.4;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">○</div>
-                                    <div>
-                                        <strong>Delivered</strong>
-                                        <p style="margin: 0; font-size: 0.875rem; color: #666;">Pending</p>
-                                    </div>
-                                </div>
+                        <?php if (empty($trackingRows)): ?>
+                            <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; text-align: center; color: #666;">
+                                No ongoing delivery statuses yet.
                             </div>
-                        </div>
-
-                        <div style="padding: 20px; background: #fff9e6; border-radius: 12px; border-left: 4px solid #ff9800;">
-                            <h4 style="margin-bottom: 8px; color: #f57c00;">📦 Delivery Information</h4>
-                            <p style="margin: 0; color: #666;">Your order is on the way! Expected delivery: <strong>Today, 6:00 PM</strong></p>
-                            <p style="margin: 8px 0 0 0; color: #666;">Contact: +94 77 123 4567</p>
-                        </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Order</th>
+                                            <th>Order Status</th>
+                                            <th>Delivery Status</th>
+                                            <th>Transporter</th>
+                                            <th>Updated</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($trackingRows as $row): ?>
+                                            <?php
+                                            $effectiveStatus = $row->delivery_status ?? $row->order_status;
+                                            $statusClass = strtolower((string)$effectiveStatus);
+                                            $updatedAt = $row->delivery_updated_at ?? $row->delivery_created_at ?? $row->order_created_at;
+                                            ?>
+                                            <tr>
+                                                <td>#ORD-<?= (int)$row->order_id ?></td>
+                                                <td><span class="order-status <?= htmlspecialchars(strtolower((string)$row->order_status)) ?>"><?= strtoupper($row->order_status) ?></span></td>
+                                                <td><span class="order-status <?= htmlspecialchars($statusClass) ?>"><?= strtoupper(str_replace('_', ' ', $effectiveStatus)) ?></span></td>
+                                                <td><?= htmlspecialchars($row->transporter_name ?? 'Pending Assignment') ?></td>
+                                                <td><?= htmlspecialchars(date('M d, Y h:i A', strtotime($updatedAt))) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -363,7 +359,7 @@
             <!-- Order Details Modal -->
             <div id="order-details-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
                 <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out;">
-                    <span class="close-modal" onclick="closeOrderModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                    <span class="close-modal" onclick="BuyerDashboard.closeOrderModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
                     
                     <div id="modal-body">
                         <div style="text-align: center; padding: 40px;">

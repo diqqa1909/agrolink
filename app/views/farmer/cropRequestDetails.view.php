@@ -2,9 +2,9 @@
 // Content-only view for crop request details. Rendered inside farmerMain.
 ?>
 
-<div class="content-section">
+<div class="content-section crop-request-details-page">
     <!-- Header Section -->
-    <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div class="content-header crop-request-details-header">
         <div>
             <h1 class="content-title">Crop Request Details</h1>
             <p class="content-subtitle">Review the buyer's crop request information</p>
@@ -16,14 +16,14 @@
 
     <!-- Display Messages -->
     <?php if (isset($_SESSION['success'])): ?>
-        <div class="alert alert-success" style="padding: 15px; background: rgba(101, 181, 124, 0.15); color: var(--primary-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
+        <div class="alert alert-success crop-request-detail-alert crop-request-detail-alert-success">
             <?= $_SESSION['success'];
             unset($_SESSION['success']); ?>
         </div>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['error'])): ?>
-        <div class="alert alert-danger" style="padding: 15px; background: rgba(244, 67, 54, 0.1); color: var(--danger-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--danger);">
+        <div class="alert alert-danger crop-request-detail-alert crop-request-detail-alert-danger">
             <?= $_SESSION['error'];
             unset($_SESSION['error']); ?>
         </div>
@@ -32,7 +32,7 @@
     <!-- Details Card -->
     <div class="content-card">
         <!-- Status Badge -->
-        <div style="margin-bottom: 24px;">
+        <div class="crop-request-status-wrap">
             <?php
             // Default to 'active' if status is empty or null
             $status = !empty($request->status) ? $request->status : 'active';
@@ -45,53 +45,53 @@
             ];
             $currentStatus = $statusStyles[$status] ?? $statusStyles['active'];
             ?>
-            <span style="padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; background: <?= $currentStatus['bg'] ?>; color: <?= $currentStatus['text'] ?>;">
+            <span class="crop-request-detail-status" style="background: <?= $currentStatus['bg'] ?>; color: <?= $currentStatus['text'] ?>;">
                 Status: <?= ucfirst($status) ?>
             </span>
         </div>
 
         <!-- Details Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
+        <div class="crop-request-details-grid">
             <!-- Crop Name -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Crop Name</label>
-                <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->crop_name) ?></p>
+                <label class="crop-request-detail-label">Crop Name</label>
+                <p class="crop-request-detail-value"><?= htmlspecialchars($request->crop_name) ?></p>
             </div>
 
             <!-- Quantity -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quantity</label>
-                <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->quantity) ?> units</p>
+                <label class="crop-request-detail-label">Quantity</label>
+                <p class="crop-request-detail-value"><?= htmlspecialchars($request->quantity) ?> units</p>
             </div>
 
             <!-- Target Price -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Target Price per Unit</label>
-                <p style="font-size: 18px; color: var(--primary-color); margin: 0; font-weight: 600;">Rs.<?= number_format($request->target_price, 2) ?></p>
+                <label class="crop-request-detail-label">Target Price per Unit</label>
+                <p class="crop-request-detail-value crop-request-detail-value-price">Rs.<?= number_format($request->target_price, 2) ?></p>
             </div>
 
             <!-- Delivery Date -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Date</label>
-                <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= date('M d, Y', strtotime($request->delivery_date)) ?></p>
+                <label class="crop-request-detail-label">Delivery Date</label>
+                <p class="crop-request-detail-value"><?= date('M d, Y', strtotime($request->delivery_date)) ?></p>
             </div>
 
             <!-- Location -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Location</label>
-                <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->location) ?></p>
+                <label class="crop-request-detail-label">Location</label>
+                <p class="crop-request-detail-value"><?= htmlspecialchars($request->location) ?></p>
             </div>
 
             <!-- Created At -->
             <div>
-                <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Created On</label>
-                <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= date('M d, Y H:i', strtotime($request->created_at)) ?></p>
+                <label class="crop-request-detail-label">Created On</label>
+                <p class="crop-request-detail-value"><?= date('M d, Y H:i', strtotime($request->created_at)) ?></p>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <?php if ($status === 'active'): ?>
-            <div style="display: flex; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+            <div class="crop-request-detail-actions">
                 <a href="<?= ROOT ?>/farmercroprequests/accept/<?= $request->id ?>" class="btn btn-primary">
                     Accept Request
                 </a>
@@ -100,8 +100,24 @@
                 </a>
             </div>
         <?php else: ?>
-            <div style="border-top: 1px solid var(--border-color); padding-top: 24px; text-align: center;">
-                <p style="color: var(--text-light); font-size: 14px; margin: 0;">This request has already been <?= $request->status ?>.</p>
+            <div class="crop-request-detail-note">
+                <p>This request has already been <?= $request->status ?>.</p>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($status === 'accepted'): ?>
+            <div class="crop-request-next-step">
+                <h4>Next Step Workflow</h4>
+                <p>
+                    1. Create a product listing using this request details.
+                    2. Buyer places the order.
+                    3. Delivery request appears for transporters and your delivery page.
+                </p>
+                <a
+                    href="<?= ROOT ?>/farmerproducts?from_request_id=<?= (int)$request->id ?>&crop_name=<?= urlencode((string)$request->crop_name) ?>&quantity=<?= urlencode((string)$request->quantity) ?>&target_price=<?= urlencode((string)$request->target_price) ?>&location=<?= urlencode((string)$request->location) ?>"
+                    class="btn btn-primary">
+                    Create Product From This Request
+                </a>
             </div>
         <?php endif; ?>
     </div>

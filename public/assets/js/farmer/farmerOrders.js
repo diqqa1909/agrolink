@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    const APP_ROOT = document.body.getAttribute('data-app-root') || '';
+    const APP_ROOT = window.APP_ROOT || document.body.getAttribute('data-app-root') || '';
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
@@ -17,29 +17,47 @@
         const viewButtons = document.querySelectorAll('.btn-view-details');
         
         viewButtons.forEach(button => {
+            if (button.dataset.bound === '1') return;
+            button.dataset.bound = '1';
             button.addEventListener('click', function() {
                 const orderId = this.getAttribute('data-order-id');
                 if (orderId) {
-                    loadOrderDetails(orderId);
+                    loadOrderDetails(orderId, this);
                 }
             });
         });
     }
 
+    function viewOrderDetails(orderId, triggerBtn = null) {
+        if (!orderId) return;
+        loadOrderDetails(orderId, triggerBtn);
+    }
+
     /**
      * Load order details via AJAX
      */
-    function loadOrderDetails(orderId) {
+    function loadOrderDetails(orderId, triggerBtn) {
         const modal = document.getElementById('orderDetailsModal');
         const contentDiv = document.getElementById('orderDetailsContent');
+
+        if (!modal || !contentDiv) {
+            console.error('Order details modal elements not found');
+            alert('Order details view is not available on this page.');
+            return;
+        }
         
         // Show modal with loading state
-        modal.classList.add('active');
+        modal.classList.add('show');
         contentDiv.innerHTML = '<div class="loading">Loading order details...</div>';
         
         // Fetch order details
+        if (triggerBtn) {
+            triggerBtn.disabled = true;
+        }
+
         fetch(`${APP_ROOT}/farmerorders/getOrderDetails?order_id=${orderId}`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
@@ -51,10 +69,10 @@
             return response.json();
         })
         .then(data => {
-            if (data.success) {
-                displayOrderDetails(data.order, data.items);
+            if (data && data.success) {
+                displayOrderDetails(data.order || {}, Array.isArray(data.items) ? data.items : []);
             } else {
-                throw new Error(data.error || 'Failed to load order details');
+                throw new Error((data && (data.error || data.message)) || 'Failed to load order details');
             }
         })
         .catch(error => {
@@ -65,6 +83,9 @@
                     <button class="btn-retry" onclick="location.reload()">Retry</button>
                 </div>
             `;
+        })
+        .finally(() => {
+            if (triggerBtn) triggerBtn.disabled = false;
         });
     }
 
@@ -73,27 +94,24 @@
      */
     function displayOrderDetails(order, items) {
         const contentDiv = document.getElementById('orderDetailsContent');
+        if (!contentDiv) return;
         
         let itemsHtml = '';
         let total = 0;
         
-        items.forEach(item => {
-            const itemTotal = parseFloat(item.product_price) * parseInt(item.quantity);
+        (items || []).forEach(item => {
+            const unitPrice = parseFloat(item.product_price) || 0;
+            const qty = parseInt(item.quantity, 10) || 0;
+            const itemTotal = unitPrice * qty;
             total += itemTotal;
-            
-            const imageUrl = item.product_image 
-                ? `${APP_ROOT}/assets/images/products/${item.product_image}` 
-                : `${APP_ROOT}/assets/images/placeholder.jpg`;
             
             itemsHtml += `
                 <div class="order-item">
-                    <img src="${imageUrl}" alt="${escapeHtml(item.product_name)}" class="item-image" 
-                         onerror="this.src='${APP_ROOT}/assets/images/placeholder.jpg'">
                     <div class="item-details">
                         <div class="item-name">${escapeHtml(item.product_name)}</div>
                         <div class="item-meta">
-                            <span>Price: LKR ${parseFloat(item.product_price).toFixed(2)}</span>
-                            <span>Quantity: ${parseInt(item.quantity)}</span>
+                            <span>Price: LKR ${unitPrice.toFixed(2)}</span>
+                            <span>Quantity: ${qty}</span>
                         </div>
                     </div>
                     <div class="item-total">
@@ -103,6 +121,13 @@
             `;
         });
         
+        const safeStatus = String(order.status || 'pending');
+        const safeBuyerName = escapeHtml(order.buyer_name || 'N/A');
+        const safeAddress = escapeHtml(order.delivery_address || 'N/A');
+        const safeCity = escapeHtml(order.delivery_city || 'N/A');
+        const safeDistrict = escapeHtml(order.district_name || 'N/A');
+        const safePhone = escapeHtml(order.delivery_phone || 'N/A');
+
         const html = `
             <div class="order-details-section">
                 <div class="section-title">Order Information</div>
@@ -118,14 +143,14 @@
                     <div class="detail-item">
                         <span class="detail-label">Status:</span>
                         <span class="detail-value">
-                            <span class="status-badge status-${order.status}">
-                                ${order.status.replace('_', ' ').toUpperCase()}
+                            <span class="status-badge status-${safeStatus}">
+                                ${safeStatus.replace('_', ' ').toUpperCase()}
                             </span>
                         </span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Buyer:</span>
-                        <span class="detail-value">${escapeHtml(order.buyer_name)}</span>
+                        <span class="detail-value">${safeBuyerName}</span>
                     </div>
                 </div>
             </div>
@@ -135,19 +160,19 @@
                 <div class="details-grid">
                     <div class="detail-item">
                         <span class="detail-label">Address:</span>
-                        <span class="detail-value">${escapeHtml(order.delivery_address)}</span>
+                        <span class="detail-value">${safeAddress}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">City:</span>
-                        <span class="detail-value">${escapeHtml(order.delivery_city)}</span>
+                        <span class="detail-value">${safeCity}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">District:</span>
-                        <span class="detail-value">${escapeHtml(order.district_name || 'N/A')}</span>
+                        <span class="detail-value">${safeDistrict}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Phone:</span>
-                        <span class="detail-value">${escapeHtml(order.delivery_phone)}</span>
+                        <span class="detail-value">${safePhone}</span>
                     </div>
                 </div>
             </div>
@@ -178,21 +203,57 @@
         
         // Close on X button
         closeBtn.addEventListener('click', function() {
-            modal.classList.remove('active');
+            modal.classList.remove('show');
         });
         
         // Close on outside click
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
-                modal.classList.remove('active');
+                modal.classList.remove('show');
             }
         });
         
         // Close on Escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                modal.classList.remove('active');
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                modal.classList.remove('show');
             }
+        });
+    }
+
+    /**
+     * Update farmer order status in required sequence.
+     */
+    function updateOrderStatus(orderId, status) {
+        const statusLabel = status.replace('_', ' ').toUpperCase();
+        if (!confirm(`Update this order to ${statusLabel}?`)) {
+            return;
+        }
+
+        fetch(`${APP_ROOT}/farmerorders/updateItemStatus`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                order_id: orderId,
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Order status updated');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to update status');
+            }
+        })
+        .catch(error => {
+            console.error('Update order status error:', error);
+            alert('Failed to update order status');
         });
     }
 
@@ -210,8 +271,18 @@
      */
     function formatDate(dateString) {
         const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return 'N/A';
         const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         return date.toLocaleDateString('en-US', options);
     }
+
+    window.FarmerOrders = {
+        updateOrderStatus,
+        viewOrderDetails
+    };
+
+    // Backward-compatible alias (temporary)
+    window.updateOrderStatus = window.FarmerOrders.updateOrderStatus;
+    window.viewOrderDetails = window.FarmerOrders.viewOrderDetails;
 
 })();

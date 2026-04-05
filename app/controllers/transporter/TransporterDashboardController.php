@@ -76,6 +76,7 @@ class TransporterDashboardController
             $data = [
                 'transporter_id' => $_SESSION['USER']->id,
                 'type' => $_POST['type'] ?? '',
+                'vehicle_type_id' => $vehicleType ? $vehicleType->id : null,
                 'registration' => $_POST['registration'] ?? '',
                 'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? 'petrol',
@@ -123,50 +124,38 @@ class TransporterDashboardController
                 exit;
             }
             
-            // Determine capacity from vehicle type if type is being updated
-            $capacity = $vehicle->capacity;
+            // Resolve vehicle type and capacity consistently.
             $newType = $_POST['type'] ?? $vehicle->type;
-            if ($newType !== $vehicle->type || empty($capacity)) {
+            $capacity = (float)($vehicle->capacity ?? 0);
+            $resolvedVehicleTypeId = isset($vehicle->vehicle_type_id) ? (int)$vehicle->vehicle_type_id : null;
+            $vehicleTypeId = isset($_POST['vehicle_type_id']) ? (int)$_POST['vehicle_type_id'] : null;
+
+            if ($vehicleTypeId > 0) {
+                $selectedType = $vehicleTypeModel->getById($vehicleTypeId);
+                if (!$selectedType || (int)$selectedType->is_active !== 1) {
+                    $response['message'] = 'Invalid vehicle type selected';
+                    echo json_encode($response);
+                    exit;
+                }
+
+                $resolvedVehicleTypeId = (int)$selectedType->id;
+                $newType = strtolower(str_replace(' ', '', $selectedType->vehicle_name));
+                $capacity = (float)$selectedType->max_weight_kg;
+            } else {
                 $types = $vehicleTypeModel->getActiveTypes();
                 foreach ($types as $vType) {
                     $slug = strtolower(str_replace(' ', '', $vType->vehicle_name));
                     if ($slug === strtolower($newType)) {
-                        $capacity = $vType->max_weight_kg;
+                        $resolvedVehicleTypeId = (int)$vType->id;
+                        $capacity = (float)$vType->max_weight_kg;
                         break;
                     }
                 }
             }
 
-            // Get vehicle type details if vehicle_type_id provided
-            $vehicleTypeId = $_POST['vehicle_type_id'] ?? null;
-            $type = $_POST['type'] ?? $vehicle->type; // Fallback to existing
-            $capacity = $_POST['capacity'] ?? $vehicle->capacity; // Fallback to existing
-            
-            if ($vehicleTypeId) {
-                try {
-                    $vehicleType = $this->get_row(
-                        "SELECT vehicle_name, max_weight_kg FROM vehicle_types WHERE id = ? AND is_active = 1",
-                        [$vehicleTypeId]
-                    );
-                    
-                    if ($vehicleType) {
-                        $type = $vehicleType->vehicle_name;
-                        $capacity = $vehicleType->max_weight_kg;
-                    } else {
-                        $response['message'] = 'Invalid vehicle type selected';
-                        echo json_encode($response);
-                        exit;
-                    }
-                } catch (Exception $e) {
-                    error_log("Error fetching vehicle type: " . $e->getMessage());
-                    $response['message'] = 'Database error';
-                    echo json_encode($response);
-                    exit;
-                }
-            }
-
             $data = [
                 'type' => $newType,
+                'vehicle_type_id' => $resolvedVehicleTypeId,
                 'registration' => $_POST['registration'] ?? $vehicle->registration,
                 'capacity' => $capacity,
                 'fuel_type' => $_POST['fuel_type'] ?? $vehicle->fuel_type,
@@ -262,7 +251,7 @@ class TransporterDashboardController
             $vehicleModel = new VehicleModel();
 
             $vehicle = $vehicleModel->getById($id);
-            if (!$vehicle || $vehicle->user_id != $_SESSION['USER']->id) {
+            if (!$vehicle || $vehicle->transporter_id != $_SESSION['USER']->id) {
                 $response['message'] = 'Vehicle not found or unauthorized';
                 echo json_encode($response);
                 exit;
@@ -487,6 +476,24 @@ class TransporterDashboardController
             $earnings = $transporterModel->getEarningsSummary($_SESSION['USER']->id);
             $response['success'] = true;
             $response['earnings'] = $earnings;
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+
+    /**
+     * Get reviews/complaints addressed to the logged-in transporter.
+     */
+    public function getFeedbackReviews()
+    {
+        $response = ['success' => false, 'reviews' => []];
+
+        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+            $reviewModel = new ReviewModel();
+            $reviews = $reviewModel->getReviewsByTransporter($_SESSION['USER']->id);
+            $response['success'] = true;
+            $response['reviews'] = is_array($reviews) ? $reviews : [];
         }
 
         echo json_encode($response);

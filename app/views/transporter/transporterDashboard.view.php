@@ -54,7 +54,7 @@
                     <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="updateLocation()">
                         Update Location
                     </button>
-                    <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="showSection('available-deliveries')">
+                    <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="TransporterDashboard.showSection('available-deliveries')">
                         Find Deliveries
                     </button>
                 </div>
@@ -97,10 +97,10 @@
         </div>
         <div class="card-content">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <button class="btn btn-primary" onclick="showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
-                <button class="btn btn-secondary" onclick="showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
-                <button class="btn btn-outline" onclick="showSection('schedule')" style="margin: 0;">View Schedule</button>
-                <button class="btn btn-outline" onclick="showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
+                <button class="btn btn-primary" onclick="TransporterDashboard.showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
+                <button class="btn btn-secondary" onclick="TransporterDashboard.showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
+                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('schedule')" style="margin: 0;">View Schedule</button>
+                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
             </div>
         </div>
     </div>
@@ -109,29 +109,31 @@
 <div id="feedback-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Reviews & Complaints</h1>
-        <p class="content-subtitle">See what buyers and farmers are saying about your deliveries</p>
+        <p class="content-subtitle">Feedback from buyers on your shipped and delivered orders</p>
     </div>
 
-    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Reviews</h3>
-            </div>
-            <div class="card-content">
-                <div style="padding: 40px; text-align: center; color: #666;">
-                    No reviews yet
-                </div>
-            </div>
+    <div class="dashboard-stats" style="margin-bottom: 24px;">
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackTotalCount">0</div>
+            <div class="stat-label">Total Feedback</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackAvgRating">0.0</div>
+            <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackComplaintCount">0</div>
+            <div class="stat-label">Complaints (1-2★)</div>
+        </div>
+    </div>
 
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Complaints</h3>
-            </div>
-            <div class="card-content">
-                <div style="padding: 40px; text-align: center; color: #666;">
-                    No complaints
-                </div>
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">Buyer Feedback</h3>
+        </div>
+        <div class="card-content" id="feedbackUnifiedList">
+            <div style="padding: 30px; text-align: center; color: #666;">
+                Loading feedback...
             </div>
         </div>
     </div>
@@ -141,7 +143,7 @@
 <div id="available-deliveries-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Available Deliveries</h1>
-        <button class="btn btn-outline btn-sm" onclick="refreshDeliveries()">Refresh</button>
+        <button class="btn btn-outline btn-sm" onclick="TransporterDashboard.refreshDeliveries()">Refresh</button>
     </div>
 
     <!-- Filter Section -->
@@ -206,10 +208,10 @@
     <h1 style="margin-bottom: 32px; font-size: 2rem;"> My Deliveries</h1>
 
     <div style="display: flex; gap: 20px; margin-bottom: 32px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; padding-bottom: 4px;">
-        <button class="tab-btn active" data-status="all" onclick="filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
-        <button class="tab-btn" data-status="accepted" onclick="filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
-        <button class="tab-btn" data-status="in-progress" onclick="filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
-        <button class="tab-btn" data-status="completed" onclick="filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
+        <button class="tab-btn active" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
+        <button class="tab-btn" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
+        <button class="tab-btn" data-status="in-progress" onclick="TransporterDashboard.filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
+        <button class="tab-btn" data-status="completed" onclick="TransporterDashboard.filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
     </div>
 
     <div class="table-container" style="padding: 24px; background: #fff; border-radius: 12px;">
@@ -347,7 +349,7 @@
     <div class="content-card" style="margin-top: 32px;">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">Payment History</h3>
-            <button class="btn btn-secondary" onclick="exportPaymentHistory()">Export CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="TransporterDashboard.exportPaymentHistory()">Export CSV</button>
         </div>
         <div style="padding: 28px;">
             <div class="table-container">
@@ -662,6 +664,8 @@
                 loadAvailableRequests();
             } else if (sectionName === 'mydeliveries' && typeof loadMyDeliveries === 'function') {
                 loadMyDeliveries();
+            } else if (sectionName === 'feedback' && typeof loadFeedbackReviews === 'function') {
+                loadFeedbackReviews();
             }
         } else {
             console.warn('✗ Section not found:', sectionName + '-section');
@@ -980,6 +984,66 @@
         }
     }
 
+    function loadFeedbackReviews() {
+        fetch(transporterApi('getFeedbackReviews'), { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                const reviews = (data.success && Array.isArray(data.reviews)) ? data.reviews : [];
+                const unifiedEl = document.getElementById('feedbackUnifiedList');
+                const totalEl = document.getElementById('feedbackTotalCount');
+                const avgEl = document.getElementById('feedbackAvgRating');
+                const complaintsCountEl = document.getElementById('feedbackComplaintCount');
+
+                const complaints = reviews.filter(r => Number(r.rating) <= 2);
+                const avg = reviews.length ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length) : 0;
+
+                if (totalEl) totalEl.textContent = String(reviews.length);
+                if (avgEl) avgEl.textContent = avg.toFixed(1);
+                if (complaintsCountEl) complaintsCountEl.textContent = String(complaints.length);
+
+                const renderCard = (item) => {
+                    const rating = Number(item.rating || 0);
+                    const isComplaint = rating <= 2;
+                    const stars = `${'★'.repeat(rating)}${'☆'.repeat(Math.max(0, 5 - rating))}`;
+                    const buyerName = escapeHtml(item.buyer_name || 'Buyer');
+                    const buyerInitial = buyerName.charAt(0).toUpperCase();
+                    const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
+                    const orderText = item.order_id ? `Order #${item.order_id}` : 'Order #-';
+
+                    return `
+                        <div class="review-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div style="display: flex; gap: 16px;">
+                                    <div style="width: 50px; height: 50px; background: #e3f2fd; color: #2196F3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">${buyerInitial}</div>
+                                    <div>
+                                        <h4 style="margin: 0 0 4px 0;">${orderText}</h4>
+                                        <p style="margin: 0; color: #666; font-size: 0.9rem;">Feedback by <span style="font-weight: 500;">${buyerName}</span></p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #999;">${created}</p>
+                                    </div>
+                                </div>
+                                <div class="star-rating" style="color: #ff9800; font-size: 1.2rem;">
+                                    ${stars}
+                                    ${isComplaint ? '<div style="font-size: 0.72rem; margin-top: 4px; color: #b91c1c;">Complaint</div>' : ''}
+                                </div>
+                            </div>
+                            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-top: 12px; border-left: 3px solid ${isComplaint ? '#ef4444' : '#10b981'};">
+                                <p style="margin: 0; color: #444; line-height: 1.5;">"${escapeHtml(item.comment || '')}"</p>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                if (unifiedEl) {
+                    unifiedEl.innerHTML = reviews.length
+                        ? `<div class="reviews-grid" style="display: grid; gap: 16px;">${reviews.map(renderCard).join('')}</div>`
+                        : '<div style="padding: 30px; text-align: center; color: #666;">No feedback yet</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading feedback reviews:', error);
+            });
+    }
+
     function previousWeek() {
         showNotification('Loading previous week...', 'info');
     }
@@ -1007,8 +1071,29 @@
         }
     }
 
+    function getTransporterApiBase() {
+        const origin = String(window.location.origin || '').replace(/\/+$/, '');
+        const path = String(window.location.pathname || '');
+        const publicMatch = path.match(/^(.*\/public)(?:\/|$)/i);
+        if (publicMatch && publicMatch[1]) {
+            return origin + publicMatch[1];
+        }
+
+        const appRoot = String(window.APP_ROOT || '').replace(/\/+$/, '');
+        if (appRoot) {
+            return appRoot;
+        }
+
+        return origin;
+    }
+
+    function transporterApi(path) {
+        const cleanPath = String(path || '').replace(/^\/+/, '');
+        return `${getTransporterApiBase()}/transporterdashboard/${cleanPath}`;
+    }
+
     function loadVehicles() {
-        fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
+        fetch(transporterApi('getVehicles'))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.vehicles && data.vehicles.length > 0) {
@@ -1078,7 +1163,6 @@
         }
 
         container.innerHTML = vehicles.map(vehicle => {
-            const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
             const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
             const vehicleIcon = getVehicleIcon(vehicle.type);
             const vehicleTypeName = getVehicleTypeName(vehicle.type);
@@ -1087,7 +1171,6 @@
                     <div class="content-card" style="margin-bottom: 24px;">
                         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
-                            <span class="badge">${statusText}</span>
                         </div>
                         <div class="card-content">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
@@ -1100,9 +1183,9 @@
                                         <strong>Status:</strong> <span class="badge">${statusText}</span>
                                     </div>
                                     <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
-                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="margin: 0;">✓ Set as Active</button>` : ''}
-                                        <button class="btn btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white; margin: 0;">✏️ Edit</button>
-                                        <button class="btn btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})" style="margin: 0;">🗑️ Delete</button>
+                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set as Active</button>` : ''}
+                                        <button class="btn btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
+                                        <button class="btn btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
                                     </div>
                                 </div>
                                 <div>
@@ -1121,7 +1204,6 @@
         }).join('');
 
         tbody.innerHTML = vehicles.map(vehicle => {
-            const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
             const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
 
             return `
@@ -1133,9 +1215,9 @@
                         <td><span class="badge">${statusText}</span></td>
                         <td>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="background: #65b57c; border-color: #65b57c;">Set Active</button>` : ''}
-                                <button class="btn btn-sm btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white;">Edit</button>
-                                <button class="btn btn-sm btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
+                                ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set Active</button>` : ''}
+                                <button class="btn btn-sm btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
+                                <button class="btn btn-sm btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -1145,7 +1227,7 @@
 
     // Load vehicle types from database
     function loadVehicleTypes() {
-        fetch('<?= ROOT ?>/TransporterDashboard/getVehicleTypes')
+        fetch(transporterApi('getVehicleTypes'))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.vehicleTypes) {
@@ -1178,7 +1260,7 @@
 
     function getVehicleIcon(type) {
         // Simple icons based on type name
-        const slug = type.toLowerCase();
+        const slug = String(type || '').toLowerCase();
         if (slug.includes('bike') || slug.includes('motor')) return '🏍️';
         if (slug.includes('three') || slug.includes('wheel')) return '🛺';
         if (slug.includes('car')) return '🚗';
@@ -1189,35 +1271,14 @@
 
     // Generate vehicle type options HTML
     function generateVehicleTypeOptions(selectedType = '') {
+        const selectedSlug = String(selectedType || '').toLowerCase();
         let options = '<option value="">Select Type</option>';
         vehicleTypesData.forEach(vt => {
             const slug = vehicleNameToSlug(vt.vehicle_name);
-            const selected = (slug === selectedType.toLowerCase()) ? 'selected' : '';
-            options += `<option value="${slug}" ${selected}>${vt.vehicle_name} (${vt.min_weight_kg}-${vt.max_weight_kg}kg)</option>`;
+            const selected = (slug === selectedSlug) ? 'selected' : '';
+            options += `<option value="${slug}" data-min="${vt.min_weight_kg}" data-max="${vt.max_weight_kg}" data-type-id="${vt.id}" ${selected}>${vt.vehicle_name} (${vt.min_weight_kg}-${vt.max_weight_kg}kg)</option>`;
         });
         return options;
-    }
-
-    function getVehicleIcon(type) {
-        const icons = {
-            'bike': '🏍️',
-            'threewheeler': '🛺',
-            'car': '🚗',
-            'van': '🚐',
-            'truck': '🚚'
-        };
-        return icons[type] || '🚗';
-    }
-
-    function getVehicleTypeName(type) {
-        const names = {
-            'bike': 'Motorcycle',
-            'threewheeler': 'Three-wheeler',
-            'car': 'Car',
-            'van': 'Van',
-            'truck': 'Truck'
-        };
-        return names[type] || type.charAt(0).toUpperCase() + type.slice(1);
     }
 
     function setupAddVehicleForm() {
@@ -1227,9 +1288,18 @@
                 e.preventDefault();
 
                 const formData = new FormData(form);
+                const typeSelect = document.getElementById('vehicleType');
+                if (typeSelect) {
+                    const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+                    const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
+                    if (selectedTypeId) {
+                        formData.set('vehicle_type_id', selectedTypeId);
+                    }
+                }
 
-                fetch('<?= ROOT ?>/transporterDashboard/addVehicle', {
+                fetch(transporterApi('addVehicle'), {
                         method: 'POST',
+                        credentials: 'include',
                         body: formData
                     })
                     .then(response => response.json())
@@ -1260,7 +1330,7 @@
     }
 
     function editVehicleModal(vehicleId) {
-        fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
+        fetch(transporterApi('getVehicles'))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.vehicles) {
@@ -1278,18 +1348,15 @@
 
     function showEditVehicleModal(vehicle) {
         // Fetch vehicle types to populate dropdown
-        fetch(`${window.APP_ROOT}/transporterDashboard/getVehicleTypes`, { credentials: 'include' })
+        fetch(transporterApi('getVehicleTypes'), { credentials: 'include' })
             .then(r => r.json())
             .then(res => {
-                if (!res.success || !res.types) {
+                const types = res.types || res.vehicleTypes || [];
+                if (!res.success || !types.length) {
                     showNotification('Failed to load vehicle types', 'error');
                     return;
                 }
-                
-                const vehicleTypesOptions = res.types.map(t => {
-                    const isSelected = t.vehicle_name.toLowerCase() === vehicle.type.toLowerCase() ? 'selected' : '';
-                    return `<option value="${t.id}" data-min="${t.min_weight_kg}" data-max="${t.max_weight_kg}" ${isSelected}>${escapeHtml(t.vehicle_name)}</option>`;
-                }).join('');
+                vehicleTypesData = types;
                 
                 const modalHtml = `
                 <div id="editVehicleModal" class="modal" style="display: flex; align-items: center; justify-content: center;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
@@ -1413,9 +1480,21 @@
 
         const form = event.target;
         const formData = new FormData(form);
+        const typeSelect = document.getElementById('editVehicleType');
+        if (typeSelect) {
+            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+            const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
+            if (selectedTypeId) {
+                formData.set('vehicle_type_id', selectedTypeId);
+            }
+        }
 
-        fetch('<?= ROOT ?>/transporterDashboard/editVehicle/' + vehicleId, {
+        fetch(transporterApi('editVehicle/' + vehicleId), {
                 method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             })
             .then(response => response.json())
@@ -1444,7 +1523,7 @@
 
     function setActiveVehicle(vehicleId) {
         if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
-            fetch('<?= ROOT ?>/TransporterDashboard/setActiveVehicle/' + vehicleId, {
+            fetch(transporterApi('setActiveVehicle/' + vehicleId), {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -1465,7 +1544,7 @@
 
     function deleteVehicleConfirm(vehicleId) {
         if (confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
-            fetch('<?= ROOT ?>/TransporterDashboard/deleteVehicle/' + vehicleId, {
+            fetch(transporterApi('deleteVehicle/' + vehicleId), {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -1495,4 +1574,12 @@
         };
         return text.toString().replace(/[&<>"']/g, m => map[m]);
     }
+
+    // Fallback namespaced handlers used by inline onclick attributes.
+    // External transporterDashboard.js may replace these with API-backed versions.
+    window.TransporterDashboard = window.TransporterDashboard || {};
+    if (typeof window.TransporterDashboard.showSection !== 'function') window.TransporterDashboard.showSection = showSection;
+    if (typeof window.TransporterDashboard.refreshDeliveries !== 'function') window.TransporterDashboard.refreshDeliveries = refreshDeliveries;
+    if (typeof window.TransporterDashboard.filterMyDeliveries !== 'function') window.TransporterDashboard.filterMyDeliveries = filterMyDeliveries;
+    if (typeof window.TransporterDashboard.exportPaymentHistory !== 'function') window.TransporterDashboard.exportPaymentHistory = exportPaymentHistory;
 </script>

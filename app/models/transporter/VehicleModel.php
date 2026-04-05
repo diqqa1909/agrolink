@@ -8,6 +8,7 @@ class VehicleModel
     protected $allowedColumns = [
         'transporter_id',
         'type',
+        'vehicle_type_id',
         'registration',
         'capacity',
         'fuel_type',

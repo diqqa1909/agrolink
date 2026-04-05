@@ -22,28 +22,44 @@ class FarmerEarningsController
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
-
-        // Get earnings data
-        $totalEarnings = $this->farmerModel->getTotalEarnings($userId);
-        $monthlyEarnings = $this->farmerModel->getMonthlyEarnings($userId);
-        $earningsByProduct = $this->farmerModel->getEarningsByProduct($userId);
-        $recentEarnings = $this->farmerModel->getRecentEarnings($userId, 10);
-        $earningsStats = $this->farmerModel->getEarningsStats($userId);
+        $summary = $this->getEarningsSummary((int)$_SESSION['USER']->id, 100);
 
         $data = [
             'pageTitle' => 'Earnings',
             'activePage' => 'earnings',
-            'totalEarnings' => $totalEarnings,
-            'monthlyEarnings' => $monthlyEarnings,
-            'earningsByProduct' => $earningsByProduct,
-            'recentEarnings' => $recentEarnings,
-            'earningsStats' => $earningsStats,
+            'totalEarnings' => $summary['totalEarnings'],
+            'monthlyEarnings' => $summary['monthlyEarnings'],
+            'earningsByProduct' => $summary['earningsByProduct'],
+            'recentEarnings' => $summary['recentEarnings'],
+            'earningsStats' => $summary['earningsStats'],
+            'weeklyOrders' => $summary['weeklyOrders'],
+            'monthlyChangePercent' => $summary['monthlyChangePercent'],
+            'dailyChart' => $summary['dailyChart'],
+            'monthlyChart' => $summary['monthlyChart'],
+            'yearlyChart' => $summary['yearlyChart'],
             'contentView' => '../app/views/farmer/farmerEarnings.view.php',
             'pageScript' => 'farmerEarnings.js'
         ];
 
         $this->view('farmer/farmerMain', $data);
+    }
+
+    /**
+     * Printable report page (use browser "Save as PDF").
+     */
+    public function report()
+    {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            return redirect('login');
+        }
+
+        $summary = $this->getEarningsSummary((int)$_SESSION['USER']->id, 50);
+        $farmerName = $_SESSION['USER']->name ?? 'Farmer';
+        $generatedAt = date('Y-m-d H:i:s');
+        $autoPrint = isset($_GET['print']) ? '1' : '0';
+
+        include '../app/views/farmer/farmerEarningsReport.view.php';
+        exit;
     }
 
     /**
@@ -83,5 +99,105 @@ class FarmerEarningsController
             'period' => $period
         ]);
         exit;
+    }
+
+    private function getEarningsSummary(int $userId, int $recentLimit = 10): array
+    {
+        $monthlyChart = $this->buildLast12MonthChart($userId);
+        $dailyChart = $this->buildLastNDaysChart($userId, 7);
+        $yearlyChart = $this->buildLastNYearsChart($userId, 5);
+        $currentMonthEarnings = (float)($monthlyChart[count($monthlyChart) - 1]['earnings'] ?? 0);
+        $previousMonthEarnings = (float)($monthlyChart[count($monthlyChart) - 2]['earnings'] ?? 0);
+        $monthlyChange = 0.0;
+        if ($previousMonthEarnings > 0) {
+            $monthlyChange = (($currentMonthEarnings - $previousMonthEarnings) / $previousMonthEarnings) * 100;
+        }
+
+        return [
+            'totalEarnings' => (float)$this->farmerModel->getTotalEarnings($userId),
+            'monthlyEarnings' => (float)$this->farmerModel->getMonthlyEarnings($userId),
+            'earningsByProduct' => $this->farmerModel->getEarningsByProduct($userId),
+            'recentEarnings' => $this->farmerModel->getRecentEarnings($userId, $recentLimit),
+            'earningsStats' => $this->farmerModel->getEarningsStats($userId),
+            'weeklyOrders' => $this->farmerModel->getWeeklyOrdersCount($userId),
+            'monthlyChart' => $monthlyChart,
+            'dailyChart' => $dailyChart,
+            'yearlyChart' => $yearlyChart,
+            'monthlyChangePercent' => $monthlyChange,
+        ];
+    }
+
+    private function buildLast12MonthChart(int $userId): array
+    {
+        $raw = $this->farmerModel->getMonthlyEarningsChart($userId);
+        $map = [];
+        foreach ($raw as $row) {
+            $map[(string)$row->month] = (float)$row->earnings;
+        }
+
+        $result = [];
+        $cursor = new DateTime('first day of this month');
+        $cursor->modify('-11 months');
+        for ($i = 0; $i < 12; $i++) {
+            $key = $cursor->format('Y-m');
+            $result[] = [
+                'month' => $key,
+                'label' => $cursor->format('M'),
+                'earnings' => $map[$key] ?? 0.0,
+            ];
+            $cursor->modify('+1 month');
+        }
+
+        return $result;
+    }
+
+    private function buildLastNDaysChart(int $userId, int $days): array
+    {
+        $days = max(1, $days);
+        $raw = $this->farmerModel->getDailyEarningsChart($userId, $days);
+        $map = [];
+        foreach ($raw as $row) {
+            $map[(string)$row->day_key] = (float)$row->earnings;
+        }
+
+        $result = [];
+        $cursor = new DateTime('today');
+        $cursor->modify('-' . ($days - 1) . ' days');
+        for ($i = 0; $i < $days; $i++) {
+            $key = $cursor->format('Y-m-d');
+            $result[] = [
+                'key' => $key,
+                'label' => $cursor->format('D'),
+                'fullLabel' => $cursor->format('M d'),
+                'earnings' => $map[$key] ?? 0.0,
+            ];
+            $cursor->modify('+1 day');
+        }
+
+        return $result;
+    }
+
+    private function buildLastNYearsChart(int $userId, int $years): array
+    {
+        $years = max(1, $years);
+        $raw = $this->farmerModel->getYearlyEarningsChart($userId, $years);
+        $map = [];
+        foreach ($raw as $row) {
+            $map[(string)$row->year_key] = (float)$row->earnings;
+        }
+
+        $result = [];
+        $currentYear = (int)date('Y');
+        $startYear = $currentYear - ($years - 1);
+        for ($year = $startYear; $year <= $currentYear; $year++) {
+            $result[] = [
+                'key' => (string)$year,
+                'label' => (string)$year,
+                'fullLabel' => (string)$year,
+                'earnings' => $map[(string)$year] ?? 0.0,
+            ];
+        }
+
+        return $result;
     }
 }

@@ -14,7 +14,7 @@ function escapeHtml(text = '') {
 
 // Location Management
 function loadDistricts() {
-    fetch(`${API_BASE}/getDistricts`, { credentials: 'include' })
+    return fetch(`${API_BASE}/getDistricts`, { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
             if (res.success && res.districts) {
@@ -27,8 +27,12 @@ function loadDistricts() {
                 const editSelect = document.getElementById('editProductDistrict');
                 if (editSelect) editSelect.innerHTML = options;
             }
+            return res;
         })
-        .catch(console.error);
+        .catch(err => {
+            console.error(err);
+            return { success: false };
+        });
 }
 
 function loadTowns(districtId, townSelectId, selectedTownId = null) {
@@ -37,6 +41,7 @@ function loadTowns(districtId, townSelectId, selectedTownId = null) {
 
     select.innerHTML = '<option value="">Loading...</option>';
     select.disabled = true;
+    select.required = false;
 
     if (!districtId) {
         select.innerHTML = '<option value="">Select District First</option>';
@@ -46,21 +51,32 @@ function loadTowns(districtId, townSelectId, selectedTownId = null) {
     fetch(`${API_BASE}/getTowns?district_id=${districtId}`, { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
-            if (res.success && res.towns) {
+            const towns = Array.isArray(res.towns) ? res.towns : [];
+            if (res.success && towns.length > 0) {
                 select.innerHTML = '<option value="">Select Town...</option>' +
-                    res.towns.map(t => `<option value="${t.id}">${escapeHtml(t.town_name)}</option>`).join('');
+                    towns.map(t => `<option value="${t.id}">${escapeHtml(t.town_name)}</option>`).join('');
                 select.disabled = false;
+                select.required = true;
 
                 if (selectedTownId) {
                     select.value = selectedTownId;
                 }
+            } else if (res.success && towns.length === 0) {
+                // Some districts do not have towns configured; allow submit with district only.
+                select.innerHTML = '<option value="">No towns available for this district</option>';
+                select.disabled = true;
+                select.required = false;
             } else {
                 select.innerHTML = '<option value="">No towns found</option>';
+                select.disabled = true;
+                select.required = false;
             }
         })
         .catch(err => {
             console.error(err);
             select.innerHTML = '<option value="">Error loading towns</option>';
+            select.disabled = true;
+            select.required = false;
         });
 }
 
@@ -70,7 +86,7 @@ function capitalize(str) {
 }
 
 function loadCategories() {
-    fetch(`${API_BASE}/getCategories`, { credentials: 'include' })
+    return fetch(`${API_BASE}/getCategories`, { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
             if (res.success && res.categories) {
@@ -83,8 +99,12 @@ function loadCategories() {
                 const editSelect = document.getElementById('editProductCategory');
                 if (editSelect) editSelect.innerHTML = options;
             }
+            return res;
         })
-        .catch(console.error);
+        .catch(err => {
+            console.error(err);
+            return { success: false };
+        });
 }
 
 function loadProductsByCategory(category, productSelectId, selectedId = null) {
@@ -99,7 +119,7 @@ function loadProductsByCategory(category, productSelectId, selectedId = null) {
         return;
     }
 
-    fetch(`${API_BASE}/getProductsByCategory?category=${category}`, { credentials: 'include' })
+    fetch(`${API_BASE}/getProductsByCategory?category=${encodeURIComponent(category)}`, { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
             if (res.success && res.products) {
@@ -179,11 +199,14 @@ function initializeEditForm() {
         const price = document.getElementById('editProductPrice').value;
         const quantity = document.getElementById('editProductQuantity').value;
         // const location = document.getElementById('editProductLocation').value.trim(); // Now hidden/auto
-        const districtId = document.getElementById('editProductDistrict').value;
-        const townId = document.getElementById('editProductTown').value;
+        const districtSelect = document.getElementById('editProductDistrict');
+        const townSelect = document.getElementById('editProductTown');
+        const districtId = districtSelect ? districtSelect.value : '';
+        const townId = townSelect ? townSelect.value : '';
         const listing_date = document.getElementById('editListingDate').value;
+        const requiresTown = !!(townSelect && !townSelect.disabled);
 
-        if (!name || price === '' || quantity === '' || !districtId || !townId || !category || !listing_date) {
+        if (!name || price === '' || quantity === '' || !districtId || !category || !listing_date || (requiresTown && !townId)) {
             showNotification('Please fill all required fields', 'error');
             return;
         }
@@ -203,6 +226,10 @@ function initializeEditForm() {
             fd.append('district_id', districtId);
             fd.append('town_id', townId);
             fd.append('listing_date', listing_date);
+            const masterSelect = document.getElementById('editProductMaster');
+            if (masterSelect && masterSelect.value) {
+                fd.append('product_master_id', masterSelect.value);
+            }
             if (imageInput && imageInput.files && imageInput.files[0]) {
                 fd.append('image', imageInput.files[0]);
             }
@@ -479,7 +506,7 @@ function populateProductsTable(products) {
     tbody.innerHTML = '';
 
     if (!products || products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">No products listed yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">No products listed yet</td></tr>';
         return;
     }
 
@@ -510,21 +537,19 @@ function populateProductsTable(products) {
             <td>${p.quantity} kg</td>
             <td style="color: #555;">${escapeHtml(p.location) || '-'}</td>
             <td style="font-size: 0.9rem; color: #666;">${listingDate}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})" style="margin-right: 5px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    Edit
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                    Delete
-                </button>
+            <td class="product-actions-cell">
+                <div class="product-table-actions">
+                    <button type="button" class="btn btn-sm product-action-btn product-action-edit" onclick="editProduct(${p.id})">
+                        <svg class="product-action-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="btn btn-sm product-action-btn product-action-delete" onclick="deleteProduct(${p.id})">
+                        Delete
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(row);
@@ -545,20 +570,31 @@ async function editProduct(id) {
 
         // Set Category and Product (must be done before populating other fields)
         const catSel = document.getElementById('editProductCategory');
+        if (catSel && catSel.options.length <= 1) {
+            await loadCategories();
+        }
         if (catSel && p.category) {
             catSel.value = p.category;
-            // Load products for this category, then select the product
-            if (p.product_master_id) {
-                loadProductsByCategory(p.category, 'editProductMaster', p.product_master_id);
+            // Always load category products so optional selector is usable in edit mode.
+            loadProductsByCategory(p.category, 'editProductMaster', p.product_master_id || null);
+        } else {
+            const editMaster = document.getElementById('editProductMaster');
+            if (editMaster) {
+                editMaster.innerHTML = '<option value="">Select Category First</option>';
+                editMaster.disabled = true;
             }
         }
+        const editNameField = document.getElementById('editProductName');
+        if (editNameField) editNameField.value = p.name || '';
         document.getElementById('editProductPrice').value = p.price ?? '';
-        document.getElementById('editProductQuantity').value = p.quantity ?? '';
         document.getElementById('editProductQuantity').value = p.quantity ?? '';
         // document.getElementById('editProductLocation').value = p.location || '';
 
         // Set District and Town
         const distSelect = document.getElementById('editProductDistrict');
+        if (distSelect && distSelect.options.length <= 1) {
+            await loadDistricts();
+        }
         if (distSelect && p.district_id) {
             distSelect.value = p.district_id;
             loadTowns(p.district_id, 'editProductTown', p.town_id);
@@ -576,6 +612,79 @@ async function editProduct(id) {
         openModal('editProductModal');
     } catch (err) {
         showNotification('Failed to open edit form: ' + err.message, 'error');
+    }
+}
+
+function prefillFromAcceptedCropRequest() {
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get('from_request_id');
+    if (!requestId) {
+        return;
+    }
+
+    const cropName = params.get('crop_name') || '';
+    const quantity = Number(params.get('quantity') || 0);
+    const targetPrice = Number(params.get('target_price') || 0);
+    const location = params.get('location') || '';
+
+    const nameField = document.getElementById('productName');
+    const qtyField = document.getElementById('productQuantity');
+    const priceField = document.getElementById('productPrice');
+    const locationField = document.getElementById('productLocation');
+    const dateField = document.getElementById('listingDate');
+
+    if (nameField && cropName) {
+        nameField.value = cropName;
+    }
+    if (qtyField && quantity > 0) {
+        qtyField.value = Math.max(quantity, 10);
+    }
+    if (priceField && targetPrice > 0) {
+        priceField.value = targetPrice;
+    }
+    if (locationField && location) {
+        locationField.value = location;
+    }
+    if (dateField) {
+        dateField.value = new Date().toISOString().split('T')[0];
+    }
+
+    openModal('addProductModal');
+    showNotification('Crop request data loaded. Select category and save product.', 'info');
+
+    if (cropName) {
+        autoSelectCategoryForCrop(cropName);
+    }
+}
+
+// Try to auto-select category/product based on crop name from crop request
+async function autoSelectCategoryForCrop(cropName) {
+    try {
+        const r = await fetch(`${API_BASE}/getCategories`, { credentials: 'include' });
+        const data = await r.json();
+        if (!data.success || !Array.isArray(data.categories)) return;
+
+        const target = cropName.trim().toLowerCase();
+        if (!target) return;
+
+        for (const category of data.categories) {
+            const res = await fetch(`${API_BASE}/getProductsByCategory?category=${encodeURIComponent(category)}`, { credentials: 'include' });
+            const payload = await res.json();
+            if (!payload.success || !Array.isArray(payload.products)) continue;
+
+            const match = payload.products.find(p => String(p.crop_name || '').trim().toLowerCase() === target);
+            if (match) {
+                const catSel = document.getElementById('productCategory');
+                if (catSel) catSel.value = category;
+                loadProductsByCategory(category, 'productMaster', match.id);
+
+                const nameField = document.getElementById('productName');
+                if (nameField) nameField.value = match.crop_name;
+                return;
+            }
+        }
+    } catch (err) {
+        console.warn('Auto-select category failed:', err);
     }
 }
 
@@ -609,49 +718,81 @@ window.deleteProduct = deleteProduct;
 window.loadFarmerProducts = loadFarmerProducts;
 window.populateProductsTable = populateProductsTable;
 
-// Initialize on load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeProductForms();
-        initializeEditForm();
-        loadFarmerProducts();
-        loadDistricts();
-        loadCategories(); // Load categories on page load
+let productsPageInitialized = false;
 
-        // Add listeners for district changes
-        document.getElementById('productDistrict')?.addEventListener('change', function () {
+function initializeProductsPage() {
+    if (productsPageInitialized) return;
+
+    initializeProductForms();
+    initializeEditForm();
+    loadFarmerProducts();
+    loadDistricts();
+    loadCategories();
+
+    const productDistrict = document.getElementById('productDistrict');
+    if (productDistrict && !productDistrict.dataset.bound) {
+        productDistrict.addEventListener('change', function () {
             loadTowns(this.value, 'productTown');
         });
-        document.getElementById('editProductDistrict')?.addEventListener('change', function () {
+        productDistrict.dataset.bound = '1';
+    }
+
+    const editDistrict = document.getElementById('editProductDistrict');
+    if (editDistrict && !editDistrict.dataset.bound) {
+        editDistrict.addEventListener('change', function () {
             loadTowns(this.value, 'editProductTown');
         });
+        editDistrict.dataset.bound = '1';
+    }
 
-        // Add listeners for category changes
-        document.getElementById('productCategory')?.addEventListener('change', function () {
+    const productCategory = document.getElementById('productCategory');
+    if (productCategory && !productCategory.dataset.bound) {
+        productCategory.addEventListener('change', function () {
             loadProductsByCategory(this.value, 'productMaster');
         });
-        document.getElementById('editProductCategory')?.addEventListener('change', function () {
+        productCategory.dataset.bound = '1';
+    }
+
+    const editCategory = document.getElementById('editProductCategory');
+    if (editCategory && !editCategory.dataset.bound) {
+        editCategory.addEventListener('change', function () {
             loadProductsByCategory(this.value, 'editProductMaster');
         });
+        editCategory.dataset.bound = '1';
+    }
 
-        // Add listeners for product selection to auto-fill hidden name field
-        document.getElementById('productMaster')?.addEventListener('change', function () {
+    const productMaster = document.getElementById('productMaster');
+    if (productMaster && !productMaster.dataset.bound) {
+        productMaster.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const nameField = document.getElementById('productName');
             if (selectedOption && selectedOption.dataset.name && nameField) {
                 nameField.value = selectedOption.dataset.name;
             }
         });
-        document.getElementById('editProductMaster')?.addEventListener('change', function () {
+        productMaster.dataset.bound = '1';
+    }
+
+    const editMaster = document.getElementById('editProductMaster');
+    if (editMaster && !editMaster.dataset.bound) {
+        editMaster.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const nameField = document.getElementById('editProductName');
             if (selectedOption && selectedOption.dataset.name && nameField) {
                 nameField.value = selectedOption.dataset.name;
             }
         });
-    });
+        editMaster.dataset.bound = '1';
+    }
+
+    prefillFromAcceptedCropRequest();
+
+    productsPageInitialized = true;
+}
+
+// Initialize on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeProductsPage);
 } else {
-    initializeProductForms();
-    initializeEditForm();
-    loadFarmerProducts();
+    initializeProductsPage();
 }

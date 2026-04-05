@@ -23,7 +23,7 @@ class LoginController
                 $row = $user->first($arr);
 
                 if ($row) {
-                    if ($row->password === $_POST['password']) {
+                    if (password_verify((string)$_POST['password'], (string)$row->password)) {
                         $_SESSION['USER'] = $row;
 
                         //REDIRECT BASED ON USER ROLE

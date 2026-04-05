@@ -10,6 +10,7 @@ class UserModel
         'password',
         'role',
     ];
+    protected $emailChangesTable = 'user_email_changes';
 
     public function validate($data)
     {
@@ -42,9 +43,9 @@ class UserModel
     public function insert($data)
     {
         // Hash password before inserting
-        /* if (isset($data['password'])) {
+        if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        } */
+        }
 
         // Remove unwanted data
         if (!empty($this->allowedColumns)) {
@@ -67,6 +68,50 @@ class UserModel
     public function findByEmail($email)
     {
         return $this->first(['email' => $email]);
+    }
+
+    private function ensureEmailChangesTable()
+    {
+        static $checked = false;
+        if ($checked) return true;
+
+        $sql = "CREATE TABLE IF NOT EXISTS {$this->emailChangesTable} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    old_email VARCHAR(255) NOT NULL,
+                    new_email VARCHAR(255) NOT NULL,
+                    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_user_id (user_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        $checked = (bool)$this->write($sql);
+        return $checked;
+    }
+
+    public function getEmailChangeCount($userId)
+    {
+        if (!$this->ensureEmailChangesTable()) return 0;
+
+        $row = $this->get_row(
+            "SELECT COUNT(*) AS total FROM {$this->emailChangesTable} WHERE user_id = :user_id",
+            ['user_id' => $userId]
+        );
+
+        return (int)($row->total ?? 0);
+    }
+
+    public function recordEmailChange($userId, $oldEmail, $newEmail)
+    {
+        if (!$this->ensureEmailChangesTable()) return false;
+
+        return $this->write(
+            "INSERT INTO {$this->emailChangesTable} (user_id, old_email, new_email) VALUES (:user_id, :old_email, :new_email)",
+            [
+                'user_id' => $userId,
+                'old_email' => $oldEmail,
+                'new_email' => $newEmail
+            ]
+        );
     }
 
     public function update($id, $data, $id_column = 'id')

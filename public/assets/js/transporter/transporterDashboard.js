@@ -1,13 +1,11 @@
 // Transporter Dashboard Specific Functionality
+(function () {
+'use strict';
 
-<<<<<<< HEAD
-document.addEventListener('DOMContentLoaded', function () {
-=======
 let availableRequests = [];
 let myDeliveries = [];
 
 document.addEventListener('DOMContentLoaded', function() {
->>>>>>> Transporters'_2
     initializeTransporterDashboard();
     
     // Listen for hash changes
@@ -30,13 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeTransporterDashboard() {
     loadDashboardData();
-<<<<<<< HEAD
     loadVehicleTypes(); // Load vehicle types for the form
-=======
+    if (typeof loadVehicles === 'function') {
+        loadVehicles();
+    }
     loadAvailableRequests();
     loadMyDeliveries(); // Load my deliveries on initialization
     loadRecentDeliveries(); // Load recent deliveries
->>>>>>> Transporters'_2
     initializeEventListeners();
     
     // Initialize with default section
@@ -51,26 +49,29 @@ function initializeTransporterDashboard() {
 
 // Get base URL (use the APP_ROOT defined in the template)
 function getBaseUrl() {
-    // First, try to use APP_ROOT from the template
-    if (window.APP_ROOT) {
-        console.log('Using APP_ROOT:', window.APP_ROOT);
-        return window.APP_ROOT;
-    }
-    
-    // Fallback: construct from current location
-    const path = window.location.pathname;
-    const match = path.match(/^(\/[^\/]+\/public)/);
-    if (match) {
-        const baseUrl = window.location.origin + match[1];
-        console.log('Constructed base URL:', baseUrl);
+    const origin = String(window.location.origin || '').replace(/\/+$/, '');
+    const path = String(window.location.pathname || '');
+
+    // Prefer deriving from current URL when /public is present.
+    const publicMatch = path.match(/^(.*\/public)(?:\/|$)/i);
+    if (publicMatch && publicMatch[1]) {
+        const baseUrl = origin + publicMatch[1];
+        console.log('Constructed base URL from pathname:', baseUrl);
         return baseUrl;
+    }
+
+    // Next, use APP_ROOT if available.
+    if (window.APP_ROOT) {
+        const appRoot = String(window.APP_ROOT).replace(/\/+$/, '');
+        console.log('Using APP_ROOT:', appRoot);
+        return appRoot;
     }
     
     // Last resort: try to detect from script tags
     const scripts = document.querySelectorAll('script[src*="/assets/"]');
     if (scripts.length > 0) {
         const scriptSrc = scripts[0].getAttribute('src');
-        const baseUrl = scriptSrc.substring(0, scriptSrc.indexOf('/assets'));
+        const baseUrl = scriptSrc.substring(0, scriptSrc.indexOf('/assets')).replace(/\/+$/, '');
         console.log('Detected base URL from scripts:', baseUrl);
         return baseUrl;
     }
@@ -81,15 +82,18 @@ function getBaseUrl() {
 
 // Load vehicle types from database
 function loadVehicleTypes() {
-    fetch(`${window.APP_ROOT}/transporterDashboard/getVehicleTypes`, { credentials: 'include' })
+    fetch(getBaseUrl() + '/transporterdashboard/getVehicleTypes', { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
-            if (res.success && res.types) {
+            const types = res.types || res.vehicleTypes || [];
+            if (res.success && Array.isArray(types)) {
                 const select = document.getElementById('vehicleType');
                 if (select) {
                     select.innerHTML = '<option value="">Select Type...</option>' +
-                        res.types.map(t =>
-                            `<option value="${t.id}" data-min="${t.min_weight_kg}" data-max="${t.max_weight_kg}">${escapeHtml(t.vehicle_name)}</option>`
+                        types.map(t => {
+                            const slug = String(t.vehicle_name || '').toLowerCase().replace(/\s+/g, '');
+                            return `<option value="${slug}" data-min="${t.min_weight_kg}" data-max="${t.max_weight_kg}" data-type-id="${t.id}">${escapeHtml(t.vehicle_name)}</option>`;
+                        }
                         ).join('');
                 }
             }
@@ -112,7 +116,7 @@ function escapeHtml(text) {
 // Load dashboard data
 function loadDashboardData() {
     // Load earnings summary
-    const url = getBaseUrl() + '/TransporterDashboard/getEarnings';
+    const url = getBaseUrl() + '/transporterdashboard/getEarnings';
     console.log('Loading earnings from:', url);
     
     fetch(url)
@@ -127,7 +131,7 @@ function loadDashboardData() {
 
 // Load recent/completed deliveries
 function loadRecentDeliveries() {
-    const url = getBaseUrl() + '/TransporterDashboard/getMyRequests?status=delivered';
+    const url = getBaseUrl() + '/transporterdashboard/getMyRequests?status=delivered';
     
     fetch(url)
         .then(response => response.json())
@@ -269,7 +273,7 @@ function loadAvailableRequests() {
         container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #666;"><p>Loading delivery requests...</p></div>';
     }
 
-    const url = getBaseUrl() + '/TransporterDashboard/getAvailableRequests';
+    const url = getBaseUrl() + '/transporterdashboard/getAvailableRequests';
     console.log('Loading available requests from:', url);
 
     fetch(url)
@@ -346,7 +350,7 @@ function displayAvailableRequests(requests, debug) {
 
             ${request.distance_km ? `<div style="margin-bottom: 12px; color: #666; font-size: 0.9rem;">📏 Distance: ~${parseFloat(request.distance_km).toFixed(1)} km</div>` : ''}
 
-            <button onclick="acceptDeliveryRequest(${request.id})" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 600;">
+            <button onclick="TransporterDashboard.acceptDeliveryRequest(${request.id})" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 600;">
                 Accept Delivery
             </button>
         </div>
@@ -362,7 +366,7 @@ function acceptDeliveryRequest(requestId) {
         return;
     }
 
-    const url = getBaseUrl() + `/TransporterDashboard/acceptRequest/${requestId}`;
+    const url = getBaseUrl() + `/transporterdashboard/acceptRequest/${requestId}`;
     console.log('Sending request to:', url);
 
     fetch(url, {
@@ -392,7 +396,7 @@ function acceptDeliveryRequest(requestId) {
 
 // Load my deliveries
 function loadMyDeliveries(status = null) {
-    const url = getBaseUrl() + (status ? `/TransporterDashboard/getMyRequests?status=${status}` : '/TransporterDashboard/getMyRequests');
+    const url = getBaseUrl() + (status ? `/transporterdashboard/getMyRequests?status=${status}` : '/transporterdashboard/getMyRequests');
     console.log('Loading my deliveries from:', url);
     
     fetch(url)
@@ -450,10 +454,10 @@ function displayMyDeliveries(deliveries) {
                 <td>${delivery.created_at ? new Date(delivery.created_at).toLocaleDateString() : 'N/A'}</td>
                 <td>
                     ${delivery.status === 'accepted' ? `
-                        <button onclick="updateDeliveryStatus(${delivery.id}, 'in_transit')" class="btn btn-sm btn-primary">Start Transit</button>
+                        <button onclick="TransporterDashboard.updateDeliveryStatus(${delivery.id}, 'in_transit')" class="btn btn-sm btn-primary">Start Transit</button>
                     ` : ''}
                     ${delivery.status === 'in_transit' ? `
-                        <button onclick="updateDeliveryStatus(${delivery.id}, 'delivered')" class="btn btn-sm btn-success">Mark Delivered</button>
+                        <button onclick="TransporterDashboard.updateDeliveryStatus(${delivery.id}, 'delivered')" class="btn btn-sm btn-success">Mark Delivered</button>
                     ` : ''}
                     ${delivery.status === 'delivered' ? `
                         <span style="color: #4caf50; font-weight: 500;">✓ Completed</span>
@@ -476,7 +480,7 @@ function updateDeliveryStatus(deliveryId, newStatus) {
         return;
     }
 
-    fetch(getBaseUrl() + `/TransporterDashboard/updateDeliveryStatus/${deliveryId}`, {
+    fetch(getBaseUrl() + `/transporterdashboard/updateDeliveryStatus/${deliveryId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -506,7 +510,10 @@ function filterMyDeliveries(status) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    const selectedBtn = document.querySelector(`.tab-btn[data-status="${status}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
 
     // Load deliveries with filter
     const filterStatus = status === 'all' ? null : status.replace('-', '_');
@@ -524,19 +531,12 @@ function initializeEventListeners() {
     const sectionLinks = document.querySelectorAll('.menu-link');
 
     sectionLinks.forEach(link => {
-<<<<<<< HEAD
-        link.addEventListener('click', function (e) {
-            //If it's a real link (has href), don't prevent default
-            if (this.getAttribute('href') && this.getAttribute('href') !== '#') {
-                return;
-=======
         link.addEventListener('click', function(e) {
             // Check if link has a section to show
             const section = this.dataset.section;
             if (section) {
                 e.preventDefault();
                 showSection(section);
->>>>>>> Transporters'_2
             }
         });
     });
@@ -596,6 +596,8 @@ function showSection(sectionName) {
     } else if (sectionName === 'earnings') {
         loadDashboardData(); // Load earnings data
         loadRecentDeliveries(); // Load payment history
+    } else if (sectionName === 'feedback' && typeof loadFeedbackReviews === 'function') {
+        loadFeedbackReviews();
     } else if (sectionName === 'dashboard') {
         loadRecentDeliveries(); // Refresh recent deliveries
     }
@@ -632,9 +634,9 @@ function showNotification(message, type = 'info') {
 
 // Format currency
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-KE', {
+    return new Intl.NumberFormat('en-LK', {
         style: 'currency',
-        currency: 'KES'
+        currency: 'LKR'
     }).format(amount);
 }
 
@@ -649,7 +651,7 @@ function formatDate(dateString) {
 
 // Export CSV function for payment history
 function exportPaymentHistory() {
-    fetch(getBaseUrl() + '/TransporterDashboard/getMyRequests?status=delivered')
+    fetch(getBaseUrl() + '/transporterdashboard/getMyRequests?status=delivered')
         .then(response => response.json())
         .then(data => {
             if (data.success && data.requests && data.requests.length > 0) {
@@ -697,10 +699,21 @@ function downloadCSV(csv, filename) {
     window.URL.revokeObjectURL(url);
 }
 
-// Export functions for global access
-window.showSection = showSection;
-window.acceptDeliveryRequest = acceptDeliveryRequest;
-window.updateDeliveryStatus = updateDeliveryStatus;
-window.filterMyDeliveries = filterMyDeliveries;
-window.refreshDeliveries = refreshDeliveries;
-window.exportPaymentHistory = exportPaymentHistory;
+// Namespaced API for inline handlers
+window.TransporterDashboard = {
+    showSection,
+    acceptDeliveryRequest,
+    updateDeliveryStatus,
+    filterMyDeliveries,
+    refreshDeliveries,
+    exportPaymentHistory
+};
+
+// Backward-compatible aliases (temporary, do not override existing globals)
+if (typeof window.showSection !== 'function') window.showSection = window.TransporterDashboard.showSection;
+if (typeof window.acceptDeliveryRequest !== 'function') window.acceptDeliveryRequest = window.TransporterDashboard.acceptDeliveryRequest;
+if (typeof window.updateDeliveryStatus !== 'function') window.updateDeliveryStatus = window.TransporterDashboard.updateDeliveryStatus;
+if (typeof window.filterMyDeliveries !== 'function') window.filterMyDeliveries = window.TransporterDashboard.filterMyDeliveries;
+if (typeof window.refreshDeliveries !== 'function') window.refreshDeliveries = window.TransporterDashboard.refreshDeliveries;
+if (typeof window.exportPaymentHistory !== 'function') window.exportPaymentHistory = window.TransporterDashboard.exportPaymentHistory;
+})();

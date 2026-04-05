@@ -130,9 +130,10 @@ class ProductsModel
             $params['max_price'] = $conditions['max_price'];
         }
 
-        $sql = "SELECT p.*, u.name as farmer_name, u.email as farmer_email 
-                FROM {$this->table} p 
-                LEFT JOIN users u ON p.farmer_id = u.id 
+        $sql = "SELECT p.*, u.name as farmer_name, u.email as farmer_email, fp.district as farmer_district
+            FROM {$this->table} p
+            LEFT JOIN users u ON p.farmer_id = u.id
+            LEFT JOIN farmer_profiles fp ON fp.user_id = p.farmer_id
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
 

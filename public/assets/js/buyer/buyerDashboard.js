@@ -6,11 +6,11 @@ function openReviewModal(orderId, productId, farmerId, productName) {
         const modalHtml = `
             <div id="review-modal" class="modal" style="display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
                 <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 12px; position: relative;">
-                    <span class="close-modal" onclick="closeReviewModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                    <span class="close-modal" onclick="BuyerDashboard.closeReviewModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
                     <h2 style="margin-top: 0; color: #333;">Write a Review</h2>
                     <p id="review-product-name" style="color: #666; margin-bottom: 20px;"></p>
                     
-                    <form id="review-form" onsubmit="submitReview(event)">
+                    <form id="review-form" onsubmit="BuyerDashboard.submitReview(event)">
                         <input type="hidden" id="review-order-id" name="order_id">
                         <input type="hidden" id="review-product-id" name="product_id">
                         <input type="hidden" id="review-farmer-id" name="farmer_id">
@@ -18,11 +18,11 @@ function openReviewModal(orderId, productId, farmerId, productName) {
                         <div style="margin-bottom: 20px; text-align: center;">
                             <label style="display: block; margin-bottom: 10px; font-weight: 500;">Rate this product</label>
                             <div class="rating-stars" style="font-size: 2rem; color: #ddd; cursor: pointer;">
-                                <span onclick="setRating(1)" data-val="1">★</span>
-                                <span onclick="setRating(2)" data-val="2">★</span>
-                                <span onclick="setRating(3)" data-val="3">★</span>
-                                <span onclick="setRating(4)" data-val="4">★</span>
-                                <span onclick="setRating(5)" data-val="5">★</span>
+                                <span onclick="BuyerDashboard.setRating(1)" data-val="1">★</span>
+                                <span onclick="BuyerDashboard.setRating(2)" data-val="2">★</span>
+                                <span onclick="BuyerDashboard.setRating(3)" data-val="3">★</span>
+                                <span onclick="BuyerDashboard.setRating(4)" data-val="4">★</span>
+                                <span onclick="BuyerDashboard.setRating(5)" data-val="5">★</span>
                             </div>
                             <input type="hidden" id="review-rating" name="rating" required>
                         </div>
@@ -103,7 +103,7 @@ function submitReview(e) {
     btn.disabled = true;
     btn.textContent = 'Submitting...';
 
-    fetch(window.APP_ROOT + '/BuyerReviews/submit', {
+    fetch(window.APP_ROOT + '/buyerreviews/submit', {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -942,9 +942,14 @@ function renderWishlist(items) {
             ? `Rs. ${Number(item.price).toFixed(2)}/kg`
             : 'Price unavailable';
 
-        const stock = (item.available_quantity !== null && item.available_quantity !== undefined)
-            ? `${escapeHtml(item.available_quantity)}kg available`
-            : '';
+        const stockRaw = (item.available_quantity !== null && item.available_quantity !== undefined && item.available_quantity !== '')
+            ? item.available_quantity
+            : (item.quantity !== null && item.quantity !== undefined ? item.quantity : 0);
+        const stockNum = Number(stockRaw);
+        const stockDisplay = Number.isFinite(stockNum)
+            ? (Number.isInteger(stockNum) ? stockNum.toString() : stockNum.toFixed(2).replace(/\.?0+$/, ''))
+            : String(stockRaw || 0);
+        const stock = `${escapeHtml(stockDisplay)} kg available`;
 
         const isOutOfStock = !item.available_quantity || item.available_quantity <= 0;
 
@@ -961,12 +966,12 @@ function renderWishlist(items) {
                     <h3 class="product-name">${escapeHtml(item.name || 'Product unavailable')}</h3>
                     <div class="product-price">${price}</div>
                     <div class="product-stock">${stock}</div>
-                    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                        <button class="btn btn-primary" style="width: 100%; text-align: center; padding: 10px 16px;"
-                            onclick='addToCart(${item.product_id}, ${JSON.stringify(item.name || "Product")}, ${item.price || 0}, ${item.available_quantity || 0})'>
+                    <div class="buyer-wishlist-actions">
+                        <button class="btn btn-primary buyer-wishlist-btn"
+                            onclick='BuyerDashboard.addToCart(${item.product_id}, ${JSON.stringify(item.name || "Product")}, ${item.price || 0}, ${item.available_quantity || 0})'>
                             Add to Cart
                         </button>
-                        <button class="btn btn-danger" style="width: 100%; text-align: center; padding: 10px 16px;" onclick="removeFromWishlist(${item.product_id})">
+                        <button class="btn btn-danger buyer-wishlist-btn" onclick="BuyerDashboard.removeFromWishlist(${item.product_id})">
                             Remove
                         </button>
                     </div>
@@ -990,23 +995,50 @@ function escapeHtml(text = '') {
     return div.innerHTML;
 }
 
-window.showSection = showSection;
-window.filterProducts = filterProducts;
-window.addToCart = addToCart;
-window.updateCartBadge = updateCartBadge;
-window.showLoading = showLoading;
-window.hideLoading = hideLoading;
-window.updateQuantity = updateQuantity;
-window.removeFromCart = removeFromCart;
-window.clearCart = clearCart;
-window.recalculateCartTotal = recalculateCartTotal;
-window.proceedToCheckout = proceedToCheckout;
-window.loadProfileData = loadProfileData;
-window.updateProfile = updateProfile;
-window.uploadPhoto = uploadPhoto;
-window.addToWishlist = addToWishlist;
-window.removeFromWishlist = removeFromWishlist;
-window.loadWishlist = loadWishlist;
+window.BuyerDashboard = {
+    openReviewModal,
+    closeReviewModal,
+    setRating,
+    highlightStars,
+    submitReview,
+    showSection,
+    filterProducts,
+    addToCart,
+    buyNow,
+    updateCartBadge,
+    showLoading,
+    hideLoading,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    recalculateCartTotal,
+    proceedToCheckout,
+    loadProfileData,
+    updateProfile,
+    uploadPhoto,
+    addToWishlist,
+    removeFromWishlist,
+    loadWishlist
+};
+
+// Backward-compatible aliases (temporary)
+window.showSection = window.BuyerDashboard.showSection;
+window.filterProducts = window.BuyerDashboard.filterProducts;
+window.addToCart = window.BuyerDashboard.addToCart;
+window.updateCartBadge = window.BuyerDashboard.updateCartBadge;
+window.showLoading = window.BuyerDashboard.showLoading;
+window.hideLoading = window.BuyerDashboard.hideLoading;
+window.updateQuantity = window.BuyerDashboard.updateQuantity;
+window.removeFromCart = window.BuyerDashboard.removeFromCart;
+window.clearCart = window.BuyerDashboard.clearCart;
+window.recalculateCartTotal = window.BuyerDashboard.recalculateCartTotal;
+window.proceedToCheckout = window.BuyerDashboard.proceedToCheckout;
+window.loadProfileData = window.BuyerDashboard.loadProfileData;
+window.updateProfile = window.BuyerDashboard.updateProfile;
+window.uploadPhoto = window.BuyerDashboard.uploadPhoto;
+window.addToWishlist = window.BuyerDashboard.addToWishlist;
+window.removeFromWishlist = window.BuyerDashboard.removeFromWishlist;
+window.loadWishlist = window.BuyerDashboard.loadWishlist;
 
 // Order management functions
 function viewOrderDetails(orderId) {
@@ -1054,7 +1086,7 @@ function viewOrderDetails(orderId) {
                 <div style="border-bottom: 1px solid #eee; padding-bottom: 16px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <h2 style="margin: 0; color: #2c3e50;">Order #ORD-${order.id}</h2>
-                        <span class="order-status ${order.status.toLowerCase()}" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; text-transform: uppercase;">${order.status}</span>
+                        <span class="order-status buyer-order-modal-status ${order.status.toLowerCase()}">${order.status}</span>
                     </div>
                     <p style="margin: 0; color: #666;">Placed on ${orderDate}</p>
                 </div>
@@ -1120,12 +1152,12 @@ function closeOrderModal() {
 }
 
 // Close modal when clicking outside of it
-window.onclick = function (event) {
+window.addEventListener('click', function (event) {
     const modal = document.getElementById('order-details-modal');
     if (event.target == modal) {
         closeOrderModal();
     }
-}
+});
 
 function cancelOrder(orderId) {
     if (!confirm('Are you sure you want to cancel this order?')) {
@@ -1156,9 +1188,7 @@ function cancelOrder(orderId) {
 }
 
 function trackOrder(orderId) {
-    showNotification('Loading tracking information...', 'info');
-    // TODO: Implement order tracking
-    console.log('Track order:', orderId);
+    window.location.href = window.APP_ROOT + '/buyertracking?order_id=' + orderId;
 }
 
 function reorderItems(orderId) {
@@ -1167,8 +1197,15 @@ function reorderItems(orderId) {
     console.log('Reorder items from order:', orderId);
 }
 
-window.viewOrderDetails = viewOrderDetails;
-window.cancelOrder = cancelOrder;
-window.trackOrder = trackOrder;
-window.reorderItems = reorderItems;
-window.closeOrderModal = closeOrderModal;
+window.BuyerDashboard.viewOrderDetails = viewOrderDetails;
+window.BuyerDashboard.cancelOrder = cancelOrder;
+window.BuyerDashboard.trackOrder = trackOrder;
+window.BuyerDashboard.reorderItems = reorderItems;
+window.BuyerDashboard.closeOrderModal = closeOrderModal;
+
+// Backward-compatible aliases (temporary)
+window.viewOrderDetails = window.BuyerDashboard.viewOrderDetails;
+window.cancelOrder = window.BuyerDashboard.cancelOrder;
+window.trackOrder = window.BuyerDashboard.trackOrder;
+window.reorderItems = window.BuyerDashboard.reorderItems;
+window.closeOrderModal = window.BuyerDashboard.closeOrderModal;

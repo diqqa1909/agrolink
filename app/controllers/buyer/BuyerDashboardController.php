@@ -62,6 +62,8 @@ class BuyerDashboardController
             ];
         }
 
+        $trackingRows = $this->orderModel->getDeliveryTrackingByBuyer($user_id);
+
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
@@ -70,6 +72,7 @@ class BuyerDashboardController
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
             'orders' => $ordersWithItems,
+            'trackingRows' => $trackingRows,
             'totalOrders' => $totalOrders,
             'pendingOrders' => $pendingOrders,
             'totalSpent' => $totalSpent,

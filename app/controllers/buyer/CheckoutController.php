@@ -32,6 +32,17 @@ class CheckoutController
         }
     }
 
+    private function logCheckoutDebug($message)
+    {
+        $projectRoot = dirname(__DIR__, 3);
+        $logFile = $projectRoot . '/public/debug_log.txt';
+        $line = date('Y-m-d H:i:s') . ' - ' . $message;
+
+        if (@file_put_contents($logFile, $line, FILE_APPEND) === false) {
+            error_log('CheckoutController debug log write failed: ' . $logFile);
+        }
+    }
+
     /**
      * Display checkout page
      */
@@ -358,15 +369,14 @@ class CheckoutController
         header('Content-Type: application/json');
 
         // DEBUG: Log debugging info
-        $logFile = 'debug_log.txt';
-        $logData = date('Y-m-d H:i:s') . " - placeOrder Called\n";
-        $logData .= "Session ID: " . session_id() . "\n";
-        $logData .= "Session Data: " . print_r($_SESSION, true) . "\n";
-        $logData .= "Headers: " . print_r(getallheaders(), true) . "\n";
-        file_put_contents($logFile, $logData, FILE_APPEND);
+        $this->logCheckoutDebug("placeOrder Called\n");
+        $this->logCheckoutDebug("Session ID: " . session_id() . "\n");
+        $this->logCheckoutDebug("Session Data: " . print_r($_SESSION, true) . "\n");
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        $this->logCheckoutDebug("Headers: " . print_r($headers, true) . "\n");
         
         if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            file_put_contents($logFile, "Auth Failed: USER not set or role not buyer\n", FILE_APPEND); 
+            $this->logCheckoutDebug("Auth Failed: USER not set or role not buyer\n");
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -382,9 +392,22 @@ class CheckoutController
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
+
+        if (isset($_SESSION['buy_now_product_id'])) {
+            $buyNowProductId = (int)$_SESSION['buy_now_product_id'];
+            $cartItems = array_values(array_filter($cartItems, function ($item) use ($buyNowProductId) {
+                return (int)$item->product_id === $buyNowProductId;
+            }));
+        }
+
         if (empty($cartItems)) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Cart is empty']);
+            echo json_encode([
+                'success' => false,
+                'message' => isset($_SESSION['buy_now_product_id'])
+                    ? 'Selected Buy Now item is not in cart. Please try Buy Now again.'
+                    : 'Cart is empty'
+            ]);
             exit;
         }
 
@@ -423,7 +446,7 @@ class CheckoutController
             $farmerId = $this->getFarmerIdByProductId($item->product_id);
             
             // DEBUG: Log farmer ID retrieval
-            file_put_contents($logFile, "Product {$item->product_id} ({$item->product_name}) - Farmer ID: " . ($farmerId ?? 'NULL') . "\n", FILE_APPEND);
+            $this->logCheckoutDebug("Product {$item->product_id} ({$item->product_name}) - Farmer ID: " . ($farmerId ?? 'NULL') . "\n");
             
             if (!$farmerId) {
                 $errors[] = "Could not find farmer for product: {$item->product_name}";
@@ -530,16 +553,16 @@ class CheckoutController
                 ];
 
                 // DEBUG: Log item data before insertion
-                file_put_contents($logFile, "Inserting order item: " . json_encode($itemData) . "\n", FILE_APPEND);
+                $this->logCheckoutDebug("Inserting order item: " . json_encode($itemData) . "\n");
                 
                 $addResult = $this->orderModel->addOrderItem($itemData);
                 
                 // DEBUG: Log insertion result
-                file_put_contents($logFile, "Add order item result: " . ($addResult ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
+                $this->logCheckoutDebug("Add order item result: " . ($addResult ? 'SUCCESS' : 'FAILED') . "\n");
                 
                 if (!$addResult) {
                     error_log("Failed to add item {$item->product_name} to order {$orderId}");
-                    file_put_contents($logFile, "ERROR: Failed to add item {$item->product_name} to order {$orderId}\n", FILE_APPEND);
+                    $this->logCheckoutDebug("ERROR: Failed to add item {$item->product_name} to order {$orderId}\n");
                 }
 
                 if (!$this->orderModel->updateProductQuantity($item->product_id, $item->quantity)) {
@@ -596,11 +619,11 @@ class CheckoutController
     private function getProductWeight($cropName)
     {
         $dbModel = new CartModel(); // Use existing model to access Database trait
-        $sql = "SELECT avg_weight_kg_per_unit FROM crop_volume_factors WHERE crop_name = :crop_name LIMIT 1";
+        $sql = "SELECT volume_factor FROM crop_volume_factors WHERE LOWER(crop_name) = LOWER(:crop_name) LIMIT 1";
         $result = $dbModel->query($sql, ['crop_name' => $cropName]);
         
         if ($result && is_array($result) && !empty($result)) {
-            return (float)$result[0]->avg_weight_kg_per_unit;
+            return (float)$result[0]->volume_factor;
         }
         
         return 1.0; // Default 1kg per unit
@@ -690,9 +713,9 @@ class CheckoutController
                 'required_vehicle_type_id' => $requiredVehicleTypeId
             ];
 
-            $result = $dbModel->query($insertSql, $params);
-            
-            if ($result) {
+            $result = $dbModel->write($insertSql, $params);
+
+            if ($result !== false) {
                 error_log("Delivery request created successfully for order {$orderId}");
                 return true;
             } else {

@@ -2,7 +2,7 @@
 // Content-only view for crop requests. Rendered inside buyerMain which provides navbar, head, scripts.
 ?>
 
-<div class="content-section">
+<div class="content-section crop-requests-page">
     <?php
     // ==================== LIST VIEW ====================
     if (isset($requests)):
@@ -15,14 +15,8 @@
 
         <!-- Filter Card -->
         <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Filter & Actions</h3>
-                <a href="<?= ROOT ?>/croprequest/create" class="btn btn-primary">
-                    + New Request
-                </a>
-            </div>
             <div class="card-content">
-                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <div class="crop-request-filter-row">
                     <!-- Filter: Crop Type -->
                     <select id="filterCropType" class="form-control" style="max-width: 180px;">
                         <option value="">All Crop Types</option>
@@ -68,6 +62,10 @@
                             <option value="<?= $year ?>" <?= $year == date('Y') ? 'selected' : '' ?>><?= $year ?></option>
                         <?php endforeach; ?>
                     </select>
+
+                    <a href="<?= ROOT ?>/croprequest/create" class="btn btn-primary crop-request-new-btn">
+                        + New Request
+                    </a>
                 </div>
             </div>
         </div>
@@ -109,17 +107,9 @@
                         <tbody>
                             <?php foreach ($requests as $request):
                                 // Default to 'active' if status is empty or null
-                                $status = !empty($request->status) ? $request->status : 'active';
-                                $isActive = $status === 'active';
-
-                                // Status colors using theme
-                                $statusColors = [
-                                    'active' => ['bg' => '#fff3cd', 'text' => '#856404'],
-                                    'accepted' => ['bg' => 'rgba(101, 181, 124, 0.2)', 'text' => '#499d57'],
-                                    'declined' => ['bg' => 'rgba(244, 67, 54, 0.15)', 'text' => '#d32f2f'],
-                                    'completed' => ['bg' => '#e0e0e0', 'text' => '#666']
-                                ];
-                                $statusColor = $statusColors[$status] ?? $statusColors['active'];
+                                $status = !empty($request->status) ? strtolower(trim((string)$request->status)) : 'active';
+                                $validStatuses = ['active', 'accepted', 'declined', 'completed'];
+                                $statusClass = in_array($status, $validStatuses, true) ? $status : 'active';
                             ?>
                                 <tr>
                                     <td>
@@ -135,8 +125,8 @@
                                     <td><?= date('d M, Y', strtotime($request->delivery_date)) ?></td>
                                     <td><?= htmlspecialchars($request->location) ?></td>
                                     <td>
-                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block; background: <?= $statusColor['bg'] ?>; color: <?= $statusColor['text'] ?>;">
-                                            <?= ucfirst($status) ?>
+                                        <span class="crop-request-status crop-request-status--<?= htmlspecialchars($statusClass) ?>">
+                                            <?= ucfirst($statusClass) ?>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
@@ -351,18 +341,12 @@
             <div style="margin-bottom: 24px;">
                 <?php
                 // Default to 'active' if status is empty or null
-                $status = !empty($request->status) ? $request->status : 'active';
-                
-                $statusStyles = [
-                    'active' => ['bg' => '#fff3cd', 'text' => '#856404'],
-                    'accepted' => ['bg' => 'rgba(101, 181, 124, 0.2)', 'text' => '#499d57'],
-                    'declined' => ['bg' => 'rgba(244, 67, 54, 0.15)', 'text' => '#d32f2f'],
-                    'completed' => ['bg' => '#e0e0e0', 'text' => '#666']
-                ];
-                $currentStatus = $statusStyles[$status] ?? $statusStyles['active'];
+                $status = !empty($request->status) ? strtolower(trim((string)$request->status)) : 'active';
+                $validStatuses = ['active', 'accepted', 'declined', 'completed'];
+                $statusClass = in_array($status, $validStatuses, true) ? $status : 'active';
                 ?>
-                <span style="padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; background: <?= $currentStatus['bg'] ?>; color: <?= $currentStatus['text'] ?>;">
-                    Status: <?= ucfirst($status) ?>
+                <span class="crop-request-status crop-request-status--<?= htmlspecialchars($statusClass) ?>">
+                    <?= ucfirst($statusClass) ?>
                 </span>
             </div>
 
