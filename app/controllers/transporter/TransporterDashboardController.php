@@ -273,40 +273,28 @@ class TransporterDashboardController
      */
     public function getAvailableRequests()
     {
-        // Clean output buffer and ensure JSON output
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
-        
-        $response = ['success' => false, 'requests' => [], 'debug' => []];
+
+        $response = ['success' => false, 'requests' => []];
 
         try {
             if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
                 $transporterModel = new TransporterModel();
-                $vehicleModel = new VehicleModel();
-                
-                // Check if transporter has vehicles
-                $vehicles = $vehicleModel->getByUserId($_SESSION['USER']->id);
-                $vehicles = is_array($vehicles) ? $vehicles : [];
-                
-                $activeVehicles = array_filter($vehicles, function($v) {
-                    return isset($v->status) && $v->status === 'active';
-                });
-                
-                $response['debug']['total_vehicles'] = count($vehicles);
-                $response['debug']['active_vehicles'] = count($activeVehicles);
-                
-                // Check total pending delivery requests
-                $allPending = $transporterModel->query("SELECT COUNT(*) as total FROM delivery_requests WHERE status = 'pending'", []);
-                $response['debug']['total_pending_requests'] = (is_array($allPending) && !empty($allPending)) ? $allPending[0]->total : 0;
-                
-                $requests = $transporterModel->getAvailableDeliveryRequests($_SESSION['USER']->id);
+
+                $filters = [
+                    'location' => trim((string)($_GET['location'] ?? '')),
+                    'max_distance' => isset($_GET['max_distance']) ? (float)$_GET['max_distance'] : 0,
+                    'max_weight' => isset($_GET['max_weight']) ? (float)$_GET['max_weight'] : 0,
+                    'min_payment' => isset($_GET['min_payment']) ? (float)$_GET['min_payment'] : 0,
+                ];
+
+                $requests = $transporterModel->getAvailableDeliveryRequests($_SESSION['USER']->id, $filters);
                 $response['success'] = true;
                 $response['requests'] = is_array($requests) ? $requests : [];
-                $response['debug']['matched_requests'] = count($response['requests']);
             }
         } catch (Exception $e) {
             $response['error'] = $e->getMessage();
-            $response['debug']['exception'] = true;
         }
 
         echo json_encode($response);
@@ -321,7 +309,21 @@ class TransporterDashboardController
         $response = ['success' => false, 'requests' => []];
 
         if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
-            $status = $_GET['status'] ?? null;
+            $rawStatus = strtolower(trim((string)($_GET['status'] ?? '')));
+            $statusMap = [
+                'all' => null,
+                'pending' => 'pending',
+                'accepted' => 'accepted',
+                'running' => 'in_transit',
+                'in_transit' => 'in_transit',
+                'in-transit' => 'in_transit',
+                'in-progress' => 'in_transit',
+                'delivered' => 'delivered',
+                'completed' => 'delivered',
+                'cancelled' => 'cancelled',
+            ];
+
+            $status = array_key_exists($rawStatus, $statusMap) ? $statusMap[$rawStatus] : null;
             $transporterModel = new TransporterModel();
             $requests = $transporterModel->getMyDeliveryRequests($_SESSION['USER']->id, $status);
             $response['success'] = true;
@@ -337,19 +339,9 @@ class TransporterDashboardController
      */
     public function acceptRequest($id = null)
     {
-        // Enable error logging
-        error_log("=== acceptRequest called ===");
-        error_log("Raw parameter received: " . var_export($id, true));
-        error_log("All function arguments: " . var_export(func_get_args(), true));
-        error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
-        error_log("Request URI: " . $_SERVER['REQUEST_URI']);
-        error_log("Session USER: " . json_encode($_SESSION['USER'] ?? 'not set'));
-        
         $response = ['success' => false, 'message' => 'Failed to accept delivery request'];
 
-        // Convert string "0" to null
         if ($id === '0' || $id === 0 || empty($id)) {
-            error_log("Invalid ID provided: " . var_export($id, true));
             $response['message'] = 'Invalid delivery request ID';
             echo json_encode($response);
             exit;
@@ -358,7 +350,6 @@ class TransporterDashboardController
         if ($id) {
             if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
                 $response['message'] = 'Unauthorized access';
-                error_log("Authorization failed");
                 echo json_encode($response);
                 exit;
             }
@@ -366,12 +357,10 @@ class TransporterDashboardController
             // Check if transporter has active vehicles
             $vehicleModel = new VehicleModel();
             $vehicles = $vehicleModel->getByUserId($_SESSION['USER']->id);
-            error_log("Vehicles found: " . count($vehicles));
             
             $hasActiveVehicle = false;
             if (is_array($vehicles)) {
                 foreach ($vehicles as $vehicle) {
-                    error_log("Vehicle status: " . ($vehicle->status ?? 'no status'));
                     if ($vehicle->status === 'active') {
                         $hasActiveVehicle = true;
                         break;
@@ -381,14 +370,12 @@ class TransporterDashboardController
 
             if (!$hasActiveVehicle) {
                 $response['message'] = 'You must have at least one active vehicle to accept deliveries';
-                error_log("No active vehicles");
                 echo json_encode($response);
                 exit;
             }
 
             $transporterModel = new TransporterModel();
             $result = $transporterModel->acceptDeliveryRequest($id, $_SESSION['USER']->id);
-            error_log("Accept result: " . ($result ? 'true' : 'false'));
 
             if ($result) {
                 $response['success'] = true;
@@ -396,8 +383,6 @@ class TransporterDashboardController
             } else {
                 $response['message'] = 'This request is no longer available or has already been accepted';
             }
-        } else {
-            error_log("No ID provided after validation");
         }
 
         echo json_encode($response);

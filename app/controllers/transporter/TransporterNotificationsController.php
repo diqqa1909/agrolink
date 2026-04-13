@@ -1,6 +1,6 @@
 <?php
 
-class FarmerNotificationsController
+class TransporterNotificationsController
 {
     use Controller;
 
@@ -8,41 +8,38 @@ class FarmerNotificationsController
 
     public function __construct()
     {
-        $this->notificationsModel = new FarmerNotificationsModel();
+        $this->notificationsModel = new TransporterNotificationsModel();
     }
 
-    private function isAuthorizedFarmer()
+    private function isAuthorizedTransporter()
     {
-        return isset($_SESSION['USER']) && (($_SESSION['USER']->role ?? '') === 'farmer');
+        return isset($_SESSION['USER']) && (($_SESSION['USER']->role ?? '') === 'transporter');
     }
 
-    private function getFarmerId()
+    private function getTransporterId()
     {
         return (int)($_SESSION['USER']->id ?? 0);
     }
 
     public function index()
     {
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             return redirect('login');
         }
 
-        $farmerId = $this->getFarmerId();
-        $notifications = $this->notificationsModel->getNotifications($farmerId, 'all');
-        $settings = $this->notificationsModel->getSettings($farmerId);
-        $unreadCount = $this->notificationsModel->getUnreadCount($farmerId);
+        $transporterId = $this->getTransporterId();
 
         $data = [
             'pageTitle' => 'Notifications',
             'activePage' => 'notifications',
-            'notificationUnreadCount' => $unreadCount,
-            'notifications' => $notifications,
-            'notificationSettings' => $settings,
-            'contentView' => '../app/views/farmer/farmerNotifications.view.php',
-            'pageScript' => 'farmerNotifications.js',
+            'notifications' => $this->notificationsModel->getNotifications($transporterId, 'all'),
+            'notificationUnreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
+            'notificationSettings' => $this->notificationsModel->getSettings($transporterId),
+            'contentView' => '../app/views/transporter/transporterNotifications.view.php',
+            'pageScript' => 'transporterNotifications.js',
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('transporter/transporterMain', $data);
     }
 
     public function list()
@@ -50,20 +47,20 @@ class FarmerNotificationsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
-        $farmerId = $this->getFarmerId();
+        $transporterId = $this->getTransporterId();
         $filter = trim((string)($_GET['filter'] ?? 'all'));
 
         echo json_encode([
             'success' => true,
-            'notifications' => $this->notificationsModel->getNotifications($farmerId, $filter),
-            'settings' => $this->notificationsModel->getSettings($farmerId),
-            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
+            'notifications' => $this->notificationsModel->getNotifications($transporterId, $filter),
+            'settings' => $this->notificationsModel->getSettings($transporterId),
+            'unreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
         ]);
         exit;
     }
@@ -73,7 +70,7 @@ class FarmerNotificationsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -85,15 +82,15 @@ class FarmerNotificationsController
             exit;
         }
 
-        $farmerId = $this->getFarmerId();
-        // Ensure generated notifications are synced before marking all as read.
-        $this->notificationsModel->getNotifications($farmerId, 'all');
-        $this->notificationsModel->markAllAsRead($farmerId);
+        $transporterId = $this->getTransporterId();
+        $this->notificationsModel->getNotifications($transporterId, 'all');
+        $this->notificationsModel->markAllAsRead($transporterId);
 
         echo json_encode([
             'success' => true,
-            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
-            'notifications' => $this->notificationsModel->getNotifications($farmerId, 'all'),
+            'notifications' => $this->notificationsModel->getNotifications($transporterId, 'all'),
+            'settings' => $this->notificationsModel->getSettings($transporterId),
+            'unreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
         ]);
         exit;
     }
@@ -103,7 +100,7 @@ class FarmerNotificationsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -115,7 +112,7 @@ class FarmerNotificationsController
             exit;
         }
 
-        $farmerId = $this->getFarmerId();
+        $transporterId = $this->getTransporterId();
         $notificationId = (int)($_POST['notification_id'] ?? 0);
         if ($notificationId <= 0) {
             http_response_code(422);
@@ -123,11 +120,11 @@ class FarmerNotificationsController
             exit;
         }
 
-        $updated = $this->notificationsModel->markAsRead($farmerId, $notificationId);
+        $updated = $this->notificationsModel->markAsRead($transporterId, $notificationId);
 
         echo json_encode([
             'success' => (bool)$updated,
-            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
+            'unreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
         ]);
         exit;
     }
@@ -137,16 +134,16 @@ class FarmerNotificationsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
-        $farmerId = $this->getFarmerId();
+        $transporterId = $this->getTransporterId();
         echo json_encode([
             'success' => true,
-            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
+            'unreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
         ]);
         exit;
     }
@@ -156,7 +153,7 @@ class FarmerNotificationsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!$this->isAuthorizedFarmer()) {
+        if (!$this->isAuthorizedTransporter()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -168,25 +165,22 @@ class FarmerNotificationsController
             exit;
         }
 
-        $farmerId = $this->getFarmerId();
-
+        $transporterId = $this->getTransporterId();
         $payload = [
-            'orders' => !empty($_POST['orders']),
-            'crop_requests' => !empty($_POST['crop_requests']),
             'deliveries' => !empty($_POST['deliveries']),
             'reviews' => !empty($_POST['reviews']),
             'system' => !empty($_POST['system']),
             'email_notifications' => !empty($_POST['email_notifications']),
         ];
 
-        $settings = $this->notificationsModel->saveSettings($farmerId, $payload);
+        $settings = $this->notificationsModel->saveSettings($transporterId, $payload);
 
         echo json_encode([
             'success' => true,
             'message' => 'Notification settings saved',
             'settings' => $settings,
-            'notifications' => $this->notificationsModel->getNotifications($farmerId, 'all'),
-            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
+            'notifications' => $this->notificationsModel->getNotifications($transporterId, 'all'),
+            'unreadCount' => $this->notificationsModel->getUnreadCount($transporterId),
         ]);
         exit;
     }

@@ -2,8 +2,14 @@
 
 class FarmerNotificationsModel
 {
-    private const SESSION_READ_KEY = 'FARMER_NOTIFICATIONS_READ';
-    private const SESSION_SETTINGS_KEY = 'FARMER_NOTIFICATION_SETTINGS';
+    private $store;
+    private $settingsStore;
+
+    public function __construct()
+    {
+        $this->store = new NotificationsModel();
+        $this->settingsStore = new NotificationSettingsModel();
+    }
 
     public function getDefaultSettings()
     {
@@ -19,125 +25,112 @@ class FarmerNotificationsModel
 
     public function getSettings($farmerId)
     {
-        $defaults = $this->getDefaultSettings();
-        $stored = $_SESSION[self::SESSION_SETTINGS_KEY][$farmerId] ?? [];
-        if (!is_array($stored)) {
-            return $defaults;
-        }
-
-        foreach ($defaults as $key => $value) {
-            if (array_key_exists($key, $stored)) {
-                $defaults[$key] = (bool)$stored[$key];
-            }
-        }
-
-        return $defaults;
+        return $this->settingsStore->getSettings((int)$farmerId, $this->getDefaultSettings());
     }
 
     public function saveSettings($farmerId, $settings)
     {
-        $current = $this->getDefaultSettings();
-        foreach ($current as $key => $value) {
-            if (array_key_exists($key, $settings)) {
-                $current[$key] = (bool)$settings[$key];
-            }
-        }
+        return $this->settingsStore->saveSettings((int)$farmerId, (array)$settings, $this->getDefaultSettings());
+    }
 
-        if (!isset($_SESSION[self::SESSION_SETTINGS_KEY])) {
-            $_SESSION[self::SESSION_SETTINGS_KEY] = [];
-        }
-        $_SESSION[self::SESSION_SETTINGS_KEY][$farmerId] = $current;
-
-        return $current;
+    private function getManagedTypes()
+    {
+        return [
+            'orders',
+            'crop_requests',
+            'deliveries',
+            'reviews',
+            'system',
+        ];
     }
 
     public function getNotifications($farmerId, $filter = 'all')
     {
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0) {
+            return [];
+        }
+
+        $this->store->syncNotifications($farmerId, $this->buildAllNotifications($farmerId), $this->getManagedTypes());
         $settings = $this->getSettings($farmerId);
-        $items = [];
-
-        if ($settings['orders']) {
-            $items = array_merge($items, $this->getOrderNotifications($farmerId));
-        }
-        if ($settings['crop_requests']) {
-            $items = array_merge($items, $this->getCropRequestNotifications());
-        }
-        if ($settings['deliveries']) {
-            $items = array_merge($items, $this->getDeliveryNotifications($farmerId));
-        }
-        if ($settings['reviews']) {
-            $items = array_merge($items, $this->getReviewNotifications($farmerId));
-        }
-        if ($settings['system']) {
-            $items = array_merge($items, $this->getSystemNotifications());
+        $allowedTypes = $this->getEnabledTypes($settings);
+        if (empty($allowedTypes)) {
+            return [];
         }
 
-        $readMap = $this->getReadMap($farmerId);
-        foreach ($items as &$item) {
-            $item['is_read'] = !empty($readMap[$item['id']]);
-        }
-        unset($item);
-
-        usort($items, function ($a, $b) {
-            $timeA = strtotime($a['created_at'] ?? '') ?: 0;
-            $timeB = strtotime($b['created_at'] ?? '') ?: 0;
-            return $timeB <=> $timeA;
-        });
-
-        return $this->applyFilter($items, $filter);
+        return $this->store->listNotifications($farmerId, $filter, $allowedTypes);
     }
 
     public function getUnreadCount($farmerId)
     {
-        $all = $this->getNotifications($farmerId, 'all');
-        $count = 0;
-        foreach ($all as $item) {
-            if (empty($item['is_read'])) {
-                $count++;
-            }
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0) {
+            return 0;
         }
-        return $count;
+
+        $this->store->syncNotifications($farmerId, $this->buildAllNotifications($farmerId), $this->getManagedTypes());
+        $settings = $this->getSettings($farmerId);
+        $allowedTypes = $this->getEnabledTypes($settings);
+        if (empty($allowedTypes)) {
+            return 0;
+        }
+
+        return $this->store->getUnreadCount($farmerId, $allowedTypes);
     }
 
     public function markAllAsRead($farmerId)
     {
-        $all = $this->getNotifications($farmerId, 'all');
-        $readMap = $this->getReadMap($farmerId);
-        foreach ($all as $item) {
-            $readMap[$item['id']] = time();
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0) {
+            return false;
         }
-        $this->setReadMap($farmerId, $readMap);
+
+        return $this->store->markAllAsRead($farmerId);
     }
 
-    private function applyFilter($items, $filter)
+    public function markAsRead($farmerId, $notificationId)
     {
-        $normalized = strtolower(trim((string)$filter));
-        if ($normalized === '' || $normalized === 'all') {
-            return $items;
+        $farmerId = (int)$farmerId;
+        $notificationId = (int)$notificationId;
+
+        if ($farmerId <= 0 || $notificationId <= 0) {
+            return false;
         }
 
-        return array_values(array_filter($items, function ($item) use ($normalized) {
-            if ($normalized === 'unread') {
-                return empty($item['is_read']);
+        return $this->store->markAsRead($farmerId, $notificationId);
+    }
+
+    private function getEnabledTypes(array $settings)
+    {
+        $types = [];
+        foreach ($settings as $key => $enabled) {
+            if ($key === 'email_notifications') {
+                continue;
             }
-            return ($item['category'] ?? '') === $normalized;
-        }));
+
+            if (!empty($enabled)) {
+                $types[] = $key;
+            }
+        }
+
+        return $types;
     }
 
-    private function getReadMap($farmerId)
+    private function asArray($rows)
     {
-        if (!isset($_SESSION[self::SESSION_READ_KEY][$farmerId]) || !is_array($_SESSION[self::SESSION_READ_KEY][$farmerId])) {
-            return [];
-        }
-        return $_SESSION[self::SESSION_READ_KEY][$farmerId];
+        return is_array($rows) ? $rows : [];
     }
 
-    private function setReadMap($farmerId, $map)
+    private function buildAllNotifications($farmerId)
     {
-        if (!isset($_SESSION[self::SESSION_READ_KEY])) {
-            $_SESSION[self::SESSION_READ_KEY] = [];
-        }
-        $_SESSION[self::SESSION_READ_KEY][$farmerId] = $map;
+        $items = [];
+        $items = array_merge($items, $this->getOrderNotifications($farmerId));
+        $items = array_merge($items, $this->getCropRequestNotifications());
+        $items = array_merge($items, $this->getDeliveryNotifications($farmerId));
+        $items = array_merge($items, $this->getReviewNotifications($farmerId));
+        $items = array_merge($items, $this->getSystemNotifications($farmerId));
+
+        return $items;
     }
 
     private function getOrderNotifications($farmerId)
@@ -159,6 +152,7 @@ class FarmerNotificationsModel
                 'icon' => 'orders',
                 'title' => $title,
                 'message' => 'Order #' . (int)$order->id . ' • ' . $statusText . ' • Your earning: Rs. ' . $amount,
+                'related_id' => (int)$order->id,
                 'created_at' => $order->updated_at ?? $order->created_at ?? date('Y-m-d H:i:s'),
                 'link' => 'farmerorders',
             ];
@@ -189,6 +183,7 @@ class FarmerNotificationsModel
                 'icon' => 'crop_requests',
                 'title' => $title,
                 'message' => $crop . ' • ' . rtrim(rtrim(number_format($qty, 2), '0'), '.') . ' kg • ' . $statusText,
+                'related_id' => (int)$request->id,
                 'created_at' => $request->updated_at ?? $request->created_at ?? date('Y-m-d H:i:s'),
                 'link' => 'farmercroprequests',
             ];
@@ -216,6 +211,7 @@ class FarmerNotificationsModel
                 'icon' => 'deliveries',
                 'title' => $title,
                 'message' => 'Delivery #' . $deliveryId . ' for Order #' . $orderId . ' • ' . $statusText,
+                'related_id' => $deliveryId,
                 'created_at' => $delivery->updated_at ?? $delivery->created_at ?? date('Y-m-d H:i:s'),
                 'link' => 'farmerdeliveries',
             ];
@@ -244,6 +240,7 @@ class FarmerNotificationsModel
                 'icon' => 'reviews',
                 'title' => 'New Review Received',
                 'message' => $buyer . ' gave ' . $rating . '-star review for ' . $product,
+                'related_id' => (int)$review->id,
                 'created_at' => $review->created_at ?? date('Y-m-d H:i:s'),
                 'link' => 'farmerreviews',
             ];
@@ -252,28 +249,70 @@ class FarmerNotificationsModel
         return $notifications;
     }
 
-    private function getSystemNotifications()
+    private function getSystemNotifications($farmerId)
     {
-        return [
-            [
-                'id' => 'system_profile',
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0) {
+            return [];
+        }
+
+        $notifications = [];
+        $farmerModel = new FarmerModel();
+        $profile = $farmerModel->getProfileByUserId($farmerId);
+        $productsModel = new ProductsModel();
+        $payoutModel = new PayoutAccountsModel();
+
+        $profileObj = is_object($profile) ? $profile : null;
+        $missingFields = [];
+
+        if (trim((string)($profileObj->phone ?? '')) === '') {
+            $missingFields[] = 'phone number';
+        }
+        if (trim((string)($profileObj->district ?? '')) === '') {
+            $missingFields[] = 'district';
+        }
+        if (trim((string)($profileObj->full_address ?? '')) === '') {
+            $missingFields[] = 'farm address';
+        }
+
+        if (!empty($missingFields)) {
+            $notifications[] = [
+                'id' => 'system_profile_missing_' . $farmerId,
                 'category' => 'system',
                 'icon' => 'system',
-                'title' => 'Keep Profile Updated',
-                'message' => 'Ensure profile and payout details are up to date to avoid payout delays.',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                'title' => 'Complete Profile Details',
+                'message' => 'Add ' . implode(', ', array_slice($missingFields, 0, 3)) . ' to keep order and delivery operations smooth.',
+                'created_at' => date('Y-m-d H:i:s'),
                 'link' => 'farmerprofile',
-            ],
-            [
-                'id' => 'system_shipping',
+            ];
+        }
+
+        $payoutAccount = $payoutModel->getDefaultAccountByUserId($farmerId);
+        if (!$payoutAccount) {
+            $notifications[] = [
+                'id' => 'system_payout_missing_' . $farmerId,
                 'category' => 'system',
                 'icon' => 'system',
-                'title' => 'System Update',
-                'message' => 'Delivery status and earnings views were improved for better tracking.',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-3 days')),
-                'link' => 'farmerdashboard',
-            ],
-        ];
+                'title' => 'Add Payout Account',
+                'message' => 'Set your payout account details to receive earnings without delay.',
+                'created_at' => date('Y-m-d H:i:s'),
+                'link' => 'farmerprofile',
+            ];
+        }
+
+        $products = $productsModel->getByFarmer($farmerId);
+        if (!is_array($products) || empty($products)) {
+            $notifications[] = [
+                'id' => 'system_no_products_' . $farmerId,
+                'category' => 'system',
+                'icon' => 'system',
+                'title' => 'No Products Listed',
+                'message' => 'Add products to start receiving orders from buyers.',
+                'created_at' => date('Y-m-d H:i:s'),
+                'link' => 'farmerproducts',
+            ];
+        }
+
+        return $notifications;
     }
 }
-

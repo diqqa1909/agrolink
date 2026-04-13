@@ -204,100 +204,100 @@
 </div>
 
 <script>
-function showFeedbackNotice(message, type = 'info') {
-    if (typeof showNotification === 'function') {
-        showNotification(message, type);
-        return;
-    }
-    alert(message);
-}
-
-function openReviewModal(type, orderId, productId, targetId, productName, targetName) {
-    document.getElementById('review-type').value = type;
-    document.getElementById('review-product-name').textContent = (type === 'transporter' ? 'Delivery: ' : 'Product: ') + productName + ' • ' + (type === 'transporter' ? 'Transporter: ' : 'Farmer: ') + targetName;
-    document.getElementById('review-order-id').value = orderId;
-    document.getElementById('review-product-id').value = productId;
-    document.getElementById('review-farmer-id').value = type === 'farmer' ? targetId : '';
-    document.getElementById('review-transporter-id').value = type === 'transporter' ? targetId : '';
-    document.getElementById('review-rating').value = '';
-    document.getElementById('review-comment').value = '';
-    highlightStars(0);
-    document.getElementById('review-modal').style.display = 'block';
-}
-
-function closeReviewModal() {
-    const modal = document.getElementById('review-modal');
-    if (modal) modal.style.display = 'none';
-}
-
-function setRating(val) {
-    document.getElementById('review-rating').value = val;
-    highlightStars(val);
-}
-
-function highlightStars(val) {
-    const stars = document.querySelectorAll('.rating-stars span');
-    stars.forEach(star => {
-        star.style.color = Number(star.dataset.val) <= Number(val) ? '#f59e0b' : '#d0d5dd';
-    });
-}
-
-function submitReview(e) {
-    e.preventDefault();
-    const rating = document.getElementById('review-rating').value;
-    if (!rating) {
-        showFeedbackNotice('Please select a star rating', 'error');
-        return;
-    }
-
-    const formData = new FormData(e.target);
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
-
-    fetch('<?= ROOT ?>/buyerreviews/submit', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showFeedbackNotice(data.message || 'Review submitted', 'success');
-            setTimeout(() => window.location.reload(), 500);
-        } else {
-            showFeedbackNotice(data.message || 'Failed to submit review', 'error');
-            btn.disabled = false;
-            btn.textContent = originalText;
+    function showFeedbackNotice(message, type = 'info') {
+        if (typeof showNotification === 'function') {
+            showNotification(message, type);
+            return;
         }
-    })
-    .catch(() => {
-        showFeedbackNotice('An error occurred while submitting review', 'error');
-        btn.disabled = false;
-        btn.textContent = originalText;
-    });
-}
+        alert(message);
+    }
 
-document.querySelectorAll('.rating-stars span').forEach(star => {
-    star.addEventListener('mouseover', function() {
-        highlightStars(this.dataset.val);
-    });
-    star.addEventListener('mouseout', function() {
-        highlightStars(document.getElementById('review-rating').value || 0);
-    });
-});
+    function openReviewModal(type, orderId, productId, targetId, productName, targetName) {
+        document.getElementById('review-type').value = type;
+        document.getElementById('review-product-name').textContent = (type === 'transporter' ? 'Delivery: ' : 'Product: ') + productName + ' • ' + (type === 'transporter' ? 'Transporter: ' : 'Farmer: ') + targetName;
+        document.getElementById('review-order-id').value = orderId;
+        document.getElementById('review-product-id').value = productId;
+        document.getElementById('review-farmer-id').value = type === 'farmer' ? targetId : '';
+        document.getElementById('review-transporter-id').value = type === 'transporter' ? targetId : '';
+        document.getElementById('review-rating').value = '';
+        document.getElementById('review-comment').value = '';
+        highlightStars(0);
+        document.getElementById('review-modal').style.display = 'block';
+    }
 
-window.BuyerReviews = {
-    openReviewModal,
-    closeReviewModal,
-    setRating,
-    submitReview
-};
+    function closeReviewModal() {
+        const modal = document.getElementById('review-modal');
+        if (modal) modal.style.display = 'none';
+    }
 
-// Backward-compatible aliases
-window.openReviewModal = window.BuyerReviews.openReviewModal;
-window.closeReviewModal = window.BuyerReviews.closeReviewModal;
-window.setRating = window.BuyerReviews.setRating;
-window.submitReview = window.BuyerReviews.submitReview;
+    function setRating(val) {
+        document.getElementById('review-rating').value = val;
+        highlightStars(val);
+    }
+
+    function highlightStars(val) {
+        const stars = document.querySelectorAll('.rating-stars span');
+        stars.forEach(star => {
+            star.style.color = Number(star.dataset.val) <= Number(val) ? '#f59e0b' : '#d0d5dd';
+        });
+    }
+
+    function submitReview(e) {
+        e.preventDefault();
+        const rating = document.getElementById('review-rating').value;
+        if (!rating) {
+            showFeedbackNotice('Please select a star rating', 'error');
+            return;
+        }
+
+        const formData = new FormData(e.target);
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+
+        fetch('<?= ROOT ?>/buyerreviews/submit', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFeedbackNotice(data.message || 'Review submitted', 'success');
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    showFeedbackNotice(data.message || 'Failed to submit review', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            })
+            .catch(() => {
+                showFeedbackNotice('An error occurred while submitting review', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+    }
+
+    document.querySelectorAll('.rating-stars span').forEach(star => {
+        star.addEventListener('mouseover', function() {
+            highlightStars(this.dataset.val);
+        });
+        star.addEventListener('mouseout', function() {
+            highlightStars(document.getElementById('review-rating').value || 0);
+        });
+    });
+
+    window.BuyerReviews = {
+        openReviewModal,
+        closeReviewModal,
+        setRating,
+        submitReview
+    };
+
+    // Backward-compatible aliases
+    window.openReviewModal = window.BuyerReviews.openReviewModal;
+    window.closeReviewModal = window.BuyerReviews.closeReviewModal;
+    window.setRating = window.BuyerReviews.setRating;
+    window.submitReview = window.BuyerReviews.submitReview;
 </script>

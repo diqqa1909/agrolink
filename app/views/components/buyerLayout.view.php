@@ -18,6 +18,28 @@
     <?php
     $username = $_SESSION['USER']->name ?? 'Buyer';
     $role = $_SESSION['USER']->role ?? 'buyer';
+    $cartItemCount = isset($cartItemCount) ? (int)$cartItemCount : 0;
+    if (isset($_SESSION['USER']->id) && $role === 'buyer') {
+        try {
+            $cartModel = new CartModel();
+            $cartItemCount = $cartModel->getCartItemCount((int)$_SESSION['USER']->id);
+        } catch (Throwable $e) {
+            // Keep the controller-provided value if DB refresh fails.
+        }
+    }
+
+    $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
+    if ($notificationUnreadCount === null && isset($_SESSION['USER']->id) && $role === 'buyer') {
+        try {
+            $notificationsModel = new BuyerNotificationsModel();
+            $notificationUnreadCount = $notificationsModel->getUnreadCount((int)$_SESSION['USER']->id);
+        } catch (Throwable $e) {
+            $notificationUnreadCount = 0;
+        }
+    }
+    if ($notificationUnreadCount === null) {
+        $notificationUnreadCount = 0;
+    }
     include '../app/views/components/dashboardNavBar.view.php';
     ?>
 
@@ -92,7 +114,7 @@
                             </svg>
                         </div>
                         Cart
-                        <span class="cart-badge">0</span>
+                        <span class="cart-badge" style="<?= $cartItemCount > 0 ? '' : 'display:none;' ?>"><?= $cartItemCount ?></span>
                     </a>
                 </li>
                 <li>
@@ -124,8 +146,10 @@
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
                         </div>
-                        Notifications
-                        <span class="badge">5</span>
+                        <span class="menu-label-with-badge">
+                            <span>Notifications</span>
+                            <span id="buyerNotificationBadge" class="notification-sidebar-badge <?= $notificationUnreadCount > 0 ? '' : 'is-hidden' ?>"><?= $notificationUnreadCount ?></span>
+                        </span>
                     </a>
                 </li>
                 <li>

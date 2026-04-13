@@ -127,10 +127,10 @@
                         <div class="buyer-products-secondary-actions">
                             <button class="btn btn-primary btn-add-cart buyer-product-action-btn"
                                 onclick="BuyerDashboard.addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
-                                 Add to Cart
+                                Add to Cart
                             </button>
                             <button class="btn btn-outline buyer-product-action-btn" onclick="BuyerDashboard.addToWishlist(<?= $product->id ?>, event)">
-                                 Wishlist
+                                Wishlist
                             </button>
                         </div>
                     </div>

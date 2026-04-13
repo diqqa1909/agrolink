@@ -6,13 +6,26 @@ class BuyerModel
 
     protected $table = 'buyer_profiles';
     protected $userTable = 'users';
+    private $hasAdditionalAddressField = null;
+
+    private function supportsAdditionalAddressField()
+    {
+        if ($this->hasAdditionalAddressField !== null) {
+            return $this->hasAdditionalAddressField;
+        }
+
+        $sql = "SHOW COLUMNS FROM {$this->table} LIKE 'additional_address_details'";
+        $rows = $this->query($sql);
+        $this->hasAdditionalAddressField = is_array($rows) && !empty($rows);
+        return $this->hasAdditionalAddressField;
+    }
 
     /**
      * Get buyer profile by user ID
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT bp.*, u.name, u.email 
+        $sql = "SELECT bp.*, u.name, u.email, u.status, u.deactivated_at
                 FROM {$this->table} bp
                 LEFT JOIN {$this->userTable} u ON u.id = bp.user_id
                 WHERE bp.user_id = :user_id";
@@ -25,9 +38,16 @@ class BuyerModel
      */
     public function createProfile($userId, $data)
     {
-        $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, apartment_code, street_name, city, district, postal_code, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :apartment_code, :street_name, :city, :district, :postal_code, :profile_photo, NOW(), NOW())";
+        $hasAdditionalAddress = $this->supportsAdditionalAddressField();
+        $columns = ['user_id', 'phone', 'apartment_code', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
+        if ($hasAdditionalAddress) {
+            $columns[] = 'additional_address_details';
+        }
+
+        $columnSql = implode(', ', $columns);
+        $valueSql = ':' . implode(', :', $columns);
+        $sql = "INSERT INTO {$this->table} ({$columnSql}, created_at, updated_at)
+                VALUES ({$valueSql}, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
@@ -39,6 +59,9 @@ class BuyerModel
             'postal_code' => $data['postal_code'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
         ];
+        if ($hasAdditionalAddress) {
+            $params['additional_address_details'] = $data['additional_address_details'] ?? null;
+        }
 
         return $this->write($sql, $params);
     }
@@ -49,6 +72,9 @@ class BuyerModel
     public function updateProfile($userId, $data)
     {
         $allowed = ['phone', 'apartment_code', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
+        if ($this->supportsAdditionalAddressField()) {
+            $allowed[] = 'additional_address_details';
+        }
         $set = [];
         $params = ['user_id' => $userId];
 
@@ -120,95 +146,101 @@ class BuyerModel
     {
         $errors = [];
 
-        // Validate name (if provided)
-        if (!empty($data['name'])) {
-            if (strlen($data['name']) < 2) {
-                $errors['name'] = 'Full name must be at least 2 characters';
-            } elseif (strlen($data['name']) > 100) {
-                $errors['name'] = 'Full name is too long (max 100 characters)';
-            } elseif (!preg_match('/^[a-zA-Z\s\-\.]+$/', $data['name'])) {
-                $errors['name'] = 'Full name can only contain letters, spaces, hyphens, and dots';
-            }
+        $name = trim((string)($data['name'] ?? ''));
+        $email = trim((string)($data['email'] ?? ''));
+        $phone = trim((string)($data['phone'] ?? ''));
+        $district = trim((string)($data['district'] ?? ''));
+        $apartmentCode = trim((string)($data['apartment_code'] ?? ''));
+        $streetName = trim((string)($data['street_name'] ?? ''));
+        $city = trim((string)($data['city'] ?? ''));
+        $postalCode = trim((string)($data['postal_code'] ?? ''));
+        $additionalAddress = trim((string)($data['additional_address_details'] ?? ''));
+
+        if ($name === '') {
+            $errors['name'] = 'Full name is required';
+        } elseif (strlen($name) < 2) {
+            $errors['name'] = 'Full name must be at least 2 characters';
+        } elseif (strlen($name) > 100) {
+            $errors['name'] = 'Full name is too long (max 100 characters)';
+        } elseif (!preg_match('/^[a-zA-Z\s\-\.]+$/', $name)) {
+            $errors['name'] = 'Full name can only contain letters, spaces, hyphens, and dots';
         }
 
-        // Validate email (if provided)
-        if (!empty($data['email'])) {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        if ($email !== '') {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errors['email'] = 'Please enter a valid email address';
-            } elseif (strlen($data['email']) > 100) {
+            } elseif (strlen($email) > 100) {
                 $errors['email'] = 'Email is too long (max 100 characters)';
             }
         }
 
-        // Validate phone (optional but if provided, must be valid)
-        if (!empty($data['phone'])) {
-            // Remove all non-digit characters for validation
-            $cleanPhone = preg_replace('/[^0-9+]/', '', $data['phone']);
-
+        if ($phone === '') {
+            $errors['phone'] = 'Phone number is required';
+        } else {
+            $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
             if (!preg_match('/^(\+?94|0)[0-9]{9}$/', $cleanPhone)) {
-                $errors['phone'] = 'Phone number must be a valid Sri Lankan number (e.g., +94XXXXXXXXX or 0XXXXXXXXX)';
+                $errors['phone'] = 'Phone number must be a valid Sri Lankan number';
             }
         }
 
-        // Validate district (if provided)
-        if (!empty($data['district'])) {
-            $validDistricts = [
-                'Ampara',
-                'Anuradhapura',
-                'Badulla',
-                'Batticaloa',
-                'Colombo',
-                'Galle',
-                'Gampaha',
-                'Jaffna',
-                'Kalutara',
-                'Kandy',
-                'Kegalle',
-                'Kilinochchi',
-                'Kurunegala',
-                'Mannar',
-                'Matale',
-                'Matara',
-                'Mullaitivu',
-                'Nuwara Eliya',
-                'Polonnaruwa',
-                'Puttalam',
-                'Ratnapura',
-                'Trincomalee',
-                'Vavuniya'
-            ];
+        $validDistricts = [
+            'Ampara',
+            'Anuradhapura',
+            'Badulla',
+            'Batticaloa',
+            'Colombo',
+            'Galle',
+            'Gampaha',
+            'Jaffna',
+            'Kalutara',
+            'Kandy',
+            'Kegalle',
+            'Kilinochchi',
+            'Kurunegala',
+            'Mannar',
+            'Matale',
+            'Matara',
+            'Mullaitivu',
+            'Nuwara Eliya',
+            'Polonnaruwa',
+            'Puttalam',
+            'Ratnapura',
+            'Trincomalee',
+            'Vavuniya'
+        ];
 
-            if (!in_array($data['district'], $validDistricts)) {
-                $errors['district'] = 'Please select a valid district';
-            }
+        if ($district === '') {
+            $errors['district'] = 'District is required';
+        } elseif (!in_array($district, $validDistricts, true)) {
+            $errors['district'] = 'Please select a valid district';
         }
 
-        // Validate apartment_code (optional)
-        if (!empty($data['apartment_code'])) {
-            if (strlen($data['apartment_code']) > 50) {
+        if ($apartmentCode !== '') {
+            if (strlen($apartmentCode) > 50) {
                 $errors['apartment_code'] = 'Apartment code is too long (max 50 characters)';
             }
         }
 
-        // Validate street_name (optional)
-        if (!empty($data['street_name'])) {
-            if (strlen($data['street_name']) > 100) {
-                $errors['street_name'] = 'Street name is too long (max 100 characters)';
-            }
+        if ($streetName === '') {
+            $errors['street_name'] = 'Street name is required';
+        } elseif (strlen($streetName) > 100) {
+            $errors['street_name'] = 'Street name is too long (max 100 characters)';
         }
 
-        // Validate city (optional)
-        if (!empty($data['city'])) {
-            if (strlen($data['city']) > 50) {
-                $errors['city'] = 'City is too long (max 50 characters)';
-            }
+        if ($city === '') {
+            $errors['city'] = 'City is required';
+        } elseif (strlen($city) > 50) {
+            $errors['city'] = 'City is too long (max 50 characters)';
         }
 
-        // Validate postal_code (optional)
-        if (!empty($data['postal_code'])) {
-            if (!preg_match('/^\d{5}$/', $data['postal_code'])) {
-                $errors['postal_code'] = 'Postal code must be 5 digits';
-            }
+        if ($postalCode === '') {
+            $errors['postal_code'] = 'Postal code is required';
+        } elseif (!preg_match('/^\d{5}$/', $postalCode)) {
+            $errors['postal_code'] = 'Postal code must be 5 digits';
+        }
+
+        if ($additionalAddress !== '' && strlen($additionalAddress) > 100) {
+            $errors['additional_address_details'] = 'Additional address details are too long (max 100 characters)';
         }
 
         return empty($errors) ? true : $errors;
@@ -240,6 +272,8 @@ class BuyerModel
             $errors['new'] = 'New password is required';
         } elseif (strlen($newPassword) < 8) {
             $errors['new'] = 'New password must be at least 8 characters long';
+        } elseif (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            $errors['new'] = 'New password must include at least one letter and one number';
         }
 
         // Validate password confirmation
@@ -264,7 +298,11 @@ class BuyerModel
     {
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-        $sql = "UPDATE {$this->userTable} SET password = :password WHERE id = :id";
+        $sql = "UPDATE {$this->userTable}
+                SET password = :password,
+                    password_updated_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = :id";
 
         return $this->write($sql, [
             'id' => $userId,

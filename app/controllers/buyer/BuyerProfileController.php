@@ -6,11 +6,15 @@ class BuyerProfileController
 
     protected $buyerModel;
     protected $userModel;
+    protected $orderModel;
+    protected $paymentMethodsModel;
 
     public function __construct()
     {
         $this->buyerModel = new BuyerModel();
         $this->userModel = new UserModel();
+        $this->orderModel = new OrderModel();
+        $this->paymentMethodsModel = new BuyerPaymentMethodsModel();
     }
 
     /**
@@ -45,12 +49,15 @@ class BuyerProfileController
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
+        $profileStats = $this->buildProfileStats($userId, $profile);
+
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
             'username' => $_SESSION['USER']->name,
             'profile' => $profile,
             'photoUrl' => $photoUrl,
+            'profileStats' => $profileStats,
             'pageScript' => 'profile.js',
             'contentView' => 'buyer/buyerProfileContent.view.php'
         ];
@@ -101,12 +108,50 @@ class BuyerProfileController
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
+        $maxEmailChanges = 2;
+        $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+        $profileStats = $this->buildProfileStats($userId, $profile);
+
         echo json_encode([
             'success' => true,
             'profile' => $profile,
-            'photoUrl' => $photoUrl
+            'photoUrl' => $photoUrl,
+            'profileStats' => $profileStats,
+            'emailChangesUsed' => $emailChangesUsed,
+            'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed)
         ]);
         exit;
+    }
+
+    private function buildProfileStats($userId, $profile)
+    {
+        $user = $this->userModel->findById($userId);
+        $orders = $this->orderModel->getOrdersByBuyer($userId);
+        $trackingRows = $this->orderModel->getDeliveryTrackingByBuyer($userId);
+        $activeDeliveries = 0;
+
+        if (is_array($trackingRows)) {
+            foreach ($trackingRows as $row) {
+                $deliveryStatus = strtolower(trim((string)($row->delivery_status ?? '')));
+                $orderStatus = strtolower(trim((string)($row->order_status ?? '')));
+
+                if (in_array($deliveryStatus, ['pending', 'accepted', 'in_transit'], true)) {
+                    $activeDeliveries++;
+                    continue;
+                }
+
+                if ($deliveryStatus === '' && in_array($orderStatus, ['pending', 'confirmed', 'processing', 'shipped'], true)) {
+                    $activeDeliveries++;
+                }
+            }
+        }
+
+        return [
+            'member_since' => $user->created_at ?? ($profile->created_at ?? null),
+            'total_orders' => is_array($orders) ? count($orders) : 0,
+            'active_deliveries' => $activeDeliveries,
+            'account_status' => ucfirst((string)($user->status ?? 'active')),
+        ];
     }
 
     /**
@@ -145,7 +190,8 @@ class BuyerProfileController
                 'apartment_code' => trim($_POST['apartment_code'] ?? ''),
                 'street_name' => trim($_POST['street_name'] ?? ''),
                 'city' => trim($_POST['city'] ?? ''),
-                'postal_code' => trim($_POST['postal_code'] ?? '')
+                'postal_code' => trim($_POST['postal_code'] ?? ''),
+                'additional_address_details' => trim($_POST['additional_address_details'] ?? ''),
             ];
 
             // Validate profile data at model level
@@ -162,41 +208,10 @@ class BuyerProfileController
                 exit;
             }
 
-            // Update name and email in users table if provided
-            if (!empty($data['name']) || !empty($data['email'])) {
-                $userUpdateData = [];
-
-                if (!empty($data['name'])) {
-                    $userUpdateData['name'] = $data['name'];
-                }
-
-                if (!empty($data['email'])) {
-                    // Check if email is already taken by another user
-                    $existingUser = $this->userModel->findByEmail($data['email']);
-                    if ($existingUser && $existingUser->id !== $userId) {
-                        error_log("Buyer Profile Save: Email already in use: " . $data['email']);
-                        http_response_code(422);
-                        echo json_encode([
-                            'success' => false,
-                            'error' => 'Validation failed',
-                            'errors' => ['email' => 'This email is already in use']
-                        ]);
-                        exit;
-                    }
-                    $userUpdateData['email'] = $data['email'];
-                }
-
-                if (!empty($userUpdateData)) {
-                    $this->userModel->update($userId, $userUpdateData);
-
-                    // Update session with new name/email
-                    if (!empty($userUpdateData['name'])) {
-                        $_SESSION['USER']->name = $userUpdateData['name'];
-                    }
-                    if (!empty($userUpdateData['email'])) {
-                        $_SESSION['USER']->email = $userUpdateData['email'];
-                    }
-                }
+            // Name is editable from profile form; email changes are handled via Account Settings flow.
+            if (!empty($data['name'])) {
+                $this->userModel->update($userId, ['name' => $data['name']]);
+                $_SESSION['USER']->name = $data['name'];
             }
 
             // Prepare profile data (exclude name and email from buyer profile update)
@@ -206,7 +221,8 @@ class BuyerProfileController
                 'apartment_code' => $data['apartment_code'],
                 'street_name' => $data['street_name'],
                 'city' => $data['city'],
-                'postal_code' => $data['postal_code']
+                'postal_code' => $data['postal_code'],
+                'additional_address_details' => $data['additional_address_details'],
             ];
 
             // Update profile (creates if doesn't exist)
@@ -498,7 +514,7 @@ class BuyerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER'])) {
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -539,7 +555,7 @@ class BuyerProfileController
             }
 
             // Change password
-            $result = $this->buyerModel->changePassword($userId, $newPassword);
+            $result = $this->userModel->updatePassword($userId, $newPassword);
 
             if ($result) {
                 http_response_code(200);
@@ -561,6 +577,346 @@ class BuyerProfileController
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
+        exit;
+    }
+
+    /**
+     * Change email via AJAX (requires password confirmation)
+     */
+    public function changeEmail()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized'
+            ]);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        try {
+            $userId = (int)$_SESSION['USER']->id;
+            $newEmail = strtolower(trim($_POST['newEmail'] ?? ''));
+            $password = (string)($_POST['password'] ?? '');
+            $maxEmailChanges = 2;
+            $errors = [];
+
+            $currentUser = $this->userModel->first(['id' => $userId]);
+            if (!$currentUser) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'User not found']);
+                exit;
+            }
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            if ($emailChangesRemaining <= 0) {
+                $errors['limit'] = 'Email change limit reached. You can only change email 2 times after account creation.';
+            }
+
+            if ($newEmail === '') {
+                $errors['new_email'] = 'New email is required';
+            } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $errors['new_email'] = 'Please enter a valid email address';
+            } elseif (strcasecmp($newEmail, (string)$currentUser->email) === 0) {
+                $errors['new_email'] = 'New email must be different from current email';
+            } else {
+                $existingUser = $this->userModel->findByEmail($newEmail);
+                if ($existingUser && (int)$existingUser->id !== $userId) {
+                    $errors['new_email'] = 'This email is already used by another account';
+                }
+            }
+
+            if ($password === '') {
+                $errors['password'] = 'Password confirmation is required';
+            } elseif (!password_verify($password, (string)$currentUser->password)) {
+                $errors['password'] = 'Current password is incorrect';
+            }
+
+            if (!empty($errors)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $errors,
+                    'emailChangesUsed' => $emailChangesUsed,
+                    'emailChangesRemaining' => $emailChangesRemaining
+                ]);
+                exit;
+            }
+
+            $updated = $this->userModel->changeEmailWithAudit($userId, $newEmail);
+            if (!$updated) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to update email'
+                ]);
+                exit;
+            }
+            $_SESSION['USER']->email = $newEmail;
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Email updated successfully.',
+                'email' => $newEmail,
+                'sessionUpdated' => true,
+                'emailChangesUsed' => $emailChangesUsed,
+                'emailChangesRemaining' => $emailChangesRemaining
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server error: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * Deactivate buyer account.
+     */
+    public function requestDeactivation()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized'
+            ]);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $userId = (int)$_SESSION['USER']->id;
+        $reason = trim((string)($_POST['reason'] ?? ''));
+
+        $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+        $activeOrderCount = $this->orderModel->countBuyerOrdersByStatuses($userId, $blockingStatuses);
+        if ($activeOrderCount > 0) {
+            http_response_code(409);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Cannot deactivate account while active orders exist.',
+                'activeOrderCount' => $activeOrderCount,
+            ]);
+            exit;
+        }
+
+        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        if (!$deactivated) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to deactivate account',
+            ]);
+            exit;
+        }
+
+        $_SESSION = [];
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
+        }
+        session_destroy();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Account deactivated successfully.',
+            'redirect' => ROOT . '/login?deactivated=1',
+        ]);
+        exit;
+    }
+
+    /**
+     * List saved cards for buyer profile payment methods.
+     */
+    public function listCards()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $buyerId = (int)$_SESSION['USER']->id;
+        echo json_encode([
+            'success' => true,
+            'cards' => $this->paymentMethodsModel->getCards($buyerId),
+        ]);
+        exit;
+    }
+
+    /**
+     * Add a saved card for future payment gateway integration.
+     */
+    public function addCard()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $buyerId = (int)$_SESSION['USER']->id;
+        $payload = [
+            'card_holder_name' => trim((string)($_POST['card_holder_name'] ?? '')),
+            'card_brand' => trim((string)($_POST['card_brand'] ?? '')),
+            'card_last_four' => trim((string)($_POST['card_last_four'] ?? $_POST['card_last4'] ?? '')),
+            'expiry_month' => trim((string)($_POST['expiry_month'] ?? '')),
+            'expiry_year' => trim((string)($_POST['expiry_year'] ?? '')),
+            'is_default' => !empty($_POST['is_default']),
+        ];
+
+        $result = $this->paymentMethodsModel->addCard($buyerId, $payload);
+        if (empty($result['success'])) {
+            if (!empty($result['errors'])) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $result['errors'],
+                ]);
+                exit;
+            }
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to save card',
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Card saved successfully',
+            'cards' => $result['cards'] ?? [],
+        ]);
+        exit;
+    }
+
+    /**
+     * Set default card.
+     */
+    public function setDefaultCard()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $buyerId = (int)$_SESSION['USER']->id;
+        $cardId = (int)($_POST['card_id'] ?? 0);
+        if ($cardId <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => 'Invalid card id']);
+            exit;
+        }
+
+        $result = $this->paymentMethodsModel->setDefaultCard($buyerId, $cardId);
+        if (empty($result['success'])) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to set default card',
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Default card updated',
+            'cards' => $result['cards'] ?? [],
+        ]);
+        exit;
+    }
+
+    /**
+     * Remove saved card.
+     */
+    public function removeCard()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $buyerId = (int)$_SESSION['USER']->id;
+        $cardId = (int)($_POST['card_id'] ?? 0);
+        if ($cardId <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => 'Invalid card id']);
+            exit;
+        }
+
+        $result = $this->paymentMethodsModel->removeCard($buyerId, $cardId);
+        if (empty($result['success'])) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to remove card',
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Saved card removed',
+            'cards' => $result['cards'] ?? [],
+        ]);
         exit;
     }
 }

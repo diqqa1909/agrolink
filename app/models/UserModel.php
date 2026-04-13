@@ -16,85 +16,63 @@ class UserModel
     {
         $this->errors = [];
 
-        if (empty($data['email']))
-            $this->errors['email'] = "Email is required";
-        else {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-                $this->errors['email'] = "Email is incorrect";
-            else {
-                // Check if email already exists
+        if (empty($data['email'])) {
+            $this->errors['email'] = 'Email is required';
+        } else {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->errors['email'] = 'Email is incorrect';
+            } else {
                 $existing = $this->first(['email' => $data['email']]);
-                if ($existing)
-                    $this->errors['email'] = "This email is already registered. Please use a different email or login.";
+                if ($existing) {
+                    $this->errors['email'] = 'This email is already registered. Please use a different email or login.';
+                }
             }
         }
 
-        if (empty($data['password']))
-            $this->errors['password'] = "Password is required";
-        else
-                if (strlen($data['password']) < 8)
-            $this->errors['password'] = "Password must be at least 8 characters long";
+        if (empty($data['password'])) {
+            $this->errors['password'] = 'Password is required';
+        } elseif (strlen($data['password']) < 8) {
+            $this->errors['password'] = 'Password must be at least 8 characters long';
+        }
 
-        if (empty($this->errors))
-            return true;
-        return false;
+        return empty($this->errors);
     }
 
     public function insert($data)
     {
-        // Hash password before inserting
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        // Remove unwanted data
         if (!empty($this->allowedColumns)) {
             foreach ($data as $key => $value) {
-                if (!in_array($key, $this->allowedColumns)) {
+                if (!in_array($key, $this->allowedColumns, true)) {
                     unset($data[$key]);
                 }
             }
         }
 
         $keys = array_keys($data);
-        $query = "insert into $this->table (" . implode(",", $keys) . ") values (:" . implode(",:", $keys) . ")";
+        $query = "INSERT INTO {$this->table} (" . implode(',', $keys) . ") VALUES (:" . implode(',:', $keys) . ')';
 
         return $this->write($query, $data);
     }
 
-    /**
-     * Find user by email
-     */
     public function findByEmail($email)
     {
         return $this->first(['email' => $email]);
     }
 
-    private function ensureEmailChangesTable()
+    public function findById($id)
     {
-        static $checked = false;
-        if ($checked) return true;
-
-        $sql = "CREATE TABLE IF NOT EXISTS {$this->emailChangesTable} (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    old_email VARCHAR(255) NOT NULL,
-                    new_email VARCHAR(255) NOT NULL,
-                    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_user_id (user_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-
-        $checked = (bool)$this->write($sql);
-        return $checked;
+        return $this->first(['id' => (int)$id]);
     }
 
     public function getEmailChangeCount($userId)
     {
-        if (!$this->ensureEmailChangesTable()) return 0;
-
         $row = $this->get_row(
             "SELECT COUNT(*) AS total FROM {$this->emailChangesTable} WHERE user_id = :user_id",
-            ['user_id' => $userId]
+            ['user_id' => (int)$userId]
         );
 
         return (int)($row->total ?? 0);
@@ -102,47 +80,160 @@ class UserModel
 
     public function recordEmailChange($userId, $oldEmail, $newEmail)
     {
-        if (!$this->ensureEmailChangesTable()) return false;
-
         return $this->write(
-            "INSERT INTO {$this->emailChangesTable} (user_id, old_email, new_email) VALUES (:user_id, :old_email, :new_email)",
+            "INSERT INTO {$this->emailChangesTable} (user_id, old_email, new_email, changed_at)
+             VALUES (:user_id, :old_email, :new_email, NOW())",
             [
+                'user_id' => (int)$userId,
+                'old_email' => $oldEmail,
+                'new_email' => $newEmail,
+            ]
+        ) !== false;
+    }
+
+    public function changeEmailWithAudit($userId, $newEmail)
+    {
+        $userId = (int)$userId;
+        $newEmail = strtolower(trim((string)$newEmail));
+
+        if ($userId <= 0 || $newEmail === '') {
+            return false;
+        }
+
+        $currentUser = $this->findById($userId);
+        if (!$currentUser) {
+            return false;
+        }
+
+        $oldEmail = (string)($currentUser->email ?? '');
+        if ($oldEmail === '' || strcasecmp($oldEmail, $newEmail) === 0) {
+            return false;
+        }
+
+        $existing = $this->findByEmail($newEmail);
+        if ($existing && (int)$existing->id !== $userId) {
+            return false;
+        }
+
+        $dsn = 'mysql:hostname=' . DBHOST . ';dbname=' . DBNAME;
+        $con = new PDO($dsn, DBUSER, DBPASS);
+        $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        try {
+            $con->beginTransaction();
+
+            $insertStmt = $con->prepare(
+                "INSERT INTO {$this->emailChangesTable} (user_id, old_email, new_email, changed_at)
+                 VALUES (:user_id, :old_email, :new_email, NOW())"
+            );
+            $insertStmt->execute([
                 'user_id' => $userId,
                 'old_email' => $oldEmail,
-                'new_email' => $newEmail
+                'new_email' => $newEmail,
+            ]);
+
+            $updateStmt = $con->prepare(
+                "UPDATE {$this->table}
+                 SET email = :new_email, updated_at = NOW()
+                 WHERE id = :user_id"
+            );
+            $updateStmt->execute([
+                'new_email' => $newEmail,
+                'user_id' => $userId,
+            ]);
+
+            $con->commit();
+            return true;
+        } catch (Throwable $e) {
+            if ($con->inTransaction()) {
+                $con->rollBack();
+            }
+            error_log('UserModel::changeEmailWithAudit error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updatePassword($userId, $newPassword)
+    {
+        $userId = (int)$userId;
+        if ($userId <= 0 || trim((string)$newPassword) === '') {
+            return false;
+        }
+
+        $hashedPassword = password_hash((string)$newPassword, PASSWORD_DEFAULT);
+
+        return $this->write(
+            "UPDATE {$this->table}
+             SET password = :password,
+                 password_updated_at = NOW(),
+                 updated_at = NOW()
+             WHERE id = :id",
+            [
+                'id' => $userId,
+                'password' => $hashedPassword,
             ]
-        );
+        ) !== false;
+    }
+
+    public function deactivateAccount($userId, $reason = null)
+    {
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $cleanReason = trim((string)$reason);
+        if ($cleanReason === '') {
+            $cleanReason = null;
+        } elseif (strlen($cleanReason) > 500) {
+            $cleanReason = substr($cleanReason, 0, 500);
+        }
+
+        return $this->write(
+            "UPDATE {$this->table}
+             SET status = 'inactive',
+                 deactivated_at = NOW(),
+                 deactivation_reason = :reason,
+                 updated_at = NOW()
+             WHERE id = :id",
+            [
+                'id' => $userId,
+                'reason' => $cleanReason,
+            ]
+        ) !== false;
     }
 
     public function update($id, $data, $id_column = 'id')
     {
-        // Hash password before updating (only if password is provided)
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        // Remove unwanted data
         if (!empty($this->allowedColumns)) {
             foreach ($data as $key => $value) {
-                if (!in_array($key, $this->allowedColumns)) {
+                if (!in_array($key, $this->allowedColumns, true)) {
                     unset($data[$key]);
                 }
             }
         }
 
-        $keys = array_keys($data);
-        $query = "update $this->table set ";
-
-        foreach ($keys as $key) {
-            $query .= $key . " = :" . $key . ", ";
+        if (empty($data)) {
+            return false;
         }
 
-        $query = trim($query, ", ");
-        $query .= " where $id_column = :$id_column ";
+        $keys = array_keys($data);
+        $query = "UPDATE {$this->table} SET ";
+
+        foreach ($keys as $key) {
+            $query .= $key . ' = :' . $key . ', ';
+        }
+
+        $query = trim($query, ', ');
+        $query .= ', updated_at = NOW()';
+        $query .= " WHERE {$id_column} = :{$id_column}";
 
         $data[$id_column] = $id;
 
-        $this->query($query, $data);
-        return 1;
+        return $this->write($query, $data) !== false;
     }
 }

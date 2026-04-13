@@ -109,32 +109,27 @@
 <div id="feedback-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Reviews & Complaints</h1>
-        <p class="content-subtitle">Feedback from buyers on your shipped and delivered orders</p>
+        <p class="content-subtitle">Delivery feedback from buyers based on completed trips</p>
     </div>
 
     <div class="dashboard-stats" style="margin-bottom: 24px;">
-        <div class="stat-card">
-            <div class="stat-number" id="feedbackTotalCount">0</div>
-            <div class="stat-label">Total Feedback</div>
-        </div>
         <div class="stat-card">
             <div class="stat-number" id="feedbackAvgRating">0.0</div>
             <div class="stat-label">Average Rating</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="feedbackComplaintCount">0</div>
-            <div class="stat-label">Complaints (1-2★)</div>
+            <div class="stat-label">Complaints</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackTotalCount">0</div>
+            <div class="stat-label">Total Feedback</div>
         </div>
     </div>
 
-    <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Buyer Feedback</h3>
-        </div>
-        <div class="card-content" id="feedbackUnifiedList">
-            <div style="padding: 30px; text-align: center; color: #666;">
-                Loading feedback...
-            </div>
+    <div class="transporter-feedback-list" id="feedbackUnifiedList">
+        <div class="transporter-feedback-loading">
+            Loading feedback...
         </div>
     </div>
 </div>
@@ -146,47 +141,44 @@
         <button class="btn btn-outline btn-sm" onclick="TransporterDashboard.refreshDeliveries()">Refresh</button>
     </div>
 
-    <!-- Filter Section -->
-    <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Filter Deliveries</h3>
-        </div>
-        <div class="card-content">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Pickup Location</label>
-                    <select id="locationFilter" class="form-control">
+    <div class="content-card delivery-filter-card">
+        <div class="delivery-filter-row">
+            <div class="transporter-filter-shell">
+                <div class="transporter-filter-grid">
+                    <div class="transporter-filter-group">
+                        <label for="locationFilter">Pickup</label>
+                        <select id="locationFilter" class="form-control transporter-filter-control">
                         <option value="">All Locations</option>
-                        <option value="Colombo">Colombo</option>
-                        <option value="Kandy">Kandy</option>
-                        <option value="Galle">Galle</option>
-                        <option value="Matale">Matale</option>
-                        <option value="Anuradhapura">Anuradhapura</option>
+                        <option value="colombo">Colombo</option>
+                        <option value="kandy">Kandy</option>
+                        <option value="galle">Galle</option>
+                        <option value="matale">Matale</option>
+                        <option value="anuradhapura">Anuradhapura</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Max Distance</label>
-                    <select id="distanceFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="distanceFilter">Max Distance</label>
+                        <select id="distanceFilter" class="form-control transporter-filter-control">
                         <option value="">Any Distance</option>
                         <option value="10">Within 10km</option>
                         <option value="25">Within 25km</option>
                         <option value="50">Within 50km</option>
                         <option value="100">Within 100km</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Max Weight</label>
-                    <select id="weightFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="weightFilter">Max Weight</label>
+                        <select id="weightFilter" class="form-control transporter-filter-control">
                         <option value="">Any Weight</option>
                         <option value="10">Up to 10kg</option>
                         <option value="25">Up to 25kg</option>
                         <option value="50">Up to 50kg</option>
                         <option value="100">Up to 100kg</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Payment Range</label>
-                    <select id="paymentFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="paymentFilter">Min Payment</label>
+                        <select id="paymentFilter" class="form-control transporter-filter-control">
                         <option value="">Any Payment</option>
                         <option value="500">Rs. 500+</option>
                         <option value="1000">Rs. 1000+</option>
@@ -194,24 +186,37 @@
                         <option value="2000">Rs. 2000+</option>
                     </select>
                 </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Deliveries Grid -->
-    <div id="availableDeliveriesList" style="display: flex; gap: 24px; margin-top: 28px; overflow-x: auto; padding-bottom: 16px;">
-        <!-- Populated by JavaScript -->
+    <div class="content-card transporter-requests-card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h3 class="card-title">Delivery Requests</h3>
+        </div>
+        <div class="card-content">
+            <div id="availableDeliveriesList" class="transporter-request-list">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
     </div>
 </div>
 
 <div id="mydeliveries-section" class="content-section" style="display: none;">
-    <h1 style="margin-bottom: 32px; font-size: 2rem;"> My Deliveries</h1>
+    <h1 style="margin-bottom: 24px; font-size: 2rem;">My Deliveries</h1>
 
-    <div style="display: flex; gap: 20px; margin-bottom: 32px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; padding-bottom: 4px;">
-        <button class="tab-btn active" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
-        <button class="tab-btn" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
-        <button class="tab-btn" data-status="in-progress" onclick="TransporterDashboard.filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
-        <button class="tab-btn" data-status="completed" onclick="TransporterDashboard.filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
+    <div class="content-card delivery-filter-card">
+        <div class="delivery-filter-row">
+            <div class="delivery-filter-group" role="tablist" aria-label="Delivery filters">
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link active" data-status="running" onclick="TransporterDashboard.filterMyDeliveries('running')">Running</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="pending" onclick="TransporterDashboard.filterMyDeliveries('pending')">Pending</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')">Accepted</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="in-transit" onclick="TransporterDashboard.filterMyDeliveries('in-transit')">In Transit</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="delivered" onclick="TransporterDashboard.filterMyDeliveries('delivered')">Delivered</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')">All</button>
+            </div>
+        </div>
     </div>
 
     <div class="table-container" style="padding: 24px; background: #fff; border-radius: 12px;">
@@ -262,54 +267,56 @@
 
 
 <div id="earnings-section" class="content-section" style="display: none;">
-    <h1 style="margin-bottom: 32px;">Earnings Overview</h1>
+    <div class="content-header">
+        <h1 class="content-title">Earnings Overview</h1>
+        <p class="content-subtitle">Live payout context from your completed transporter deliveries</p>
+    </div>
 
-    <div class="dashboard-stats" style="margin-bottom: 40px;">
+    <div class="dashboard-stats" style="margin-bottom: 28px;">
         <div class="stat-card">
             <div class="stat-number" id="todayEarnings">Rs. 0</div>
-            <div class="stat-label">Today</div>
+            <div class="stat-label">Today (Delivered)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="weekEarnings">Rs. 0</div>
-            <div class="stat-label">This Week</div>
+            <div class="stat-label">This Week (7 Days)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="monthEarningsDetail">Rs. 0</div>
-            <div class="stat-label">This Month</div>
+            <div class="stat-label">This Month (Calendar)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="totalEarningsDetail">Rs. 0</div>
-            <div class="stat-label">Total</div>
+            <div class="stat-label">Lifetime Earnings</div>
         </div>
     </div>
 
-    <div class="grid grid-2" style="margin-top: 32px; gap: 28px;">
+    <div class="grid grid-2" style="margin-top: 18px; gap: 20px;">
         <div class="content-card">
             <div class="card-header">
-                <h3 class="card-title">Earnings Breakdown</h3>
+                <h3 class="card-title">Current Period Breakdown</h3>
             </div>
-            <div class="card-content" style="padding: 28px;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Base Delivery Fee:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+            <div class="card-content" style="padding: 22px;">
+                <div class="transporter-earnings-breakdown">
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Today</span>
+                        <strong id="todayBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Distance Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Last 7 Days</span>
+                        <strong id="weekBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Express Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>This Month</span>
+                        <strong id="monthBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Rating Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Lifetime</span>
+                        <strong id="lifetimeBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #e8f5e9; border-radius: 8px;">
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Total This Month:</span>
-                        <span style="font-weight: 700; font-size: 1.2rem; color: #65b57c;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-total">
+                        <span>Estimated Payout This Month</span>
+                        <strong id="estimatedPayoutValue">Rs. 0.00</strong>
                     </div>
                 </div>
             </div>
@@ -317,29 +324,24 @@
 
         <div class="content-card">
             <div class="card-header">
-                <h3 class="card-title">Performance Metrics</h3>
+                <h3 class="card-title">Delivery Earnings Context</h3>
             </div>
-            <div class="card-content" style="padding: 28px;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Deliveries Completed:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0</span>
+            <div class="card-content" style="padding: 22px;">
+                <div class="transporter-earnings-breakdown">
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Completed Deliveries</span>
+                        <strong id="earningsCompletedDeliveries">0</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Average Rating:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0/5</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Active Deliveries</span>
+                        <strong id="earningsActiveDeliveries">0</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">On-Time Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Average Per Completed Delivery</span>
+                        <strong id="avgPerDeliveryValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Customer Satisfaction:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Earnings per Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-note" id="earningsContextNote">
+                        Based on completed deliveries currently recorded on your transporter account.
                     </div>
                 </div>
             </div>
@@ -514,8 +516,6 @@
         </div>
     </div>
 </div>
-</main>
-</div>
 
 <div id="addVehicleModal" class="modal">
     <div class="modal-content">
@@ -572,6 +572,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Use the modern transporter dashboard script when available.
+        if (window.TransporterDashboard && typeof window.TransporterDashboard.showSection === 'function') {
+            if (typeof setupAddVehicleForm === 'function') {
+                setupAddVehicleForm();
+            }
+            return;
+        }
         initTransporterDashboard();
     });
 
@@ -1004,30 +1011,69 @@
                 const renderCard = (item) => {
                     const rating = Number(item.rating || 0);
                     const isComplaint = rating <= 2;
-                    const stars = `${'★'.repeat(rating)}${'☆'.repeat(Math.max(0, 5 - rating))}`;
+                    const boundedRating = Math.min(Math.max(rating, 0), 5);
+                    const stars = `${'★'.repeat(boundedRating)}${'☆'.repeat(Math.max(0, 5 - boundedRating))}`;
                     const buyerName = escapeHtml(item.buyer_name || 'Buyer');
                     const buyerInitial = buyerName.charAt(0).toUpperCase();
-                    const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
-                    const orderText = item.order_id ? `Order #${item.order_id}` : 'Order #-';
+                    const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '-';
+                    const orderText = item.order_id ? `#${item.order_id}` : '-';
+                    const productText = escapeHtml(item.product_name || 'Order Item');
+                    const deliveryLabel = String(item.delivery_id || item.delivery_request_id || '').trim();
+                    const deliveryText = deliveryLabel !== '' ? `#${escapeHtml(deliveryLabel)}` : '-';
+                    const routeFrom = escapeHtml(item.farmer_city || item.pickup_city || item.farmer_district_name || 'Pickup unavailable');
+                    const routeTo = escapeHtml(item.buyer_city || item.dropoff_city || item.buyer_district_name || 'Dropoff unavailable');
+                    const deliveryStatus = escapeHtml(String(item.delivery_status || item.order_status || 'unknown').replace('_', ' '));
+                    const reviewedQty = Number(item.reviewed_quantity || 0);
+                    const quantityText = Number.isFinite(reviewedQty)
+                        ? reviewedQty.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                        : '-';
 
                     return `
-                        <div class="review-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div style="display: flex; gap: 16px;">
-                                    <div style="width: 50px; height: 50px; background: #e3f2fd; color: #2196F3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">${buyerInitial}</div>
-                                    <div>
-                                        <h4 style="margin: 0 0 4px 0;">${orderText}</h4>
-                                        <p style="margin: 0; color: #666; font-size: 0.9rem;">Feedback by <span style="font-weight: 500;">${buyerName}</span></p>
-                                        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #999;">${created}</p>
+                        <div class="review-card farmer-review-card">
+                            <div class="farmer-review-header">
+                                <div class="farmer-review-person">
+                                    <div class="buyer-avatar">${buyerInitial}</div>
+                                    <div class="farmer-review-meta">
+                                        <h4>Order ${orderText}</h4>
+                                        <p>Feedback by <strong>${buyerName}</strong></p>
+                                        <p class="farmer-review-date">${created}</p>
                                     </div>
                                 </div>
-                                <div class="star-rating" style="color: #ff9800; font-size: 1.2rem;">
-                                    ${stars}
-                                    ${isComplaint ? '<div style="font-size: 0.72rem; margin-top: 4px; color: #b91c1c;">Complaint</div>' : ''}
+                                <div class="farmer-review-rating">
+                                    <div class="star-rating">${stars}</div>
+                                    ${isComplaint ? '<span class="feedback-badge negative">Complaint</span>' : ''}
                                 </div>
                             </div>
-                            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-top: 12px; border-left: 3px solid ${isComplaint ? '#ef4444' : '#10b981'};">
-                                <p style="margin: 0; color: #444; line-height: 1.5;">"${escapeHtml(item.comment || '')}"</p>
+
+                            <div class="farmer-review-facts">
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Order Number</span>
+                                    <span class="farmer-review-fact-value">${orderText}</span>
+                                </div>
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Products</span>
+                                    <span class="farmer-review-fact-value">${productText}</span>
+                                </div>
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Quantities</span>
+                                    <span class="farmer-review-fact-value">${quantityText}</span>
+                                </div>
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Delivery ID</span>
+                                    <span class="farmer-review-fact-value">${deliveryText}</span>
+                                </div>
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Route</span>
+                                    <span class="farmer-review-fact-value">${routeFrom} → ${routeTo}</span>
+                                </div>
+                                <div class="farmer-review-fact">
+                                    <span class="farmer-review-fact-label">Status</span>
+                                    <span class="farmer-review-fact-value">${deliveryStatus}</span>
+                                </div>
+                            </div>
+
+                            <div class="farmer-review-body ${isComplaint ? 'is-complaint' : ''}">
+                                <p>${escapeHtml(item.comment || '')}</p>
                             </div>
                         </div>
                     `;
@@ -1035,8 +1081,8 @@
 
                 if (unifiedEl) {
                     unifiedEl.innerHTML = reviews.length
-                        ? `<div class="reviews-grid" style="display: grid; gap: 16px;">${reviews.map(renderCard).join('')}</div>`
-                        : '<div style="padding: 30px; text-align: center; color: #666;">No feedback yet</div>';
+                        ? `<div class="reviews-grid farmer-reviews-grid transporter-feedback-grid">${reviews.map(renderCard).join('')}</div>`
+                        : '<div class="transporter-feedback-empty">No feedback yet</div>';
                 }
             })
             .catch(error => {

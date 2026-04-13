@@ -4,6 +4,12 @@
 
 let availableRequests = [];
 let myDeliveries = [];
+let availableRequestFilters = {
+    location: '',
+    max_distance: '',
+    max_weight: '',
+    min_payment: '',
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeTransporterDashboard();
@@ -113,6 +119,14 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+function toStatusClass(rawStatus) {
+    const status = String(rawStatus || '').trim().toLowerCase();
+    if (status === 'in-transit') return 'in_transit';
+    if (status === 'in-progress') return 'in_transit';
+    if (status === 'running') return 'in_transit';
+    return status || 'pending';
+}
+
 // Load dashboard data
 function loadDashboardData() {
     // Load earnings summary
@@ -199,7 +213,7 @@ function displayPaymentHistory(deliveries) {
                 </td>
                 <td>Rs. ${parseFloat(delivery.shipping_fee).toFixed(2)}</td>
                 <td>
-                    <span style="display: inline-block; padding: 4px 12px; background-color: #4caf5020; color: #4caf50; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                    <span class="order-status delivered">
                         Completed
                     </span>
                 </td>
@@ -210,10 +224,17 @@ function displayPaymentHistory(deliveries) {
 
 // Update dashboard statistics
 function updateDashboardStats(earnings) {
+    const todayValue = parseFloat(earnings.today_earnings || 0);
+    const weekValue = parseFloat(earnings.week_earnings || 0);
+    const monthValue = parseFloat(earnings.month_earnings || 0);
+    const totalValue = parseFloat(earnings.total_earnings || 0);
+    const completedCount = Number(earnings.completed_deliveries || 0);
+    const activeCount = Number(earnings.active_deliveries || 0);
+
     // Dashboard section
     const weeklyEarnings = document.getElementById('weeklyEarnings');
-    if (weeklyEarnings && earnings.week_earnings) {
-        weeklyEarnings.textContent = `Rs. ${parseFloat(earnings.week_earnings).toFixed(2)}`;
+    if (weeklyEarnings) {
+        weeklyEarnings.textContent = `Rs. ${weekValue.toFixed(2)}`;
     }
     
     const activeDeliveries = document.getElementById('activeDeliveries');
@@ -227,29 +248,61 @@ function updateDashboardStats(earnings) {
     }
     
     const monthlyEarnings = document.getElementById('monthlyEarnings');
-    if (monthlyEarnings && earnings.month_earnings) {
-        monthlyEarnings.textContent = `Rs. ${parseFloat(earnings.month_earnings).toFixed(2)}`;
+    if (monthlyEarnings) {
+        monthlyEarnings.textContent = `Rs. ${monthValue.toFixed(2)}`;
     }
     
     // Earnings section - detailed stats
     const todayEarnings = document.getElementById('todayEarnings');
     if (todayEarnings && earnings.today_earnings !== undefined) {
-        todayEarnings.textContent = `Rs. ${parseFloat(earnings.today_earnings).toFixed(2)}`;
+        todayEarnings.textContent = `Rs. ${todayValue.toFixed(2)}`;
     }
     
     const weekEarnings = document.getElementById('weekEarnings');
     if (weekEarnings && earnings.week_earnings !== undefined) {
-        weekEarnings.textContent = `Rs. ${parseFloat(earnings.week_earnings).toFixed(2)}`;
+        weekEarnings.textContent = `Rs. ${weekValue.toFixed(2)}`;
     }
     
     const monthEarningsDetail = document.getElementById('monthEarningsDetail');
     if (monthEarningsDetail && earnings.month_earnings !== undefined) {
-        monthEarningsDetail.textContent = `Rs. ${parseFloat(earnings.month_earnings).toFixed(2)}`;
+        monthEarningsDetail.textContent = `Rs. ${monthValue.toFixed(2)}`;
     }
     
     const totalEarningsDetail = document.getElementById('totalEarningsDetail');
     if (totalEarningsDetail && earnings.total_earnings !== undefined) {
-        totalEarningsDetail.textContent = `Rs. ${parseFloat(earnings.total_earnings).toFixed(2)}`;
+        totalEarningsDetail.textContent = `Rs. ${totalValue.toFixed(2)}`;
+    }
+
+    const todayBreakdownValue = document.getElementById('todayBreakdownValue');
+    if (todayBreakdownValue) todayBreakdownValue.textContent = `Rs. ${todayValue.toFixed(2)}`;
+
+    const weekBreakdownValue = document.getElementById('weekBreakdownValue');
+    if (weekBreakdownValue) weekBreakdownValue.textContent = `Rs. ${weekValue.toFixed(2)}`;
+
+    const monthBreakdownValue = document.getElementById('monthBreakdownValue');
+    if (monthBreakdownValue) monthBreakdownValue.textContent = `Rs. ${monthValue.toFixed(2)}`;
+
+    const lifetimeBreakdownValue = document.getElementById('lifetimeBreakdownValue');
+    if (lifetimeBreakdownValue) lifetimeBreakdownValue.textContent = `Rs. ${totalValue.toFixed(2)}`;
+
+    const estimatedPayoutValue = document.getElementById('estimatedPayoutValue');
+    if (estimatedPayoutValue) estimatedPayoutValue.textContent = `Rs. ${monthValue.toFixed(2)}`;
+
+    const earningsCompletedDeliveries = document.getElementById('earningsCompletedDeliveries');
+    if (earningsCompletedDeliveries) earningsCompletedDeliveries.textContent = String(completedCount);
+
+    const earningsActiveDeliveries = document.getElementById('earningsActiveDeliveries');
+    if (earningsActiveDeliveries) earningsActiveDeliveries.textContent = String(activeCount);
+
+    const avgPerDeliveryValue = document.getElementById('avgPerDeliveryValue');
+    if (avgPerDeliveryValue) {
+        const avgPerDelivery = completedCount > 0 ? (totalValue / completedCount) : 0;
+        avgPerDeliveryValue.textContent = `Rs. ${avgPerDelivery.toFixed(2)}`;
+    }
+
+    const earningsContextNote = document.getElementById('earningsContextNote');
+    if (earningsContextNote) {
+        earningsContextNote.textContent = `Based on ${completedCount} completed and ${activeCount} active deliveries currently tracked.`;
     }
     
     // Weekly summary details on dashboard
@@ -273,7 +326,14 @@ function loadAvailableRequests() {
         container.innerHTML = '<div style="width: 100%; padding: 40px; text-align: center; color: #666;"><p>Loading delivery requests...</p></div>';
     }
 
-    const url = getBaseUrl() + '/transporterdashboard/getAvailableRequests';
+    const params = new URLSearchParams();
+    Object.keys(availableRequestFilters).forEach((key) => {
+        const value = String(availableRequestFilters[key] || '').trim();
+        if (value !== '') params.append(key, value);
+    });
+
+    const query = params.toString();
+    const url = getBaseUrl() + '/transporterdashboard/getAvailableRequests' + (query ? `?${query}` : '');
     console.log('Loading available requests from:', url);
 
     fetch(url)
@@ -287,7 +347,7 @@ function loadAvailableRequests() {
             console.log('Available requests response:', data);
             if (data.success) {
                 availableRequests = data.requests || [];
-                displayAvailableRequests(availableRequests, data.debug);
+                displayAvailableRequests(availableRequests);
             } else {
                 console.error('Failed to load requests:', data);
                 if (container) {
@@ -304,7 +364,7 @@ function loadAvailableRequests() {
 }
 
 // Display available delivery requests
-function displayAvailableRequests(requests, debug) {
+function displayAvailableRequests(requests) {
     const container = document.getElementById('availableDeliveriesList');
     if (!container) return;
 
@@ -427,14 +487,8 @@ function displayMyDeliveries(deliveries) {
     }
 
     tbody.innerHTML = deliveries.map(delivery => {
-        const statusColors = {
-            'pending': '#ff9800',
-            'accepted': '#2196f3',
-            'in_transit': '#9c27b0',
-            'delivered': '#4caf50',
-            'cancelled': '#f44336'
-        };
-        const statusColor = statusColors[delivery.status] || '#666';
+        const statusClass = toStatusClass(delivery.status);
+        const statusLabel = String(delivery.status || 'pending').replace('_', ' ').toUpperCase();
         
         return `
             <tr>
@@ -447,8 +501,8 @@ function displayMyDeliveries(deliveries) {
                 <td>${parseFloat(delivery.total_weight_kg).toFixed(1)} kg</td>
                 <td>Rs. ${parseFloat(delivery.shipping_fee).toFixed(2)}</td>
                 <td>
-                    <span style="display: inline-block; padding: 4px 12px; background-color: ${statusColor}20; color: ${statusColor}; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
-                        ${delivery.status.replace('_', ' ').toUpperCase()}
+                    <span class="order-status ${statusClass}">
+                        ${statusLabel}
                     </span>
                 </td>
                 <td>${delivery.created_at ? new Date(delivery.created_at).toLocaleDateString() : 'N/A'}</td>
@@ -507,16 +561,27 @@ function updateDeliveryStatus(deliveryId, newStatus) {
 // Filter my deliveries by status
 function filterMyDeliveries(status) {
     // Update active tab
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.transporter-delivery-filter-link').forEach(btn => {
         btn.classList.remove('active');
     });
-    const selectedBtn = document.querySelector(`.tab-btn[data-status="${status}"]`);
+    const selectedBtn = document.querySelector(`.transporter-delivery-filter-link[data-status="${status}"]`);
     if (selectedBtn) {
         selectedBtn.classList.add('active');
     }
 
+    const statusMap = {
+        running: 'in_transit',
+        pending: 'pending',
+        all: null,
+        accepted: 'accepted',
+        'in-progress': 'in_transit',
+        'in-transit': 'in_transit',
+        delivered: 'delivered',
+        completed: 'delivered'
+    };
+
     // Load deliveries with filter
-    const filterStatus = status === 'all' ? null : status.replace('-', '_');
+    const filterStatus = Object.prototype.hasOwnProperty.call(statusMap, status) ? statusMap[status] : null;
     loadMyDeliveries(filterStatus);
 }
 
@@ -559,6 +624,29 @@ function initializeEventListeners() {
             }
         });
     }
+
+    const locationFilter = document.getElementById('locationFilter');
+    const distanceFilter = document.getElementById('distanceFilter');
+    const weightFilter = document.getElementById('weightFilter');
+    const paymentFilter = document.getElementById('paymentFilter');
+
+    const syncAvailableFiltersFromInputs = () => {
+        availableRequestFilters = {
+            location: locationFilter ? String(locationFilter.value || '').trim() : '',
+            max_distance: distanceFilter ? String(distanceFilter.value || '').trim() : '',
+            max_weight: weightFilter ? String(weightFilter.value || '').trim() : '',
+            min_payment: paymentFilter ? String(paymentFilter.value || '').trim() : '',
+        };
+    };
+
+    [locationFilter, distanceFilter, weightFilter, paymentFilter].forEach((el) => {
+        if (!el) return;
+        el.addEventListener('change', function () {
+            syncAvailableFiltersFromInputs();
+            loadAvailableRequests();
+        });
+    });
+
 }
 
 // Show specific section
@@ -590,7 +678,8 @@ function showSection(sectionName) {
     
     // Load section-specific data
     if (sectionName === 'mydeliveries') {
-        loadMyDeliveries();
+        const activeTab = document.querySelector('.transporter-delivery-filter-link.active');
+        filterMyDeliveries(activeTab ? activeTab.dataset.status : 'running');
     } else if (sectionName === 'available-deliveries') {
         loadAvailableRequests();
     } else if (sectionName === 'earnings') {
@@ -606,21 +695,25 @@ function showSection(sectionName) {
 // Show notification
 function showNotification(message, type = 'info') {
     console.log('Showing notification:', message, type);
+    const safeMessage = String(message || '').trim();
+    const compactMessage = safeMessage.length > 100
+        ? `${safeMessage.slice(0, 97)}...`
+        : safeMessage;
     
     // Try to use the existing notification element from the page
     const notification = document.getElementById('notification');
     if (notification) {
-        notification.textContent = message;
+        notification.textContent = compactMessage || 'Notification';
         notification.className = `notification ${type} show`;
 
         setTimeout(() => {
             notification.classList.remove('show');
-        }, 4000);
+        }, 2200);
     } else {
         // Fallback: create floating notification
         const notificationDiv = document.createElement('div');
         notificationDiv.className = `notification ${type} show`;
-        notificationDiv.textContent = message;
+        notificationDiv.textContent = compactMessage || 'Notification';
         notificationDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 20px; background: ' + 
             (type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3') + 
             '; color: white; border-radius: 4px; z-index: 10000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);';
@@ -628,7 +721,7 @@ function showNotification(message, type = 'info') {
         
         setTimeout(() => {
             notificationDiv.remove();
-        }, 4000);
+        }, 2200);
     }
 }
 

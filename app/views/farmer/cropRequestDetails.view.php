@@ -36,7 +36,7 @@
             <?php
             // Default to 'active' if status is empty or null
             $status = !empty($request->status) ? $request->status : 'active';
-            
+
             $statusStyles = [
                 'active' => ['bg' => '#fff3cd', 'text' => '#856404'],
                 'accepted' => ['bg' => 'rgba(101, 181, 124, 0.2)', 'text' => '#499d57'],

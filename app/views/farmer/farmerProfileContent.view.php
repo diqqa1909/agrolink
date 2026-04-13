@@ -6,7 +6,7 @@ $districts = [
 ];
 ?>
 
-<div class="content-section farmer-profile-modern">
+<div class="content-section profile-modern farmer-profile-modern">
     <div class="content-header">
         <h1 class="content-title">Profile</h1>
         <p class="content-subtitle">Manage your profile details and account settings.</p>
@@ -104,7 +104,7 @@ $districts = [
         <div class="profile-shortcut-head">
             <h3>Payout Details</h3>
         </div>
-        <p>Add or update bank account details for farmer earnings transfers</p>
+        <p>Add or update bank account details for earnings</p>
     </div>
 
     <div class="content-card profile-account-info-card">
@@ -140,9 +140,9 @@ $districts = [
     </div>
 </div>
 
-<div id="accountSettingsModal" class="modal farmer-profile-modal">
-    <div class="modal-content farmer-profile-modal-content">
-        <div class="modal-header farmer-profile-modal-header">
+<div id="accountSettingsModal" class="modal profile-modal">
+    <div class="modal-content profile-modal-content">
+        <div class="modal-header profile-modal-header">
             <h3>Account Settings</h3>
             <button type="button" class="modal-close" data-close-modal="accountSettingsModal" aria-label="Close">×</button>
         </div>
@@ -176,7 +176,6 @@ $districts = [
                             <small class="form-hint">Enter your account password to confirm email change.</small>
                         </div>
                         <small class="form-hint" id="emailChangePolicyHint">You can change email up to 2 times after account creation.</small>
-                        <small class="form-hint">After successful change, your session is updated. Continue using the new email for login.</small>
                         <div id="emailChangeStatus" class="settings-inline-status is-hidden"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-close-modal="accountSettingsModal">Cancel</button>
@@ -226,9 +225,9 @@ $districts = [
     </div>
 </div>
 
-<div id="payoutDetailsModal" class="modal farmer-profile-modal">
-    <div class="modal-content farmer-profile-modal-content">
-        <div class="modal-header farmer-profile-modal-header">
+<div id="payoutDetailsModal" class="modal profile-modal">
+    <div class="modal-content profile-modal-content">
+        <div class="modal-header profile-modal-header">
             <h3>Add or Change Bank Details</h3>
             <button type="button" class="modal-close" data-close-modal="payoutDetailsModal" aria-label="Close">×</button>
         </div>
@@ -248,8 +247,8 @@ $districts = [
                     <input type="text" id="payoutAccountNumber" class="form-control" maxlength="18" inputmode="numeric" pattern="[0-9]{8,18}" required>
                 </div>
                 <div class="form-group">
-                    <label for="payoutBranchName">Branch Name *</label>
-                    <input type="text" id="payoutBranchName" class="form-control" maxlength="80" required>
+                    <label for="payoutBranchName">Branch Name</label>
+                    <input type="text" id="payoutBranchName" class="form-control" maxlength="80">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-close-modal="payoutDetailsModal">Cancel</button>
@@ -260,9 +259,9 @@ $districts = [
     </div>
 </div>
 
-<div id="deactivateAccountModal" class="modal farmer-profile-modal">
-    <div class="modal-content farmer-profile-modal-content">
-        <div class="modal-header farmer-profile-modal-header danger">
+<div id="deactivateAccountModal" class="modal profile-modal">
+    <div class="modal-content profile-modal-content">
+        <div class="modal-header profile-modal-header danger">
             <h3>Deactivate Farmer Account</h3>
             <button type="button" class="modal-close" data-close-modal="deactivateAccountModal" aria-label="Close">×</button>
         </div>

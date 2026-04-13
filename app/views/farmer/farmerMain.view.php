@@ -135,14 +135,14 @@
                 // Layout is at: app/views/components/farmerLayout.view.php
                 // Project root is: dirname(dirname(dirname(__DIR__)))
                 $projectRoot = dirname(dirname(dirname(__DIR__)));
-                
+
                 // Remove ../ prefix and build absolute path
                 $cleanPath = str_replace('../', '', $contentView);
                 $viewPath = $projectRoot . DIRECTORY_SEPARATOR . $cleanPath;
-                
+
                 // Normalize path separators for Windows
                 $viewPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $viewPath);
-                
+
                 if (file_exists($viewPath)) {
                     include $viewPath;
                 } else {

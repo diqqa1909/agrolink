@@ -375,12 +375,17 @@ function debounce(func, wait) {
 }
 
 function showNotification(message, type = 'info') {
+    const safeMessage = String(message || '').trim();
+    const compactMessage = safeMessage.length > 100
+        ? `${safeMessage.slice(0, 97)}...`
+        : safeMessage;
+
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(n => n.remove());
     
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.textContent = compactMessage || 'Notification';
     
     document.body.insertBefore(notification, document.body.firstChild);
     
@@ -388,7 +393,7 @@ function showNotification(message, type = 'info') {
         if (notification.parentNode) {
             notification.remove();
         }
-    }, 3000);
+    }, 2200);
 }
 
 // Table sorting function

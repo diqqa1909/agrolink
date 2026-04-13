@@ -6,11 +6,15 @@ class FarmerProfileController
 
     protected $farmerModel;
     protected $userModel;
+    protected $payoutAccountsModel;
+    protected $orderModel;
 
     public function __construct()
     {
         $this->farmerModel = new FarmerModel();
         $this->userModel = new UserModel();
+        $this->payoutAccountsModel = new PayoutAccountsModel();
+        $this->orderModel = new OrderModel();
     }
 
     /**
@@ -167,40 +171,10 @@ class FarmerProfileController
                 exit;
             }
 
-            // Update name and email in users table if provided
-            if (!empty($data['name']) || !empty($data['email'])) {
-                $userUpdateData = [];
-
-                if (!empty($data['name'])) {
-                    $userUpdateData['name'] = $data['name'];
-                }
-
-                if (!empty($data['email'])) {
-                    // Check if email is already taken by another user
-                    $existingUser = $this->userModel->findByEmail($data['email']);
-                    if ($existingUser && $existingUser->id !== $userId) {
-                        http_response_code(422);
-                        echo json_encode([
-                            'success' => false,
-                            'error' => 'Validation failed',
-                            'errors' => ['email' => 'This email is already in use']
-                        ]);
-                        exit;
-                    }
-                    $userUpdateData['email'] = $data['email'];
-                }
-
-                if (!empty($userUpdateData)) {
-                    $this->userModel->update($userId, $userUpdateData);
-
-                    // Update session with new name/email
-                    if (!empty($userUpdateData['name'])) {
-                        $_SESSION['USER']->name = $userUpdateData['name'];
-                    }
-                    if (!empty($userUpdateData['email'])) {
-                        $_SESSION['USER']->email = $userUpdateData['email'];
-                    }
-                }
+            // Name is editable from profile form; email changes are handled via Account Settings.
+            if (!empty($data['name'])) {
+                $this->userModel->update($userId, ['name' => $data['name']]);
+                $_SESSION['USER']->name = $data['name'];
             }
 
             // Prepare profile data (exclude name and email from farmer profile update)
@@ -572,7 +546,7 @@ class FarmerProfileController
                 exit;
             }
 
-            $updated = $this->userModel->update($userId, ['email' => $newEmail]);
+            $updated = $this->userModel->changeEmailWithAudit($userId, $newEmail);
             if (!$updated) {
                 http_response_code(500);
                 echo json_encode([
@@ -582,7 +556,6 @@ class FarmerProfileController
                 exit;
             }
 
-            $this->userModel->recordEmailChange($userId, (string)$currentUser->email, $newEmail);
             $_SESSION['USER']->email = $newEmail;
 
             $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
@@ -615,7 +588,7 @@ class FarmerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER'])) {
+        if (!isset($_SESSION['USER']) || (($_SESSION['USER']->role ?? '') !== 'farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -656,7 +629,7 @@ class FarmerProfileController
             }
 
             // Change password
-            $result = $this->farmerModel->changePassword($userId, $newPassword);
+            $result = $this->userModel->updatePassword($userId, $newPassword);
 
             if ($result) {
                 http_response_code(200);
@@ -678,6 +651,139 @@ class FarmerProfileController
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
+        exit;
+    }
+
+    public function getPayoutAccount()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $userId = (int)$_SESSION['USER']->id;
+        $account = $this->payoutAccountsModel->getDefaultAccountByUserId($userId);
+
+        echo json_encode([
+            'success' => true,
+            'account' => $account,
+        ]);
+        exit;
+    }
+
+    public function savePayoutAccount()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $userId = (int)$_SESSION['USER']->id;
+        $payload = [
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
+            'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
+            'account_number' => trim((string)($_POST['account_number'] ?? '')),
+            'account_type' => trim((string)($_POST['account_type'] ?? '')),
+            'is_default' => 1,
+        ];
+
+        $result = $this->payoutAccountsModel->saveDefaultAccount($userId, $payload);
+        if (empty($result['success'])) {
+            if (!empty($result['errors'])) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $result['errors'],
+                ]);
+                exit;
+            }
+
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to save payout account',
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payout account saved successfully',
+            'account' => $result['account'] ?? null,
+        ]);
+        exit;
+    }
+
+    public function requestDeactivation()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $userId = (int)$_SESSION['USER']->id;
+        $reason = trim((string)($_POST['reason'] ?? ''));
+
+        $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+        $activeOrderCount = $this->orderModel->countFarmerOrdersByStatuses($userId, $blockingStatuses);
+        if ($activeOrderCount > 0) {
+            http_response_code(409);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Cannot deactivate account while active orders exist.',
+                'activeOrderCount' => $activeOrderCount,
+            ]);
+            exit;
+        }
+
+        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+
+        if (!$deactivated) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to deactivate account',
+            ]);
+            exit;
+        }
+
+        $_SESSION = [];
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
+        }
+        session_destroy();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Account deactivated successfully.',
+            'redirect' => ROOT . '/login?deactivated=1',
+        ]);
         exit;
     }
 }

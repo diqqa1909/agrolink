@@ -21,11 +21,11 @@ class OrderModel
                         :delivery_phone, :status, NOW())";
 
         $result = $this->write($sql, $orderData);
-        
+
         if ($result && $result !== false && $result !== 1) {
             return $result; // Returns order ID
         }
-        
+
         return false;
     }
 
@@ -39,10 +39,7 @@ class OrderModel
                 VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, NOW())";
 
         $result = $this->write($sql, $itemData);
-        
-        // DEBUG: Log the actual result from write()
-        error_log("OrderModel::addOrderItem - write() returned: " . var_export($result, true));
-        
+
         // Return true if we got an insert ID (int) or true, false if we got false
         return $result !== false;
     }
@@ -57,7 +54,7 @@ class OrderModel
                 LEFT JOIN users u ON o.buyer_id = u.id
                 LEFT JOIN districts d ON o.delivery_district_id = d.id
                 WHERE o.id = :order_id";
-        
+
         return $this->get_row($sql, ['order_id' => $orderId]);
     }
 
@@ -71,7 +68,7 @@ class OrderModel
                 LEFT JOIN products p ON oi.product_id = p.id
                 LEFT JOIN users u ON oi.farmer_id = u.id
                 WHERE oi.order_id = :order_id";
-        
+
         $result = $this->query($sql, ['order_id' => $orderId]);
         return is_array($result) ? $result : [];
     }
@@ -86,7 +83,7 @@ class OrderModel
                 FROM {$this->table} o
                 WHERE o.buyer_id = :buyer_id
                 ORDER BY o.created_at DESC";
-        
+
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
         return is_array($result) ? $result : [];
     }
@@ -101,6 +98,63 @@ class OrderModel
     }
 
     /**
+     * Count buyer orders in the given statuses.
+     */
+    public function countBuyerOrdersByStatuses($buyerId, array $statuses)
+    {
+        $buyerId = (int)$buyerId;
+        if ($buyerId <= 0 || empty($statuses)) {
+            return 0;
+        }
+
+        $statusPlaceholders = [];
+        $params = ['buyer_id' => $buyerId];
+
+        foreach (array_values($statuses) as $index => $status) {
+            $key = 'status_' . $index;
+            $statusPlaceholders[] = ':' . $key;
+            $params[$key] = strtolower(trim((string)$status));
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM {$this->table}
+                WHERE buyer_id = :buyer_id
+                AND LOWER(status) IN (" . implode(', ', $statusPlaceholders) . ")";
+
+        $row = $this->get_row($sql, $params);
+        return (int)($row->total ?? 0);
+    }
+
+    /**
+     * Count orders containing a given farmer's products in the given statuses.
+     */
+    public function countFarmerOrdersByStatuses($farmerId, array $statuses)
+    {
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0 || empty($statuses)) {
+            return 0;
+        }
+
+        $statusPlaceholders = [];
+        $params = ['farmer_id' => $farmerId];
+
+        foreach (array_values($statuses) as $index => $status) {
+            $key = 'status_' . $index;
+            $statusPlaceholders[] = ':' . $key;
+            $params[$key] = strtolower(trim((string)$status));
+        }
+
+        $sql = "SELECT COUNT(DISTINCT o.id) AS total
+                FROM {$this->table} o
+                INNER JOIN {$this->orderItemsTable} oi ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id
+                AND LOWER(o.status) IN (" . implode(', ', $statusPlaceholders) . ")";
+
+        $row = $this->get_row($sql, $params);
+        return (int)($row->total ?? 0);
+    }
+
+    /**
      * Update product quantity after order
      * Ensures quantity doesn't go below 0
      */
@@ -109,14 +163,14 @@ class OrderModel
         // First check current quantity
         $sql = "SELECT quantity FROM products WHERE id = :product_id";
         $current = $this->get_row($sql, ['product_id' => $productId]);
-        
+
         if (!$current) {
             return false;
         }
-        
+
         $currentQuantity = (int)($current->quantity ?? 0);
         $newQuantity = max(0, $currentQuantity - $quantity);
-        
+
         $sql = "UPDATE products SET quantity = :new_quantity WHERE id = :product_id";
         return $this->write($sql, ['product_id' => $productId, 'new_quantity' => $newQuantity]);
     }

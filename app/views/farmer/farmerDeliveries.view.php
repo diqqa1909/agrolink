@@ -46,47 +46,47 @@
     <?php else: ?>
         <div class="table-container farmer-deliveries-table-wrap">
             <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Delivery ID</th>
-                        <th>Order</th>
-                        <th>Buyer</th>
-                        <th>Transporter</th>
-                        <th>Route</th>
-                        <th>Weight</th>
-                        <th>Shipping</th>
-                        <th>Status</th>
-                        <th>Updated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($deliveries as $delivery): ?>
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td>#<?= (int)$delivery->id ?></td>
-                            <td>#<?= (int)$delivery->order_id ?></td>
-                            <td><?= htmlspecialchars($delivery->buyer_name ?? 'N/A') ?></td>
-                            <td><?= htmlspecialchars($delivery->transporter_name ?? 'Unassigned') ?></td>
-                            <td>
-                                <div class="farmer-delivery-route-main">
-                                    <?= htmlspecialchars($delivery->farmer_city ?? 'Unknown') ?> → <?= htmlspecialchars($delivery->buyer_city ?? 'Unknown') ?>
-                                </div>
-                                <div class="farmer-delivery-route-sub">
-                                    <?= isset($delivery->distance_km) ? number_format((float)$delivery->distance_km, 1) . ' km' : 'Distance N/A' ?>
-                                </div>
-                            </td>
-                            <td><?= number_format((float)($delivery->total_weight_kg ?? 0), 2) ?> kg</td>
-                            <td>Rs. <?= number_format((float)($delivery->shipping_fee ?? 0), 2) ?></td>
-                            <td>
-                                <span class="order-status status-<?= htmlspecialchars($delivery->status ?? 'pending') ?>">
-                                    <?= ucfirst(str_replace('_', ' ', htmlspecialchars($delivery->status ?? 'pending'))) ?>
-                                </span>
-                            </td>
-                            <td><?= !empty($delivery->updated_at) ? date('M d, Y H:i', strtotime($delivery->updated_at)) : '-' ?></td>
+                            <th>Delivery ID</th>
+                            <th>Order</th>
+                            <th>Buyer</th>
+                            <th>Transporter</th>
+                            <th>Route</th>
+                            <th>Weight</th>
+                            <th>Shipping</th>
+                            <th>Status</th>
+                            <th>Updated</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($deliveries as $delivery): ?>
+                            <tr>
+                                <td>#<?= (int)$delivery->id ?></td>
+                                <td>#<?= (int)$delivery->order_id ?></td>
+                                <td><?= htmlspecialchars($delivery->buyer_name ?? 'N/A') ?></td>
+                                <td><?= htmlspecialchars($delivery->transporter_name ?? 'Unassigned') ?></td>
+                                <td>
+                                    <div class="farmer-delivery-route-main">
+                                        <?= htmlspecialchars($delivery->farmer_city ?? 'Unknown') ?> → <?= htmlspecialchars($delivery->buyer_city ?? 'Unknown') ?>
+                                    </div>
+                                    <div class="farmer-delivery-route-sub">
+                                        <?= isset($delivery->distance_km) ? number_format((float)$delivery->distance_km, 1) . ' km' : 'Distance N/A' ?>
+                                    </div>
+                                </td>
+                                <td><?= number_format((float)($delivery->total_weight_kg ?? 0), 2) ?> kg</td>
+                                <td>Rs. <?= number_format((float)($delivery->shipping_fee ?? 0), 2) ?></td>
+                                <td>
+                                    <span class="order-status status-<?= htmlspecialchars($delivery->status ?? 'pending') ?>">
+                                        <?= ucfirst(str_replace('_', ' ', htmlspecialchars($delivery->status ?? 'pending'))) ?>
+                                    </span>
+                                </td>
+                                <td><?= !empty($delivery->updated_at) ? date('M d, Y H:i', strtotime($delivery->updated_at)) : '-' ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     <?php endif; ?>

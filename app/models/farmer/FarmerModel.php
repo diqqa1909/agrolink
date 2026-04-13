@@ -12,7 +12,7 @@ class FarmerModel
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT fp.*, u.name, u.email 
+        $sql = "SELECT fp.*, u.name, u.email, u.status, u.deactivated_at
                 FROM {$this->table} fp
                 LEFT JOIN {$this->userTable} u ON u.id = fp.user_id
                 WHERE fp.user_id = :user_id";
@@ -209,6 +209,8 @@ class FarmerModel
             $errors['new'] = 'New password is required';
         } elseif (strlen($newPassword) < 8) {
             $errors['new'] = 'New password must be at least 8 characters long';
+        } elseif (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            $errors['new'] = 'New password must include at least one letter and one number';
         }
 
         // Validate password confirmation
@@ -233,7 +235,11 @@ class FarmerModel
     {
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-        $sql = "UPDATE {$this->userTable} SET password = :password WHERE id = :id";
+        $sql = "UPDATE {$this->userTable}
+                SET password = :password,
+                    password_updated_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = :id";
 
         return $this->write($sql, [
             'id' => $userId,

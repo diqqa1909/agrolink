@@ -3,7 +3,6 @@
     'use strict';
 
     const APP_ROOT = window.APP_ROOT || document.body.getAttribute('data-app-root') || '';
-    const payoutStorageKey = `agrolink_farmer_payout_${document.body.getAttribute('data-user-email') || 'default'}`;
     let originalProfileData = null;
     const maxEmailChanges = 2;
     const accountSettingsState = {
@@ -219,9 +218,6 @@
         if (!accountNumber) {
             errors.payoutAccountNumber = 'Account number is required';
         }
-        if (!branchName) {
-            errors.payoutBranchName = 'Branch name is required';
-        }
 
         if (accountName && !/^[A-Za-z][A-Za-z\s.'-]{1,79}$/.test(accountName)) {
             errors.payoutAccountName = 'Enter a valid account holder name';
@@ -303,11 +299,16 @@
         const displayEmail = document.getElementById('profileDisplayEmail');
         const memberSince = document.getElementById('memberSinceValue');
         const lastUpdated = document.getElementById('lastUpdatedValue');
+        const accountStatus = document.getElementById('accountStatusValue');
 
         if (displayName) displayName.textContent = name || 'Farmer';
         if (displayEmail) displayEmail.textContent = email || '';
         if (memberSince) memberSince.textContent = formatDate(profile.created_at);
         if (lastUpdated) lastUpdated.textContent = formatDateTime(profile.updated_at);
+        if (accountStatus) {
+            const status = String(profile.status || 'active').toLowerCase();
+            accountStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
 
         setProfilePhoto(photoUrl || null);
     }
@@ -747,24 +748,28 @@
     }
 
     function loadPayoutDetails() {
-        const raw = localStorage.getItem(payoutStorageKey);
-        if (!raw) return;
-
-        try {
-            const data = JSON.parse(raw);
-            const map = {
-                payoutAccountName: data.accountName || '',
-                payoutBankName: data.bankName || '',
-                payoutAccountNumber: data.accountNumber || '',
-                payoutBranchName: data.branchName || ''
-            };
-            Object.keys(map).forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = map[id];
+        fetch(`${APP_ROOT}/farmerprofile/getPayoutAccount`, {
+            credentials: 'include',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            cache: 'no-cache'
+        })
+            .then(parseJsonResponse)
+            .then(res => {
+                const account = res && res.success ? (res.account || null) : null;
+                const map = {
+                    payoutAccountName: account?.account_holder_name || '',
+                    payoutBankName: account?.bank_name || '',
+                    payoutAccountNumber: account?.account_number || '',
+                    payoutBranchName: account?.branch_name || ''
+                };
+                Object.keys(map).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = map[id];
+                });
+            })
+            .catch(err => {
+                console.error('Failed to load payout details:', err);
             });
-        } catch (err) {
-            console.error('Failed to load payout details:', err);
-        }
     }
 
     function savePayoutDetails(event) {
@@ -781,8 +786,7 @@
             accountName: document.getElementById('payoutAccountName')?.value?.trim() || '',
             bankName: document.getElementById('payoutBankName')?.value?.trim() || '',
             accountNumber: document.getElementById('payoutAccountNumber')?.value?.trim() || '',
-            branchName: document.getElementById('payoutBranchName')?.value?.trim() || '',
-            savedAt: new Date().toISOString()
+            branchName: document.getElementById('payoutBranchName')?.value?.trim() || ''
         };
 
         const validation = validatePayoutDetails(data);
@@ -810,9 +814,48 @@
         if (payoutAccountNumber) payoutAccountNumber.value = data.accountNumber;
         if (payoutBranchName) payoutBranchName.value = data.branchName;
 
-        localStorage.setItem(payoutStorageKey, JSON.stringify(data));
-        profileNotify('Bank details saved', 'success');
-        closeModal('payoutDetailsModal');
+        fetch(`${APP_ROOT}/farmerprofile/savePayoutAccount`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                account_holder_name: data.accountName,
+                bank_name: data.bankName,
+                account_number: data.accountNumber,
+                branch_name: data.branchName
+            })
+        })
+            .then(parseJsonResponse)
+            .then(res => {
+                if (res.success) {
+                    profileNotify(res.message || 'Bank details saved', 'success');
+                    closeModal('payoutDetailsModal');
+                    return;
+                }
+
+                if (res.errors && typeof res.errors === 'object') {
+                    const fieldMap = {
+                        account_holder_name: 'payoutAccountName',
+                        bank_name: 'payoutBankName',
+                        account_number: 'payoutAccountNumber',
+                        branch_name: 'payoutBranchName'
+                    };
+                    applyErrorsFromMap(res.errors, fieldMap);
+                    const firstFieldId = fieldMap[Object.keys(res.errors)[0]];
+                    const firstField = firstFieldId ? document.getElementById(firstFieldId) : null;
+                    if (firstField) firstField.focus();
+                    return;
+                }
+
+                profileNotify(res.error || 'Failed to save bank details', 'error');
+            })
+            .catch(err => {
+                profileNotify('Error saving bank details', 'error');
+                console.error('Payout save error:', err);
+            });
     }
 
     function openPayoutDetailsModal() {
@@ -821,8 +864,45 @@
     }
 
     function confirmDeactivateAccount() {
-        closeModal('deactivateAccountModal');
-        profileNotify('Deactivation requested. Please contact admin to proceed.', 'warning');
+        const confirmBtn = document.getElementById('confirmDeactivateBtn');
+        const originalText = confirmBtn ? confirmBtn.textContent : '';
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Submitting...';
+        }
+
+        fetch(`${APP_ROOT}/farmerprofile/requestDeactivation`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({})
+        })
+            .then(parseJsonResponse)
+            .then(res => {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = originalText;
+                }
+
+                if (res.success) {
+                    profileNotify(res.message || 'Account deactivated successfully.', 'warning');
+                    window.location.href = res.redirect || `${APP_ROOT}/login?deactivated=1`;
+                    return;
+                }
+
+                profileNotify(res.error || 'Failed to deactivate account', 'error');
+            })
+            .catch(err => {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = originalText;
+                }
+                profileNotify('Error submitting deactivation request', 'error');
+                console.error('Deactivation error:', err);
+            });
     }
 
     function initializeProfileFunctionality() {
@@ -912,7 +992,7 @@
             });
         });
 
-        document.querySelectorAll('.modal.farmer-profile-modal').forEach(modal => {
+        document.querySelectorAll('.modal.profile-modal').forEach(modal => {
             modal.addEventListener('click', function (e) {
                 if (e.target === modal) modal.classList.remove('show');
             });

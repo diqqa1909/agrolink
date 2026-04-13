@@ -6,11 +6,6 @@ class LoginController
     {
         $data = [];
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
-            // DEBUG: Check what's being received
-            error_log("POST Data: " . print_r($_POST, true));
-            error_log("Email empty? " . (empty($_POST['email']) ? 'YES' : 'NO'));
-            error_log("Password empty? " . (empty($_POST['password']) ? 'YES' : 'NO'));
-
             // Check if POST data exists
             if (empty($_POST['email']) || empty($_POST['password'])) {
                 $user = new UserModel;
@@ -23,7 +18,11 @@ class LoginController
                 $row = $user->first($arr);
 
                 if ($row) {
-                    if (password_verify((string)$_POST['password'], (string)$row->password)) {
+                    $status = strtolower((string)($row->status ?? 'active'));
+                    if ($status !== 'active') {
+                        $user->errors['email'] = "Your account is deactivated. Please contact admin for reactivation.";
+                        $data['errors'] = $user->errors;
+                    } elseif (password_verify((string)$_POST['password'], (string)$row->password)) {
                         $_SESSION['USER'] = $row;
 
                         //REDIRECT BASED ON USER ROLE
@@ -31,8 +30,10 @@ class LoginController
                         return;
                     }
                 }
-                $user->errors['email'] = "Wrong Email and Password";
-                $data['errors'] = $user->errors;
+                if (empty($data['errors'])) {
+                    $user->errors['email'] = "Wrong Email and Password";
+                    $data['errors'] = $user->errors;
+                }
             }
         }
         $this->view('login', $data);

@@ -12,7 +12,7 @@ class TransporterModel
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT tp.*, u.name, u.email 
+        $sql = "SELECT tp.*, u.name, u.email, u.status, u.deactivated_at
                 FROM {$this->table} tp
                 LEFT JOIN {$this->userTable} u ON u.id = tp.user_id
                 WHERE tp.user_id = :user_id";
@@ -258,6 +258,8 @@ class TransporterModel
             $errors['new'] = 'New password is required';
         } elseif (strlen($newPassword) < 8) {
             $errors['new'] = 'New password must be at least 8 characters long';
+        } elseif (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            $errors['new'] = 'New password must include at least one letter and one number';
         }
 
         // Validate password confirmation
@@ -282,7 +284,11 @@ class TransporterModel
     {
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-        $sql = "UPDATE {$this->userTable} SET password = :password WHERE id = :id";
+        $sql = "UPDATE {$this->userTable}
+                SET password = :password,
+                    password_updated_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = :id";
 
         return $this->write($sql, [
             'id' => $userId,
@@ -294,8 +300,19 @@ class TransporterModel
      * Get available delivery requests for transporter based on their vehicle capacity
      * Filters by vehicle weight capacity range from vehicle_types table
      */
-    public function getAvailableDeliveryRequests($transporterId)
+    public function getAvailableDeliveryRequests($transporterId, array $filters = [])
     {
+        $transporterId = (int)$transporterId;
+        if ($transporterId <= 0) {
+            return [];
+        }
+
+        $location = strtolower(trim((string)($filters['location'] ?? '')));
+        $location = preg_replace('/\s+/', ' ', $location);
+        $maxDistance = isset($filters['max_distance']) ? (float)$filters['max_distance'] : 0;
+        $maxWeight = isset($filters['max_weight']) ? (float)$filters['max_weight'] : 0;
+        $minPayment = isset($filters['min_payment']) ? (float)$filters['min_payment'] : 0;
+
         // First, get transporter's active vehicles and their capacities
         $vehicleSql = "SELECT v.*, vt.min_weight_kg, vt.max_weight_kg, vt.vehicle_name
                       FROM vehicles v
@@ -337,13 +354,39 @@ class TransporterModel
                 WHERE dr.status = 'pending'
                 AND dr.total_weight_kg >= :min_weight
                 AND dr.total_weight_kg <= :max_weight
-                AND o.status IN ('pending', 'confirmed')
-                ORDER BY dr.created_at DESC";
-        
-        $result = $this->query($sql, [
+                AND o.status IN ('pending', 'confirmed')";
+
+        $params = [
             'min_weight' => $minCapacity,
-            'max_weight' => $maxCapacity
-        ]);
+            'max_weight' => $maxCapacity,
+        ];
+
+        if ($location !== '') {
+            $sql .= " AND (
+                        LOWER(TRIM(COALESCE(dr.farmer_city, ''))) LIKE :location_like
+                        OR LOWER(TRIM(COALESCE(fd.district_name, ''))) LIKE :location_like
+                    )";
+            $params['location_like'] = '%' . $location . '%';
+        }
+
+        if ($maxDistance > 0) {
+            $sql .= " AND dr.distance_km IS NOT NULL AND dr.distance_km <= :max_distance";
+            $params['max_distance'] = $maxDistance;
+        }
+
+        if ($maxWeight > 0) {
+            $sql .= " AND dr.total_weight_kg <= :max_weight_filter";
+            $params['max_weight_filter'] = $maxWeight;
+        }
+
+        if ($minPayment > 0) {
+            $sql .= " AND dr.shipping_fee >= :min_payment";
+            $params['min_payment'] = $minPayment;
+        }
+
+        $sql .= " ORDER BY dr.created_at DESC";
+        
+        $result = $this->query($sql, $params);
         
         return is_array($result) ? $result : [];
     }
@@ -517,6 +560,28 @@ class TransporterModel
     }
 
     /**
+     * Count transporter deliveries that are not completed.
+     *
+     * Business rule: transporter account deactivation is allowed only when
+     * every assigned delivery is completed (delivered/completed).
+     */
+    public function countIncompleteDeliveries($transporterId)
+    {
+        $transporterId = (int)$transporterId;
+        if ($transporterId <= 0) {
+            return 0;
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM delivery_requests
+                WHERE transporter_id = :transporter_id
+                AND LOWER(COALESCE(status, '')) NOT IN ('delivered', 'completed')";
+
+        $row = $this->get_row($sql, ['transporter_id' => $transporterId]);
+        return (int)($row->total ?? 0);
+    }
+
+    /**
      * Migrate existing orders to delivery requests (run once)
      */
     public function migrateExistingOrders()
@@ -685,4 +750,3 @@ class TransporterModel
         return ($result && is_array($result) && !empty($result)) ? $result[0]->id : 5;
     }
 }
-

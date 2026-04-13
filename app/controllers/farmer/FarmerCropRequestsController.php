@@ -11,10 +11,10 @@ class FarmerCropRequestsController
 
         // Load CropRequestModel to fetch all crop requests
         $cropRequestModel = new CropRequestModel();
-        
+
         // Get all crop requests from buyers (not filtered by farmer - farmers see all open requests)
         $requests = $cropRequestModel->findAll();
-        
+
         // Ensure it's an array
         if (!is_array($requests)) {
             $requests = [];

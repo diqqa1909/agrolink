@@ -36,12 +36,12 @@ class BuyerDashboardController
 
         // Fetch orders for the buyer
         $orders = $this->orderModel->getOrdersByBuyer($user_id);
-        
+
         // Calculate statistics
         $totalOrders = count($orders);
         $pendingOrders = 0;
         $totalSpent = 0;
-        
+
         foreach ($orders as $order) {
             if ($order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
                 $pendingOrders++;
@@ -51,7 +51,7 @@ class BuyerDashboardController
                 $totalSpent += floatval($order->order_total);
             }
         }
-        
+
         // Get order items for each order
         $ordersWithItems = [];
         foreach ($orders as $order) {
