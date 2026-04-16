@@ -101,17 +101,41 @@ class FarmerOrdersController
         }
 
         $input = json_decode(file_get_contents('php://input'), true);
+        $orderId = $input['order_id'] ?? null;
         $itemId = $input['item_id'] ?? null;
         $status = $input['status'] ?? null;
 
-        if (!$itemId || !$status) {
+        if ((!$orderId && !$itemId) || !$status) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Item ID and status required']);
+            echo json_encode(['success' => false, 'error' => 'Order ID and status required']);
             exit;
         }
 
         $userId = $_SESSION['USER']->id;
 
+        // Preferred path: order-level workflow transitions.
+        if ($orderId) {
+            if (!$this->farmerModel->verifyFarmerOrderOwnership($orderId, $userId)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'Unauthorized to update this order']);
+                exit;
+            }
+
+            $result = $this->farmerModel->updateFarmerOrderStatus((int)$orderId, (int)$userId, (string)$status);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Order status updated successfully'
+                ]);
+            } else {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Invalid status transition']);
+            }
+            exit;
+        }
+
+        // Backward compatibility: item-level payloads.
         // Verify the item belongs to this farmer
         if (!$this->farmerModel->verifyOrderItemOwnership($itemId, $userId)) {
             http_response_code(403);

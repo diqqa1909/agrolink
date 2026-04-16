@@ -1,116 +1,133 @@
-<!-- Farmer Reviews Section -->
-<div class="content-header">
-    <h1 class="content-title">Customer Reviews</h1>
-    <p class="content-subtitle">Feedback and ratings from buyers</p>
-</div>
+<div class="content-section farmer-reviews-page">
+    <div class="content-header">
+        <h1 class="content-title">Customer Reviews</h1>
+        <p class="content-subtitle">Product feedback from buyers</p>
+    </div>
 
-<div class="reviews-container">
-    <?php if (empty($reviews)): ?>
-        <div class="empty-state" style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #e0e0e0;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">⭐</div>
-            <h3>No Reviews Yet</h3>
-            <p style="color: #666;">You haven't received any reviews yet.</p>
-        </div>
-    <?php else: ?>
-        <div class="reviews-grid" style="display: grid; gap: 20px;">
-            <?php foreach ($reviews as $review): ?>
-                <div class="review-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                        <div style="display: flex; gap: 16px;">
-                            <div style="width: 50px; height: 50px; background: #e3f2fd; color: #2196F3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                                <?= strtoupper(substr($review->buyer_name ?? 'B', 0, 1)) ?>
-                            </div>
-                            
-                            <div>
-                                <h4 style="margin: 0 0 4px 0;"><?= htmlspecialchars($review->product_name) ?></h4>
-                                <p style="margin: 0; color: #666; font-size: 0.9rem;">
-                                    Reviewed by <span style="font-weight: 500;"><?= htmlspecialchars($review->buyer_name) ?></span>
-                                </p>
-                                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #999;">
-                                    <?= date('M d, Y', strtotime($review->created_at)) ?>
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="star-rating" style="color: #ff9800; font-size: 1.2rem;">
-                            <?= str_repeat('★', $review->rating) . str_repeat('☆', 5 - $review->rating) ?>
-                        </div>
-                    </div>
-                    
-                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-top: 12px;">
-                        <p style="margin: 0; color: #444; line-height: 1.5;">
-                            "<?= nl2br(htmlspecialchars($review->comment)) ?>"
-                        </p>
-                    </div>
+    <div class="reviews-container">
+        <?php if (empty($reviews)): ?>
+            <div class="empty-state farmer-reviews-empty">
+                <div class="farmer-reviews-empty-icon">⭐</div>
+                <h3>No Reviews Yet</h3>
+                <p>You haven't received any product reviews yet.</p>
+            </div>
+        <?php else: ?>
+            <div class="reviews-grid farmer-reviews-grid">
+                <?php foreach ($reviews as $review): ?>
+                    <?php
+                    $rating = (int)($review->rating ?? 0);
+                    $isComplaint = $rating > 0 && $rating <= 2;
+                    $buyerName = trim((string)($review->buyer_name ?? 'Buyer'));
+                    $buyerInitial = strtoupper(substr($buyerName !== '' ? $buyerName : 'B', 0, 1));
+                    $quantity = (float)($review->reviewed_quantity ?? 0);
+                    $productsLabel = trim((string)($review->order_products ?? ''));
+                    if ($productsLabel === '') {
+                        $productsLabel = (string)($review->product_name ?? '-');
+                    }
+                    ?>
 
-                    <?php if (!empty($review->reply)): ?>
-                        <div class="farmer-reply" style="margin-top: 16px; padding-left: 16px; border-left: 3px solid #4CAF50;">
-                            <p style="margin: 0 0 4px 0; font-weight: 500; color: #2e7d32; font-size: 0.9rem;">
-                                Your Reply:
-                            </p>
-                            <p style="margin: 0; color: #666; font-size: 0.9rem;">
-                                <?= nl2br(htmlspecialchars($review->reply)) ?>
-                            </p>
-                            <span style="font-size: 0.8rem; color: #999;">Replied on <?= date('M d', strtotime($review->replied_at)) ?></span>
-                        </div>
-                    <?php else: ?>
-                        <div style="margin-top: 16px;">
-                            <button class="btn btn-sm btn-outline" onclick="toggleReplyForm(<?= $review->id ?>)">Reply to Review</button>
-                            
-                            <form id="reply-form-<?= $review->id ?>" class="reply-form" style="display: none; margin-top: 12px;" onsubmit="submitReply(event, <?= $review->id ?>)">
-                                <textarea name="reply" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px;" rows="3" placeholder="Write your response..." required></textarea>
-                                <div style="display: flex; gap: 8px;">
-                                    <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="toggleReplyForm(<?= $review->id ?>)">Cancel</button>
+                    <div class="review-card farmer-review-card">
+                        <div class="farmer-review-header">
+                            <div class="farmer-review-person">
+                                <div class="buyer-avatar"><?= htmlspecialchars($buyerInitial) ?></div>
+                                <div class="farmer-review-meta">
+                                    <h4><?= htmlspecialchars((string)$review->product_name) ?></h4>
+                                    <p>Reviewed by <strong><?= htmlspecialchars($buyerName) ?></strong></p>
+                                    <p class="farmer-review-date"><?= date('M d, Y', strtotime((string)$review->created_at)) ?></p>
                                 </div>
-                            </form>
+                            </div>
+
+                            <div class="farmer-review-rating">
+                                <div class="star-rating">
+                                    <?= str_repeat('★', max(0, min(5, $rating))) . str_repeat('☆', max(0, 5 - $rating)) ?>
+                                </div>
+                                <?php if ($isComplaint): ?>
+                                    <span class="feedback-badge negative">Complaint</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+
+                        <div class="farmer-review-facts">
+                            <div class="farmer-review-fact">
+                                <span class="farmer-review-fact-label">Order Number:</span>
+                                <span class="farmer-review-fact-value">#<?= (int)$review->order_id ?></span>
+                            </div>
+                            <div class="farmer-review-fact">
+                                <span class="farmer-review-fact-label">Products:</span>
+                                <span class="farmer-review-fact-value"><?= htmlspecialchars($productsLabel) ?></span>
+                            </div>
+                            <div class="farmer-review-fact">
+                                <span class="farmer-review-fact-label">Quantities:</span>
+                                <span class="farmer-review-fact-value"><?= rtrim(rtrim(number_format($quantity, 2), '0'), '.') ?></span>
+                            </div>
+                        </div>
+
+                        <div class="review-body farmer-review-body <?= $isComplaint ? 'is-complaint' : '' ?>">
+                            <p><?= nl2br(htmlspecialchars((string)$review->comment)) ?></p>
+                        </div>
+
+                        <?php if (!empty($review->reply)): ?>
+                            <div class="farmer-reply">
+                                <p class="farmer-reply-title">Your Reply</p>
+                                <p class="farmer-reply-text"><?= nl2br(htmlspecialchars((string)$review->reply)) ?></p>
+                                <span class="farmer-reply-date">Replied on <?= date('M d, Y', strtotime((string)$review->replied_at)) ?></span>
+                            </div>
+                        <?php else: ?>
+                            <div class="farmer-review-actions">
+                                <button class="btn btn-sm btn-outline" onclick="toggleReplyForm(<?= (int)$review->id ?>)">Reply to Review</button>
+
+                                <form id="reply-form-<?= (int)$review->id ?>" class="reply-form farmer-reply-form" onsubmit="submitReply(event, <?= (int)$review->id ?>)">
+                                    <textarea name="reply" class="form-control" rows="3" placeholder="Write your response..." required></textarea>
+                                    <div class="farmer-reply-form-actions">
+                                        <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
+                                        <button type="button" class="btn btn-sm btn-secondary" onclick="toggleReplyForm(<?= (int)$review->id ?>)">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
 
 <script>
 function toggleReplyForm(id) {
     const form = document.getElementById('reply-form-' + id);
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-    } else {
-        form.style.display = 'none';
-    }
+    if (!form) return;
+    form.classList.toggle('show');
 }
 
 function submitReply(e, reviewId) {
     e.preventDefault();
-    
+
     const form = e.target;
     const btn = form.querySelector('button[type="submit"]');
     const originalText = btn.textContent;
     const replyText = form.querySelector('textarea').value;
-    
+
     btn.disabled = true;
     btn.textContent = 'Posting...';
-    
+
     const formData = new FormData();
     formData.append('review_id', reviewId);
     formData.append('reply', replyText);
-    
-    fetch('<?= ROOT ?>/FarmerReviews/reply', {
+
+    fetch('<?= ROOT ?>/farmerreviews/reply', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Reload page to show reply
             window.location.reload();
-        } else {
-            alert(data.message || 'Failed to post reply');
-            btn.disabled = false;
-            btn.textContent = originalText;
+            return;
         }
+        alert(data.message || 'Failed to post reply');
+        btn.disabled = false;
+        btn.textContent = originalText;
     })
     .catch(error => {
         console.error('Error:', error);

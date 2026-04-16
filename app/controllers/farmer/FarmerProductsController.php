@@ -24,6 +24,19 @@ class FarmerProductsController
     }
 
     /**
+     * Absolute path to product image directory under public assets.
+     */
+    private function getProductImageDirectory(): string
+    {
+        $publicPath = realpath(__DIR__ . '/../../../public');
+        if ($publicPath === false) {
+            throw new RuntimeException('Public directory not found');
+        }
+
+        return $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'products' . DIRECTORY_SEPARATOR;
+    }
+
+    /**
      * Farmer products page (renders shared layout)
      */
     public function index()
@@ -136,11 +149,12 @@ class FarmerProductsController
                 $errors['quantity'] = 'Minimum quantity is 10kg';
             }
             if (empty($location)) {
-                // If using new dropdowns, construct location string
+                // If using new dropdowns, construct location string.
+                // Some districts may have no towns; in that case district-only location is valid.
                 $districtId = $_POST['district_id'] ?? '';
                 $townId = $_POST['town_id'] ?? '';
-                
-                if (!empty($districtId) && !empty($townId) && $this->shippingCalculator) {
+
+                if (!empty($districtId) && $this->shippingCalculator) {
                     $districts = $this->shippingCalculator->getAllDistricts();
                     $districtName = '';
                     foreach ($districts as $d) {
@@ -149,18 +163,20 @@ class FarmerProductsController
                             break;
                         }
                     }
-                    
-                    $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+
                     $townName = '';
-                    foreach ($towns as $t) {
-                        if ($t['id'] == $townId) {
-                            $townName = $t['town_name'];
-                            break;
+                    if (!empty($townId)) {
+                        $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+                        foreach ($towns as $t) {
+                            if ($t['id'] == $townId) {
+                                $townName = $t['town_name'];
+                                break;
+                            }
                         }
                     }
-                    
-                    if ($districtName && $townName) {
-                        $location = $townName . ', ' . $districtName;
+
+                    if ($districtName) {
+                        $location = $townName ? ($townName . ', ' . $districtName) : $districtName;
                     }
                 }
 
@@ -194,13 +210,24 @@ class FarmerProductsController
                     $errors['image'] = 'Image size must be less than 5MB';
                 } else {
                     $imageName = uniqid('product_') . '.' . $ext;
-                    $uploadPath = '../public/assets/images/products/';
+                    $uploadPath = $this->getProductImageDirectory();
                     if (!is_dir($uploadPath)) {
-                        mkdir($uploadPath, 0777, true);
+                        if (!mkdir($uploadPath, 0775, true) && !is_dir($uploadPath)) {
+                            $errors['image'] = 'Failed to create upload directory';
+                            $imageName = null;
+                        }
                     }
-                    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $imageName)) {
-                        $errors['image'] = 'Failed to upload image';
-                        $imageName = null;
+                    if ($imageName !== null) {
+                        if (!is_writable($uploadPath)) {
+                            @chmod($uploadPath, 0777);
+                        }
+                        if (!is_writable($uploadPath)) {
+                            $errors['image'] = 'Upload directory is not writable';
+                            $imageName = null;
+                        } elseif (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $imageName)) {
+                            $errors['image'] = 'Failed to upload image';
+                            $imageName = null;
+                        }
                     }
                 }
             }
@@ -417,7 +444,7 @@ class FarmerProductsController
         $townId = $_POST['town_id'] ?? '';
 
         // Construct location if IDs provided
-        if ((empty($location) || $location === 'auto') && !empty($districtId) && !empty($townId) && $this->shippingCalculator) {
+        if ((empty($location) || $location === 'auto') && !empty($districtId) && $this->shippingCalculator) {
             $districts = $this->shippingCalculator->getAllDistricts();
             $districtName = '';
             foreach ($districts as $d) {
@@ -426,18 +453,20 @@ class FarmerProductsController
                     break;
                 }
             }
-            
-            $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+
             $townName = '';
-            foreach ($towns as $t) {
-                if ($t['id'] == $townId) {
-                    $townName = $t['town_name'];
-                    break;
+            if (!empty($townId)) {
+                $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+                foreach ($towns as $t) {
+                    if ($t['id'] == $townId) {
+                        $townName = $t['town_name'];
+                        break;
+                    }
                 }
             }
-            
-            if ($districtName && $townName) {
-                $location = $townName . ', ' . $districtName;
+
+            if ($districtName) {
+                $location = $townName ? ($townName . ', ' . $districtName) : $districtName;
             }
         }
         $listing_date = trim($_POST['listing_date'] ?? '');
@@ -470,11 +499,24 @@ class FarmerProductsController
                     $errors['image'] = 'Image size must be less than 5MB';
                 } else {
                     $newImageName = uniqid('product_') . '.' . $ext;
-                    $uploadPath = '../public/assets/images/products/';
-                    if (!is_dir($uploadPath)) mkdir($uploadPath, 0777, true);
-                    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $newImageName)) {
-                        $errors['image'] = 'Failed to upload image';
-                        $newImageName = null;
+                    $uploadPath = $this->getProductImageDirectory();
+                    if (!is_dir($uploadPath)) {
+                        if (!mkdir($uploadPath, 0775, true) && !is_dir($uploadPath)) {
+                            $errors['image'] = 'Failed to create upload directory';
+                            $newImageName = null;
+                        }
+                    }
+                    if ($newImageName !== null) {
+                        if (!is_writable($uploadPath)) {
+                            @chmod($uploadPath, 0777);
+                        }
+                        if (!is_writable($uploadPath)) {
+                            $errors['image'] = 'Upload directory is not writable';
+                            $newImageName = null;
+                        } elseif (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath . $newImageName)) {
+                            $errors['image'] = 'Failed to upload image';
+                            $newImageName = null;
+                        }
                     }
                 }
             } else {
@@ -506,7 +548,7 @@ class FarmerProductsController
 
         if ($ok) {
             if ($newImageName && !empty($current->image)) {
-                $oldPath = '../public/assets/images/products/' . $current->image;
+                $oldPath = $this->getProductImageDirectory() . $current->image;
                 if (is_file($oldPath)) @unlink($oldPath);
             }
             echo json_encode(['success' => true, 'message' => 'Product updated']);
@@ -538,7 +580,7 @@ class FarmerProductsController
         $ok = $this->productModel->deleteByFarmer($id, (int)$_SESSION['USER']->id);
         if ($ok) {
             if (!empty($product->image)) {
-                $imagePath = '../public/assets/images/products/' . $product->image;
+                $imagePath = $this->getProductImageDirectory() . $product->image;
                 if (is_file($imagePath)) {
                     @unlink($imagePath);
                 }

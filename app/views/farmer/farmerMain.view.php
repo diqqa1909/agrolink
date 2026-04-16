@@ -12,7 +12,18 @@
     <?php
     $username = $_SESSION['USER']->name ?? 'Farmer';
     $role = $_SESSION['USER']->role ?? 'farmer';
-    $activePage = 'dashboard';
+    $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
+    if ($notificationUnreadCount === null && isset($_SESSION['USER']->id)) {
+        try {
+            $notificationsModel = new FarmerNotificationsModel();
+            $notificationUnreadCount = $notificationsModel->getUnreadCount((int)$_SESSION['USER']->id);
+        } catch (Throwable $e) {
+            $notificationUnreadCount = 0;
+        }
+    }
+    if ($notificationUnreadCount === null) {
+        $notificationUnreadCount = 0;
+    }
     include '../app/views/components/dashboardNavBar.view.php';
     ?>
 
@@ -69,7 +80,7 @@
                         </div>
                         Deliveries
                     </a></li>
-                <li><a href="<?= ROOT ?>/FarmerReviews" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>">
+                <li><a href="<?= ROOT ?>/farmerreviews" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />
@@ -89,6 +100,18 @@
                             </svg>
                         </div>
                         Crop Requests
+                    </a></li>
+                <li><a href="<?= ROOT ?>/farmernotifications" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path>
+                                <path d="M9 17a3 3 0 0 0 6 0"></path>
+                            </svg>
+                        </div>
+                        <span class="menu-label-with-badge">
+                            <span>Notifications</span>
+                            <span id="farmerNotificationBadge" class="notification-sidebar-badge <?= $notificationUnreadCount > 0 ? '' : 'is-hidden' ?>"><?= $notificationUnreadCount ?></span>
+                        </span>
                     </a></li>
                 <li><a href="<?= ROOT ?>/farmerprofile" class="menu-link <?= ($activePage ?? '') === 'profile' ? 'active' : '' ?>">
                         <div class="menu-icon">

@@ -1,4 +1,4 @@
-<div class="content-section">
+<div class="content-section farmer-products-page">
     <div class="content-header">
         <h1 class="content-title">My Products</h1>
         <button class="btn btn-add-product" data-modal="addProductModal">
@@ -9,9 +9,9 @@
             Add New Product
         </button>
     </div>
-    <div class="content-card">
+    <div class="table-container">
         <div class="table-responsive">
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Product</th>
@@ -48,11 +48,16 @@
 
                 <div class="form-group">
                     <label for="productMaster">Product *</label>
-                    <select id="productMaster" name="product_master_id" class="form-control" required disabled>
+                    <select id="productMaster" name="product_master_id" class="form-control" disabled>
                         <option value="">Select Category First</option>
                     </select>
+                    <span class="form-hint">Optional: Choose from standard crops, or enter a custom product name below.</span>
                 </div>
-                <input type="hidden" id="productName" name="name" value="">
+
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" name="name" class="form-control" placeholder="e.g., Fresh Pumpkin" required>
+                </div>
 
                 <div class="form-group">
                     <label for="productPrice">Price per KG (Rs.) *</label>
@@ -119,12 +124,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editProductMaster">Product *</label>
-                    <select id="editProductMaster" name="product_master_id" class="form-control" required disabled>
+                    <label for="editProductMaster">Product (Optional)</label>
+                    <select id="editProductMaster" name="product_master_id" class="form-control" disabled>
                         <option value="">Select Category First</option>
                     </select>
+                    <span class="form-hint">Optional: Choose from standard crops, or edit the custom name below.</span>
                 </div>
-                <input type="hidden" id="editProductName" name="name" value="">
+
+                <div class="form-group">
+                    <label for="editProductName">Product Name *</label>
+                    <input type="text" id="editProductName" name="name" class="form-control" placeholder="e.g., Fresh Pumpkin" required>
+                </div>
 
 
 

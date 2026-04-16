@@ -13,6 +13,10 @@
         </div>
     <?php else: ?>
         <?php foreach ($wishlistItems as $item): ?>
+            <?php
+            $stockQty = $item->available_quantity ?? $item->quantity ?? 0;
+            $stockQtyDisplay = is_numeric($stockQty) ? rtrim(rtrim(number_format((float)$stockQty, 2, '.', ''), '0'), '.') : (string)$stockQty;
+            ?>
             <div class="product-card" 
                  data-wishlist-product="<?= (int)$item->product_id ?>"
                  data-id="<?= (int)$item->product_id ?>"
@@ -34,17 +38,15 @@
                         <?= isset($item->price) ? 'Rs. ' . number_format($item->price, 2) . '/kg' : 'Price unavailable' ?>
                     </div>
                     <div class="product-stock">
-                        <?= isset($item->available_quantity) ? htmlspecialchars($item->available_quantity) . 'kg available' : '' ?>
+                        <?= htmlspecialchars($stockQtyDisplay) ?> kg available
                     </div>
-                    <div style="display: flex; gap: 8px; width: 100%;">
-                        <button class="btn btn-primary" 
-                                style="flex: 1; text-align: center; padding: 10px 16px;"
-                                onclick="addToCart(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
+                    <div class="buyer-wishlist-actions">
+                        <button class="btn btn-primary buyer-wishlist-btn"
+                                onclick="BuyerDashboard.addToCart(<?= (int)$item->product_id ?>, '<?= addslashes(htmlspecialchars($item->name ?? 'Product')) ?>', <?= (float)($item->price ?? 0) ?>, <?= (float)($item->available_quantity ?? 0) ?>)">
                             Add to Cart
                         </button>
-                        <button class="btn btn-danger" 
-                                style="flex: 1; text-align: center; padding: 10px 16px;"
-                                onclick="removeFromWishlist(<?= (int)$item->product_id ?>)">
+                        <button class="btn btn-danger buyer-wishlist-btn"
+                                onclick="BuyerDashboard.removeFromWishlist(<?= (int)$item->product_id ?>)">
                             Remove
                         </button>
                     </div>

@@ -116,11 +116,10 @@
                                         Proceed to Checkout
                                     </button>
                                     <a href="<?= ROOT ?>/buyerProducts"
-                                        class="btn btn-outline btn-large btn-continue"
-                                        style="background: transparent; color: white; border: 2px solid white; padding: 14px; text-align: center; text-decoration: none; font-weight: 600;">
+                                        class="btn btn-outline btn-large btn-continue">
                                         Continue Shopping
                                     </a>
-                                    <button class="btn btn-danger btn-large" onclick="clearCart()">
+                                    <button class="btn btn-danger btn-large btn-clear-cart" onclick="clearCart()">
                                         Clear Cart
                                     </button>
                                 </div>

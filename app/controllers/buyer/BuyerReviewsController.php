@@ -5,10 +5,12 @@ class BuyerReviewsController
     use Controller;
 
     private $reviewModel;
+    private $orderModel;
 
     public function __construct()
     {
         $this->reviewModel = new ReviewModel();
+        $this->orderModel = new OrderModel();
     }
 
     public function index()
@@ -21,11 +23,15 @@ class BuyerReviewsController
 
         $userId = $_SESSION['USER']->id;
         $reviews = $this->reviewModel->getReviewsByBuyer($userId);
+        $reviewableItems = $this->orderModel->getReviewableItemsByBuyer($userId);
+        $reviewableTransporters = $this->orderModel->getReviewableTransportersByBuyer($userId);
 
         $data = [
             'pageTitle' => 'My Reviews',
             'activePage' => 'reviews',
             'reviews' => $reviews,
+            'reviewableItems' => $reviewableItems,
+            'reviewableTransporters' => $reviewableTransporters,
             'contentView' => 'buyer/reviews.view.php'
         ];
 
@@ -49,20 +55,100 @@ class BuyerReviewsController
         }
 
         $buyerId = $_SESSION['USER']->id;
+        $reviewType = strtolower(trim($_POST['review_type'] ?? 'farmer'));
         $productId = $_POST['product_id'] ?? null;
         $orderId = $_POST['order_id'] ?? null;
         $farmerId = $_POST['farmer_id'] ?? null;
+        $transporterId = $_POST['transporter_id'] ?? null;
         $rating = $_POST['rating'] ?? null;
         $comment = trim($_POST['comment'] ?? '');
 
-        if (!$productId || !$orderId || !$farmerId || !$rating || !$comment) {
+        if (!$orderId || !$rating || !$comment) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'All fields are required']);
             exit;
         }
 
-        // Check if already reviewed
-        if ($this->reviewModel->exists($orderId, $productId, $buyerId)) {
+        if ($reviewType === 'transporter') {
+            if (!$transporterId) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Transporter is required']);
+                exit;
+            }
+
+            $orderContext = $this->orderModel->getOrderWithTransporterForBuyer($orderId, $buyerId);
+            if (!$orderContext) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'This order is not available for transporter review']);
+                exit;
+            }
+
+            if ((int)$orderContext->transporter_id !== (int)$transporterId) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Invalid transporter for selected order']);
+                exit;
+            }
+
+            $allowedTransporterStatuses = ['shipped', 'delivered'];
+            if (!in_array($orderContext->order_status, $allowedTransporterStatuses, true)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Transporter reviews are available after order is shipped']);
+                exit;
+            }
+
+            $canonicalProductId = (int)$orderContext->product_id;
+            if ($this->reviewModel->existsForTarget($orderId, $canonicalProductId, $buyerId, $transporterId)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'You have already reviewed this transporter for this order']);
+                exit;
+            }
+
+            $data = [
+                'order_id' => $orderId,
+                'product_id' => $canonicalProductId,
+                'buyer_id' => $buyerId,
+                'farmer_id' => $transporterId,
+                'rating' => $rating,
+                'comment' => $comment
+            ];
+
+            if ($this->reviewModel->createReview($data)) {
+                echo json_encode(['success' => true, 'message' => 'Transporter review submitted successfully']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Failed to submit transporter review']);
+            }
+            exit;
+        }
+
+        if (!$productId || !$farmerId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Product and farmer are required']);
+            exit;
+        }
+
+        // Validate ownership and allowed order state before creating farmer review/complaint
+        $orderItem = $this->orderModel->getOrderItemForBuyer($orderId, $productId, $buyerId);
+        if (!$orderItem) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'This order item is not available for review']);
+            exit;
+        }
+
+        if ((int)$orderItem->farmer_id !== (int)$farmerId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid farmer for selected product']);
+            exit;
+        }
+
+        $allowedStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
+        if (!in_array($orderItem->order_status, $allowedStatuses, true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Reviews can be written once the order is confirmed']);
+            exit;
+        }
+
+        if ($this->reviewModel->existsForTarget($orderId, $productId, $buyerId, $farmerId)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'You have already reviewed this product']);
             exit;

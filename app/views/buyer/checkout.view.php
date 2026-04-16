@@ -305,7 +305,7 @@
                             </label>
                         </div>
                     </div>
-                    <button id="finalConfirmBtn" class="btn btn-primary btn-large" style="width: 100%; margin-top: 16px;" onclick="finalConfirmOrder()">
+                    <button id="finalConfirmBtn" class="btn btn-primary btn-large btn-complete-order" onclick="finalConfirmOrder()">
                         Complete Order
                     </button>
                 </div>

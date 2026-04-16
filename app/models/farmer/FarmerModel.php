@@ -121,14 +121,12 @@ class FarmerModel
             }
         }
 
-        // Validate phone (optional but if provided, must be valid)
-        if (!empty($data['phone'])) {
-            // Remove all non-digit characters for validation
-            $cleanPhone = preg_replace('/[^0-9+]/', '', $data['phone']);
-
-            if (!preg_match('/^(\+?94|0)[0-9]{9}$/', $cleanPhone)) {
-                $errors['phone'] = 'Phone number must be a valid Sri Lankan number (e.g., +94XXXXXXXXX or 0XXXXXXXXX)';
-            }
+        // Validate phone (required, exactly 10 digits)
+        $cleanPhone = preg_replace('/\D/', '', $data['phone'] ?? '');
+        if ($cleanPhone === '') {
+            $errors['phone'] = 'Phone number is required';
+        } elseif (!preg_match('/^\d{10}$/', $cleanPhone)) {
+            $errors['phone'] = 'Phone number must be exactly 10 digits';
         }
 
         // Validate district (if provided)
@@ -266,6 +264,65 @@ class FarmerModel
     }
 
     /**
+     * Get delivery requests related to this farmer's orders
+     */
+    public function getFarmerDeliveryRequests($farmerId, $status = null)
+    {
+        $sql = "SELECT dr.*,
+                       o.payment_method,
+                       o.order_total,
+                       o.delivery_city,
+                       b.name AS buyer_name,
+                       t.name AS transporter_name
+                FROM delivery_requests dr
+                INNER JOIN orders o ON o.id = dr.order_id
+                LEFT JOIN users b ON b.id = dr.buyer_id
+                LEFT JOIN users t ON t.id = dr.transporter_id
+                WHERE dr.farmer_id = :farmer_id";
+
+        $params = ['farmer_id' => $farmerId];
+
+        if (!empty($status)) {
+            $sql .= " AND dr.status = :status";
+            $params['status'] = $status;
+        }
+
+        $sql .= " ORDER BY dr.created_at DESC";
+
+        $result = $this->query($sql, $params);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Summary counts for farmer deliveries
+     */
+    public function getFarmerDeliverySummary($farmerId)
+    {
+        $sql = "SELECT
+                    COUNT(*) AS total_deliveries,
+                    SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_deliveries,
+                    SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_deliveries,
+                    SUM(CASE WHEN status = 'in_transit' THEN 1 ELSE 0 END) AS in_transit_deliveries,
+                    SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS delivered_deliveries
+                FROM delivery_requests
+                WHERE farmer_id = :farmer_id";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+
+        if (!$result) {
+            return (object)[
+                'total_deliveries' => 0,
+                'pending_deliveries' => 0,
+                'accepted_deliveries' => 0,
+                'in_transit_deliveries' => 0,
+                'delivered_deliveries' => 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Get order items for this farmer only
      */
     public function getFarmerOrderItems($orderId, $farmerId)
@@ -290,13 +347,71 @@ class FarmerModel
     }
 
     /**
+     * Verify a farmer has at least one item in this order.
+     */
+    public function verifyFarmerOrderOwnership($orderId, $farmerId)
+    {
+        $sql = "SELECT id FROM order_items WHERE order_id = :order_id AND farmer_id = :farmer_id LIMIT 1";
+        $result = $this->get_row($sql, [
+            'order_id' => $orderId,
+            'farmer_id' => $farmerId,
+        ]);
+
+        return $result !== false;
+    }
+
+    /**
      * Update order item status
      */
     public function updateOrderItemStatus($itemId, $status)
     {
-        // Add status column if it doesn't exist (for future use)
-        $sql = "UPDATE order_items SET created_at = created_at WHERE id = :item_id";
-        return $this->write($sql, ['item_id' => $itemId]);
+        return false;
+    }
+
+    /**
+     * Update order status from farmer workflow with guarded transitions.
+     */
+    public function updateFarmerOrderStatus($orderId, $farmerId, $newStatus)
+    {
+        $allowedStatuses = ['confirmed', 'processing', 'shipped'];
+        if (!in_array($newStatus, $allowedStatuses, true)) {
+            return false;
+        }
+
+        if (!$this->verifyFarmerOrderOwnership($orderId, $farmerId)) {
+            return false;
+        }
+
+        $currentOrder = $this->get_row(
+            "SELECT status FROM orders WHERE id = :order_id LIMIT 1",
+            ['order_id' => $orderId]
+        );
+
+        if (!$currentOrder || empty($currentOrder->status)) {
+            return false;
+        }
+
+        $transitionMap = [
+            'pending' => 'confirmed',
+            'confirmed' => 'processing',
+            'processing' => 'shipped',
+            'shipped' => null,
+            'delivered' => null,
+            'cancelled' => null,
+        ];
+
+        $currentStatus = strtolower((string)$currentOrder->status);
+        $nextAllowed = $transitionMap[$currentStatus] ?? null;
+
+        if ($nextAllowed !== $newStatus) {
+            return false;
+        }
+
+        $sql = "UPDATE orders SET status = :status, updated_at = NOW() WHERE id = :order_id";
+        return $this->write($sql, [
+            'status' => $newStatus,
+            'order_id' => $orderId,
+        ]);
     }
 
     /**
@@ -371,11 +486,13 @@ class FarmerModel
         $sql = "SELECT 
                     oi.product_name,
                     oi.product_id,
+                    MAX(p.image) as product_image,
                     COUNT(DISTINCT oi.order_id) as order_count,
                     SUM(oi.quantity) as total_quantity,
                     SUM(oi.product_price * oi.quantity) as total_earnings
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
+                LEFT JOIN products p ON p.id = oi.product_id
                 WHERE oi.farmer_id = :farmer_id 
                 AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
                 GROUP BY oi.product_id, oi.product_name
@@ -391,24 +508,88 @@ class FarmerModel
      */
     public function getRecentEarnings($farmerId, $limit = 10)
     {
+        $limit = max(1, (int)$limit);
         $sql = "SELECT 
                     o.id as order_id,
                     o.created_at as order_date,
+                    COALESCE(o.updated_at, o.created_at) as transaction_date,
                     o.status,
+                    o.payment_method,
+                    o.delivery_city,
                     u.name as buyer_name,
+                    SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT oi.product_name ORDER BY oi.product_name SEPARATOR ', '), ', ', 1) as lead_product,
                     COUNT(oi.id) as item_count,
                     SUM(oi.product_price * oi.quantity) as order_earnings
                 FROM orders o
                 INNER JOIN order_items oi ON o.id = oi.order_id
                 LEFT JOIN users u ON o.buyer_id = u.id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
-                GROUP BY o.id, o.created_at, o.status, u.name
-                ORDER BY o.created_at DESC
-                LIMIT :limit";
+                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND COALESCE(o.updated_at, o.created_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+                GROUP BY o.id, o.created_at, o.updated_at, o.status, o.payment_method, o.delivery_city, u.name
+                ORDER BY COALESCE(o.updated_at, o.created_at) DESC
+                LIMIT {$limit}";
 
-        $result = $this->query($sql, ['farmer_id' => $farmerId, 'limit' => $limit]);
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
         return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Daily earnings chart (last N days).
+     */
+    public function getDailyEarningsChart($farmerId, $days = 7)
+    {
+        $days = max(1, (int)$days);
+        $sql = "SELECT
+                    DATE(o.updated_at) as day_key,
+                    SUM(oi.product_price * oi.quantity) as earnings
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id
+                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.updated_at >= DATE_SUB(CURRENT_DATE(), INTERVAL {$days} DAY)
+                GROUP BY DATE(o.updated_at)
+                ORDER BY day_key ASC";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Yearly earnings chart (last N years).
+     */
+    public function getYearlyEarningsChart($farmerId, $years = 5)
+    {
+        $years = max(1, (int)$years);
+        $sql = "SELECT
+                    YEAR(o.updated_at) as year_key,
+                    SUM(oi.product_price * oi.quantity) as earnings
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id
+                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.updated_at >= DATE_SUB(CURRENT_DATE(), INTERVAL {$years} YEAR)
+                GROUP BY YEAR(o.updated_at)
+                ORDER BY year_key ASC";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Get this week's order count for this farmer.
+     */
+    public function getWeeklyOrdersCount($farmerId)
+    {
+        $sql = "SELECT COUNT(DISTINCT o.id) as total
+                FROM orders o
+                INNER JOIN order_items oi ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND YEARWEEK(o.updated_at, 1) = YEARWEEK(CURRENT_DATE(), 1)";
+
+        $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
+        return $result ? (int)$result->total : 0;
     }
 
     /**
@@ -447,7 +628,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
                 AND o.created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
                 GROUP BY DATE_FORMAT(o.created_at, '%Y-%m'), DATE_FORMAT(o.created_at, '%b %Y')
                 ORDER BY month ASC";

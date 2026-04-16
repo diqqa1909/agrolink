@@ -41,8 +41,8 @@ class FarmerProfileController
 
         // Build photo URL
         $photoUrl = null;
-        if (!empty($profile->photo)) {
-            $photoUrl = $this->buildPhotoUrl($profile->photo);
+        if (!empty($profile->profile_photo)) {
+            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
         // Load and display the profile view through farmerDashboard layout
@@ -98,14 +98,19 @@ class FarmerProfileController
 
         // Add computed photo URL for the frontend
         $photoUrl = null;
-        if (!empty($profile->photo)) {
-            $photoUrl = $this->buildPhotoUrl($profile->photo);
+        if (!empty($profile->profile_photo)) {
+            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
+
+        $maxEmailChanges = 2;
+        $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
 
         echo json_encode([
             'success' => true,
             'profile' => $profile,
-            'photoUrl' => $photoUrl
+            'photoUrl' => $photoUrl,
+            'emailChangesUsed' => $emailChangesUsed,
+            'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed)
         ]);
         exit;
     }
@@ -116,6 +121,8 @@ class FarmerProfileController
     public function saveProfile()
     {
         if (ob_get_level()) ob_clean();
+        ini_set('display_errors', '0');
+        ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
         // Check authentication
@@ -141,7 +148,7 @@ class FarmerProfileController
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
-                'phone' => trim($_POST['phone'] ?? ''),
+                'phone' => preg_replace('/\D/', '', trim($_POST['phone'] ?? '')),
                 'district' => trim($_POST['district'] ?? ''),
                 'crops_selling' => trim($_POST['crops_selling'] ?? ''),
                 'full_address' => trim($_POST['full_address'] ?? '')
@@ -204,8 +211,13 @@ class FarmerProfileController
                 'full_address' => $data['full_address']
             ];
 
-            // Update profile
-            $result = $this->farmerModel->updateProfile($userId, $profileData);
+            // Ensure profile exists before update
+            $existingProfile = $this->farmerModel->getProfileByUserId($userId);
+            if (!$existingProfile) {
+                $result = $this->farmerModel->createProfile($userId, $profileData);
+            } else {
+                $result = $this->farmerModel->updateProfile($userId, $profileData);
+            }
 
             if ($result) {
                 // Get updated profile
@@ -224,11 +236,12 @@ class FarmerProfileController
                     'error' => 'Failed to update profile'
                 ]);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            error_log('Farmer profile save error: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode([
                 'success' => false,
-                'error' => 'Server error: ' . $e->getMessage()
+                'error' => 'Server error while saving profile'
             ]);
         }
         exit;
@@ -241,6 +254,8 @@ class FarmerProfileController
     public function uploadPhoto()
     {
         if (ob_get_level()) ob_clean();
+        ini_set('display_errors', '0');
+        ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
         // Check authentication
@@ -349,9 +364,17 @@ class FarmerProfileController
 
             // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
-                    throw new RuntimeException('Failed to create upload directory');
+                if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                    echo json_encode(['success' => false, 'error' => 'Failed to create upload directory']);
+                    exit;
                 }
+            }
+            if (!is_writable($uploadDir)) {
+                @chmod($uploadDir, 0777);
+            }
+            if (!is_writable($uploadDir)) {
+                echo json_encode(['success' => false, 'error' => 'Upload directory is not writable']);
+                exit;
             }
 
             // Move uploaded file
@@ -395,11 +418,12 @@ class FarmerProfileController
                     'error' => 'Failed to update profile photo in database'
                 ]);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            error_log('Farmer photo upload error: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode([
                 'success' => false,
-                'error' => 'Server error: ' . $e->getMessage()
+                'error' => 'Server error while uploading photo'
             ]);
         }
         exit;
@@ -473,7 +497,117 @@ class FarmerProfileController
         exit;
     }
 
-    /**     * Change password via AJAX
+    /**
+     * Change email via AJAX (requires password confirmation)
+     */
+    public function changeEmail()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized'
+            ]);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        try {
+            $userId = (int)$_SESSION['USER']->id;
+            $newEmail = strtolower(trim($_POST['newEmail'] ?? ''));
+            $password = (string)($_POST['password'] ?? '');
+            $maxEmailChanges = 2;
+            $errors = [];
+
+            $currentUser = $this->userModel->first(['id' => $userId]);
+            if (!$currentUser) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'User not found']);
+                exit;
+            }
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            if ($emailChangesRemaining <= 0) {
+                $errors['limit'] = 'Email change limit reached. You can only change email 2 times after account creation.';
+            }
+
+            if ($newEmail === '') {
+                $errors['new_email'] = 'New email is required';
+            } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $errors['new_email'] = 'Please enter a valid email address';
+            } elseif (strcasecmp($newEmail, (string)$currentUser->email) === 0) {
+                $errors['new_email'] = 'New email must be different from current email';
+            } else {
+                $existingUser = $this->userModel->findByEmail($newEmail);
+                if ($existingUser && (int)$existingUser->id !== $userId) {
+                    $errors['new_email'] = 'This email is already used by another account';
+                }
+            }
+
+            if ($password === '') {
+                $errors['password'] = 'Password confirmation is required';
+            } elseif (!password_verify($password, (string)$currentUser->password)) {
+                $errors['password'] = 'Current password is incorrect';
+            }
+
+            if (!empty($errors)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $errors,
+                    'emailChangesUsed' => $emailChangesUsed,
+                    'emailChangesRemaining' => $emailChangesRemaining
+                ]);
+                exit;
+            }
+
+            $updated = $this->userModel->update($userId, ['email' => $newEmail]);
+            if (!$updated) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to update email'
+                ]);
+                exit;
+            }
+
+            $this->userModel->recordEmailChange($userId, (string)$currentUser->email, $newEmail);
+            $_SESSION['USER']->email = $newEmail;
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Email updated successfully. Session data has been updated. Use your new email from now on.',
+                'email' => $newEmail,
+                'sessionUpdated' => true,
+                'emailChangesUsed' => $emailChangesUsed,
+                'emailChangesRemaining' => $emailChangesRemaining
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server error: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * Change password via AJAX
      */
     public function changePassword()
     {

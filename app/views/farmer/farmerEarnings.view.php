@@ -1,166 +1,137 @@
-<div class="content-section">
-    <div class="content-header">
+<?php
+$monthlyChange = (float)($monthlyChangePercent ?? 0);
+$monthlyChangeText = ($monthlyChange >= 0 ? '+' : '') . number_format($monthlyChange, 1) . '%';
+$monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
+?>
+
+<div class="content-section earnings-modern">
+    <div class="content-header earnings-header">
         <h1 class="content-title">My Earnings</h1>
         <p class="content-subtitle">Track your income and financial performance</p>
+        <button type="button" class="btn btn-secondary" onclick="FarmerEarnings.downloadReport()">Download Report</button>
     </div>
 
-    <!-- Earnings Stats Cards -->
-    <div class="earnings-stats-grid">
-        <div class="earnings-stat-card primary">
-            <div class="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Total Earnings</div>
-                <div class="stat-value">Rs. <?= number_format($totalEarnings, 2) ?></div>
+    <div class="earnings-modern-stats">
+        <div class="earnings-modern-card">
+            <div class="icon-badge">$</div>
+            <div class="metric-block">
+                <div class="metric-label">Total Earnings</div>
+                <div class="metric-value">Rs. <?= number_format((float)$totalEarnings, 2) ?></div>
+                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> from last month</div>
             </div>
         </div>
-
-        <div class="earnings-stat-card success">
-            <div class="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
+        <div class="earnings-modern-card">
+            <div class="icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </div>
-            <div class="stat-content">
-                <div class="stat-label">This Month</div>
-                <div class="stat-value">Rs. <?= number_format($monthlyEarnings, 2) ?></div>
+            <div class="metric-block">
+                <div class="metric-label">This Month</div>
+                <div class="metric-value">Rs. <?= number_format((float)$monthlyEarnings, 2) ?></div>
+                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> compared to last month</div>
             </div>
         </div>
-
-        <div class="earnings-stat-card info">
-            <div class="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                </svg>
+        <div class="earnings-modern-card">
+            <div class="icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9"></path></svg>
             </div>
-            <div class="stat-content">
-                <div class="stat-label">Total Orders</div>
-                <div class="stat-value"><?= number_format($earningsStats->total_orders) ?></div>
+            <div class="metric-block">
+                <div class="metric-label">Total Orders</div>
+                <div class="metric-value"><?= number_format((float)($earningsStats->total_orders ?? 0)) ?></div>
+                <div class="metric-sub positive"><?= number_format((float)($weeklyOrders ?? 0)) ?> orders this week</div>
             </div>
         </div>
-
-        <div class="earnings-stat-card warning">
-            <div class="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                </svg>
+        <div class="earnings-modern-card">
+            <div class="icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline></svg>
             </div>
-            <div class="stat-content">
-                <div class="stat-label">Avg. Order Value</div>
-                <div class="stat-value">Rs. <?= number_format($earningsStats->avg_order_value, 2) ?></div>
+            <div class="metric-block">
+                <div class="metric-label">Avg. Per Order</div>
+                <div class="metric-value">Rs. <?= number_format((float)($earningsStats->avg_order_value ?? 0), 2) ?></div>
+                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> compared to last month</div>
             </div>
         </div>
     </div>
 
-    <!-- Earnings by Product -->
+    <div class="content-card earnings-chart-card">
+        <div class="earnings-card-header earnings-chart-header">
+            <h3 class="card-title">Earnings Overview</h3>
+            <select class="form-control chart-range-select" id="earningsRangeSelect">
+                <option value="daily">Last 7 Days</option>
+                <option value="monthly" selected>Last 12 Months</option>
+                <option value="yearly">Last 5 Years</option>
+            </select>
+            <div class="period-tabs" id="earningsPeriodTabs">
+                <button type="button" class="earnings-tab-btn" data-period="daily">Daily</button>
+                <button type="button" class="earnings-tab-btn active" data-period="monthly">Monthly</button>
+                <button type="button" class="earnings-tab-btn" data-period="yearly">Yearly</button>
+            </div>
+        </div>
+        <div class="chart-shell">
+            <div class="chart-grid" id="earningsChartGrid">
+            </div>
+            <div class="chart-legend"><span class="dot"></span> Total Earnings</div>
+        </div>
+    </div>
+
     <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Top Earning Products</h3>
-        </div>
-        <div class="card-content">
-            <?php if (empty($earningsByProduct)): ?>
-                <div class="empty-state-small">
-                    <p>No product earnings data yet</p>
-                </div>
-            <?php else: ?>
-                <div class="products-earnings-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Orders</th>
-                                <th>Quantity Sold</th>
-                                <th>Total Earnings</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($earningsByProduct as $product): ?>
-                                <tr>
-                                    <td class="product-name"><?= htmlspecialchars($product->product_name) ?></td>
-                                    <td><?= number_format($product->order_count) ?></td>
-                                    <td><?= number_format($product->total_quantity) ?> kg</td>
-                                    <td class="earnings-amount">Rs. <?= number_format($product->total_earnings, 2) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Recent Earnings -->
-    <div class="content-card">
-        <div class="card-header">
+        <div class="earnings-card-header">
             <h3 class="card-title">Recent Transactions</h3>
         </div>
         <div class="card-content">
-            <?php if (empty($recentEarnings)): ?>
-                <div class="empty-state-small">
-                    <p>No recent transactions</p>
-                </div>
-            <?php else: ?>
-                <div class="earnings-timeline">
-                    <?php foreach ($recentEarnings as $earning): ?>
-                        <div class="earning-item">
-                            <div class="earning-date">
-                                <div class="date-day"><?= date('d', strtotime($earning->order_date)) ?></div>
-                                <div class="date-month"><?= date('M', strtotime($earning->order_date)) ?></div>
-                            </div>
-                            <div class="earning-details">
-                                <div class="earning-title">Order #<?= htmlspecialchars($earning->order_id) ?></div>
-                                <div class="earning-meta">
-                                    <span class="buyer-name"><?= htmlspecialchars($earning->buyer_name) ?></span>
-                                    <span class="separator">•</span>
-                                    <span class="item-count"><?= $earning->item_count ?> item(s)</span>
-                                    <span class="separator">•</span>
-                                    <span class="order-status status-<?= htmlspecialchars($earning->status) ?>">
-                                        <?= ucfirst(str_replace('_', ' ', htmlspecialchars($earning->status))) ?>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="earning-amount">
-                                Rs. <?= number_format($earning->order_earnings, 2) ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Additional Stats -->
-    <div class="earnings-additional-stats">
-        <div class="stat-box">
-            <div class="stat-box-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
-            </div>
-            <div class="stat-box-content">
-                <div class="stat-box-value"><?= number_format($earningsStats->total_items_sold) ?></div>
-                <div class="stat-box-label">Total Items Sold</div>
-            </div>
-        </div>
-
-        <div class="stat-box">
-            <div class="stat-box-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-            </div>
-            <div class="stat-box-content">
-                <div class="stat-box-value"><?= number_format($earningsStats->products_sold) ?></div>
-                <div class="stat-box-label">Products Sold</div>
-            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($recentEarnings)): ?>
+                        <tr><td colspan="5">No recent transactions.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($recentEarnings as $earning): ?>
+                            <tr>
+                                <td>#ORD-<?= (int)$earning->order_id ?></td>
+                                <td><?= htmlspecialchars((string)($earning->lead_product ?? 'Order Items')) ?></td>
+                                <td><?= date('F d, Y', strtotime($earning->transaction_date ?? $earning->order_date)) ?></td>
+                                <td class="earnings-amount">Rs. <?= number_format((float)$earning->order_earnings, 2) ?></td>
+                                <td>
+                                    <span class="status-pill"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', (string)$earning->status))) ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<script id="earningsChartData" type="application/json"><?=
+    json_encode([
+        'daily' => array_map(function ($p) {
+            return [
+                'label' => $p['label'] ?? '',
+                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+                'earnings' => (float)($p['earnings'] ?? 0),
+            ];
+        }, $dailyChart ?? []),
+        'monthly' => array_map(function ($p) {
+            return [
+                'label' => $p['label'] ?? '',
+                'fullLabel' => $p['month'] ?? ($p['label'] ?? ''),
+                'earnings' => (float)($p['earnings'] ?? 0),
+            ];
+        }, $monthlyChart ?? []),
+        'yearly' => array_map(function ($p) {
+            return [
+                'label' => $p['label'] ?? '',
+                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+                'earnings' => (float)($p['earnings'] ?? 0),
+            ];
+        }, $yearlyChart ?? []),
+    ])
+?></script>

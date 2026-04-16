@@ -36,7 +36,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=vehicle" class="menu-link <?= ($activePage ?? '') === 'vehicles' ? 'active' : '' ?>" data-section="vehicle">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'vehicles' ? 'active' : '' ?>" data-section="vehicle">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8h-1V6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v2H8V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2H1v2h2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10h2V8zM4 6h2v2H4V6zm10 0h2v2h-2V6zM4 18v-6h14v6H4z"></path>
@@ -46,7 +46,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=available-deliveries" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>" data-section="available-deliveries">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>" data-section="available-deliveries">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -57,7 +57,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=mydeliveries" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>" data-section="mydeliveries">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>" data-section="mydeliveries">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -68,7 +68,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=earnings" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>" data-section="earnings">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>" data-section="earnings">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="1"></circle>
@@ -79,7 +79,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=feedback" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>" data-section="feedback">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>" data-section="feedback">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -87,7 +87,6 @@
                             </svg>
                         </div>
                         Reviews
-                        <span class="badge">5</span>
                     </a>
                 </li>
                 <li>
@@ -116,9 +115,36 @@
     </div>
 
     <script>
-        window.APP_ROOT = "<?= ROOT ?>";
-        window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
-        window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
+        // Set global variables FIRST before loading other scripts.
+        (function () {
+            const seededRoot = "<?= ROOT ?>";
+            const origin = String(window.location.origin || '').replace(/\/+$/, '');
+            const rawRoot = String(seededRoot || '').replace(/\/+$/, '');
+            const path = String(window.location.pathname || '');
+            const pathPublicMatch = path.match(/^(.*\/public)(?:\/|$)/i);
+
+            let resolvedRoot = rawRoot;
+
+            // If current URL clearly contains /public, trust that first.
+            if (pathPublicMatch && pathPublicMatch[1]) {
+                resolvedRoot = origin + pathPublicMatch[1];
+            }
+
+            // If ROOT resolves to origin-only, rebuild using current pathname up to /public.
+            if (!resolvedRoot || resolvedRoot === origin) {
+                const match = pathPublicMatch;
+                if (match && match[1]) {
+                    resolvedRoot = origin + match[1];
+                } else {
+                    resolvedRoot = rawRoot || origin;
+                }
+            }
+
+            window.APP_ROOT = resolvedRoot;
+            window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
+            window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
+            console.log('APP_ROOT set to:', window.APP_ROOT);
+        })();
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <?php if (isset($pageScript)): ?>

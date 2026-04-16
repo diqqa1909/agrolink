@@ -397,10 +397,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Expose handlers for inline buttons
-window.saveProfileData = saveProfileData;
-window.resetProfileForm = resetProfileForm;
-window.triggerProfilePhotoUpload = triggerProfilePhotoUpload;
-window.removeProfilePhoto = removeProfilePhoto;
-window.openChangePasswordModal = openChangePasswordModal;
-window.closeChangePasswordModal = closeChangePasswordModal;
+// Namespaced API for inline handlers
+window.BuyerProfile = {
+    saveProfileData,
+    resetProfileForm,
+    triggerProfilePhotoUpload,
+    removeProfilePhoto,
+    openChangePasswordModal,
+    closeChangePasswordModal
+};
+
+// Backward-compatible aliases (temporary)
+window.saveProfileData = window.BuyerProfile.saveProfileData;
+window.resetProfileForm = window.BuyerProfile.resetProfileForm;
+window.triggerProfilePhotoUpload = window.BuyerProfile.triggerProfilePhotoUpload;
+window.removeProfilePhoto = window.BuyerProfile.removeProfilePhoto;
+window.openChangePasswordModal = window.BuyerProfile.openChangePasswordModal;
+window.closeChangePasswordModal = window.BuyerProfile.closeChangePasswordModal;

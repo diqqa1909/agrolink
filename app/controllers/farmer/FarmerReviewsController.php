@@ -23,6 +23,7 @@ class FarmerReviewsController
 
         $data = [
             'pageTitle' => 'My Reviews',
+            'activePage' => 'reviews',
             'reviews' => $reviews,
             'contentView' => '../app/views/farmer/reviews.view.php'
         ];
@@ -55,8 +56,12 @@ class FarmerReviewsController
             exit;
         }
 
-        // Technically should verify ownership here, but assume review belongs to farmer for now
-        // A robust check would be to fetch the review and check farmer_id
+        $review = $this->reviewModel->getReviewById($reviewId);
+        if (!$review || (int)$review->farmer_id !== (int)$_SESSION['USER']->id) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'You are not allowed to reply to this review']);
+            exit;
+        }
 
         if ($this->reviewModel->replyToReview($reviewId, $reply)) {
             echo json_encode(['success' => true, 'message' => 'Reply posted successfully']);

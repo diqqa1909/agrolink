@@ -13,11 +13,11 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
             <div>
                 <label for="searchInput" style="display: none;">Search Products</label>
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="filterProducts()" aria-label="Search products">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="BuyerDashboard.filterProducts()" aria-label="Search products">
             </div>
             <div>
                 <label for="categoryFilter" style="display: none;">Filter by Category</label>
-                <select id="categoryFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by category">
+                <select id="categoryFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by category">
                     <option value="">All Categories</option>
                     <option value="vegetables">Vegetables</option>
                     <option value="fruits">Fruits</option>
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <label for="locationFilter" style="display: none;">Filter by Location</label>
-                <select id="locationFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by location">
+                <select id="locationFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by location">
                     <option value="">All Locations</option>
                     <option value="colombo">Colombo</option>
                     <option value="kandy">Kandy</option>
@@ -57,7 +57,7 @@
             </div>
             <div>
                 <label for="priceFilter" style="display: none;">Filter by Price</label>
-                <select id="priceFilter" class="form-control" onchange="filterProducts()" aria-label="Filter by price">
+                <select id="priceFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by price">
                     <option value="">All Prices</option>
                     <option value="0-100">Under Rs. 100</option>
                     <option value="100-200">Rs. 100 - Rs. 200</option>
@@ -103,27 +103,33 @@
                     <h3 class="product-name"><?= htmlspecialchars($product->name) ?></h3>
                     <p class="product-farmer">
                         <?= htmlspecialchars($product->farmer_name ?? 'Unknown Farmer') ?>
-                        (<?= htmlspecialchars($product->location ?? 'Unknown Location') ?>)
+                    </p>
+                    <p class="product-description" style="margin-bottom: 6px; color: #2f4f4f;">
+                        Farmer location: <?= htmlspecialchars($product->farmer_district ?? $product->location ?? 'Unknown Location') ?>
                     </p>
                     <p class="product-description">
                         <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>
                     </p>
+                    <div style="font-size: 0.85rem; color: #4f5b62; margin-bottom: 8px;">
+                        <div>Added: <?= htmlspecialchars($product->display_added_date ?? '-') ?></div>
+                        <div>Best use before: <?= htmlspecialchars($product->display_best_use_date ?? '-') ?></div>
+                    </div>
                     <div class="product-price">Rs. <?= number_format($product->price, 2) ?>/kg</div>
                     <div class="product-stock">
                         <?= htmlspecialchars($product->quantity) ?>kg available
                     </div>
-                    <div style="width:100%;">
-                        <button class="btn btn-primary btn-buy-now" style="width:100%; margin-bottom:8px;align-items: center; justify-content: center;" 
-                            onclick="buyNow(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                    <div class="buyer-products-actions">
+                        <button class="btn btn-primary btn-buy-now buyer-product-action-btn"
+                            onclick="BuyerDashboard.buyNow(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
                             Buy Now
                         </button>
 
-                        <div style="display:flex; gap:8px; width:100%;">
-                            <button class="btn btn-primary btn-add-cart" style="flex:1;align-items: center; justify-content: center;"
-                                onclick="addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
+                        <div class="buyer-products-secondary-actions">
+                            <button class="btn btn-primary btn-add-cart buyer-product-action-btn"
+                                onclick="BuyerDashboard.addToCart(<?= $product->id ?>, '<?= addslashes(htmlspecialchars($product->name)) ?>', <?= $product->price ?>, <?= $product->quantity ?>)">
                                  Add to Cart
                             </button>
-                            <button class="btn btn-outline" style="flex:1;align-items: center; justify-content: center;" onclick="addToWishlist(<?= $product->id ?>, event)">
+                            <button class="btn btn-outline buyer-product-action-btn" onclick="BuyerDashboard.addToWishlist(<?= $product->id ?>, event)">
                                  Wishlist
                             </button>
                         </div>

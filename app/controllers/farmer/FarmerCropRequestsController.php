@@ -72,7 +72,7 @@ class FarmerCropRequestsController
         $updated = $cropRequestModel->update($id, ['status' => 'accepted']);
 
         if ($updated) {
-            $_SESSION['success'] = 'Crop request accepted successfully';
+            $_SESSION['success'] = 'Crop request accepted successfully. Continue by creating a matching product listing.';
         } else {
             $_SESSION['error'] = 'Failed to accept crop request';
         }

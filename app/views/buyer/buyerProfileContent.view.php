@@ -18,12 +18,12 @@
                             </div>
                             <!-- Photo Overlay Actions (Hover) -->
                             <div id="photoOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; justify-content: center; border-radius: 50%;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
-                                <button type="button" title="Edit Photo" onclick="triggerProfilePhotoUpload()" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
+                                <button type="button" title="Edit Photo" onclick="BuyerProfile.triggerProfilePhotoUpload()" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                                     </svg>
                                 </button>
-                                <button type="button" title="Delete Photo" onclick="removeProfilePhoto()" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
+                                <button type="button" title="Delete Photo" onclick="BuyerProfile.removeProfilePhoto()" style="width: 40px; height: 40px; background: white; color: #222; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 6px;">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6"></polyline>
                                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -69,7 +69,6 @@
                             <label for="profilePhone" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Phone Number *</label>
                             <input type="tel" id="profilePhone" name="phone" class="form-control" placeholder="e.g., +94 71 123 4567" value="<?= esc($profile->phone ?? '') ?>" style="text-align: left;">
                             <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Sri Lankan format: +94XXXXXXXXX or 0XXXXXXXXX</small>
-                            <span class="error-message" id="error-phone"></span>
                         </div>
 
                         <!-- District -->
@@ -101,7 +100,6 @@
                                 <option value="Trincomalee" <?= ($profile->district ?? '') === 'Trincomalee' ? 'selected' : '' ?>>Trincomalee</option>
                                 <option value="Vavuniya" <?= ($profile->district ?? '') === 'Vavuniya' ? 'selected' : '' ?>>Vavuniya</option>
                             </select>
-                            <span class="error-message" id="error-district"></span>
                         </div>
 
                         <!-- Apartment Code -->
@@ -109,21 +107,18 @@
                             <label for="profileApartmentCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Apartment/Building Code</label>
                             <input type="text" id="profileApartmentCode" name="apartment_code" class="form-control" placeholder="e.g., A-101" value="<?= esc($profile->apartment_code ?? '') ?>" style="text-align: left;">
                             <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Building or apartment number (if applicable)</small>
-                            <span class="error-message" id="error-apartment_code"></span>
                         </div>
 
                         <!-- Street Name -->
                         <div class="form-group-modern">
                             <label for="profileStreetName" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Street Name *</label>
                             <input type="text" id="profileStreetName" name="street_name" class="form-control" placeholder="e.g., Galle Road" value="<?= esc($profile->street_name ?? '') ?>" style="text-align: left;">
-                            <span class="error-message" id="error-street_name"></span>
                         </div>
 
                         <!-- City -->
                         <div class="form-group-modern">
                             <label for="profileCity" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">City *</label>
                             <input type="text" id="profileCity" name="city" class="form-control" placeholder="e.g., Colombo" value="<?= esc($profile->city ?? '') ?>" style="text-align: left;">
-                            <span class="error-message" id="error-city"></span>
                         </div>
 
                         <!-- Postal Code -->
@@ -131,7 +126,6 @@
                             <label for="profilePostalCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Postal Code *</label>
                             <input type="text" id="profilePostalCode" name="postal_code" class="form-control" placeholder="e.g., 10100" value="<?= esc($profile->postal_code ?? '') ?>" style="text-align: left;">
                             <small style="color: #666; display: block; text-align: left; margin-top: 5px;">5-digit Sri Lankan postal code</small>
-                            <span class="error-message" id="error-postal_code"></span>
                         </div>
 
                         <!-- Full Address -->
@@ -139,12 +133,11 @@
                             <label for="profileAddress" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Additional Address Details</label>
                             <textarea id="profileAddress" name="full_address" class="form-control" placeholder="e.g., Near City Mall, Opposite Police Station" rows="2" style="text-align: left;"><?= esc($profile->full_address ?? '') ?></textarea>
                             <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Landmarks or additional directions (optional)</small>
-                            <span class="error-message" id="error-full_address"></span>
                         </div>
                     </form>
 
                     <div class="profile-actions-modern">
-                        <button type="button" class="btn btn-save-profile" onclick="saveProfileData()">
+                        <button type="button" class="btn btn-save-profile" onclick="BuyerProfile.saveProfileData()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                                 <polyline points="17 21 17 13 7 13 7 21" />
@@ -152,14 +145,14 @@
                             </svg>
                             Save Changes
                         </button>
-                        <button type="button" class="btn btn-reset-profile" onclick="resetProfileForm()" style="background-color: #fff; color: #344054; border: 1px solid #d0d5dd;">
+                        <button type="button" class="btn btn-reset-profile" onclick="BuyerProfile.resetProfileForm()" style="background-color: #fff; color: #344054; border: 1px solid #d0d5dd;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23 4 23 10 17 10" />
                                 <path d="M20.49 15a9 9 0 1 1-2-8.12" />
                             </svg>
                             Reset
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="openChangePasswordModal()">
+                        <button type="button" class="btn btn-secondary" onclick="BuyerProfile.openChangePasswordModal()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -236,24 +229,21 @@
                                 <div class="form-group">
                                     <label for="currentPassword">Current Password *</label>
                                     <input type="password" id="currentPassword" name="currentPassword" class="form-control" required placeholder="Enter your current password">
-                                    <span class="error-message" id="error-current"></span>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="newPassword">New Password *</label>
                                     <input type="password" id="newPassword" name="newPassword" class="form-control" required placeholder="Enter new password (min 8 characters)">
                                     <small style="color: #666; margin-top: 5px; display: block;">At least 8 characters long</small>
-                                    <span class="error-message" id="error-new"></span>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="confirmPassword">Confirm Password *</label>
                                     <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="Confirm new password">
-                                    <span class="error-message" id="error-confirm"></span>
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                                    <button type="button" class="btn btn-secondary" onclick="BuyerProfile.closeChangePasswordModal()">Cancel</button>
                                     <button type="submit" class="btn btn-primary">Change Password</button>
                                 </div>
                             </form>

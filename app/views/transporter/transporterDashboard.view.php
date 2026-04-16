@@ -8,19 +8,19 @@
 
     <div class="dashboard-stats" style="margin-bottom: 36px;">
         <div class="stat-card">
-            <div class="stat-number" id="availableDeliveries">0</div>
+            <div class="stat-number" id="availableDeliveries"><?php echo isset($availableRequestsCount) ? $availableRequestsCount : 0; ?></div>
             <div class="stat-label">Available Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="activeDeliveries">0</div>
+            <div class="stat-number" id="activeDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->active_deliveries : 0; ?></div>
             <div class="stat-label">Active Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="monthlyEarnings">Rs. 0</div>
+            <div class="stat-number" id="monthlyEarnings">Rs. <?php echo isset($earningsSummary) ? number_format($earningsSummary->month_earnings, 2) : '0.00'; ?></div>
             <div class="stat-label">This Month</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="completedDeliveries">0</div>
+            <div class="stat-number" id="completedDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->completed_deliveries : 0; ?></div>
             <div class="stat-label">Completed</div>
         </div>
     </div>
@@ -38,7 +38,7 @@
                         <span style="font-weight: 600;">Status: <span id="currentStatus">Available</span></span>
                     </div>
                     <div style="margin-bottom: 18px; color: #666;">
-                        <strong>Current Location:</strong> <span id="currentLocation">Colombo</span>
+                        <strong>Current Location:</strong> <span id="currentLocation">-</span>
                     </div>
                     <div style="margin-bottom: 18px; color: #666;" id="activeVehicleInfo">
                         <strong>Vehicle:</strong> <span id="activeVehicle">Loading...</span>
@@ -54,7 +54,7 @@
                     <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="updateLocation()">
                         Update Location
                     </button>
-                    <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="showSection('available-deliveries')">
+                    <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="TransporterDashboard.showSection('available-deliveries')">
                         Find Deliveries
                     </button>
                 </div>
@@ -69,15 +69,8 @@
                 <h3 class="card-title">Recent Deliveries</h3>
             </div>
             <div class="card-content" id="recentDeliveries" style="padding: 24px;">
-                <div style="padding: 18px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 18px;">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">#ORD-2025-001</div>
-                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Colombo → Kandy • Rs. 850</div>
-                    <span class="order-status delivered">DELIVERED</span>
-                </div>
-                <div style="padding: 18px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50;">#ORD-2025-002</div>
-                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Galle → Matara • Rs. 650</div>
-                    <span class="order-status pending">IN PROGRESS</span>
+                <div style="padding: 18px; text-align: center; color: #666;">
+                    No recent deliveries
                 </div>
             </div>
         </div>
@@ -87,11 +80,11 @@
                 <h3 class="card-title">Weekly Earnings</h3>
             </div>
             <div class="card-content" style="padding: 24px;">
-                <div id="weeklyEarnings" style="font-size: 3rem; font-weight: 700; color: #65b57c; margin-bottom: 28px;">Rs. 12,450</div>
+                <div id="weeklyEarnings" style="font-size: 3rem; font-weight: 700; color: #65b57c; margin-bottom: 28px;">Rs. 0</div>
                 <div style="font-size: 0.9rem; color: #666; line-height: 1.8;">
-                    <div style="margin-bottom: 16px;"> 12 deliveries completed</div>
-                    <div style="margin-bottom: 16px;"> 8 deliveries pending</div>
-                    <div> 4.8 average rating</div>
+                    <div id="weeklyCompletedDeliveries" style="margin-bottom: 16px;">0 deliveries completed</div>
+                    <div id="weeklyPendingDeliveries" style="margin-bottom: 16px;">0 deliveries pending</div>
+                    <div id="weeklyRating">No rating yet</div>
                 </div>
             </div>
         </div>
@@ -104,10 +97,10 @@
         </div>
         <div class="card-content">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <button class="btn btn-primary" onclick="showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
-                <button class="btn btn-secondary" onclick="showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
-                <button class="btn btn-outline" onclick="showSection('schedule')" style="margin: 0;">View Schedule</button>
-                <button class="btn btn-outline" onclick="showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
+                <button class="btn btn-primary" onclick="TransporterDashboard.showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
+                <button class="btn btn-secondary" onclick="TransporterDashboard.showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
+                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('schedule')" style="margin: 0;">View Schedule</button>
+                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
             </div>
         </div>
     </div>
@@ -116,78 +109,31 @@
 <div id="feedback-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Reviews & Complaints</h1>
-        <p class="content-subtitle">See what buyers and farmers are saying about your deliveries</p>
+        <p class="content-subtitle">Feedback from buyers on your shipped and delivered orders</p>
     </div>
 
-    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Reviews</h3>
-            </div>
-            <div class="card-content">
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="buyer-avatar">AK</div>
-                        <div class="review-meta">
-                            <div class="buyer-name">Anu K.</div>
-                            <div class="review-sub">Colombo → Kandy • #ORD-2025-014</div>
-                        </div>
-                        <div class="rating-stars">⭐⭐⭐⭐⭐</div>
-                    </div>
-                    <div class="review-body">Very punctual and careful with the produce. Highly recommended!</div>
-                    <div class="review-footer">
-                        <span class="feedback-badge positive">On-time</span>
-                        <span class="feedback-badge positive">Professional</span>
-                        <span class="review-product">Vegetables</span>
-                    </div>
-                </div>
-
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="buyer-avatar alt">RS</div>
-                        <div class="review-meta">
-                            <div class="buyer-name">Ruwan S.</div>
-                            <div class="review-sub">Galle → Colombo • #ORD-2025-011</div>
-                        </div>
-                        <div class="rating-stars">⭐⭐⭐⭐☆</div>
-                    </div>
-                    <div class="review-body">Good service. One small delay due to traffic but communicated well.</div>
-                    <div class="review-footer">
-                        <span class="feedback-badge neutral">Slight delay</span>
-                        <span class="review-product">Fruits</span>
-                    </div>
-                </div>
-            </div>
+    <div class="dashboard-stats" style="margin-bottom: 24px;">
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackTotalCount">0</div>
+            <div class="stat-label">Total Feedback</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackAvgRating">0.0</div>
+            <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackComplaintCount">0</div>
+            <div class="stat-label">Complaints (1-2★)</div>
+        </div>
+    </div>
 
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Complaints</h3>
-            </div>
-            <div class="card-content">
-                <div class="complaint-card">
-                    <div class="complaint-header">
-                        <div class="buyer-avatar">TM</div>
-                        <div class="review-meta">
-                            <div class="complaint-title">Packaging issue</div>
-                            <div class="complaint-sub">Matale → Gampaha • #ORD-2025-010</div>
-                        </div>
-                        <span class="complaint-status resolved">Resolved</span>
-                    </div>
-                    <div class="complaint-body">Some boxes were stacked incorrectly. Repacked at destination with no loss.</div>
-                </div>
-
-                <div class="complaint-card">
-                    <div class="complaint-header">
-                        <div class="buyer-avatar alt">NK</div>
-                        <div class="review-meta">
-                            <div class="complaint-title">Pickup delay</div>
-                            <div class="complaint-sub">Anuradhapura → Kurunegala • #ORD-2025-008</div>
-                        </div>
-                        <span class="complaint-status in-progress">In Progress</span>
-                    </div>
-                    <div class="complaint-body">Driver arrived 20 minutes late due to road closure. Working on mitigation.</div>
-                </div>
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">Buyer Feedback</h3>
+        </div>
+        <div class="card-content" id="feedbackUnifiedList">
+            <div style="padding: 30px; text-align: center; color: #666;">
+                Loading feedback...
             </div>
         </div>
     </div>
@@ -197,7 +143,7 @@
 <div id="available-deliveries-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Available Deliveries</h1>
-        <button class="btn btn-outline btn-sm" onclick="refreshDeliveries()">Refresh</button>
+        <button class="btn btn-outline btn-sm" onclick="TransporterDashboard.refreshDeliveries()">Refresh</button>
     </div>
 
     <!-- Filter Section -->
@@ -262,10 +208,10 @@
     <h1 style="margin-bottom: 32px; font-size: 2rem;"> My Deliveries</h1>
 
     <div style="display: flex; gap: 20px; margin-bottom: 32px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; padding-bottom: 4px;">
-        <button class="tab-btn active" data-status="all" onclick="filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
-        <button class="tab-btn" data-status="accepted" onclick="filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
-        <button class="tab-btn" data-status="in-progress" onclick="filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
-        <button class="tab-btn" data-status="completed" onclick="filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
+        <button class="tab-btn active" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
+        <button class="tab-btn" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
+        <button class="tab-btn" data-status="in-progress" onclick="TransporterDashboard.filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
+        <button class="tab-btn" data-status="completed" onclick="TransporterDashboard.filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
     </div>
 
     <div class="table-container" style="padding: 24px; background: #fff; border-radius: 12px;">
@@ -346,24 +292,24 @@
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Base Delivery Fee:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 8,500</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Distance Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 2,300</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Express Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 1,150</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Rating Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 500</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
                     </div>
                     <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #e8f5e9; border-radius: 8px;">
                         <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Total This Month:</span>
-                        <span style="font-weight: 700; font-size: 1.2rem; color: #65b57c;">Rs. 12,450</span>
+                        <span style="font-weight: 700; font-size: 1.2rem; color: #65b57c;">Rs. 0</span>
                     </div>
                 </div>
             </div>
@@ -377,23 +323,23 @@
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Deliveries Completed:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">23</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Average Rating:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">4.8/5</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0/5</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">On-Time Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">95%</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Customer Satisfaction:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">98%</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px;">
                         <span style="font-size: 0.95rem; color: #2c3e50;">Earnings per Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 541</span>
+                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
                     </div>
                 </div>
             </div>
@@ -403,7 +349,7 @@
     <div class="content-card" style="margin-top: 32px;">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">Payment History</h3>
-            <button class="btn btn-secondary" onclick="exportPaymentHistory()">Export CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="TransporterDashboard.exportPaymentHistory()">Export CSV</button>
         </div>
         <div style="padding: 28px;">
             <div class="table-container">
@@ -582,22 +528,20 @@
                 <div class="grid grid-2">
                     <div class="form-group">
                         <label for="vehicleType">Vehicle Type *</label>
-                        <select id="vehicleType" name="vehicle_type_id" class="form-control" required>
-                            <option value="">Select Type...</option>
-                            <!-- Populated by JavaScript -->
+                        <select id="vehicleType" name="type" class="form-control" required>
+                            <option value="">Select Type</option>
+                            <?php if (!empty($vehicleTypes)): ?>
+                                <?php foreach ($vehicleTypes as $vType): 
+                                    $slug = strtolower(str_replace(' ', '', $vType->vehicle_name));
+                                ?>
+                                    <option value="<?= htmlspecialchars($slug) ?>"><?= htmlspecialchars($vType->vehicle_name) ?> (<?= $vType->min_weight_kg ?>-<?= $vType->max_weight_kg ?>kg)</option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="vehicleRegistration">Registration Number *</label>
                         <input type="text" id="vehicleRegistration" name="registration" class="form-control" required>
-                    </div>
-                </div>
-
-                <!-- Weight Range Display (auto-filled) -->
-                <div class="form-group" id ="weightRangeDisplay" style="display: none; margin-bottom: 20px;">
-                    <div style="padding: 12px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #65b57c;">
-                        <strong style="color: #2c3e50;">Weight Range:</strong> 
-                        <span id="weightRangeText" style="color: #2c3e50; font-weight: 600;"></span>
                     </div>
                 </div>
 
@@ -627,17 +571,12 @@
 </div>
 
 <script>
-    window.APP_ROOT = "<?= ROOT ?>";
-    window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? 'Transporter') ?>;
-    window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
-</script>
-<script src="<?= ROOT ?>/assets/js/main.js"></script>
-<script src="<?= ROOT ?>/assets/js/transporter/transporterDashboard.js"></script>
-<script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
-<script>
     document.addEventListener('DOMContentLoaded', function() {
         initTransporterDashboard();
     });
+
+    // Global storage for vehicle types
+    let vehicleTypesData = [];
 
     function initTransporterDashboard() {
         const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
@@ -647,6 +586,7 @@
             document.getElementById('transporterName').textContent = 'Transporter';
         }
 
+        loadVehicleTypes(); // Load vehicle types first
         loadDashboardData();
         loadAvailableDeliveries();
         loadMyDeliveries();
@@ -718,7 +658,15 @@
         
         if (targetSection) {
             targetSection.style.display = 'block';
-            console.log('✓ Section displayed:', sectionName);
+            
+            // Load data when section is shown
+            if (sectionName === 'available-deliveries' && typeof loadAvailableRequests === 'function') {
+                loadAvailableRequests();
+            } else if (sectionName === 'mydeliveries' && typeof loadMyDeliveries === 'function') {
+                loadMyDeliveries();
+            } else if (sectionName === 'feedback' && typeof loadFeedbackReviews === 'function') {
+                loadFeedbackReviews();
+            }
         } else {
             console.warn('✗ Section not found:', sectionName + '-section');
         }
@@ -747,32 +695,28 @@
     }
 
     function loadDashboardData() {
-        document.getElementById('availableDeliveries').textContent = '8';
-        document.getElementById('activeDeliveries').textContent = '3';
-        document.getElementById('monthlyEarnings').textContent = 'Rs. 12,450';
-        document.getElementById('completedDeliveries').textContent = '127';
+        // Stats will be loaded from database
+        document.getElementById('availableDeliveries').textContent = '0';
+        document.getElementById('activeDeliveries').textContent = '0';
+        document.getElementById('monthlyEarnings').textContent = 'Rs. 0';
+        document.getElementById('completedDeliveries').textContent = '0';
 
         document.getElementById('recentDeliveries').innerHTML = `
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">#ORD-2025-001</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Colombo → Kandy - Rs. 850</div>
-                    <span class="badge">Completed</span>
-                </div>
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">#ORD-2025-002</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Galle → Matara - Rs. 650</div>
-                    <span class="badge">In Progress</span>
+                <div style="padding: 18px; text-align: center; color: #666;">
+                    No recent deliveries
                 </div>
             `;
     }
 
     function loadAvailableDeliveries() {
         const container = document.getElementById('availableDeliveriesList');
+        // Available deliveries will be loaded from database
         container.innerHTML = `
-                ${generateDeliveryCard('ORD-2025-003', 'Colombo', 'Kandy', '25km', '15kg', 'Rs. 750', 'urgent')}
-                ${generateDeliveryCard('ORD-2025-004', 'Matale', 'Gampaha', '45km', '30kg', 'Rs. 950', 'normal')}
-                ${generateDeliveryCard('ORD-2025-005', 'Anuradhapura', 'Kurunegala', '60km', '22kg', 'Rs. 1200', 'normal')}
-                ${generateDeliveryCard('ORD-2025-006', 'Galle', 'Colombo', '120km', '40kg', 'Rs. 1500', 'express')}
+                <div class="content-card" style="margin: 0; min-width: 350px; max-width: 350px; flex-shrink: 0;">
+                    <div style="padding: 40px 20px; text-align: center; color: #666;">
+                        No available deliveries at the moment
+                    </div>
+                </div>
             `;
     }
 
@@ -820,77 +764,11 @@
 
     function loadMyDeliveries() {
         const tbody = document.getElementById('myDeliveriesTableBody');
+        // Deliveries will be loaded from database
         tbody.innerHTML = `
                 <tr>
-                    <td><strong>#ORD-2025-001</strong></td>
-                    <td>Colombo → Kandy</td>
-                    <td>25km</td>
-                    <td>15kg</td>
-                    <td><strong>Rs. 750</strong></td>
-                    <td><span class="order-status delivered">DELIVERED</span></td>
-                    <td>Oct 20, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-001')">View</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD-2025-002</strong></td>
-                    <td>Galle → Matara</td>
-                    <td>35km</td>
-                    <td>20kg</td>
-                    <td><strong>Rs. 650</strong></td>
-                    <td><span class="order-status pending">IN PROGRESS</span></td>
-                    <td>Oct 22, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="updateDeliveryStatus('ORD-2025-002')">Update Status</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD-2025-003</strong></td>
-                    <td>Matale → Gampaha</td>
-                    <td>45km</td>
-                    <td>30kg</td>
-                    <td><strong>Rs. 950</strong></td>
-                    <td><span class="order-status shipped">ACCEPTED</span></td>
-                    <td>Oct 24, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-003')">View</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD-2025-004</strong></td>
-                    <td>Anuradhapura → Kurunegala</td>
-                    <td>60km</td>
-                    <td>22kg</td>
-                    <td><strong>Rs. 1,200</strong></td>
-                    <td><span class="order-status pending">IN PROGRESS</span></td>
-                    <td>Oct 25, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="updateDeliveryStatus('ORD-2025-004')">Update Status</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD-2025-005</strong></td>
-                    <td>Galle → Colombo</td>
-                    <td>120km</td>
-                    <td>40kg</td>
-                    <td><strong>Rs. 1,500</strong></td>
-                    <td><span class="order-status delivered">DELIVERED</span></td>
-                    <td>Oct 21, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-005')">View</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD-2025-006</strong></td>
-                    <td>Colombo → Negombo</td>
-                    <td>38km</td>
-                    <td>18kg</td>
-                    <td><strong>Rs. 700</strong></td>
-                    <td><span class="order-status cancelled">CANCELLED</span></td>
-                    <td>Oct 19, 2025</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="viewDelivery('ORD-2025-006')">View</button>
+                    <td colspan="8" style="text-align: center; padding: 60px 20px; color: #666;">
+                        No deliveries yet
                     </td>
                 </tr>
             `;
@@ -1081,11 +959,11 @@
     }
 
     function loadEarnings() {
-        // Populate top stat cards
-        const today = 1850;
-        const week = 9450;
-        const month = 12450;
-        const total = 68500;
+        // Earnings will be loaded from database
+        const today = 0;
+        const week = 0;
+        const month = 0;
+        const total = 0;
 
         const el = id => document.getElementById(id);
         if (el('todayEarnings')) el('todayEarnings').textContent = `Rs. ${today.toLocaleString()}`;
@@ -1093,48 +971,77 @@
         if (el('monthEarningsDetail')) el('monthEarningsDetail').textContent = `Rs. ${month.toLocaleString()}`;
         if (el('totalEarningsDetail')) el('totalEarningsDetail').textContent = `Rs. ${total.toLocaleString()}`;
 
-        // Fill payment history table
-        const rows = [{
-                date: 'Oct 23, 2025',
-                id: 'ORD-2025-019',
-                route: 'Galle → Colombo',
-                amount: 1500,
-                status: 'Paid'
-            },
-            {
-                date: 'Oct 22, 2025',
-                id: 'ORD-2025-017',
-                route: 'Matale → Gampaha',
-                amount: 950,
-                status: 'Paid'
-            },
-            {
-                date: 'Oct 22, 2025',
-                id: 'ORD-2025-016',
-                route: 'Anuradhapura → Kurunegala',
-                amount: 1200,
-                status: 'Pending'
-            },
-            {
-                date: 'Oct 21, 2025',
-                id: 'ORD-2025-012',
-                route: 'Colombo → Kandy',
-                amount: 850,
-                status: 'Paid'
-            }
-        ];
+        // Payment history will be loaded from database
         const body = document.getElementById('paymentHistoryBody');
         if (body) {
-            body.innerHTML = rows.map(r => `
+            body.innerHTML = `
                     <tr>
-                        <td>${r.date}</td>
-                        <td>#${r.id}</td>
-                        <td>${r.route}</td>
-                        <td><strong>Rs. ${r.amount.toLocaleString()}</strong></td>
-                        <td><span class="badge">${r.status}</span></td>
+                        <td colspan="5" style="text-align: center; padding: 40px 20px; color: #666;">
+                            No payment history yet
+                        </td>
                     </tr>
-                `).join('');
+                `;
         }
+    }
+
+    function loadFeedbackReviews() {
+        fetch(transporterApi('getFeedbackReviews'), { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                const reviews = (data.success && Array.isArray(data.reviews)) ? data.reviews : [];
+                const unifiedEl = document.getElementById('feedbackUnifiedList');
+                const totalEl = document.getElementById('feedbackTotalCount');
+                const avgEl = document.getElementById('feedbackAvgRating');
+                const complaintsCountEl = document.getElementById('feedbackComplaintCount');
+
+                const complaints = reviews.filter(r => Number(r.rating) <= 2);
+                const avg = reviews.length ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length) : 0;
+
+                if (totalEl) totalEl.textContent = String(reviews.length);
+                if (avgEl) avgEl.textContent = avg.toFixed(1);
+                if (complaintsCountEl) complaintsCountEl.textContent = String(complaints.length);
+
+                const renderCard = (item) => {
+                    const rating = Number(item.rating || 0);
+                    const isComplaint = rating <= 2;
+                    const stars = `${'★'.repeat(rating)}${'☆'.repeat(Math.max(0, 5 - rating))}`;
+                    const buyerName = escapeHtml(item.buyer_name || 'Buyer');
+                    const buyerInitial = buyerName.charAt(0).toUpperCase();
+                    const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
+                    const orderText = item.order_id ? `Order #${item.order_id}` : 'Order #-';
+
+                    return `
+                        <div class="review-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div style="display: flex; gap: 16px;">
+                                    <div style="width: 50px; height: 50px; background: #e3f2fd; color: #2196F3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">${buyerInitial}</div>
+                                    <div>
+                                        <h4 style="margin: 0 0 4px 0;">${orderText}</h4>
+                                        <p style="margin: 0; color: #666; font-size: 0.9rem;">Feedback by <span style="font-weight: 500;">${buyerName}</span></p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #999;">${created}</p>
+                                    </div>
+                                </div>
+                                <div class="star-rating" style="color: #ff9800; font-size: 1.2rem;">
+                                    ${stars}
+                                    ${isComplaint ? '<div style="font-size: 0.72rem; margin-top: 4px; color: #b91c1c;">Complaint</div>' : ''}
+                                </div>
+                            </div>
+                            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-top: 12px; border-left: 3px solid ${isComplaint ? '#ef4444' : '#10b981'};">
+                                <p style="margin: 0; color: #444; line-height: 1.5;">"${escapeHtml(item.comment || '')}"</p>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                if (unifiedEl) {
+                    unifiedEl.innerHTML = reviews.length
+                        ? `<div class="reviews-grid" style="display: grid; gap: 16px;">${reviews.map(renderCard).join('')}</div>`
+                        : '<div style="padding: 30px; text-align: center; color: #666;">No feedback yet</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading feedback reviews:', error);
+            });
     }
 
     function previousWeek() {
@@ -1164,8 +1071,29 @@
         }
     }
 
+    function getTransporterApiBase() {
+        const origin = String(window.location.origin || '').replace(/\/+$/, '');
+        const path = String(window.location.pathname || '');
+        const publicMatch = path.match(/^(.*\/public)(?:\/|$)/i);
+        if (publicMatch && publicMatch[1]) {
+            return origin + publicMatch[1];
+        }
+
+        const appRoot = String(window.APP_ROOT || '').replace(/\/+$/, '');
+        if (appRoot) {
+            return appRoot;
+        }
+
+        return origin;
+    }
+
+    function transporterApi(path) {
+        const cleanPath = String(path || '').replace(/^\/+/, '');
+        return `${getTransporterApiBase()}/transporterdashboard/${cleanPath}`;
+    }
+
     function loadVehicles() {
-        fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
+        fetch(transporterApi('getVehicles'))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.vehicles && data.vehicles.length > 0) {
@@ -1235,7 +1163,6 @@
         }
 
         container.innerHTML = vehicles.map(vehicle => {
-            const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
             const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
             const vehicleIcon = getVehicleIcon(vehicle.type);
             const vehicleTypeName = getVehicleTypeName(vehicle.type);
@@ -1244,7 +1171,6 @@
                     <div class="content-card" style="margin-bottom: 24px;">
                         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
-                            <span class="badge">${statusText}</span>
                         </div>
                         <div class="card-content">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
@@ -1257,9 +1183,9 @@
                                         <strong>Status:</strong> <span class="badge">${statusText}</span>
                                     </div>
                                     <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
-                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="margin: 0;">✓ Set as Active</button>` : ''}
-                                        <button class="btn btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white; margin: 0;">✏️ Edit</button>
-                                        <button class="btn btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})" style="margin: 0;">🗑️ Delete</button>
+                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set as Active</button>` : ''}
+                                        <button class="btn btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
+                                        <button class="btn btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
                                     </div>
                                 </div>
                                 <div>
@@ -1278,7 +1204,6 @@
         }).join('');
 
         tbody.innerHTML = vehicles.map(vehicle => {
-            const statusClass = vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warning' : 'secondary';
             const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
 
             return `
@@ -1290,9 +1215,9 @@
                         <td><span class="badge">${statusText}</span></td>
                         <td>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})" style="background: #65b57c; border-color: #65b57c;">Set Active</button>` : ''}
-                                <button class="btn btn-sm btn-secondary" onclick="editVehicleModal(${vehicle.id})" style="background: #dc3545; border-color: #dc3545; color: white;">Edit</button>
-                                <button class="btn btn-sm btn-secondary" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
+                                ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set Active</button>` : ''}
+                                <button class="btn btn-sm btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
+                                <button class="btn btn-sm btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -1300,26 +1225,60 @@
         }).join('');
     }
 
-    function getVehicleIcon(type) {
-        const icons = {
-            'bike': '🏍️',
-            'threewheeler': '🛺',
-            'car': '🚗',
-            'van': '🚐',
-            'truck': '🚚'
-        };
-        return icons[type] || '🚗';
+    // Load vehicle types from database
+    function loadVehicleTypes() {
+        fetch(transporterApi('getVehicleTypes'))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.vehicleTypes) {
+                    vehicleTypesData = data.vehicleTypes;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading vehicle types:', error);
+            });
     }
 
-    function getVehicleTypeName(type) {
-        const names = {
-            'bike': 'Motorcycle',
-            'threewheeler': 'Three-wheeler',
-            'car': 'Car',
-            'van': 'Van',
-            'truck': 'Truck'
-        };
-        return names[type] || type.charAt(0).toUpperCase() + type.slice(1);
+    // Convert vehicle_name to slug (e.g., "Small Van" -> "smallvan")
+    function vehicleNameToSlug(name) {
+        return name.toLowerCase().replace(/\s+/g, '');
+    }
+
+    // Get vehicle type display name from slug
+    function getVehicleTypeName(slug) {
+        if (!slug) return '';
+        
+        // First try to find in loaded vehicle types
+        const type = vehicleTypesData.find(vt => vehicleNameToSlug(vt.vehicle_name) === slug.toLowerCase());
+        if (type) {
+            return type.vehicle_name;
+        }
+        
+        // Fallback to capitalize slug
+        return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
+    function getVehicleIcon(type) {
+        // Simple icons based on type name
+        const slug = String(type || '').toLowerCase();
+        if (slug.includes('bike') || slug.includes('motor')) return '🏍️';
+        if (slug.includes('three') || slug.includes('wheel')) return '🛺';
+        if (slug.includes('car')) return '🚗';
+        if (slug.includes('van')) return '🚐';
+        if (slug.includes('lorry') || slug.includes('truck')) return '🚚';
+        return '🚗'; // default
+    }
+
+    // Generate vehicle type options HTML
+    function generateVehicleTypeOptions(selectedType = '') {
+        const selectedSlug = String(selectedType || '').toLowerCase();
+        let options = '<option value="">Select Type</option>';
+        vehicleTypesData.forEach(vt => {
+            const slug = vehicleNameToSlug(vt.vehicle_name);
+            const selected = (slug === selectedSlug) ? 'selected' : '';
+            options += `<option value="${slug}" data-min="${vt.min_weight_kg}" data-max="${vt.max_weight_kg}" data-type-id="${vt.id}" ${selected}>${vt.vehicle_name} (${vt.min_weight_kg}-${vt.max_weight_kg}kg)</option>`;
+        });
+        return options;
     }
 
     function setupAddVehicleForm() {
@@ -1329,9 +1288,18 @@
                 e.preventDefault();
 
                 const formData = new FormData(form);
+                const typeSelect = document.getElementById('vehicleType');
+                if (typeSelect) {
+                    const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+                    const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
+                    if (selectedTypeId) {
+                        formData.set('vehicle_type_id', selectedTypeId);
+                    }
+                }
 
-                fetch('<?= ROOT ?>/transporterDashboard/addVehicle', {
+                fetch(transporterApi('addVehicle'), {
                         method: 'POST',
+                        credentials: 'include',
                         body: formData
                     })
                     .then(response => response.json())
@@ -1362,7 +1330,7 @@
     }
 
     function editVehicleModal(vehicleId) {
-        fetch('<?= ROOT ?>/TransporterDashboard/getVehicles')
+        fetch(transporterApi('getVehicles'))
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.vehicles) {
@@ -1380,18 +1348,15 @@
 
     function showEditVehicleModal(vehicle) {
         // Fetch vehicle types to populate dropdown
-        fetch(`${window.APP_ROOT}/transporterDashboard/getVehicleTypes`, { credentials: 'include' })
+        fetch(transporterApi('getVehicleTypes'), { credentials: 'include' })
             .then(r => r.json())
             .then(res => {
-                if (!res.success || !res.types) {
+                const types = res.types || res.vehicleTypes || [];
+                if (!res.success || !types.length) {
                     showNotification('Failed to load vehicle types', 'error');
                     return;
                 }
-                
-                const vehicleTypesOptions = res.types.map(t => {
-                    const isSelected = t.vehicle_name.toLowerCase() === vehicle.type.toLowerCase() ? 'selected' : '';
-                    return `<option value="${t.id}" data-min="${t.min_weight_kg}" data-max="${t.max_weight_kg}" ${isSelected}>${escapeHtml(t.vehicle_name)}</option>`;
-                }).join('');
+                vehicleTypesData = types;
                 
                 const modalHtml = `
                 <div id="editVehicleModal" class="modal" style="display: flex; align-items: center; justify-content: center;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
@@ -1404,9 +1369,8 @@
                                 <div class="grid grid-2">
                                     <div class="form-group">
                                         <label for="editVehicleType">Vehicle Type *</label>
-                                        <select id="editVehicleType" name="vehicle_type_id" class="form-control" required>
-                                            <option value="">Select Type...</option>
-                                            ${vehicleTypesOptions}
+                                        <select id="editVehicleType" name="type" class="form-control" required>
+                                            ${generateVehicleTypeOptions(vehicle.type)}
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -1428,11 +1392,11 @@
                                             <option value="electric" ${vehicle.fuel_type === 'electric' ? 'selected' : ''}>Electric</option>
                                             <option value="hybrid" ${vehicle.fuel_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
                                         </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="editVehicleModel">Vehicle Model</label>
-                                    <input type="text" id="editVehicleModel" name="model" class="form-control" value="${escapeHtml(vehicle.model || '')}" placeholder="e.g., Toyota Hiace">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editVehicleModel">Vehicle Model</label>
+                                        <input type="text" id="editVehicleModel" name="model" class="form-control" value="${escapeHtml(vehicle.model || '')}" placeholder="e.g., Toyota Hiace">
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1516,9 +1480,21 @@
 
         const form = event.target;
         const formData = new FormData(form);
+        const typeSelect = document.getElementById('editVehicleType');
+        if (typeSelect) {
+            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+            const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
+            if (selectedTypeId) {
+                formData.set('vehicle_type_id', selectedTypeId);
+            }
+        }
 
-        fetch('<?= ROOT ?>/transporterDashboard/editVehicle/' + vehicleId, {
+        fetch(transporterApi('editVehicle/' + vehicleId), {
                 method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             })
             .then(response => response.json())
@@ -1547,7 +1523,7 @@
 
     function setActiveVehicle(vehicleId) {
         if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
-            fetch('<?= ROOT ?>/TransporterDashboard/setActiveVehicle/' + vehicleId, {
+            fetch(transporterApi('setActiveVehicle/' + vehicleId), {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -1568,7 +1544,7 @@
 
     function deleteVehicleConfirm(vehicleId) {
         if (confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
-            fetch('<?= ROOT ?>/TransporterDashboard/deleteVehicle/' + vehicleId, {
+            fetch(transporterApi('deleteVehicle/' + vehicleId), {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -1598,4 +1574,12 @@
         };
         return text.toString().replace(/[&<>"']/g, m => map[m]);
     }
+
+    // Fallback namespaced handlers used by inline onclick attributes.
+    // External transporterDashboard.js may replace these with API-backed versions.
+    window.TransporterDashboard = window.TransporterDashboard || {};
+    if (typeof window.TransporterDashboard.showSection !== 'function') window.TransporterDashboard.showSection = showSection;
+    if (typeof window.TransporterDashboard.refreshDeliveries !== 'function') window.TransporterDashboard.refreshDeliveries = refreshDeliveries;
+    if (typeof window.TransporterDashboard.filterMyDeliveries !== 'function') window.TransporterDashboard.filterMyDeliveries = filterMyDeliveries;
+    if (typeof window.TransporterDashboard.exportPaymentHistory !== 'function') window.TransporterDashboard.exportPaymentHistory = exportPaymentHistory;
 </script>

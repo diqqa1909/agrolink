@@ -81,7 +81,9 @@ class CartController
             'product_name' => trim($_POST['product_name'] ?? ''),
             'product_price' => (float)($_POST['product_price'] ?? 0),
             'quantity' => (int)($_POST['quantity'] ?? 1),
-            'product_image' => trim($_POST['product_image'] ?? '🌱')
+            'product_image' => trim($_POST['product_image'] ?? '🌱'),
+            'farmer_name' => '',
+            'farmer_location' => ''
         ];
 
         if (!$data['product_id']) {
@@ -100,6 +102,8 @@ class CartController
             }
             
             $availableQuantity = $product->quantity ?? 0;
+            $data['farmer_name'] = trim((string)($product->farmer_name ?? ''));
+            $data['farmer_location'] = trim((string)($product->location ?? ''));
             
             // Check if product already exists in cart
             $existingItem = $this->cartModel->getCartItem($user_id, $data['product_id']);
