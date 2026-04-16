@@ -2335,7 +2335,7 @@ table td {
   margin: 0;
 }
 
-,
+
 .form-control:hover {
   border-color: #BDBDBD;
   background: var(--white);
@@ -2409,7 +2409,8 @@ textarea.form-control {
 .btn-reset-profile {
   background: var(--white);
   color: #666;
-  font-weigh2px 28px;
+  font-weight: 600;
+  padding: 12px 28px;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
@@ -2417,8 +2418,7 @@ textarea.form-control {
   transition: all 0.3s ease;
   border: 2px solid #E0E0E0;
   cursor: pointer;
-  font-size: 0.95remid #E0E0E0;
-  cursor: pointer;
+  font-size: 0.95rem;
 }
 
 .btn-reset-profile:hover {
