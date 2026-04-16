@@ -8,15 +8,14 @@
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
 </head>
 
-<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" data-user-email="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>">
+<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars(authUserName()) ?>" data-user-email="<?= htmlspecialchars(authUserEmail()) ?>">
     <?php
-    $username = $_SESSION['USER']->name ?? 'Farmer';
-    $role = $_SESSION['USER']->role ?? 'farmer';
+    $userId = authUserId();
     $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
-    if ($notificationUnreadCount === null && isset($_SESSION['USER']->id)) {
+    if ($notificationUnreadCount === null && $userId > 0) {
         try {
             $notificationsModel = new FarmerNotificationsModel();
-            $notificationUnreadCount = $notificationsModel->getUnreadCount((int)$_SESSION['USER']->id);
+            $notificationUnreadCount = $notificationsModel->getUnreadCount($userId);
         } catch (Throwable $e) {
             $notificationUnreadCount = 0;
         }
@@ -24,10 +23,10 @@
     if ($notificationUnreadCount === null) {
         $notificationUnreadCount = 0;
     }
-    include '../app/views/components/dashboardNavBar.view.php';
+    $isHomePage = false;
+    include '../app/views/shared/navbar.view.php';
     ?>
 
-    <!-- Dashboard Layout -->
     <div class="dashboard">
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -125,24 +124,14 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Include the page-specific content
             if (isset($contentView)) {
-                // Build full path to content view
-                // contentView format: ../app/views/farmer/...
-                // Layout is at: app/views/components/farmerLayout.view.php
-                // Project root is: dirname(dirname(dirname(__DIR__)))
                 $projectRoot = dirname(dirname(dirname(__DIR__)));
-                
-                // Remove ../ prefix and build absolute path
                 $cleanPath = str_replace('../', '', $contentView);
                 $viewPath = $projectRoot . DIRECTORY_SEPARATOR . $cleanPath;
-                
-                // Normalize path separators for Windows
                 $viewPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $viewPath);
-                
+
                 if (file_exists($viewPath)) {
                     include $viewPath;
                 } else {

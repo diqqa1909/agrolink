@@ -4,6 +4,9 @@ class RegisterController
     use Controller;
     public function index($a = '', $b = '', $c = '')
     {
+        if (redirectIfLoggedIn()) {
+            return;
+        }
 
         /* show($_POST); */
         $user = new UserModel;

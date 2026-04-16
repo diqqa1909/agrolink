@@ -10,9 +10,8 @@
 
 <body>
     <?php
-    $username = $_SESSION['USER']->name ?? 'Admin';
-    $role = $_SESSION['USER']->role ?? 'admin';
-    include '../app/views/components/dashboardNavBar.view.php';
+    $isHomePage = false;
+    include '../app/views/shared/navbar.view.php';
     ?>
 
     <!-- Dashboard Layout -->

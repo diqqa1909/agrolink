@@ -11,14 +11,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars(authUserName()) ?>" data-user-email="<?= htmlspecialchars(authUserEmail()) ?>" data-user-role="<?= htmlspecialchars(authUserRole()) ?>">
     <?php
-    $username = $_SESSION['USER']->name ?? 'Transporter';
-    $role = $_SESSION['USER']->role ?? 'transporter';
-    include '../app/views/components/dashboardNavBar.view.php';
+    $userId = authUserId();
+    $role = authUserRole() !== '' ? authUserRole() : 'transporter';
+
+    $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
+    if ($notificationUnreadCount === null && $userId > 0 && $role === 'transporter') {
+        try {
+            $notificationsModel = new TransporterNotificationsModel();
+            $notificationUnreadCount = $notificationsModel->getUnreadCount($userId);
+        } catch (Throwable $e) {
+            $notificationUnreadCount = 0;
+        }
+    }
+    if ($notificationUnreadCount === null) {
+        $notificationUnreadCount = 0;
+    }
+
+    $isHomePage = false;
+    include '../app/views/shared/navbar.view.php';
     ?>
 
-    <!-- Dashboard Layout -->
     <div class="dashboard">
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -57,7 +71,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>" data-section="mydeliveries">
+                    <a href="<?= ROOT ?>/transporterdashboard?section=mydeliveries" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>" data-section="mydeliveries" onclick="if (window.TransporterDashboard && typeof window.TransporterDashboard.showSection === 'function') { window.TransporterDashboard.showSection('mydeliveries'); return false; }">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -68,7 +82,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>" data-section="earnings">
+                    <a href="<?= ROOT ?>/transporterdashboard?section=earnings" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>" data-section="earnings" onclick="if (window.TransporterDashboard && typeof window.TransporterDashboard.showSection === 'function') { window.TransporterDashboard.showSection('earnings'); return false; }">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="1"></circle>
@@ -79,7 +93,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>" data-section="feedback">
+                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>" data-section="feedback">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -87,6 +101,20 @@
                             </svg>
                         </div>
                         Reviews
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= ROOT ?>/transporternotifications" class="menu-link <?= ($activePage ?? '') === 'notifications' ? 'active' : '' ?>">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        <span class="menu-label-with-badge">
+                            <span>Notifications</span>
+                            <span id="transporterNotificationBadge" class="notification-sidebar-badge <?= $notificationUnreadCount > 0 ? '' : 'is-hidden' ?>"><?= $notificationUnreadCount ?></span>
+                        </span>
                     </a>
                 </li>
                 <li>
@@ -103,10 +131,8 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Include the page-specific content
             if (isset($contentView)) {
                 include $contentView;
             }
@@ -115,8 +141,7 @@
     </div>
 
     <script>
-        // Set global variables FIRST before loading other scripts.
-        (function () {
+        (function() {
             const seededRoot = "<?= ROOT ?>";
             const origin = String(window.location.origin || '').replace(/\/+$/, '');
             const rawRoot = String(seededRoot || '').replace(/\/+$/, '');
@@ -125,12 +150,10 @@
 
             let resolvedRoot = rawRoot;
 
-            // If current URL clearly contains /public, trust that first.
             if (pathPublicMatch && pathPublicMatch[1]) {
                 resolvedRoot = origin + pathPublicMatch[1];
             }
 
-            // If ROOT resolves to origin-only, rebuild using current pathname up to /public.
             if (!resolvedRoot || resolvedRoot === origin) {
                 const match = pathPublicMatch;
                 if (match && match[1]) {
@@ -141,8 +164,8 @@
             }
 
             window.APP_ROOT = resolvedRoot;
-            window.USER_NAME = <?= json_encode($_SESSION['USER']->name ?? '') ?>;
-            window.USER_EMAIL = <?= json_encode($_SESSION['USER']->email ?? '') ?>;
+            window.USER_NAME = <?= json_encode(authUserName()) ?>;
+            window.USER_EMAIL = <?= json_encode(authUserEmail()) ?>;
             console.log('APP_ROOT set to:', window.APP_ROOT);
         })();
     </script>

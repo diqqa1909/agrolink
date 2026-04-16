@@ -1,15 +1,16 @@
 <?php
-    class HomeController{
-        use Controller;
-        public function index($a='', $b='', $c=''){
 
-            $data=[];
-            if(!empty($_SESSION['USER'])){
-                $data['username'] = $_SESSION['USER']->name;
-            }
-/* 
-            show($_SESSION['USER']); */
+class HomeController
+{
+    use Controller;
 
-            $this->view('home', $data);
+    public function index($a = '', $b = '', $c = '')
+    {
+        if (redirectIfLoggedIn()) {
+            return;
         }
+
+        $data = [];
+        $this->view('home', $data);
     }
+}

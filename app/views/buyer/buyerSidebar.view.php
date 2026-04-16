@@ -6,22 +6,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Buyer Dashboard' ?> - AgroLink</title>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <?php
+    $resolvedPageStyles = $pageStyles ?? [];
+    if (is_string($resolvedPageStyles) && $resolvedPageStyles !== '') {
+        $resolvedPageStyles = [$resolvedPageStyles];
+    }
+    if (is_array($resolvedPageStyles)) {
+        foreach ($resolvedPageStyles as $styleFile) {
+            $styleFile = trim((string)$styleFile);
+            if ($styleFile === '') {
+                continue;
+            }
+    ?>
+            <link rel="stylesheet" href="<?= ROOT ?>/assets/css/buyer/<?= htmlspecialchars($styleFile) ?>">
+    <?php
+        }
+    }
+    ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars($_SESSION['USER']->name ?? '') ?>" data-user-email="<?= htmlspecialchars($_SESSION['USER']->email ?? '') ?>">
+<body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars(authUserName()) ?>" data-user-email="<?= htmlspecialchars(authUserEmail()) ?>">
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
     </script>
     <?php
-    $username = $_SESSION['USER']->name ?? 'Buyer';
-    $role = $_SESSION['USER']->role ?? 'buyer';
-    include '../app/views/components/dashboardNavBar.view.php';
+    $role = authUserRole() !== '' ? authUserRole() : 'buyer';
+    $userId = authUserId();
+    $cartItemCount = isset($cartItemCount) ? (int)$cartItemCount : 0;
+    if ($userId > 0 && $role === 'buyer') {
+        try {
+            $cartModel = new CartModel();
+            $cartItemCount = $cartModel->getCartItemCount($userId);
+        } catch (Throwable $e) {
+            // Keep the controller-provided value if DB refresh fails.
+        }
+    }
+
+    $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
+    if ($notificationUnreadCount === null && $userId > 0 && $role === 'buyer') {
+        try {
+            $notificationsModel = new BuyerNotificationsModel();
+            $notificationUnreadCount = $notificationsModel->getUnreadCount($userId);
+        } catch (Throwable $e) {
+            $notificationUnreadCount = 0;
+        }
+    }
+    if ($notificationUnreadCount === null) {
+        $notificationUnreadCount = 0;
+    }
+    $isHomePage = false;
+    include '../app/views/shared/navbar.view.php';
     ?>
 
-    <!-- Dashboard Layout -->
     <div class="dashboard">
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -92,7 +131,7 @@
                             </svg>
                         </div>
                         Cart
-                        <span class="cart-badge">0</span>
+                        <span class="cart-badge <?= $cartItemCount > 0 ? '' : 'is-hidden' ?>"><?= $cartItemCount ?></span>
                     </a>
                 </li>
                 <li>
@@ -124,8 +163,10 @@
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
                         </div>
-                        Notifications
-                        <span class="badge">5</span>
+                        <span class="menu-label-with-badge">
+                            <span>Notifications</span>
+                            <span id="buyerNotificationBadge" class="notification-sidebar-badge <?= $notificationUnreadCount > 0 ? '' : 'is-hidden' ?>"><?= $notificationUnreadCount ?></span>
+                        </span>
                     </a>
                 </li>
                 <li>
@@ -142,32 +183,22 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <?php
-            // Resolve and include the page-specific content
             if (isset($contentView)) {
                 $viewToInclude = null;
 
-                // Clean up the path - remove ../ prefix if present
                 $cleanPath = $contentView;
                 while (strpos($cleanPath, '../') === 0) {
                     $cleanPath = substr($cleanPath, 3);
                 }
 
-                // Try multiple candidate paths
                 $candidates = [
-                    // Absolute path (if full path given)
                     $contentView,
-                    // Relative to components directory
                     __DIR__ . '/' . $contentView,
-                    // Relative to views directory
                     __DIR__ . '/../' . $contentView,
-                    // Just the clean path relative to views
                     __DIR__ . '/../' . $cleanPath,
-                    // Relative to app directory
                     dirname(__DIR__) . '/' . $contentView,
-                    // Root level
                     __DIR__ . '/../../' . $contentView,
                 ];
 

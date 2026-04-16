@@ -5,11 +5,11 @@ class FarmerDashboardController
 
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $farmerId = (int)$_SESSION['USER']->id;
+        $farmerId = (int)authUserId();
 
         $farmerModel = new FarmerModel();
         $productsModel = new ProductsModel();
@@ -53,7 +53,7 @@ class FarmerDashboardController
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
-            'contentView' => '../app/views/farmer/farmerDashboardContent.view.php',
+            'contentView' => '../app/views/farmer/farmerDashboard.view.php',
             'pageScript' => 'farmerDashboard.js',
             'activeProducts' => $activeProducts,
             'pendingOrders' => $pendingOrders,
@@ -66,6 +66,6 @@ class FarmerDashboardController
             'deliverySummary' => $deliverySummary,
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 }

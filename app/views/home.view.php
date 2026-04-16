@@ -9,7 +9,10 @@
 </head>
 
 <body>
-    <?php require 'components/navbar.view.php' ?>
+    <?php
+    $isHomePage = true;
+    require 'shared/navbar.view.php';
+    ?>
 
     <!-- Hero Section -->
     <section id="home" class="hero" style="background: url('<?= ROOT ?>/assets/imgs/hero-farm3.jpg') center/cover no-repeat; min-height: 68vh; position: relative;">
@@ -292,6 +295,7 @@
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script src="<?= ROOT ?>/assets/js/home.js"></script>
+    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
     <script>
         // Contact form handling
         document.getElementById('contactForm').addEventListener('submit', function(e) {
