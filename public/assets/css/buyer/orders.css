@@ -82,7 +82,9 @@
 }
 
 .buyer-orders-section .order-status.pending,
-.buyer-order-modal-status.pending {
+.buyer-orders-section .order-status.pending_payment,
+.buyer-order-modal-status.pending,
+.buyer-order-modal-status.pending_payment {
     background: #fff7e6;
     color: #b54708;
     border-color: #f7d7a1;

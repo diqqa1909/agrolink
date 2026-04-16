@@ -7,14 +7,12 @@ class BuyerProfileController
     protected $buyerModel;
     protected $userModel;
     protected $orderModel;
-    protected $paymentMethodsModel;
 
     public function __construct()
     {
         $this->buyerModel = new BuyerModel();
         $this->userModel = new UserModel();
         $this->orderModel = new OrderModel();
-        $this->paymentMethodsModel = new BuyerPaymentMethodsModel();
     }
 
     /**
@@ -613,7 +611,7 @@ class BuyerProfileController
         $userId = (int)authUserId();
         $reason = trim((string)($_POST['reason'] ?? ''));
 
-        $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+        $blockingStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped'];
         $activeOrderCount = $this->orderModel->countBuyerOrdersByStatuses($userId, $blockingStatuses);
         if ($activeOrderCount > 0) {
             $this->jsonResponse(409, [
@@ -637,123 +635,6 @@ class BuyerProfileController
             'success' => true,
             'message' => 'Account deactivated successfully.',
             'redirect' => ROOT . '/login?deactivated=1',
-        ]);
-    }
-
-    /**
-     * List saved cards for buyer profile payment methods.
-     */
-    public function listCards()
-    {
-        $this->prepareJsonResponse();
-        $this->requireBuyerRole();
-
-        $buyerId = (int)authUserId();
-        $this->jsonResponse(200, [
-            'success' => true,
-            'cards' => $this->paymentMethodsModel->getCards($buyerId),
-        ]);
-    }
-
-    /**
-     * Add a saved card for future payment gateway integration.
-     */
-    public function addCard()
-    {
-        $this->prepareJsonResponse();
-        $this->requireBuyerRole();
-        $this->requirePostRequest();
-
-        $buyerId = (int)authUserId();
-        $payload = [
-            'card_holder_name' => trim((string)($_POST['card_holder_name'] ?? '')),
-            'card_brand' => trim((string)($_POST['card_brand'] ?? '')),
-            'card_last_four' => trim((string)($_POST['card_last_four'] ?? $_POST['card_last4'] ?? '')),
-            'expiry_month' => trim((string)($_POST['expiry_month'] ?? '')),
-            'expiry_year' => trim((string)($_POST['expiry_year'] ?? '')),
-            'is_default' => !empty($_POST['is_default']),
-        ];
-
-        $result = $this->paymentMethodsModel->addCard($buyerId, $payload);
-        if (empty($result['success'])) {
-            if (!empty($result['errors'])) {
-                $this->jsonResponse(422, [
-                    'success' => false,
-                    'error' => 'Validation failed',
-                    'errors' => $result['errors'],
-                ]);
-            }
-
-            $this->jsonResponse(500, [
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to save card',
-            ]);
-        }
-
-        $this->jsonResponse(200, [
-            'success' => true,
-            'message' => 'Card saved successfully',
-            'cards' => $result['cards'] ?? [],
-        ]);
-    }
-
-    /**
-     * Set default card.
-     */
-    public function setDefaultCard()
-    {
-        $this->prepareJsonResponse();
-        $this->requireBuyerRole();
-        $this->requirePostRequest();
-
-        $buyerId = (int)authUserId();
-        $cardId = (int)($_POST['card_id'] ?? 0);
-        if ($cardId <= 0) {
-            $this->jsonResponse(422, ['success' => false, 'error' => 'Invalid card id']);
-        }
-
-        $result = $this->paymentMethodsModel->setDefaultCard($buyerId, $cardId);
-        if (empty($result['success'])) {
-            $this->jsonResponse(422, [
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to set default card',
-            ]);
-        }
-
-        $this->jsonResponse(200, [
-            'success' => true,
-            'message' => 'Default card updated',
-            'cards' => $result['cards'] ?? [],
-        ]);
-    }
-
-    /**
-     * Remove saved card.
-     */
-    public function removeCard()
-    {
-        $this->prepareJsonResponse();
-        $this->requireBuyerRole();
-        $this->requirePostRequest();
-
-        $buyerId = (int)authUserId();
-        $cardId = (int)($_POST['card_id'] ?? 0);
-        if ($cardId <= 0) {
-            $this->jsonResponse(422, ['success' => false, 'error' => 'Invalid card id']);
-        }
-
-        $result = $this->paymentMethodsModel->removeCard($buyerId, $cardId);
-        if (empty($result['success'])) {
-            $this->jsonResponse(422, [
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to remove card',
-            ]);
-        }
-
-        $this->jsonResponse(200, [
-            'success' => true,
-            'message' => 'Saved card removed',
-            'cards' => $result['cards'] ?? [],
         ]);
     }
 }

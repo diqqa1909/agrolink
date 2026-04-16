@@ -18,7 +18,7 @@ class BuyerProfileModel
                 WHERE bp.user_id = :user_id";
 
         $result = $this->get_row($sql, ['user_id' => $userId]);
-        
+
         // get_row returns false if no result
         return $result !== false ? $result : false;
     }
@@ -68,7 +68,7 @@ class BuyerProfileModel
         // First check if profile exists
         $checkSql = "SELECT id FROM {$this->table} WHERE user_id = :user_id";
         $profileExists = $this->get_row($checkSql, ['user_id' => $userId]);
-        
+
         if (!$profileExists) {
             // Profile doesn't exist, create it with the new data
             $data['user_id'] = $userId;
@@ -78,7 +78,7 @@ class BuyerProfileModel
         $sql = "UPDATE {$this->table} SET " . implode(', ', $set) . ", updated_at = NOW() WHERE user_id = :user_id";
 
         $result = $this->write($sql, $params);
-        
+
         // write() returns:
         // - true on successful UPDATE/DELETE (when lastInsertId is 0)
         // - insert ID (int > 0) on successful INSERT
@@ -96,8 +96,12 @@ class BuyerProfileModel
         if (!$profile) {
             return false;
         }
-        
-        return !empty($profile->phone) && !empty($profile->street_name) && !empty($profile->city) && !empty($profile->postal_code);
+
+        return !empty($profile->phone)
+            && !empty($profile->street_name)
+            && !empty($profile->city)
+            && !empty($profile->district)
+            && !empty($profile->postal_code);
     }
 
     /**
@@ -154,10 +158,29 @@ class BuyerProfileModel
         // Validate district
         if (!empty($data['district'])) {
             $validDistricts = [
-                'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha',
-                'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar',
-                'Matale', 'Matara', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam',
-                'Ratnapura', 'Trincomalee', 'Vavuniya'
+                'Ampara',
+                'Anuradhapura',
+                'Badulla',
+                'Batticaloa',
+                'Colombo',
+                'Galle',
+                'Gampaha',
+                'Jaffna',
+                'Kalutara',
+                'Kandy',
+                'Kegalle',
+                'Kilinochchi',
+                'Kurunegala',
+                'Mannar',
+                'Matale',
+                'Matara',
+                'Mullaitivu',
+                'Nuwara Eliya',
+                'Polonnaruwa',
+                'Puttalam',
+                'Ratnapura',
+                'Trincomalee',
+                'Vavuniya'
             ];
             if (!in_array($data['district'], $validDistricts)) {
                 $errors['district'] = 'Invalid district selected';
@@ -167,4 +190,3 @@ class BuyerProfileModel
         return empty($errors) ? true : $errors;
     }
 }
-

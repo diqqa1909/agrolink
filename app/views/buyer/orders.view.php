@@ -18,7 +18,7 @@
                         <h4 class="order-title">Order #ORD-<?= $order->id ?></h4>
                         <p class="buyer-orders-placed-date">Placed on <?= $orderDate ?></p>
                     </div>
-                    <span class="order-status <?= $statusClass ?>"><?= strtoupper($order->status) ?></span>
+                    <span class="order-status <?= $statusClass ?>"><?= strtoupper(str_replace('_', ' ', $order->status)) ?></span>
                 </div>
                 <div class="order-details">
                     <div class="order-detail">
@@ -66,7 +66,10 @@
                             ★ Write Review
                         </button>
                     <?php endif; ?>
-                    <?php if ($order->status === 'pending' || $order->status === 'confirmed'): ?>
+                    <?php if ($order->status === 'pending_payment'): ?>
+                        <a class="btn btn-sm btn-primary" href="<?= ROOT ?>/payment/checkout?order_id=<?= (int)$order->id ?>&order_ids=<?= (int)$order->id ?>">Retry Payment</a>
+                    <?php endif; ?>
+                    <?php if ($order->status === 'pending_payment' || $order->status === 'pending' || $order->status === 'confirmed'): ?>
                         <button class="btn btn-sm btn-danger" onclick="BuyerDashboard.cancelOrder(<?= $order->id ?>)">Cancel Order</button>
                     <?php endif; ?>
                     <?php if ($order->status === 'shipped'): ?>

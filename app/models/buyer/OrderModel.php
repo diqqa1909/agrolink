@@ -13,19 +13,19 @@ class OrderModel
     public function createOrder($orderData)
     {
         $sql = "INSERT INTO {$this->table} 
-                (buyer_id, total_amount, shipping_cost, order_total, payment_method, 
+            (buyer_id, total_amount, shipping_cost, order_total, payment_status,
                  delivery_address, delivery_city, delivery_district_id, delivery_town_id,
                  delivery_phone, status, created_at)
-                VALUES (:buyer_id, :total_amount, :shipping_cost, :order_total, :payment_method,
+            VALUES (:buyer_id, :total_amount, :shipping_cost, :order_total, :payment_status,
                         :delivery_address, :delivery_city, :delivery_district_id, :delivery_town_id,
                         :delivery_phone, :status, NOW())";
 
         $result = $this->write($sql, $orderData);
-        
+
         if ($result && $result !== false && $result !== 1) {
             return $result; // Returns order ID
         }
-        
+
         return false;
     }
 
@@ -39,10 +39,10 @@ class OrderModel
                 VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, NOW())";
 
         $result = $this->write($sql, $itemData);
-        
+
         // DEBUG: Log the actual result from write()
         error_log("OrderModel::addOrderItem - write() returned: " . var_export($result, true));
-        
+
         // Return true if we got an insert ID (int) or true, false if we got false
         return $result !== false;
     }
@@ -57,7 +57,7 @@ class OrderModel
                 LEFT JOIN users u ON o.buyer_id = u.id
                 LEFT JOIN districts d ON o.delivery_district_id = d.id
                 WHERE o.id = :order_id";
-        
+
         return $this->get_row($sql, ['order_id' => $orderId]);
     }
 
@@ -71,7 +71,7 @@ class OrderModel
                 LEFT JOIN products p ON oi.product_id = p.id
                 LEFT JOIN users u ON oi.farmer_id = u.id
                 WHERE oi.order_id = :order_id";
-        
+
         $result = $this->query($sql, ['order_id' => $orderId]);
         return is_array($result) ? $result : [];
     }
@@ -86,7 +86,7 @@ class OrderModel
                 FROM {$this->table} o
                 WHERE o.buyer_id = :buyer_id
                 ORDER BY o.created_at DESC";
-        
+
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
         return is_array($result) ? $result : [];
     }
@@ -109,14 +109,14 @@ class OrderModel
         // First check current quantity
         $sql = "SELECT quantity FROM products WHERE id = :product_id";
         $current = $this->get_row($sql, ['product_id' => $productId]);
-        
+
         if (!$current) {
             return false;
         }
-        
+
         $currentQuantity = (int)($current->quantity ?? 0);
         $newQuantity = max(0, $currentQuantity - $quantity);
-        
+
         $sql = "UPDATE products SET quantity = :new_quantity WHERE id = :product_id";
         return $this->write($sql, ['product_id' => $productId, 'new_quantity' => $newQuantity]);
     }
@@ -164,11 +164,77 @@ class OrderModel
                 LEFT JOIN delivery_requests dr ON dr.order_id = o.id
                 LEFT JOIN users u ON u.id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered')
                 ORDER BY o.created_at DESC";
 
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
         return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Get buyer orders by ID list.
+     */
+    public function getOrdersByIdsForBuyer($buyerId, array $orderIds)
+    {
+        $buyerId = (int)$buyerId;
+        $cleanOrderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds), function ($id) {
+            return $id > 0;
+        })));
+
+        if ($buyerId <= 0 || empty($cleanOrderIds)) {
+            return [];
+        }
+
+        [$placeholders, $idParams] = $this->buildStatusParams($cleanOrderIds, 'order_id_');
+        $params = array_merge(['buyer_id' => $buyerId], $idParams);
+
+        $sql = "SELECT *
+                FROM {$this->table}
+                WHERE buyer_id = :buyer_id
+                  AND id IN (" . implode(', ', $placeholders) . ")";
+
+        $rows = $this->query($sql, $params);
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * Update payment and order status for a buyer's selected orders.
+     */
+    public function updatePaymentResultForBuyerOrders($buyerId, array $orderIds, $paymentStatus, $orderStatus)
+    {
+        $buyerId = (int)$buyerId;
+        $paymentStatus = strtolower(trim((string)$paymentStatus));
+        $orderStatus = strtolower(trim((string)$orderStatus));
+        $cleanOrderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds), function ($id) {
+            return $id > 0;
+        })));
+
+        $allowedPaymentStatuses = ['pending', 'paid', 'failed'];
+        $allowedOrderStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+        if ($buyerId <= 0 || empty($cleanOrderIds)) {
+            return false;
+        }
+
+        if (!in_array($paymentStatus, $allowedPaymentStatuses, true) || !in_array($orderStatus, $allowedOrderStatuses, true)) {
+            return false;
+        }
+
+        [$placeholders, $idParams] = $this->buildStatusParams($cleanOrderIds, 'pay_order_id_');
+        $params = array_merge([
+            'buyer_id' => $buyerId,
+            'payment_status' => $paymentStatus,
+            'order_status' => $orderStatus,
+        ], $idParams);
+
+        $sql = "UPDATE {$this->table}
+                SET payment_status = :payment_status,
+                    status = :order_status,
+                    updated_at = NOW()
+                WHERE buyer_id = :buyer_id
+                  AND id IN (" . implode(', ', $placeholders) . ")";
+
+        return $this->write($sql, $params) !== false;
     }
 
     /**
@@ -311,5 +377,58 @@ class OrderModel
             'product_id' => $productId,
             'buyer_id' => $buyerId,
         ]);
+    }
+
+    private function buildStatusParams(array $statuses, $prefix)
+    {
+        $placeholders = [];
+        $params = [];
+
+        foreach (array_values($statuses) as $index => $status) {
+            $key = $prefix . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = (string)$status;
+        }
+
+        return [$placeholders, $params];
+    }
+
+    public function countBuyerOrdersByStatuses($buyerId, array $statuses)
+    {
+        $buyerId = (int)$buyerId;
+        if ($buyerId <= 0 || empty($statuses)) {
+            return 0;
+        }
+
+        [$placeholders, $statusParams] = $this->buildStatusParams($statuses, 'b_status_');
+        $params = array_merge(['buyer_id' => $buyerId], $statusParams);
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM {$this->table}
+                WHERE buyer_id = :buyer_id
+                  AND status IN (" . implode(', ', $placeholders) . ")";
+
+        $row = $this->get_row($sql, $params);
+        return (int)($row->total ?? 0);
+    }
+
+    public function countFarmerOrdersByStatuses($farmerId, array $statuses)
+    {
+        $farmerId = (int)$farmerId;
+        if ($farmerId <= 0 || empty($statuses)) {
+            return 0;
+        }
+
+        [$placeholders, $statusParams] = $this->buildStatusParams($statuses, 'f_status_');
+        $params = array_merge(['farmer_id' => $farmerId], $statusParams);
+
+        $sql = "SELECT COUNT(DISTINCT o.id) AS total
+                FROM {$this->table} o
+                INNER JOIN {$this->orderItemsTable} oi ON oi.order_id = o.id
+                WHERE oi.farmer_id = :farmer_id
+                  AND o.status IN (" . implode(', ', $placeholders) . ")";
+
+        $row = $this->get_row($sql, $params);
+        return (int)($row->total ?? 0);
     }
 }

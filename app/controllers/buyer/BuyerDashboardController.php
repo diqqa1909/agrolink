@@ -36,22 +36,23 @@ class BuyerDashboardController
 
         // Fetch orders for the buyer
         $orders = $this->orderModel->getOrdersByBuyer($user_id);
-        
+
         // Calculate statistics
         $totalOrders = count($orders);
         $pendingOrders = 0;
         $totalSpent = 0;
-        
+
         foreach ($orders as $order) {
-            if ($order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
+            if ($order->status === 'pending_payment' || $order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
                 $pendingOrders++;
             }
-            // Include all active orders in total spent
-            if ($order->status !== 'cancelled' && $order->status !== 'rejected') {
+            // Count only successfully paid orders toward spend.
+            $paymentStatus = strtolower((string)($order->payment_status ?? 'pending'));
+            if ($paymentStatus === 'paid' && $order->status !== 'cancelled' && $order->status !== 'rejected') {
                 $totalSpent += floatval($order->order_total);
             }
         }
-        
+
         // Get order items for each order
         $ordersWithItems = [];
         foreach ($orders as $order) {

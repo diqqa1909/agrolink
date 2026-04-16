@@ -124,6 +124,7 @@ class CheckoutController
             'orderTotal' => $orderTotal,
             'buyerProfile' => $buyerProfile,
             'hasDeliveryDetails' => $hasDeliveryDetails,
+            'districtOptions' => $this->getDistrictNames(),
             'isBuyNow' => $isBuyNow,
             'shippingCalculation' => $shippingCalculation,
             'pageTitle' => 'Checkout',
@@ -147,12 +148,14 @@ class CheckoutController
         }
 
         // Get buyer's district and town IDs
-        $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
-        $buyerTownId = $this->getTownIdByName($buyerProfile->city ?? '', $buyerDistrictId);
-
+        $buyerDistrictId = $this->findDistrictIdByName($buyerProfile->district ?? '');
         if (!$buyerDistrictId) {
-            return null;
+            return [
+                'success' => false,
+                'error' => 'Invalid or missing buyer district',
+            ];
         }
+        $buyerTownId = $this->getTownIdByName($buyerProfile->city ?? '', $buyerDistrictId);
 
         // Group cart items by farmer
         $itemsByFarmer = [];
@@ -230,13 +233,15 @@ class CheckoutController
             return null;
         }
 
+        $farmerCount = count($itemsByFarmer);
+
         // Return combined result
         return [
             'success' => true,
             'calculation' => [
                 'total_shipping_cost_lkr' => round($totalShippingCost, 2),
-                'multiple_farmers' => count($itemsByFarmer) > 1,
-                'farmer_count' => count($itemsByFarmer),
+                'multiple_farmers' => $farmerCount > 1,
+                'farmer_count' => $farmerCount,
                 'calculations' => $allCalculations,
                 'selected_vehicles' => $selectedVehicles
             ]
@@ -244,19 +249,83 @@ class CheckoutController
     }
 
     /**
+     * Resolve district ID by name without fallback.
+     */
+    private function findDistrictIdByName($districtName)
+    {
+        $normalizedName = trim((string)$districtName);
+        if ($normalizedName === '') {
+            return null;
+        }
+
+        $dbModel = new CartModel();
+        $sql = "SELECT id FROM districts WHERE district_name = :name LIMIT 1";
+        $result = $dbModel->query($sql, ['name' => $normalizedName]);
+
+        if ($result && is_array($result) && !empty($result)) {
+            return (int)$result[0]->id;
+        }
+
+        return null;
+    }
+
+    /**
      * Get district ID by name
      */
     private function getDistrictIdByName($districtName)
     {
+        $districtId = $this->findDistrictIdByName($districtName);
+        if ($districtId) {
+            return $districtId;
+        }
+
+        // Default to Colombo if not found
         $dbModel = new CartModel(); // Use existing model to access Database trait
         $sql = "SELECT id FROM districts WHERE district_name = :name LIMIT 1";
-        $result = $dbModel->query($sql, ['name' => $districtName]);
-        if ($result && is_array($result) && !empty($result)) {
-            return $result[0]->id;
-        }
-        // Default to Colombo if not found
         $result = $dbModel->query($sql, ['name' => 'Colombo']);
         return ($result && is_array($result) && !empty($result)) ? $result[0]->id : 1;
+    }
+
+    /**
+     * Get district names for checkout dropdown.
+     */
+    private function getDistrictNames()
+    {
+        $dbModel = new CartModel();
+        $sql = "SELECT district_name FROM districts ORDER BY district_name ASC";
+        $result = $dbModel->query($sql);
+
+        if ($result && is_array($result) && !empty($result)) {
+            return array_map(static function ($row) {
+                return (string)$row->district_name;
+            }, $result);
+        }
+
+        return [
+            'Ampara',
+            'Anuradhapura',
+            'Badulla',
+            'Batticaloa',
+            'Colombo',
+            'Galle',
+            'Gampaha',
+            'Jaffna',
+            'Kalutara',
+            'Kandy',
+            'Kegalle',
+            'Kilinochchi',
+            'Kurunegala',
+            'Mannar',
+            'Matale',
+            'Matara',
+            'Mullaitivu',
+            'Nuwara Eliya',
+            'Polonnaruwa',
+            'Puttalam',
+            'Ratnapura',
+            'Trincomalee',
+            'Vavuniya',
+        ];
     }
 
     /**
@@ -307,9 +376,15 @@ class CheckoutController
         ];
 
         // Validate required fields
-        if (empty($data['phone']) || empty($data['city']) || empty($data['street_name'])) {
+        if (empty($data['phone']) || empty($data['city']) || empty($data['street_name']) || empty($data['district'])) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Phone, city, and street address are required']);
+            echo json_encode(['success' => false, 'message' => 'Phone, city, district, and street address are required']);
+            exit;
+        }
+
+        if (!$this->findDistrictIdByName($data['district'])) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Please select a valid district']);
             exit;
         }
 
@@ -447,7 +522,6 @@ class CheckoutController
         }
 
         // Common details
-        $paymentMethod = $_POST['payment_method'] ?? 'cash_on_delivery';
         $deliveryDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
         $deliveryTownId = $this->getTownIdByName($buyerProfile->city ?? '', $deliveryDistrictId);
         $orderIds = [];
@@ -479,13 +553,13 @@ class CheckoutController
                 'total_amount' => $cartTotal,
                 'shipping_cost' => $shippingCost,
                 'order_total' => $orderTotal,
-                'payment_method' => $paymentMethod,
+                'payment_status' => 'pending',
                 'delivery_address' => ($buyerProfile->apartment_code ?? '') . ', ' . ($buyerProfile->street_name ?? ''),
                 'delivery_city' => $buyerProfile->city ?? '',
                 'delivery_district_id' => $deliveryDistrictId,
                 'delivery_town_id' => $deliveryTownId,
                 'delivery_phone' => $buyerProfile->phone ?? '',
-                'status' => 'pending'
+                'status' => 'pending_payment'
             ];
 
             $orderId = $this->orderModel->createOrder($orderData);
@@ -559,11 +633,15 @@ class CheckoutController
         $this->cartModel->clearCart($user_id);
         $this->clearBuyNow();
 
+        $primaryOrderId = (int)$orderIds[0];
+        $orderIdsQuery = implode(',', array_map('intval', $orderIds));
+
         echo json_encode([
             'success' => true,
-            'message' => 'Orders placed successfully!',
+            'message' => 'Order created. Redirecting to SecurePay...',
             'order_ids' => $orderIds,
-            'order_total' => $overallTotal
+            'order_total' => $overallTotal,
+            'redirect' => ROOT . '/payment/checkout?order_id=' . $primaryOrderId . '&order_ids=' . urlencode($orderIdsQuery)
         ]);
         exit;
     }
