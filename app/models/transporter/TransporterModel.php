@@ -12,7 +12,7 @@ class TransporterModel
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT tp.*, u.name, u.email 
+        $sql = "SELECT tp.*, u.name, u.email, u.status, u.deactivated_at
                 FROM {$this->table} tp
                 LEFT JOIN {$this->userTable} u ON u.id = tp.user_id
                 WHERE tp.user_id = :user_id";
@@ -210,12 +210,12 @@ class TransporterModel
             $vehicleTypeModel = new VehicleTypeModel();
             $activeTypes = $vehicleTypeModel->getActiveTypes();
             $validTypes = [];
-            
+
             foreach ($activeTypes as $vType) {
                 // Convert vehicle_name to slug (e.g., "Small Van" -> "smallvan")
                 $validTypes[] = strtolower(str_replace(' ', '', $vType->vehicle_name));
             }
-            
+
             if (!in_array(strtolower($data['vehicle_type']), $validTypes)) {
                 $errors['vehicle_type'] = 'Please select a valid vehicle type';
             }
@@ -258,6 +258,8 @@ class TransporterModel
             $errors['new'] = 'New password is required';
         } elseif (strlen($newPassword) < 8) {
             $errors['new'] = 'New password must be at least 8 characters long';
+        } elseif (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            $errors['new'] = 'New password must include at least one letter and one number';
         }
 
         // Validate password confirmation
@@ -282,7 +284,11 @@ class TransporterModel
     {
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-        $sql = "UPDATE {$this->userTable} SET password = :password WHERE id = :id";
+        $sql = "UPDATE {$this->userTable}
+                SET password = :password,
+                    password_updated_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = :id";
 
         return $this->write($sql, [
             'id' => $userId,
@@ -294,17 +300,28 @@ class TransporterModel
      * Get available delivery requests for transporter based on their vehicle capacity
      * Filters by vehicle weight capacity range from vehicle_types table
      */
-    public function getAvailableDeliveryRequests($transporterId)
+    public function getAvailableDeliveryRequests($transporterId, array $filters = [])
     {
+        $transporterId = (int)$transporterId;
+        if ($transporterId <= 0) {
+            return [];
+        }
+
+        $location = strtolower(trim((string)($filters['location'] ?? '')));
+        $location = preg_replace('/\s+/', ' ', $location);
+        $maxDistance = isset($filters['max_distance']) ? (float)$filters['max_distance'] : 0;
+        $maxWeight = isset($filters['max_weight']) ? (float)$filters['max_weight'] : 0;
+        $minPayment = isset($filters['min_payment']) ? (float)$filters['min_payment'] : 0;
+
         // First, get transporter's active vehicles and their capacities
         $vehicleSql = "SELECT v.*, vt.min_weight_kg, vt.max_weight_kg, vt.vehicle_name
                       FROM vehicles v
                       INNER JOIN vehicle_types vt ON v.vehicle_type_id = vt.id
                       WHERE v.transporter_id = :transporter_id 
                       AND v.status = 'active'";
-        
+
         $vehicles = $this->query($vehicleSql, ['transporter_id' => $transporterId]);
-        
+
         // Ensure vehicles is an array
         if (!is_array($vehicles) || empty($vehicles)) {
             return []; // No active vehicles
@@ -337,14 +354,40 @@ class TransporterModel
                 WHERE dr.status = 'pending'
                 AND dr.total_weight_kg >= :min_weight
                 AND dr.total_weight_kg <= :max_weight
-                AND o.status IN ('pending', 'confirmed')
-                ORDER BY dr.created_at DESC";
-        
-        $result = $this->query($sql, [
+                AND o.status IN ('pending', 'confirmed')";
+
+        $params = [
             'min_weight' => $minCapacity,
-            'max_weight' => $maxCapacity
-        ]);
-        
+            'max_weight' => $maxCapacity,
+        ];
+
+        if ($location !== '') {
+            $sql .= " AND (
+                        LOWER(TRIM(COALESCE(dr.farmer_city, ''))) LIKE :location_like
+                        OR LOWER(TRIM(COALESCE(fd.district_name, ''))) LIKE :location_like
+                    )";
+            $params['location_like'] = '%' . $location . '%';
+        }
+
+        if ($maxDistance > 0) {
+            $sql .= " AND dr.distance_km IS NOT NULL AND dr.distance_km <= :max_distance";
+            $params['max_distance'] = $maxDistance;
+        }
+
+        if ($maxWeight > 0) {
+            $sql .= " AND dr.total_weight_kg <= :max_weight_filter";
+            $params['max_weight_filter'] = $maxWeight;
+        }
+
+        if ($minPayment > 0) {
+            $sql .= " AND dr.shipping_fee >= :min_payment";
+            $params['min_payment'] = $minPayment;
+        }
+
+        $sql .= " ORDER BY dr.created_at DESC";
+
+        $result = $this->query($sql, $params);
+
         return is_array($result) ? $result : [];
     }
 
@@ -365,16 +408,16 @@ class TransporterModel
                 LEFT JOIN districts bd ON dr.buyer_district_id = bd.id
                 LEFT JOIN districts fd ON dr.farmer_district_id = fd.id
                 WHERE dr.transporter_id = :transporter_id";
-        
+
         $params = ['transporter_id' => $transporterId];
-        
+
         if ($status !== null) {
             $sql .= " AND dr.status = :status";
             $params['status'] = $status;
         }
-        
+
         $sql .= " ORDER BY dr.created_at DESC";
-        
+
         $result = $this->query($sql, $params);
         return is_array($result) ? $result : [];
     }
@@ -387,7 +430,7 @@ class TransporterModel
         // First check if request is still available
         $checkSql = "SELECT * FROM delivery_requests WHERE id = :id AND status = 'pending'";
         $request = $this->get_row($checkSql, ['id' => $requestId]);
-        
+
         if (!$request) {
             return false;
         }
@@ -399,7 +442,7 @@ class TransporterModel
                     accepted_at = NOW(),
                     updated_at = NOW()
                 WHERE id = :id AND status = 'pending'";
-        
+
         $result = $this->write($sql, [
             'id' => $requestId,
             'transporter_id' => $transporterId
@@ -420,7 +463,7 @@ class TransporterModel
     public function updateDeliveryStatus($requestId, $transporterId, $status)
     {
         $validStatuses = ['accepted', 'in_transit', 'delivered', 'cancelled'];
-        
+
         if (!in_array($status, $validStatuses)) {
             return false;
         }
@@ -429,7 +472,7 @@ class TransporterModel
                 SET status = :status,
                     updated_at = NOW()
                 WHERE id = :id AND transporter_id = :transporter_id";
-        
+
         $result = $this->write($sql, [
             'id' => $requestId,
             'transporter_id' => $transporterId,
@@ -478,7 +521,7 @@ class TransporterModel
                 LEFT JOIN districts bd ON dr.buyer_district_id = bd.id
                 LEFT JOIN districts fd ON dr.farmer_district_id = fd.id
                 WHERE dr.id = :id";
-        
+
         return $this->get_row($sql, ['id' => $requestId]);
     }
 
@@ -497,9 +540,9 @@ class TransporterModel
                     COUNT(CASE WHEN dr.status = 'delivered' THEN 1 END) as completed_deliveries
                 FROM delivery_requests dr
                 WHERE dr.transporter_id = :transporter_id";
-        
+
         $result = $this->get_row($sql, ['transporter_id' => $transporterId]);
-        
+
         // Return default values if no data found
         if (!$result) {
             return (object)[
@@ -512,8 +555,30 @@ class TransporterModel
                 'completed_deliveries' => 0
             ];
         }
-        
+
         return $result;
+    }
+
+    /**
+     * Count transporter deliveries that are not completed.
+     *
+     * Business rule: transporter account deactivation is allowed only when
+     * every assigned delivery is completed (delivered/completed).
+     */
+    public function countIncompleteDeliveries($transporterId)
+    {
+        $transporterId = (int)$transporterId;
+        if ($transporterId <= 0) {
+            return 0;
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM delivery_requests
+                WHERE transporter_id = :transporter_id
+                AND LOWER(COALESCE(status, '')) NOT IN ('delivered', 'completed')";
+
+        $row = $this->get_row($sql, ['transporter_id' => $transporterId]);
+        return (int)($row->total ?? 0);
     }
 
     /**
@@ -547,7 +612,7 @@ class TransporterModel
             try {
                 // Get farmer IDs for this order
                 $farmerIds = explode(',', $order->farmer_ids);
-                
+
                 foreach ($farmerIds as $farmerId) {
                     // Get buyer details
                     $buyerSql = "SELECT u.name, bp.phone, bp.apartment_code, bp.street_name, bp.city, bp.district
@@ -599,9 +664,9 @@ class TransporterModel
                     $requiredVehicleTypeId = ($vehicleTypeResult && !empty($vehicleTypeResult)) ? $vehicleTypeResult[0]->id : null;
 
                     // Prepare buyer address
-                    $buyerAddress = trim(($buyer->apartment_code ?? '') . ', ' . 
-                                       ($buyer->street_name ?? '') . ', ' . 
-                                       ($buyer->city ?? ''));
+                    $buyerAddress = trim(($buyer->apartment_code ?? '') . ', ' .
+                        ($buyer->street_name ?? '') . ', ' .
+                        ($buyer->city ?? ''));
                     if (empty(trim($buyerAddress, ', '))) {
                         $buyerAddress = $order->delivery_address ?? 'Not provided';
                     }
@@ -660,7 +725,6 @@ class TransporterModel
                         $errorCount++;
                     }
                 }
-
             } catch (Exception $e) {
                 $details[] = "Order #{$order->id}: ERROR - " . $e->getMessage();
                 $errorCount++;
@@ -685,4 +749,3 @@ class TransporterModel
         return ($result && is_array($result) && !empty($result)) ? $result[0]->id : 5;
     }
 }
-

@@ -18,11 +18,11 @@ class FarmerOrdersController
      */
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get all orders that contain this farmer's products
         $orders = $this->farmerModel->getFarmerOrders($userId);
@@ -35,7 +35,7 @@ class FarmerOrdersController
             'pageScript' => 'farmerOrders.js'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     /**
@@ -46,7 +46,7 @@ class FarmerOrdersController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -59,7 +59,7 @@ class FarmerOrdersController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get order details
         $order = $this->orderModel->getOrderById($orderId);
@@ -88,7 +88,7 @@ class FarmerOrdersController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -111,7 +111,7 @@ class FarmerOrdersController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Preferred path: order-level workflow transitions.
         if ($orderId) {

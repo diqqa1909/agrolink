@@ -7,17 +7,17 @@
         <h1 class="content-title">Buyer Crop Requests</h1>
     </div>
 
-    <?php if (isset($_SESSION['success'])): ?>
+    <?php $successMessage = flash('success'); ?>
+    <?php if (!empty($successMessage)): ?>
         <div class="alert success">
-            <?= $_SESSION['success'];
-            unset($_SESSION['success']); ?>
+            <?= htmlspecialchars((string)$successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <?php if (isset($_SESSION['error'])): ?>
+    <?php $errorMessage = flash('error'); ?>
+    <?php if (!empty($errorMessage)): ?>
         <div class="alert">
-            <?= $_SESSION['error'];
-            unset($_SESSION['error']); ?>
+            <?= htmlspecialchars((string)$errorMessage) ?>
         </div>
     <?php endif; ?>
 

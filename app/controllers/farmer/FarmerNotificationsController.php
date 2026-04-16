@@ -13,12 +13,12 @@ class FarmerNotificationsController
 
     private function isAuthorizedFarmer()
     {
-        return isset($_SESSION['USER']) && (($_SESSION['USER']->role ?? '') === 'farmer');
+        return hasRole('farmer');
     }
 
     private function getFarmerId()
     {
-        return (int)($_SESSION['USER']->id ?? 0);
+        return (int)(authUserId() ?? 0);
     }
 
     public function index()
@@ -42,7 +42,7 @@ class FarmerNotificationsController
             'pageScript' => 'farmerNotifications.js',
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     public function list()

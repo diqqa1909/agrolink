@@ -6,11 +6,13 @@ class TransporterProfileController
 
     protected $transporterModel;
     protected $userModel;
+    protected $payoutAccountsModel;
 
     public function __construct()
     {
         $this->transporterModel = new TransporterModel();
         $this->userModel = new UserModel();
+        $this->payoutAccountsModel = new PayoutAccountsModel();
     }
 
     /**
@@ -24,11 +26,11 @@ class TransporterProfileController
         }
 
         // Regular page view
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get transporter profile
         $profile = $this->transporterModel->getProfileByUserId($userId);
@@ -50,18 +52,23 @@ class TransporterProfileController
         $vehicleTypes = $vehicleTypeModel->getActiveTypes();
 
         // Load and display the profile view through transporterMain layout
+        $maxEmailChanges = 2;
+        $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
             'vehicleTypes' => $vehicleTypes,
+            'emailChangesUsed' => $emailChangesUsed,
+            'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed),
             'contentView' => '../app/views/transporter/transporterProfileContent.view.php',
             'pageScript' => 'profile.js'
         ];
 
-        $this->view('transporter/transporterMain', $data);
+        $this->view('transporter/transporterSidebar', $data);
     }
 
     /**
@@ -96,7 +103,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -105,7 +112,7 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $profile = $this->transporterModel->getProfileByUserId($userId);
 
         if (!$profile) {
@@ -120,10 +127,15 @@ class TransporterProfileController
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
+        $maxEmailChanges = 2;
+        $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+
         echo json_encode([
             'success' => true,
             'profile' => $profile,
-            'photoUrl' => $photoUrl
+            'photoUrl' => $photoUrl,
+            'emailChangesUsed' => $emailChangesUsed,
+            'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed),
         ]);
         exit;
     }
@@ -139,7 +151,7 @@ class TransporterProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -155,7 +167,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get POST data
             $data = [
@@ -187,40 +199,10 @@ class TransporterProfileController
                 exit;
             }
 
-            // Update name and email in users table if provided
-            if (!empty($data['name']) || !empty($data['email'])) {
-                $userUpdateData = [];
-
-                if (!empty($data['name'])) {
-                    $userUpdateData['name'] = $data['name'];
-                }
-
-                if (!empty($data['email'])) {
-                    // Check if email is already taken by another user
-                    $existingUser = $this->userModel->findByEmail($data['email']);
-                    if ($existingUser && $existingUser->id !== $userId) {
-                        http_response_code(422);
-                        echo json_encode([
-                            'success' => false,
-                            'error' => 'Validation failed',
-                            'errors' => ['email' => 'This email is already in use']
-                        ]);
-                        exit;
-                    }
-                    $userUpdateData['email'] = $data['email'];
-                }
-
-                if (!empty($userUpdateData)) {
-                    $this->userModel->update($userId, $userUpdateData);
-
-                    // Update session with new name/email
-                    if (!empty($userUpdateData['name'])) {
-                        $_SESSION['USER']->name = $userUpdateData['name'];
-                    }
-                    if (!empty($userUpdateData['email'])) {
-                        $_SESSION['USER']->email = $userUpdateData['email'];
-                    }
-                }
+            // Name is editable from profile form; email changes should follow account settings/audit flow.
+            if (!empty($data['name'])) {
+                $this->userModel->update($userId, ['name' => $data['name']]);
+                setAuthUserName((string)$data['name']);
             }
 
             // Prepare profile data (exclude name and email from transporter profile update)
@@ -269,7 +251,6 @@ class TransporterProfileController
                     'error' => 'Failed to update profile'
                 ]);
             }
-
         } catch (Throwable $e) {
             error_log('Transporter profile save error: ' . $e->getMessage());
             http_response_code(500);
@@ -292,7 +273,7 @@ class TransporterProfileController
         ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -305,7 +286,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Check if file was uploaded
             if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
@@ -407,7 +388,7 @@ class TransporterProfileController
         ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -420,7 +401,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get old photo filename
             $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
@@ -453,6 +434,114 @@ class TransporterProfileController
     }
 
     /**
+     * Change email via AJAX (requires password confirmation)
+     */
+    public function changeEmail()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!hasRole('transporter')) {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized'
+            ]);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        try {
+            $userId = (int)authUserId();
+            $newEmail = strtolower(trim((string)($_POST['newEmail'] ?? '')));
+            $password = (string)($_POST['password'] ?? '');
+            $maxEmailChanges = 2;
+            $errors = [];
+
+            $currentUser = $this->userModel->first(['id' => $userId]);
+            if (!$currentUser) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'User not found']);
+                exit;
+            }
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            if ($emailChangesRemaining <= 0) {
+                $errors['limit'] = 'Email change limit reached. You can only change email 2 times after account creation.';
+            }
+
+            if ($newEmail === '') {
+                $errors['new_email'] = 'New email is required';
+            } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $errors['new_email'] = 'Please enter a valid email address';
+            } elseif (strcasecmp($newEmail, (string)$currentUser->email) === 0) {
+                $errors['new_email'] = 'New email must be different from current email';
+            } else {
+                $existingUser = $this->userModel->findByEmail($newEmail);
+                if ($existingUser && (int)$existingUser->id !== $userId) {
+                    $errors['new_email'] = 'This email is already used by another account';
+                }
+            }
+
+            if ($password === '') {
+                $errors['password'] = 'Password confirmation is required';
+            } elseif (!password_verify($password, (string)$currentUser->password)) {
+                $errors['password'] = 'Current password is incorrect';
+            }
+
+            if (!empty($errors)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $errors,
+                    'emailChangesUsed' => $emailChangesUsed,
+                    'emailChangesRemaining' => $emailChangesRemaining,
+                ]);
+                exit;
+            }
+
+            $updated = $this->userModel->changeEmailWithAudit($userId, $newEmail);
+            if (!$updated) {
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to update email'
+                ]);
+                exit;
+            }
+
+            setAuthUserEmail((string)$newEmail);
+
+            $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
+            $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Email updated successfully. Session data has been updated. Use your new email from now on.',
+                'email' => $newEmail,
+                'sessionUpdated' => true,
+                'emailChangesUsed' => $emailChangesUsed,
+                'emailChangesRemaining' => $emailChangesRemaining,
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Server error: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Change password
      */
     public function changePassword()
@@ -460,7 +549,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -472,7 +561,7 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $currentPassword = $_POST['current_password'] ?? '';
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
@@ -490,12 +579,147 @@ class TransporterProfileController
             exit;
         }
 
-        // Change password
-        $this->transporterModel->changePassword($userId, $newPassword);
+        $updated = $this->userModel->updatePassword($userId, $newPassword);
+        if (!$updated) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to update password'
+            ]);
+            exit;
+        }
 
         echo json_encode([
             'success' => true,
             'message' => 'Password changed successfully'
+        ]);
+        exit;
+    }
+
+    public function getPayoutAccount()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!hasRole('transporter')) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $userId = (int)authUserId();
+        $account = $this->payoutAccountsModel->getDefaultAccountByUserId($userId);
+
+        echo json_encode([
+            'success' => true,
+            'account' => $account,
+        ]);
+        exit;
+    }
+
+    public function savePayoutAccount()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!hasRole('transporter')) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $userId = (int)authUserId();
+        $payload = [
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
+            'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
+            'account_number' => trim((string)($_POST['account_number'] ?? '')),
+            'account_type' => trim((string)($_POST['account_type'] ?? '')),
+            'is_default' => 1,
+        ];
+
+        $result = $this->payoutAccountsModel->saveDefaultAccount($userId, $payload);
+        if (empty($result['success'])) {
+            if (!empty($result['errors'])) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $result['errors'],
+                ]);
+                exit;
+            }
+
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to save payout account',
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payout account saved successfully',
+            'account' => $result['account'] ?? null,
+        ]);
+        exit;
+    }
+
+    public function requestDeactivation()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!hasRole('transporter')) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $userId = (int)authUserId();
+        $reason = trim((string)($_POST['reason'] ?? ''));
+
+        $incompleteDeliveryCount = $this->transporterModel->countIncompleteDeliveries($userId);
+        if ($incompleteDeliveryCount > 0) {
+            $deliveryLabel = $incompleteDeliveryCount === 1 ? 'delivery is' : 'deliveries are';
+            http_response_code(409);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Cannot deactivate account while ' . $incompleteDeliveryCount . ' ' . $deliveryLabel . ' still incomplete.',
+                'incompleteDeliveryCount' => $incompleteDeliveryCount,
+            ]);
+            exit;
+        }
+
+        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        if (!$deactivated) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to deactivate account',
+            ]);
+            exit;
+        }
+
+        clearAuthSession();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Account deactivated successfully.',
+            'redirect' => ROOT . '/login?deactivated=1',
         ]);
         exit;
     }

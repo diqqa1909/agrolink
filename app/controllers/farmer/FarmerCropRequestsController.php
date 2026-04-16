@@ -5,7 +5,7 @@ class FarmerCropRequestsController
 
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
@@ -27,12 +27,12 @@ class FarmerCropRequestsController
             'requests' => $requests
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     public function show($id)
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
@@ -51,12 +51,12 @@ class FarmerCropRequestsController
             'request' => $request
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     public function accept($id)
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
@@ -82,7 +82,7 @@ class FarmerCropRequestsController
 
     public function reject($id)
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 

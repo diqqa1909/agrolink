@@ -33,7 +33,7 @@ $districts = [
 
         <div class="profile-hero-meta">
             <h2 id="profileDisplayName"><?= esc($username ?? 'Farmer') ?></h2>
-            <p id="profileDisplayEmail"><?= esc($_SESSION['USER']->email ?? '') ?></p>
+            <p id="profileDisplayEmail"><?= esc(authUserEmail()) ?></p>
             <span class="profile-role-badge">Farmer</span>
         </div>
     </div>
@@ -53,7 +53,7 @@ $districts = [
             <form id="profileForm" class="profile-form-grid">
                 <div class="form-group">
                     <label for="profileName">Full Name *</label>
-                    <input type="text" id="profileName" name="name" class="form-control" value="<?= esc($username ?? '') ?>" placeholder="Enter your full name">
+                    <input type="text" id="profileName" name="name" class="form-control" value="<?= esc($username ?? '') ?>" placeholder="Enter your full name" required>
                 </div>
 
                 <div class="form-group">
@@ -63,7 +63,7 @@ $districts = [
 
                 <div class="form-group">
                     <label for="profileDistrict">District *</label>
-                    <select id="profileDistrict" name="district" class="form-control">
+                    <select id="profileDistrict" name="district" class="form-control" required>
                         <option value="">Select District</option>
                         <?php foreach ($districts as $district): ?>
                             <option value="<?= esc($district) ?>" <?= (($profile->district ?? '') === $district) ? 'selected' : '' ?>>
@@ -75,15 +75,15 @@ $districts = [
 
                 <div class="form-group">
                     <label for="profileCrops">Crops You Sell *</label>
-                    <input type="text" id="profileCrops" name="crops_selling" class="form-control" value="<?= esc($profile->crops_selling ?? '') ?>" placeholder="Tomatoes, Carrots, Potatoes">
+                    <input type="text" id="profileCrops" name="crops_selling" class="form-control" value="<?= esc($profile->crops_selling ?? '') ?>" placeholder="Tomatoes, Carrots, Potatoes" required>
                 </div>
 
                 <div class="form-group form-group-wide">
                     <label for="profileAddress">Farm Address *</label>
-                    <input type="text" id="profileAddress" name="full_address" class="form-control" value="<?= esc($profile->full_address ?? '') ?>" placeholder="Enter your farm address">
+                    <input type="text" id="profileAddress" name="full_address" class="form-control" value="<?= esc($profile->full_address ?? '') ?>" placeholder="Enter your farm address" required>
                 </div>
 
-                <input type="email" id="profileEmail" value="<?= esc($_SESSION['USER']->email ?? '') ?>" hidden>
+                <input type="email" id="profileEmail" value="<?= esc(authUserEmail()) ?>" hidden>
             </form>
         </div>
 

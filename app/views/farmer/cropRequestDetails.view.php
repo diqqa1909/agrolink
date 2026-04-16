@@ -15,17 +15,17 @@
     </div>
 
     <!-- Display Messages -->
-    <?php if (isset($_SESSION['success'])): ?>
+    <?php $successMessage = flash('success'); ?>
+    <?php if (!empty($successMessage)): ?>
         <div class="alert alert-success crop-request-detail-alert crop-request-detail-alert-success">
-            <?= $_SESSION['success'];
-            unset($_SESSION['success']); ?>
+            <?= htmlspecialchars((string)$successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <?php if (isset($_SESSION['error'])): ?>
+    <?php $errorMessage = flash('error'); ?>
+    <?php if (!empty($errorMessage)): ?>
         <div class="alert alert-danger crop-request-detail-alert crop-request-detail-alert-danger">
-            <?= $_SESSION['error'];
-            unset($_SESSION['error']); ?>
+            <?= htmlspecialchars((string)$errorMessage) ?>
         </div>
     <?php endif; ?>
 

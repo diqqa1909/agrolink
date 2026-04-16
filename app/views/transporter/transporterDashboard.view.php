@@ -109,32 +109,27 @@
 <div id="feedback-section" class="content-section" style="display: none;">
     <div class="content-header">
         <h1 class="content-title">Reviews & Complaints</h1>
-        <p class="content-subtitle">Feedback from buyers on your shipped and delivered orders</p>
+        <p class="content-subtitle">Delivery feedback from buyers based on completed trips</p>
     </div>
 
     <div class="dashboard-stats" style="margin-bottom: 24px;">
-        <div class="stat-card">
-            <div class="stat-number" id="feedbackTotalCount">0</div>
-            <div class="stat-label">Total Feedback</div>
-        </div>
         <div class="stat-card">
             <div class="stat-number" id="feedbackAvgRating">0.0</div>
             <div class="stat-label">Average Rating</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="feedbackComplaintCount">0</div>
-            <div class="stat-label">Complaints (1-2★)</div>
+            <div class="stat-label">Complaints</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="feedbackTotalCount">0</div>
+            <div class="stat-label">Total Feedback</div>
         </div>
     </div>
 
-    <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Buyer Feedback</h3>
-        </div>
-        <div class="card-content" id="feedbackUnifiedList">
-            <div style="padding: 30px; text-align: center; color: #666;">
-                Loading feedback...
-            </div>
+    <div class="transporter-feedback-list" id="feedbackUnifiedList">
+        <div class="transporter-feedback-loading">
+            Loading feedback...
         </div>
     </div>
 </div>
@@ -146,47 +141,44 @@
         <button class="btn btn-outline btn-sm" onclick="TransporterDashboard.refreshDeliveries()">Refresh</button>
     </div>
 
-    <!-- Filter Section -->
-    <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Filter Deliveries</h3>
-        </div>
-        <div class="card-content">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Pickup Location</label>
-                    <select id="locationFilter" class="form-control">
+    <div class="content-card delivery-filter-card">
+        <div class="delivery-filter-row">
+            <div class="transporter-filter-shell">
+                <div class="transporter-filter-grid">
+                    <div class="transporter-filter-group">
+                        <label for="locationFilter">Pickup</label>
+                        <select id="locationFilter" class="form-control transporter-filter-control">
                         <option value="">All Locations</option>
-                        <option value="Colombo">Colombo</option>
-                        <option value="Kandy">Kandy</option>
-                        <option value="Galle">Galle</option>
-                        <option value="Matale">Matale</option>
-                        <option value="Anuradhapura">Anuradhapura</option>
+                        <option value="colombo">Colombo</option>
+                        <option value="kandy">Kandy</option>
+                        <option value="galle">Galle</option>
+                        <option value="matale">Matale</option>
+                        <option value="anuradhapura">Anuradhapura</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Max Distance</label>
-                    <select id="distanceFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="distanceFilter">Max Distance</label>
+                        <select id="distanceFilter" class="form-control transporter-filter-control">
                         <option value="">Any Distance</option>
                         <option value="10">Within 10km</option>
                         <option value="25">Within 25km</option>
                         <option value="50">Within 50km</option>
                         <option value="100">Within 100km</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Max Weight</label>
-                    <select id="weightFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="weightFilter">Max Weight</label>
+                        <select id="weightFilter" class="form-control transporter-filter-control">
                         <option value="">Any Weight</option>
                         <option value="10">Up to 10kg</option>
                         <option value="25">Up to 25kg</option>
                         <option value="50">Up to 50kg</option>
                         <option value="100">Up to 100kg</option>
                     </select>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">Payment Range</label>
-                    <select id="paymentFilter" class="form-control">
+                    </div>
+                    <div class="transporter-filter-group">
+                        <label for="paymentFilter">Min Payment</label>
+                        <select id="paymentFilter" class="form-control transporter-filter-control">
                         <option value="">Any Payment</option>
                         <option value="500">Rs. 500+</option>
                         <option value="1000">Rs. 1000+</option>
@@ -194,24 +186,37 @@
                         <option value="2000">Rs. 2000+</option>
                     </select>
                 </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Deliveries Grid -->
-    <div id="availableDeliveriesList" style="display: flex; gap: 24px; margin-top: 28px; overflow-x: auto; padding-bottom: 16px;">
-        <!-- Populated by JavaScript -->
+    <div class="content-card transporter-requests-card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h3 class="card-title">Delivery Requests</h3>
+        </div>
+        <div class="card-content">
+            <div id="availableDeliveriesList" class="transporter-request-list">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
     </div>
 </div>
 
 <div id="mydeliveries-section" class="content-section" style="display: none;">
-    <h1 style="margin-bottom: 32px; font-size: 2rem;"> My Deliveries</h1>
+    <h1 style="margin-bottom: 24px; font-size: 2rem;">My Deliveries</h1>
 
-    <div style="display: flex; gap: 20px; margin-bottom: 32px; border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; padding-bottom: 4px;">
-        <button class="tab-btn active" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')" style="margin-right: 8px; padding: 12px 20px;">All</button>
-        <button class="tab-btn" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')" style="margin-right: 8px; padding: 12px 20px;">Accepted</button>
-        <button class="tab-btn" data-status="in-progress" onclick="TransporterDashboard.filterMyDeliveries('in-progress')" style="margin-right: 8px; padding: 12px 20px;">In Progress</button>
-        <button class="tab-btn" data-status="completed" onclick="TransporterDashboard.filterMyDeliveries('completed')" style="padding: 12px 20px;">Completed</button>
+    <div class="content-card delivery-filter-card">
+        <div class="delivery-filter-row">
+            <div class="delivery-filter-group" role="tablist" aria-label="Delivery filters">
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link active" data-status="running" onclick="TransporterDashboard.filterMyDeliveries('running')">Running</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="pending" onclick="TransporterDashboard.filterMyDeliveries('pending')">Pending</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="accepted" onclick="TransporterDashboard.filterMyDeliveries('accepted')">Accepted</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="in-transit" onclick="TransporterDashboard.filterMyDeliveries('in-transit')">In Transit</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="delivered" onclick="TransporterDashboard.filterMyDeliveries('delivered')">Delivered</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="all" onclick="TransporterDashboard.filterMyDeliveries('all')">All</button>
+            </div>
+        </div>
     </div>
 
     <div class="table-container" style="padding: 24px; background: #fff; border-radius: 12px;">
@@ -262,54 +267,56 @@
 
 
 <div id="earnings-section" class="content-section" style="display: none;">
-    <h1 style="margin-bottom: 32px;">Earnings Overview</h1>
+    <div class="content-header">
+        <h1 class="content-title">Earnings Overview</h1>
+        <p class="content-subtitle">Live payout context from your completed transporter deliveries</p>
+    </div>
 
-    <div class="dashboard-stats" style="margin-bottom: 40px;">
+    <div class="dashboard-stats" style="margin-bottom: 28px;">
         <div class="stat-card">
             <div class="stat-number" id="todayEarnings">Rs. 0</div>
-            <div class="stat-label">Today</div>
+            <div class="stat-label">Today (Delivered)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="weekEarnings">Rs. 0</div>
-            <div class="stat-label">This Week</div>
+            <div class="stat-label">This Week (7 Days)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="monthEarningsDetail">Rs. 0</div>
-            <div class="stat-label">This Month</div>
+            <div class="stat-label">This Month (Calendar)</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="totalEarningsDetail">Rs. 0</div>
-            <div class="stat-label">Total</div>
+            <div class="stat-label">Lifetime Earnings</div>
         </div>
     </div>
 
-    <div class="grid grid-2" style="margin-top: 32px; gap: 28px;">
+    <div class="grid grid-2" style="margin-top: 18px; gap: 20px;">
         <div class="content-card">
             <div class="card-header">
-                <h3 class="card-title">Earnings Breakdown</h3>
+                <h3 class="card-title">Current Period Breakdown</h3>
             </div>
-            <div class="card-content" style="padding: 28px;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Base Delivery Fee:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+            <div class="card-content" style="padding: 22px;">
+                <div class="transporter-earnings-breakdown">
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Today</span>
+                        <strong id="todayBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Distance Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Last 7 Days</span>
+                        <strong id="weekBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Express Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>This Month</span>
+                        <strong id="monthBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Rating Bonus:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Lifetime</span>
+                        <strong id="lifetimeBreakdownValue">Rs. 0.00</strong>
                     </div>
-                    <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #e8f5e9; border-radius: 8px;">
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Total This Month:</span>
-                        <span style="font-weight: 700; font-size: 1.2rem; color: #65b57c;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-total">
+                        <span>Estimated Payout This Month</span>
+                        <strong id="estimatedPayoutValue">Rs. 0.00</strong>
                     </div>
                 </div>
             </div>
@@ -317,29 +324,24 @@
 
         <div class="content-card">
             <div class="card-header">
-                <h3 class="card-title">Performance Metrics</h3>
+                <h3 class="card-title">Delivery Earnings Context</h3>
             </div>
-            <div class="card-content" style="padding: 28px;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Deliveries Completed:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0</span>
+            <div class="card-content" style="padding: 22px;">
+                <div class="transporter-earnings-breakdown">
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Completed Deliveries</span>
+                        <strong id="earningsCompletedDeliveries">0</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Average Rating:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0/5</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Active Deliveries</span>
+                        <strong id="earningsActiveDeliveries">0</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">On-Time Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
+                    <div class="transporter-earnings-breakdown-row">
+                        <span>Average Per Completed Delivery</span>
+                        <strong id="avgPerDeliveryValue">Rs. 0.00</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px; margin-bottom: 14px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Customer Satisfaction:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0%</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8f9fa; border-radius: 8px;">
-                        <span style="font-size: 0.95rem; color: #2c3e50;">Earnings per Delivery:</span>
-                        <span style="font-weight: 700; font-size: 1rem; color: #2c3e50;">Rs. 0</span>
+                    <div class="transporter-earnings-breakdown-note" id="earningsContextNote">
+                        Based on completed deliveries currently recorded on your transporter account.
                     </div>
                 </div>
             </div>
@@ -514,8 +516,6 @@
         </div>
     </div>
 </div>
-</main>
-</div>
 
 <div id="addVehicleModal" class="modal">
     <div class="modal-content">
@@ -570,1016 +570,3 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        initTransporterDashboard();
-    });
-
-    // Global storage for vehicle types
-    let vehicleTypesData = [];
-
-    function initTransporterDashboard() {
-        const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-        if (user && document.getElementById('transporterName')) {
-            document.getElementById('transporterName').textContent = user.name || 'Transporter';
-        } else if (document.getElementById('transporterName')) {
-            document.getElementById('transporterName').textContent = 'Transporter';
-        }
-
-        loadVehicleTypes(); // Load vehicle types first
-        loadDashboardData();
-        loadAvailableDeliveries();
-        loadMyDeliveries();
-        loadSchedule();
-        loadEarnings();
-        loadProfile();
-        loadVehicles();
-
-        setupNavigation();
-
-        addTabStyles();
-
-        setupAddVehicleForm();
-
-        // Get section from URL query parameter or default to dashboard
-        const params = new URLSearchParams(window.location.search);
-        const section = params.get('section') || 'dashboard';
-        showSection(section);
-    }
-
-    function setupNavigation() {
-        const menuLinks = document.querySelectorAll('.menu-link[data-section]');
-        console.log('Setup navigation for', menuLinks.length, 'links');
-        
-        menuLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const section = this.getAttribute('data-section');
-                console.log('Clicked section:', section);
-                
-                if (section) {
-                    showSection(section);
-                    
-                    // Update URL without page reload
-                    const url = new URL(window.location);
-                    url.searchParams.set('section', section);
-                    window.history.pushState({}, '', url);
-
-                    // Remove active from ALL menu links (including Profile)
-                    const allLinks = document.querySelectorAll('.menu-link');
-                    console.log('Removing active from', allLinks.length, 'links');
-                    allLinks.forEach(l => {
-                        l.classList.remove('active');
-                        console.log('Removed active from:', l.textContent.trim());
-                    });
-                    
-                    this.classList.add('active');
-                    console.log('Added active to:', this.textContent.trim());
-                }
-                return false;
-            });
-        });
-    }
-
-    function showSection(sectionName) {
-        console.log('showSection called with:', sectionName);
-        
-        // Hide all sections
-        const sections = document.querySelectorAll('.content-section');
-        console.log('Found sections:', sections.length);
-        sections.forEach(section => section.style.display = 'none');
-
-        // Show target section
-        const targetSection = document.getElementById(sectionName + '-section');
-        console.log('Target section ID:', sectionName + '-section');
-        console.log('Target section element:', targetSection);
-        
-        if (targetSection) {
-            targetSection.style.display = 'block';
-            
-            // Load data when section is shown
-            if (sectionName === 'available-deliveries' && typeof loadAvailableRequests === 'function') {
-                loadAvailableRequests();
-            } else if (sectionName === 'mydeliveries' && typeof loadMyDeliveries === 'function') {
-                loadMyDeliveries();
-            } else if (sectionName === 'feedback' && typeof loadFeedbackReviews === 'function') {
-                loadFeedbackReviews();
-            }
-        } else {
-            console.warn('✗ Section not found:', sectionName + '-section');
-        }
-    }
-
-    function addTabStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-                .tab-btn {
-                    padding: var(--spacing-sm) var(--spacing-md);
-                    border: none;
-                    background: transparent;
-                    cursor: pointer;
-                    border-bottom: 2px solid transparent;
-                    font-weight: var(--font-weight-medium);
-                }
-                .tab-btn.active {
-                    border-bottom-color: var(--primary-green);
-                    color: var(--primary-green);
-                }
-                .tab-btn:hover {
-                    background: var(--light-gray);
-                }
-            `;
-        document.head.appendChild(style);
-    }
-
-    function loadDashboardData() {
-        // Stats will be loaded from database
-        document.getElementById('availableDeliveries').textContent = '0';
-        document.getElementById('activeDeliveries').textContent = '0';
-        document.getElementById('monthlyEarnings').textContent = 'Rs. 0';
-        document.getElementById('completedDeliveries').textContent = '0';
-
-        document.getElementById('recentDeliveries').innerHTML = `
-                <div style="padding: 18px; text-align: center; color: #666;">
-                    No recent deliveries
-                </div>
-            `;
-    }
-
-    function loadAvailableDeliveries() {
-        const container = document.getElementById('availableDeliveriesList');
-        // Available deliveries will be loaded from database
-        container.innerHTML = `
-                <div class="content-card" style="margin: 0; min-width: 350px; max-width: 350px; flex-shrink: 0;">
-                    <div style="padding: 40px 20px; text-align: center; color: #666;">
-                        No available deliveries at the moment
-                    </div>
-                </div>
-            `;
-    }
-
-    function generateDeliveryCard(orderId, from, to, distance, weight, payment, priority) {
-        const priorityColors = {
-            'urgent': 'delivered',
-            'express': 'pending',
-            'normal': 'shipped'
-        };
-        const priorityLabels = {
-            'urgent': 'URGENT',
-            'express': 'EXPRESS',
-            'normal': 'NORMAL'
-        };
-
-        return `
-                <div class="content-card" style="margin: 0; min-width: 350px; max-width: 350px; flex-shrink: 0;">
-                    <div style="padding: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <h4 style="margin: 0; color: #2c3e50; font-weight: 600;">${orderId}</h4>
-                            <span class="order-status ${priorityColors[priority]}">${priorityLabels[priority]}</span>
-                        </div>
-                        <div style="margin-bottom: 20px; color: #666; line-height: 1.8;">
-                            <div style="margin-bottom: 8px;">
-                                <strong style="color: #2c3e50;">Route:</strong> ${from} → ${to}
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <strong style="color: #2c3e50;">Distance:</strong> ${distance}
-                            </div>
-                            <div style="margin-bottom: 8px;">
-                                <strong style="color: #2c3e50;">Weight:</strong> ${weight}
-                            </div>
-                            <div>
-                                <strong style="color: #2c3e50;">Payment:</strong> <span style="color: #65b57c; font-weight: 600;">${payment}</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-primary btn-sm" onclick="acceptDelivery('${orderId}')">Accept</button>
-                            <button class="btn btn-outline btn-sm" onclick="viewDeliveryDetails('${orderId}')">Details</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-    }
-
-    function loadMyDeliveries() {
-        const tbody = document.getElementById('myDeliveriesTableBody');
-        // Deliveries will be loaded from database
-        tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" style="text-align: center; padding: 60px 20px; color: #666;">
-                        No deliveries yet
-                    </td>
-                </tr>
-            `;
-    }
-
-    function loadSchedule() {
-        const calendar = document.getElementById('scheduleCalendar');
-        const today = new Date();
-        const options = {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        };
-
-        const next3Days = [0, 1, 2].map(offset => {
-            const d = new Date(today);
-            d.setDate(today.getDate() + offset);
-            return d;
-        });
-
-        calendar.innerHTML = next3Days.map((date, idx) => `
-                <div style="padding: 16px; background: #ffffff; border: 2px solid #e0e0e0; border-radius: 12px;">
-                    <div style="font-weight: 700; margin-bottom: 10px; color: #2c3e50;">${date.toLocaleDateString(undefined, options)}</div>
-                    <div style="display: grid; gap: 10px;">
-                        <div style="padding: 10px; background:#f8f9fa; border-radius:8px;">
-                            <div style="font-weight:600; color:#2c3e50;">08:30 AM • Pickup</div>
-                            <div style="color:#666; font-size:0.9rem;">Order #ORD-2025-00${7+idx} • ${idx === 0 ? 'Colombo' : idx === 1 ? 'Matale' : 'Galle'}</div>
-                        </div>
-                        <div style="padding: 10px; background:#f8f9fa; border-radius:8px;">
-                            <div style="font-weight:600; color:#2c3e50;">01:45 PM • Delivery</div>
-                            <div style="color:#666; font-size:0.9rem;">Order #ORD-2025-00${6+idx} • ${idx === 0 ? 'Kandy' : idx === 1 ? 'Kurunegala' : 'Colombo'}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-        document.getElementById('todaySchedule').innerHTML = `
-                <div style="padding: 20px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 16px;">
-                    <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;">9:00 AM - Pickup</div>
-                    <div style="color: #666;">Order #ORD-2025-007 - Colombo Farm</div>
-                </div>
-                <div style="padding: 20px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px;">
-                    <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;">2:00 PM - Delivery</div>
-                    <div style="color: #666;">Order #ORD-2025-006 - Kandy Market</div>
-                </div>
-            `;
-    }
-
-    function loadProfile() {
-        const user = getCurrentUser();
-        const uname = (window.USER_NAME || 'Transporter').trim() || 'Transporter';
-        const uemail = (window.USER_EMAIL || '').trim();
-
-        // Update profile photo if it exists on this page
-        const profilePhoto = document.getElementById('profilePhoto');
-        const displayName = document.getElementById('displayProfileName');
-
-        if (profilePhoto) {
-            const encoded = encodeURIComponent(uname);
-            profilePhoto.src = `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=150`;
-        }
-        if (displayName) {
-            displayName.textContent = uname;
-        }
-
-        // Populate form fields only if they exist (profile page only)
-        const profileNameEl = document.getElementById('profileName');
-        const profileEmailEl = document.getElementById('profileEmail');
-        const profilePhoneEl = document.getElementById('profilePhone');
-
-        if (profileNameEl && profileEmailEl && profilePhoneEl) {
-            if (user) {
-                profileNameEl.value = user.name || uname;
-                profileEmailEl.value = user.email || uemail;
-                profilePhoneEl.value = user.phone || '';
-            } else {
-                profileNameEl.value = uname;
-                profileEmailEl.value = uemail || '';
-            }
-        }
-    }
-
-    function uploadPhoto() {
-        let input = document.getElementById('photoUploadInput');
-        if (!input) {
-            input = document.createElement('input');
-            input.type = 'file';
-            input.id = 'photoUploadInput';
-            input.accept = 'image/*';
-            input.style.display = 'none';
-            document.body.appendChild(input);
-        }
-
-        input.onchange = function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.type.startsWith('image/')) {
-                    showNotification('Please select a valid image file', 'error');
-                    return;
-                }
-                if (file.size > 5 * 1024 * 1024) {
-                    showNotification('Image size should be less than 5MB', 'error');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const profilePhoto = document.getElementById('profilePhoto');
-                    if (profilePhoto) {
-                        profilePhoto.src = ev.target.result;
-                        showNotification('Photo uploaded successfully!', 'success');
-                    }
-                };
-                reader.onerror = function() {
-                    showNotification('Failed to read image file', 'error');
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        input.click();
-    }
-
-    function updateProfile() {
-        const name = document.getElementById('profileName')?.value?.trim();
-        const email = document.getElementById('profileEmail')?.value?.trim();
-        const phone = document.getElementById('profilePhone')?.value?.trim();
-
-        if (!name || !email || !phone) {
-            showNotification('Please fill all required fields', 'error');
-            return;
-        }
-        showNotification('Profile updated successfully!', 'success');
-    }
-
-    function toggleAvailability() {
-        const btn = document.getElementById('availabilityBtn');
-        const status = document.getElementById('currentStatus');
-        const indicator = document.getElementById('statusIndicator');
-
-        if (status.textContent === 'Available') {
-            status.textContent = 'Offline';
-            btn.textContent = 'Go Online';
-            indicator.style.background = '#f44336';
-            showNotification('You are now offline', 'info');
-        } else {
-            status.textContent = 'Available';
-            btn.textContent = 'Go Offline';
-            indicator.style.background = '#4CAF50';
-            showNotification('You are now available for deliveries', 'success');
-        }
-    }
-
-    function updateLocation() {
-        showNotification('Location updated successfully', 'success');
-    }
-
-    function refreshDeliveries() {
-        showNotification('Refreshing available deliveries...', 'info');
-        setTimeout(() => {
-            loadAvailableDeliveries();
-            showNotification('Deliveries refreshed', 'success');
-        }, 1000);
-    }
-
-    function acceptDelivery(orderId) {
-        showNotification(`Delivery ${orderId} accepted! Contact details will be shared.`, 'success');
-        loadAvailableDeliveries();
-        loadMyDeliveries();
-    }
-
-    function viewDeliveryDetails(orderId) {
-        showNotification('Delivery details modal will be implemented', 'info');
-    }
-
-    function filterMyDeliveries(status) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-status="${status}"]`).classList.add('active');
-
-        showNotification(`Filtering deliveries by: ${status}`, 'info');
-    }
-
-    function updateDeliveryStatus(orderId) {
-        showNotification('Delivery status update modal will be implemented', 'info');
-    }
-
-    function exportPaymentHistory() {
-        showNotification('Exporting payment history...', 'info');
-    }
-
-    function loadEarnings() {
-        // Earnings will be loaded from database
-        const today = 0;
-        const week = 0;
-        const month = 0;
-        const total = 0;
-
-        const el = id => document.getElementById(id);
-        if (el('todayEarnings')) el('todayEarnings').textContent = `Rs. ${today.toLocaleString()}`;
-        if (el('weekEarnings')) el('weekEarnings').textContent = `Rs. ${week.toLocaleString()}`;
-        if (el('monthEarningsDetail')) el('monthEarningsDetail').textContent = `Rs. ${month.toLocaleString()}`;
-        if (el('totalEarningsDetail')) el('totalEarningsDetail').textContent = `Rs. ${total.toLocaleString()}`;
-
-        // Payment history will be loaded from database
-        const body = document.getElementById('paymentHistoryBody');
-        if (body) {
-            body.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px 20px; color: #666;">
-                            No payment history yet
-                        </td>
-                    </tr>
-                `;
-        }
-    }
-
-    function loadFeedbackReviews() {
-        fetch(transporterApi('getFeedbackReviews'), { credentials: 'include' })
-            .then(response => response.json())
-            .then(data => {
-                const reviews = (data.success && Array.isArray(data.reviews)) ? data.reviews : [];
-                const unifiedEl = document.getElementById('feedbackUnifiedList');
-                const totalEl = document.getElementById('feedbackTotalCount');
-                const avgEl = document.getElementById('feedbackAvgRating');
-                const complaintsCountEl = document.getElementById('feedbackComplaintCount');
-
-                const complaints = reviews.filter(r => Number(r.rating) <= 2);
-                const avg = reviews.length ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length) : 0;
-
-                if (totalEl) totalEl.textContent = String(reviews.length);
-                if (avgEl) avgEl.textContent = avg.toFixed(1);
-                if (complaintsCountEl) complaintsCountEl.textContent = String(complaints.length);
-
-                const renderCard = (item) => {
-                    const rating = Number(item.rating || 0);
-                    const isComplaint = rating <= 2;
-                    const stars = `${'★'.repeat(rating)}${'☆'.repeat(Math.max(0, 5 - rating))}`;
-                    const buyerName = escapeHtml(item.buyer_name || 'Buyer');
-                    const buyerInitial = buyerName.charAt(0).toUpperCase();
-                    const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
-                    const orderText = item.order_id ? `Order #${item.order_id}` : 'Order #-';
-
-                    return `
-                        <div class="review-card" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div style="display: flex; gap: 16px;">
-                                    <div style="width: 50px; height: 50px; background: #e3f2fd; color: #2196F3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">${buyerInitial}</div>
-                                    <div>
-                                        <h4 style="margin: 0 0 4px 0;">${orderText}</h4>
-                                        <p style="margin: 0; color: #666; font-size: 0.9rem;">Feedback by <span style="font-weight: 500;">${buyerName}</span></p>
-                                        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #999;">${created}</p>
-                                    </div>
-                                </div>
-                                <div class="star-rating" style="color: #ff9800; font-size: 1.2rem;">
-                                    ${stars}
-                                    ${isComplaint ? '<div style="font-size: 0.72rem; margin-top: 4px; color: #b91c1c;">Complaint</div>' : ''}
-                                </div>
-                            </div>
-                            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin-top: 12px; border-left: 3px solid ${isComplaint ? '#ef4444' : '#10b981'};">
-                                <p style="margin: 0; color: #444; line-height: 1.5;">"${escapeHtml(item.comment || '')}"</p>
-                            </div>
-                        </div>
-                    `;
-                };
-
-                if (unifiedEl) {
-                    unifiedEl.innerHTML = reviews.length
-                        ? `<div class="reviews-grid" style="display: grid; gap: 16px;">${reviews.map(renderCard).join('')}</div>`
-                        : '<div style="padding: 30px; text-align: center; color: #666;">No feedback yet</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading feedback reviews:', error);
-            });
-    }
-
-    function previousWeek() {
-        showNotification('Loading previous week...', 'info');
-    }
-
-    function nextWeek() {
-        showNotification('Loading next week...', 'info');
-    }
-
-    if (typeof getCurrentUser !== 'function') {
-        function getCurrentUser() {
-            return null;
-        }
-    }
-
-    if (typeof showNotification !== 'function') {
-        function showNotification(msg, type) {
-            alert(msg);
-        }
-    }
-
-    if (typeof closeModal !== 'function') {
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'none';
-        }
-    }
-
-    function getTransporterApiBase() {
-        const origin = String(window.location.origin || '').replace(/\/+$/, '');
-        const path = String(window.location.pathname || '');
-        const publicMatch = path.match(/^(.*\/public)(?:\/|$)/i);
-        if (publicMatch && publicMatch[1]) {
-            return origin + publicMatch[1];
-        }
-
-        const appRoot = String(window.APP_ROOT || '').replace(/\/+$/, '');
-        if (appRoot) {
-            return appRoot;
-        }
-
-        return origin;
-    }
-
-    function transporterApi(path) {
-        const cleanPath = String(path || '').replace(/^\/+/, '');
-        return `${getTransporterApiBase()}/transporterdashboard/${cleanPath}`;
-    }
-
-    function loadVehicles() {
-        fetch(transporterApi('getVehicles'))
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.vehicles && data.vehicles.length > 0) {
-                    displayVehicles(data.vehicles);
-                    updateCurrentStatus(data.vehicles);
-                } else {
-                    // Show empty state with proper message
-                    displayVehicles([]);
-                    updateCurrentStatus([]);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading vehicles:', error);
-                showNotification('Failed to load vehicles', 'error');
-                displayVehicles([]);
-                updateCurrentStatus([]);
-            });
-    }
-
-    function updateCurrentStatus(vehicles) {
-        const activeVehicleSpan = document.getElementById('activeVehicle');
-
-        if (!vehicles || vehicles.length === 0) {
-            activeVehicleSpan.textContent = 'No vehicles added';
-            activeVehicleSpan.style.color = '#666';
-            return;
-        }
-
-        const activeVehicle = vehicles.find(v => v.status === 'active');
-
-        if (activeVehicle) {
-            const vehicleName = activeVehicle.model || getVehicleTypeName(activeVehicle.type);
-            activeVehicleSpan.textContent = `${vehicleName} (${activeVehicle.registration})`;
-            activeVehicleSpan.style.color = '#65b57c';
-            activeVehicleSpan.style.fontWeight = 'bold';
-        } else {
-            const firstVehicle = vehicles[0];
-            const vehicleName = firstVehicle.model || getVehicleTypeName(firstVehicle.type);
-            activeVehicleSpan.textContent = `${vehicleName} (${firstVehicle.registration}) - ${firstVehicle.status}`;
-            activeVehicleSpan.style.color = '#666';
-        }
-    }
-
-    function displayVehicles(vehicles) {
-        const container = document.getElementById('myVehiclesContainer');
-        const tbody = document.getElementById('vehiclesTableBody');
-
-        if (!vehicles || vehicles.length === 0) {
-            container.innerHTML = `
-                    <div class="content-card">
-                        <div style="padding: 60px 20px; text-align: center; color: #666;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">🚗</div>
-                            <h3 style="color: #2c3e50; margin-bottom: 12px;">No Vehicles Yet</h3>
-                            <p>Click "Add Vehicle" button to add your first vehicle.</p>
-                        </div>
-                    </div>
-                `;
-
-            tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 60px 20px; color: #666;">
-                            No vehicles added yet. Click "Add Vehicle" to get started.
-                        </td>
-                    </tr>
-                `;
-            return;
-        }
-
-        container.innerHTML = vehicles.map(vehicle => {
-            const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
-            const vehicleIcon = getVehicleIcon(vehicle.type);
-            const vehicleTypeName = getVehicleTypeName(vehicle.type);
-
-            return `
-                    <div class="content-card" style="margin-bottom: 24px;">
-                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 class="card-title">${escapeHtml(vehicle.model || vehicleTypeName)}</h3>
-                        </div>
-                        <div class="card-content">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                                <div>
-                                    <div style="margin-bottom: 20px; line-height: 2.2;">
-                                        <strong>Vehicle Type:</strong> ${vehicleTypeName}<br>
-                                        <strong>Registration:</strong> ${escapeHtml(vehicle.registration)}<br>
-                                        <strong>Capacity:</strong> ${escapeHtml(vehicle.capacity)}kg<br>
-                                        <strong>Fuel Type:</strong> ${escapeHtml(vehicle.fuel_type || 'N/A')}<br>
-                                        <strong>Status:</strong> <span class="badge">${statusText}</span>
-                                    </div>
-                                    <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
-                                        ${vehicle.status !== 'active' ? `<button class="btn btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set as Active</button>` : ''}
-                                        <button class="btn btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
-                                        <button class="btn btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; text-align: center;">
-                                        <div style="font-size: 4rem; margin-bottom: 20px;">${vehicleIcon}</div>
-                                        <div style="font-weight: 600; margin-bottom: 12px; color: #2c3e50;">${escapeHtml(vehicle.model || vehicleTypeName)}</div>
-                                        <div style="color: #666; margin-bottom: 20px;">
-                                            ${vehicle.status === 'active' ? 'Available for delivery' : vehicle.status === 'maintenance' ? 'Under maintenance' : 'Not available'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-        }).join('');
-
-        tbody.innerHTML = vehicles.map(vehicle => {
-            const statusText = vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1);
-
-            return `
-                    <tr>
-                        <td>${escapeHtml(vehicle.model || 'N/A')}</td>
-                        <td>${escapeHtml(vehicle.registration)}</td>
-                        <td>${getVehicleTypeName(vehicle.type)}</td>
-                        <td>${escapeHtml(vehicle.capacity)}kg</td>
-                        <td><span class="badge">${statusText}</span></td>
-                        <td>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                ${vehicle.status !== 'active' ? `<button class="btn btn-sm btn-primary" onclick="setActiveVehicle(${vehicle.id})">Set Active</button>` : ''}
-                                <button class="btn btn-sm btn-outline" onclick="editVehicleModal(${vehicle.id})">Edit</button>
-                                <button class="btn btn-sm btn-outline" onclick="deleteVehicleConfirm(${vehicle.id})">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-        }).join('');
-    }
-
-    // Load vehicle types from database
-    function loadVehicleTypes() {
-        fetch(transporterApi('getVehicleTypes'))
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.vehicleTypes) {
-                    vehicleTypesData = data.vehicleTypes;
-                }
-            })
-            .catch(error => {
-                console.error('Error loading vehicle types:', error);
-            });
-    }
-
-    // Convert vehicle_name to slug (e.g., "Small Van" -> "smallvan")
-    function vehicleNameToSlug(name) {
-        return name.toLowerCase().replace(/\s+/g, '');
-    }
-
-    // Get vehicle type display name from slug
-    function getVehicleTypeName(slug) {
-        if (!slug) return '';
-        
-        // First try to find in loaded vehicle types
-        const type = vehicleTypesData.find(vt => vehicleNameToSlug(vt.vehicle_name) === slug.toLowerCase());
-        if (type) {
-            return type.vehicle_name;
-        }
-        
-        // Fallback to capitalize slug
-        return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/([a-z])([A-Z])/g, '$1 $2');
-    }
-
-    function getVehicleIcon(type) {
-        // Simple icons based on type name
-        const slug = String(type || '').toLowerCase();
-        if (slug.includes('bike') || slug.includes('motor')) return '🏍️';
-        if (slug.includes('three') || slug.includes('wheel')) return '🛺';
-        if (slug.includes('car')) return '🚗';
-        if (slug.includes('van')) return '🚐';
-        if (slug.includes('lorry') || slug.includes('truck')) return '🚚';
-        return '🚗'; // default
-    }
-
-    // Generate vehicle type options HTML
-    function generateVehicleTypeOptions(selectedType = '') {
-        const selectedSlug = String(selectedType || '').toLowerCase();
-        let options = '<option value="">Select Type</option>';
-        vehicleTypesData.forEach(vt => {
-            const slug = vehicleNameToSlug(vt.vehicle_name);
-            const selected = (slug === selectedSlug) ? 'selected' : '';
-            options += `<option value="${slug}" data-min="${vt.min_weight_kg}" data-max="${vt.max_weight_kg}" data-type-id="${vt.id}" ${selected}>${vt.vehicle_name} (${vt.min_weight_kg}-${vt.max_weight_kg}kg)</option>`;
-        });
-        return options;
-    }
-
-    function setupAddVehicleForm() {
-        const form = document.getElementById('addVehicleForm');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(form);
-                const typeSelect = document.getElementById('vehicleType');
-                if (typeSelect) {
-                    const selectedOption = typeSelect.options[typeSelect.selectedIndex];
-                    const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
-                    if (selectedTypeId) {
-                        formData.set('vehicle_type_id', selectedTypeId);
-                    }
-                }
-
-                fetch(transporterApi('addVehicle'), {
-                        method: 'POST',
-                        credentials: 'include',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message, 'success');
-                            form.reset();
-                            closeModal('addVehicleModal');
-                            loadVehicles();
-                        } else {
-                            if (data.errors) {
-                                let errorMsg = 'Validation errors:\n';
-                                for (let field in data.errors) {
-                                    errorMsg += `- ${data.errors[field]}\n`;
-                                }
-                                showNotification(errorMsg, 'error');
-                            } else {
-                                showNotification(data.message, 'error');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showNotification('Failed to add vehicle. Please try again.', 'error');
-                    });
-            });
-        }
-    }
-
-    function editVehicleModal(vehicleId) {
-        fetch(transporterApi('getVehicles'))
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.vehicles) {
-                    const vehicle = data.vehicles.find(v => v.id == vehicleId);
-                    if (vehicle) {
-                        showEditVehicleModal(vehicle);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Failed to load vehicle data', 'error');
-            });
-    }
-
-    function showEditVehicleModal(vehicle) {
-        // Fetch vehicle types to populate dropdown
-        fetch(transporterApi('getVehicleTypes'), { credentials: 'include' })
-            .then(r => r.json())
-            .then(res => {
-                const types = res.types || res.vehicleTypes || [];
-                if (!res.success || !types.length) {
-                    showNotification('Failed to load vehicle types', 'error');
-                    return;
-                }
-                vehicleTypesData = types;
-                
-                const modalHtml = `
-                <div id="editVehicleModal" class="modal" style="display: flex; align-items: center; justify-content: center;" onclick="closeModalOnBackdrop(event, 'editVehicleModal')">
-                    <div class="modal-content" onclick="event.stopPropagation()">
-                        <div class="modal-header">
-                            <h3>Edit Vehicle</h3>
-                        </div>
-                        <div class="modal-body">
-                            <form id="editVehicleForm" onsubmit="submitEditVehicle(event, ${vehicle.id})">
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label for="editVehicleType">Vehicle Type *</label>
-                                        <select id="editVehicleType" name="type" class="form-control" required>
-                                            ${generateVehicleTypeOptions(vehicle.type)}
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="editVehicleRegistration">Registration Number *</label>
-                                        <input type="text" id="editVehicleRegistration" name="registration" class="form-control" value="${escapeHtml(vehicle.registration)}" required>
-                                    </div>
-                                </div>
-                                
-                                <div id="editWeightRangeDisplay" style="display: none; padding: 10px; background: #f0f9ff; border-left: 3px solid #3b82f6; margin: 10px 0;">
-                                    <strong>Weight Range:</strong> <span id="editWeightRangeText"></span>
-                                </div>
-                                
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label for="editVehicleFuelType">Fuel Type</label>
-                                        <select id="editVehicleFuelType" name="fuel_type" class="form-control">
-                                            <option value="petrol" ${vehicle.fuel_type === 'petrol' ? 'selected' : ''}>Petrol</option>
-                                            <option value="diesel" ${vehicle.fuel_type === 'diesel' ? 'selected' : ''}>Diesel</option>
-                                            <option value="electric" ${vehicle.fuel_type === 'electric' ? 'selected' : ''}>Electric</option>
-                                            <option value="hybrid" ${vehicle.fuel_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="editVehicleModel">Vehicle Model</label>
-                                        <input type="text" id="editVehicleModel" name="model" class="form-control" value="${escapeHtml(vehicle.model || '')}" placeholder="e.g., Toyota Hiace">
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="editVehicleStatus">Status</label>
-                                    <select id="editVehicleStatus" name="status" class="form-control">
-                                        <option value="active" ${vehicle.status === 'active' ? 'selected' : ''}>Active</option>
-                                        <option value="inactive" ${vehicle.status === 'inactive' ? 'selected' : ''}>Inactive</option>
-                                        <option value="maintenance" ${vehicle.status === 'maintenance' ? 'selected' : ''}>Maintenance</option>
-                                    </select>
-                                </div>
-                                
-                                <div style="display: flex; gap: 20px; margin-top: var(--spacing-lg);">
-                                    <button type="submit" class="btn btn-primary">Update Vehicle</button>
-                                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-        const existingModal = document.getElementById('editVehicleModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
-        // Add event listener for vehicle type change to show weight range
-        const editVehicleTypeSelect = document.getElementById('editVehicleType');
-        if (editVehicleTypeSelect) {
-            // Show initial weight range if a type is selected
-            const selectedOption = editVehicleTypeSelect.options[editVehicleTypeSelect.selectedIndex];
-            if (selectedOption.value) {
-                const min = selectedOption.dataset.min;
-                const max = selectedOption.dataset.max;
-                document.getElementById('editWeightRangeText').textContent = `${min}-${max}kg`;
-                document.getElementById('editWeightRangeDisplay').style.display = 'block';
-            }
-            
-            editVehicleTypeSelect.addEventListener('change', function () {
-                const option = this.options[this.selectedIndex];
-                const display = document.getElementById('editWeightRangeDisplay');
-                const text = document.getElementById('editWeightRangeText');
-
-                if (option.value) {
-                    const min = option.dataset.min;
-                    const max = option.dataset.max;
-                    text.textContent = `${min}-${max}kg`;
-                    display.style.display = 'block';
-                } else {
-                    display.style.display = 'none';
-                }
-            });
-        }
-    })
-    .catch(err => {
-        console.error('Error loading vehicle types:', err);
-        showNotification('Failed to load vehicle types', 'error');
-    });
-}
-
-    function closeEditModal() {
-        const modal = document.getElementById('editVehicleModal');
-        if (modal) {
-            modal.remove();
-        }
-    }
-
-    function closeModalOnBackdrop(event, modalId) {
-        if (event.target.id === modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.remove();
-            }
-        }
-    }
-
-    function submitEditVehicle(event, vehicleId) {
-        event.preventDefault();
-
-        const form = event.target;
-        const formData = new FormData(form);
-        const typeSelect = document.getElementById('editVehicleType');
-        if (typeSelect) {
-            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
-            const selectedTypeId = selectedOption ? selectedOption.dataset.typeId : '';
-            if (selectedTypeId) {
-                formData.set('vehicle_type_id', selectedTypeId);
-            }
-        }
-
-        fetch(transporterApi('editVehicle/' + vehicleId), {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    closeEditModal();
-                    loadVehicles();
-                } else {
-                    if (data.errors) {
-                        let errorMsg = 'Validation errors:\n';
-                        for (let field in data.errors) {
-                            errorMsg += `- ${data.errors[field]}\n`;
-                        }
-                        showNotification(errorMsg, 'error');
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Failed to update vehicle. Please try again.', 'error');
-            });
-    }
-
-    function setActiveVehicle(vehicleId) {
-        if (confirm('Set this vehicle as active? This will deactivate all other vehicles.')) {
-            fetch(transporterApi('setActiveVehicle/' + vehicleId), {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification(data.message, 'success');
-                        loadVehicles();
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to set active vehicle. Please try again.', 'error');
-                });
-        }
-    }
-
-    function deleteVehicleConfirm(vehicleId) {
-        if (confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
-            fetch(transporterApi('deleteVehicle/' + vehicleId), {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification(data.message, 'success');
-                        loadVehicles();
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to delete vehicle. Please try again.', 'error');
-                });
-        }
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.toString().replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // Fallback namespaced handlers used by inline onclick attributes.
-    // External transporterDashboard.js may replace these with API-backed versions.
-    window.TransporterDashboard = window.TransporterDashboard || {};
-    if (typeof window.TransporterDashboard.showSection !== 'function') window.TransporterDashboard.showSection = showSection;
-    if (typeof window.TransporterDashboard.refreshDeliveries !== 'function') window.TransporterDashboard.refreshDeliveries = refreshDeliveries;
-    if (typeof window.TransporterDashboard.filterMyDeliveries !== 'function') window.TransporterDashboard.filterMyDeliveries = filterMyDeliveries;
-    if (typeof window.TransporterDashboard.exportPaymentHistory !== 'function') window.TransporterDashboard.exportPaymentHistory = exportPaymentHistory;
-</script>

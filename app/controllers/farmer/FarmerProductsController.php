@@ -12,7 +12,6 @@ class FarmerProductsController
         $this->productModel = new ProductsModel();
         
         // Initialize shipping calculator for location helpers
-        require_once __DIR__ . '/../../simple_shipping_calculator.php';
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -41,7 +40,7 @@ class FarmerProductsController
      */
     public function index()
     {
-        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
@@ -52,7 +51,7 @@ class FarmerProductsController
             'pageScript'  => 'products.js'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     /**
@@ -63,7 +62,7 @@ class FarmerProductsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -72,7 +71,7 @@ class FarmerProductsController
             exit;
         }
 
-        $userRole = trim(strtolower($_SESSION['USER']->role ?? ''));
+        $userRole = authUserRole();
 
         if ($userRole !== 'farmer') {
             http_response_code(403);
@@ -81,7 +80,7 @@ class FarmerProductsController
                 'error' => 'Only farmers can add products',
                 'debug' => [
                     'userRole' => $userRole,
-                    'userRoleRaw' => $_SESSION['USER']->role ?? null,
+                    'userRoleRaw' => authUserRole(),
                     'expectedRole' => 'farmer'
                 ]
             ]);
@@ -95,7 +94,7 @@ class FarmerProductsController
         }
 
         try {
-            $farmer_id = $_SESSION['USER']->id;
+            $farmer_id = authUserId();
 
             $errors = [];
 
@@ -181,7 +180,7 @@ class FarmerProductsController
                 }
 
                 if (empty($location)) {
-                    $location = $_SESSION['USER']->location ?? '';
+                    $location = authUserLocation();
                 }
                 
                 if (empty($location)) {
@@ -288,19 +287,19 @@ class FarmerProductsController
     {
         header('Content-Type: application/json');
         
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Not logged in']);
             return;
         }
         
-        if (($_SESSION['USER']->role ?? '') !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Not a farmer']);
             return;
         }
 
-        $farmerId = (int)$_SESSION['USER']->id;
+        $farmerId = (int)authUserId();
         $items = $this->productModel->getByFarmer($farmerId);
         echo json_encode(['success' => true, 'products' => $items ?: []]);
     }
@@ -392,7 +391,7 @@ class FarmerProductsController
     public function buyerList()
     {
         header('Content-Type: application/json');
-        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'buyer') {
+        if (!hasRole('buyer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Access denied']);
             return;
@@ -429,7 +428,7 @@ class FarmerProductsController
         }
 
         $current = $this->productModel->getById($id);
-        if (!$current || (int)$current->farmer_id !== (int)$_SESSION['USER']->id) {
+        if (!$current || (int)$current->farmer_id !== (int)authUserId()) {
             http_response_code(403);
             echo json_encode(['error' => 'Forbidden']);
             return;
@@ -544,7 +543,7 @@ class FarmerProductsController
             $payload['image'] = $newImageName;
         }
 
-        $ok = $this->productModel->updateByFarmer($id, (int)$_SESSION['USER']->id, $payload);
+        $ok = $this->productModel->updateByFarmer($id, (int)authUserId(), $payload);
 
         if ($ok) {
             if ($newImageName && !empty($current->image)) {
@@ -571,13 +570,13 @@ class FarmerProductsController
         }
 
         $product = $this->productModel->getById($id);
-        if (!$product || (int)$product->farmer_id !== (int)$_SESSION['USER']->id) {
+        if (!$product || (int)$product->farmer_id !== (int)authUserId()) {
             http_response_code(403);
             echo json_encode(['error' => 'Forbidden']);
             return;
         }
 
-        $ok = $this->productModel->deleteByFarmer($id, (int)$_SESSION['USER']->id);
+        $ok = $this->productModel->deleteByFarmer($id, (int)authUserId());
         if ($ok) {
             if (!empty($product->image)) {
                 $imagePath = $this->getProductImageDirectory() . $product->image;
@@ -606,12 +605,12 @@ class FarmerProductsController
 
     private function requireFarmer()
     {
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['error' => 'Unauthorized']);
             return false;
         }
-        if (($_SESSION['USER']->role ?? '') !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(403);
             echo json_encode(['error' => 'Forbidden']);
             return false;

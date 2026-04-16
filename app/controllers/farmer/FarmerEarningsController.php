@@ -18,11 +18,11 @@ class FarmerEarningsController
      */
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $summary = $this->getEarningsSummary((int)$_SESSION['USER']->id, 100);
+        $summary = $this->getEarningsSummary((int)authUserId(), 100);
 
         $data = [
             'pageTitle' => 'Earnings',
@@ -41,7 +41,7 @@ class FarmerEarningsController
             'pageScript' => 'farmerEarnings.js'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     /**
@@ -49,12 +49,12 @@ class FarmerEarningsController
      */
     public function report()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $summary = $this->getEarningsSummary((int)$_SESSION['USER']->id, 50);
-        $farmerName = $_SESSION['USER']->name ?? 'Farmer';
+        $summary = $this->getEarningsSummary((int)authUserId(), 50);
+        $farmerName = authUserName() ?? 'Farmer';
         $generatedAt = date('Y-m-d H:i:s');
         $autoPrint = isset($_GET['print']) ? '1' : '0';
 
@@ -70,13 +70,13 @@ class FarmerEarningsController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $period = $_GET['period'] ?? 'month'; // month, year, all
 
         switch ($period) {
