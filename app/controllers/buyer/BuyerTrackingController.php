@@ -14,12 +14,12 @@ class BuyerTrackingController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $orderFilter = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
         $trackingRows = $this->orderModel->getDeliveryTrackingByBuyer($userId);
 
@@ -34,9 +34,10 @@ class BuyerTrackingController
             'activePage' => 'tracking',
             'trackingRows' => $trackingRows,
             'orderFilter' => $orderFilter,
+            'pageStyles' => 'tracking.css',
             'contentView' => 'buyer/tracking.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 }

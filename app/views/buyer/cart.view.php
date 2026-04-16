@@ -1,16 +1,16 @@
 <div class="content-header">
-                <h1 class="content-title">Shopping Cart</h1>
+                <h1 class="content-title">My Shopping Cart</h1>
                 <p class="content-subtitle">Review items before checkout</p>
             </div>
 
             <div id="cartContainer">
                 <?php if (empty($cartItems) || !is_array($cartItems)): ?>
                     <!-- Empty Cart -->
-                    <div class="content-card" style="text-align: center; padding: 60px;">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">🛒</div>
+                    <div class="content-card cart-empty-state">
+                        <div class="cart-empty-icon">🛒</div>
                         <h3>Your cart is empty</h3>
-                        <p style="color: #666; margin: 16px 0;">Add some products to get started!</p>
-                        <a href="<?= ROOT ?>/buyerDashboard#products" class="btn btn-primary" style="margin-top: 20px;" onclick="window.location.href='<?= ROOT ?>/buyerDashboard'; setTimeout(() => document.querySelector('[data-section=products]').click(), 100);">Browse Products</a>
+                        <p class="cart-empty-text">Add some products to get started!</p>
+                        <a href="<?= ROOT ?>/buyerDashboard#products" class="btn btn-primary cart-empty-browse-btn" onclick="window.location.href='<?= ROOT ?>/buyerDashboard'; setTimeout(() => document.querySelector('[data-section=products]').click(), 100);">Browse Products</a>
                     </div>
                 <?php else: ?>
                     <!-- Cart Items Grid -->
@@ -32,9 +32,9 @@
                                             }
                                             ?>
                                             <?php if (!empty($imgFile) && file_exists("assets/images/products/" . $imgFile)): ?>
-                                                <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($imgFile) ?>" alt="<?= htmlspecialchars($item->product_name) ?>" style="width: 72px; height: 72px; object-fit: cover; border-radius: 10px;">
+                                                <img src="<?= ROOT ?>/assets/images/products/<?= htmlspecialchars($imgFile) ?>" alt="<?= htmlspecialchars($item->product_name) ?>" class="cart-item-image-thumb">
                                             <?php else: ?>
-                                                <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,0.06);font-size:32px;">
+                                                <div class="cart-item-image-fallback">
                                                     <?= htmlspecialchars(!empty($item->product_image) && strlen($item->product_image) <= 8 ? $item->product_image : '🌱') ?>
                                                 </div>
                                             <?php endif; ?>

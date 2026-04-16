@@ -10,13 +10,13 @@
         <h3 class="card-title">Filter Products</h3>
     </div>
     <div class="card-content">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+        <div class="buyer-products-filter-grid">
             <div>
-                <label for="searchInput" style="display: none;">Search Products</label>
+                <label for="searchInput" class="buyer-products-hidden-label">Search Products</label>
                 <input type="text" id="searchInput" class="form-control" placeholder="Search by name or farmer..." onkeyup="BuyerDashboard.filterProducts()" aria-label="Search products">
             </div>
             <div>
-                <label for="categoryFilter" style="display: none;">Filter by Category</label>
+                <label for="categoryFilter" class="buyer-products-hidden-label">Filter by Category</label>
                 <select id="categoryFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by category">
                     <option value="">All Categories</option>
                     <option value="vegetables">Vegetables</option>
@@ -25,7 +25,7 @@
                 </select>
             </div>
             <div>
-                <label for="locationFilter" style="display: none;">Filter by Location</label>
+                <label for="locationFilter" class="buyer-products-hidden-label">Filter by Location</label>
                 <select id="locationFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by location">
                     <option value="">All Locations</option>
                     <option value="colombo">Colombo</option>
@@ -56,7 +56,7 @@
                 </select>
             </div>
             <div>
-                <label for="priceFilter" style="display: none;">Filter by Price</label>
+                <label for="priceFilter" class="buyer-products-hidden-label">Filter by Price</label>
                 <select id="priceFilter" class="form-control" onchange="BuyerDashboard.filterProducts()" aria-label="Filter by price">
                     <option value="">All Prices</option>
                     <option value="0-100">Under Rs. 100</option>
@@ -72,8 +72,8 @@
 <!-- Products Grid -->
 <div class="products-grid" id="productsGrid">
     <?php if (empty($products)): ?>
-        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">🌾</div>
+        <div class="buyer-products-empty-state">
+            <div class="buyer-products-empty-icon">🌾</div>
             <h3>No products available yet</h3>
             <p>Check back later for fresh products from our farmers!</p>
         </div>
@@ -95,7 +95,7 @@
                     <?php else: ?>
                         <img src="<?= ROOT ?>/assets/images/default-product.svg"
                             alt="<?= htmlspecialchars($product->name) ?>"
-                            style="opacity: 0.6;">
+                            class="buyer-products-fallback-image">
                     <?php endif; ?>
                 </div>
 
@@ -104,13 +104,13 @@
                     <p class="product-farmer">
                         <?= htmlspecialchars($product->farmer_name ?? 'Unknown Farmer') ?>
                     </p>
-                    <p class="product-description" style="margin-bottom: 6px; color: #2f4f4f;">
+                    <p class="product-description buyer-products-location-line">
                         Farmer location: <?= htmlspecialchars($product->farmer_district ?? $product->location ?? 'Unknown Location') ?>
                     </p>
                     <p class="product-description">
                         <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>
                     </p>
-                    <div style="font-size: 0.85rem; color: #4f5b62; margin-bottom: 8px;">
+                    <div class="buyer-products-date-meta">
                         <div>Added: <?= htmlspecialchars($product->display_added_date ?? '-') ?></div>
                         <div>Best use before: <?= htmlspecialchars($product->display_best_use_date ?? '-') ?></div>
                     </div>

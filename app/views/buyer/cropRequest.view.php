@@ -18,7 +18,7 @@
             <div class="card-content">
                 <div class="crop-request-filter-row">
                     <!-- Filter: Crop Type -->
-                    <select id="filterCropType" class="form-control" style="max-width: 180px;">
+                    <select id="filterCropType" class="form-control crop-request-filter-type">
                         <option value="">All Crop Types</option>
                         <?php
                         $cropTypes = [];
@@ -37,7 +37,7 @@
                     </select>
 
                     <!-- Filter: Status -->
-                    <select id="filterStatus" class="form-control" style="max-width: 160px;">
+                    <select id="filterStatus" class="form-control crop-request-filter-status">
                         <option value="">All Statuses</option>
                         <option value="active">Active</option>
                         <option value="accepted">Accepted</option>
@@ -46,7 +46,7 @@
                     </select>
 
                     <!-- Filter: Year -->
-                    <select id="filterYear" class="form-control" style="max-width: 130px;">
+                    <select id="filterYear" class="form-control crop-request-filter-year">
                         <option value="">All Years</option>
                         <?php
                         $years = [];
@@ -71,29 +71,29 @@
         </div>
 
         <!-- Display Messages -->
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success" style="padding: 15px; background: rgba(101, 181, 124, 0.15); color: var(--primary-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
-                <?= $_SESSION['success'];
-                unset($_SESSION['success']); ?>
+        <?php $successMessage = flash('success'); ?>
+        <?php if (!empty($successMessage)): ?>
+            <div class="alert alert-success crop-request-alert-success">
+                <?= htmlspecialchars((string)$successMessage) ?>
             </div>
         <?php endif; ?>
 
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger" style="padding: 15px; background: rgba(244, 67, 54, 0.1); color: var(--danger-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--danger);">
-                <?= $_SESSION['error'];
-                unset($_SESSION['error']); ?>
+        <?php $errorMessage = flash('error'); ?>
+        <?php if (!empty($errorMessage)): ?>
+            <div class="alert alert-danger crop-request-alert-error">
+                <?= htmlspecialchars((string)$errorMessage) ?>
             </div>
         <?php endif; ?>
 
         <!-- Requests Table -->
         <?php if (!empty($requests)): ?>
-            <div class="content-card" style="padding: 0; overflow: hidden;">
+            <div class="content-card crop-request-table-card">
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 40px;">
-                                    <input type="checkbox" style="cursor: pointer;">
+                                <th class="crop-request-checkbox-header">
+                                    <input type="checkbox" class="crop-request-checkbox">
                                 </th>
                                 <th>Submitted</th>
                                 <th>Quantity</th>
@@ -101,7 +101,7 @@
                                 <th>Delivery Date</th>
                                 <th>Location</th>
                                 <th>Status</th>
-                                <th style="text-align: center; width: 100px;">Actions</th>
+                                <th class="crop-request-actions-header">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,15 +113,15 @@
                             ?>
                                 <tr>
                                     <td>
-                                        <input type="checkbox" style="cursor: pointer;">
+                                        <input type="checkbox" class="crop-request-checkbox">
                                     </td>
                                     <td><?= date('d M, Y', strtotime($request->created_at)) ?></td>
                                     <td>
-                                        <span style="padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block; background: var(--bg-light); color: var(--text-dark);">
+                                        <span class="crop-request-quantity-badge">
                                             <?= htmlspecialchars($request->quantity) ?> units
                                         </span>
                                     </td>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($request->crop_name) ?></td>
+                                    <td class="crop-request-crop-cell"><?= htmlspecialchars($request->crop_name) ?></td>
                                     <td><?= date('d M, Y', strtotime($request->delivery_date)) ?></td>
                                     <td><?= htmlspecialchars($request->location) ?></td>
                                     <td>
@@ -129,10 +129,10 @@
                                             <?= ucfirst($statusClass) ?>
                                         </span>
                                     </td>
-                                    <td style="text-align: center;">
-                                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                                    <td class="crop-request-actions-cell">
+                                        <div class="crop-request-actions-group">
                                             <a href="<?= ROOT ?>/croprequest/edit/<?= $request->id ?>"
-                                                class="btn btn-sm btn-outline" style="padding: 6px 10px;"
+                                                class="btn btn-sm btn-outline crop-request-icon-btn"
                                                 title="Edit">
                                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M11.5 2.5a2.121 2.121 0 0 1 3 3L6.5 13.5 2.5 14.5 3.5 10.5 11.5 2.5z" />
@@ -140,7 +140,7 @@
                                             </a>
                                             <a href="<?= ROOT ?>/croprequest/delete/<?= $request->id ?>"
                                                 onclick="return confirm('Are you sure you want to delete this request?')"
-                                                class="btn btn-sm btn-danger" style="padding: 6px 10px;"
+                                                class="btn btn-sm btn-danger crop-request-icon-btn"
                                                 title="Delete">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -156,10 +156,10 @@
                 </div>
             </div>
         <?php else: ?>
-            <div class="content-card" style="text-align: center; padding: 60px;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🌾</div>
-                <h3 style="color: var(--text-dark); margin-bottom: 12px;">No Crop Requests Yet</h3>
-                <p style="color: var(--text-light); margin-bottom: 24px;">Create your first crop request to get started!</p>
+            <div class="content-card crop-request-empty-state">
+                <div class="crop-request-empty-icon">🌾</div>
+                <h3 class="crop-request-empty-title">No Crop Requests Yet</h3>
+                <p class="crop-request-empty-subtitle">Create your first crop request to get started!</p>
                 <a href="<?= ROOT ?>/croprequest/create" class="btn btn-primary">
                     Create First Request
                 </a>
@@ -176,14 +176,14 @@
         </div>
 
         <!-- Display Errors -->
-        <?php if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])): ?>
-            <div class="alert alert-danger" style="padding: 15px; background: rgba(244, 67, 54, 0.1); color: var(--danger-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--danger);">
+        <?php $createErrors = flash('errors', []); ?>
+        <?php if (!empty($createErrors) && is_array($createErrors)): ?>
+            <div class="alert alert-danger crop-request-alert-error">
                 <strong>Please fix the following errors:</strong>
-                <ul style="margin: 10px 0 0 20px; list-style: disc;">
-                    <?php foreach ($_SESSION['errors'] as $error): ?>
-                        <li><?= $error ?></li>
-                    <?php endforeach;
-                    unset($_SESSION['errors']); ?>
+                <ul class="crop-request-error-list">
+                    <?php foreach ($createErrors as $error): ?>
+                        <li><?= htmlspecialchars((string)$error) ?></li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
         <?php endif; ?>
@@ -195,13 +195,13 @@
                     <!-- Crop Name -->
                     <div class="form-group">
                         <label for="crop_name">Crop Name <span class="required">*</span></label>
-                        <input type="text" id="crop_name" name="crop_name" class="form-control" value="<?= $_POST['crop_name'] ?? '' ?>" placeholder="e.g., Tomatoes, Rice, Carrots" required>
+                        <input type="text" id="crop_name" name="crop_name" class="form-control" value="<?= esc($_POST['crop_name'] ?? '') ?>" placeholder="e.g., Tomatoes, Rice, Carrots" required>
                     </div>
 
                     <!-- Quantity -->
                     <div class="form-group">
                         <label for="quantity">Quantity (units) <span class="required">*</span></label>
-                        <input type="number" id="quantity" name="quantity" class="form-control" value="<?= $_POST['quantity'] ?? '' ?>" step="0.01" placeholder="Enter quantity" required>
+                        <input type="number" id="quantity" name="quantity" class="form-control" value="<?= esc($_POST['quantity'] ?? '') ?>" step="0.01" placeholder="Enter quantity" required>
                     </div>
                 </div>
 
@@ -209,24 +209,24 @@
                     <!-- Target Price -->
                     <div class="form-group">
                         <label for="target_price">Target Price per Unit (Rs.) <span class="required">*</span></label>
-                        <input type="number" id="target_price" name="target_price" class="form-control" value="<?= $_POST['target_price'] ?? '' ?>" step="0.01" placeholder="Enter your target price" required>
+                        <input type="number" id="target_price" name="target_price" class="form-control" value="<?= esc($_POST['target_price'] ?? '') ?>" step="0.01" placeholder="Enter your target price" required>
                     </div>
 
                     <!-- Delivery Date -->
                     <div class="form-group">
                         <label for="delivery_date">Delivery Date <span class="required">*</span></label>
-                        <input type="date" id="delivery_date" name="delivery_date" class="form-control" value="<?= $_POST['delivery_date'] ?? '' ?>" required>
+                        <input type="date" id="delivery_date" name="delivery_date" class="form-control" value="<?= esc($_POST['delivery_date'] ?? '') ?>" required>
                     </div>
                 </div>
 
                 <!-- Location -->
                 <div class="form-group">
                     <label for="location">Delivery Location <span class="required">*</span></label>
-                    <input type="text" id="location" name="location" class="form-control" value="<?= $_POST['location'] ?? '' ?>" placeholder="City, Province" required>
+                    <input type="text" id="location" name="location" class="form-control" value="<?= esc($_POST['location'] ?? '') ?>" placeholder="City, Province" required>
                 </div>
 
                 <!-- Buttons -->
-                <div style="display: flex; gap: 16px; margin-top: 24px;">
+                <div class="crop-request-form-actions">
                     <button type="submit" class="btn btn-primary">
                         Create Request
                     </button>
@@ -247,14 +247,14 @@
         </div>
 
         <!-- Display Errors -->
-        <?php if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])): ?>
-            <div class="alert alert-danger" style="padding: 15px; background: rgba(244, 67, 54, 0.1); color: var(--danger-dark); border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--danger);">
+        <?php $editErrors = flash('errors', []); ?>
+        <?php if (!empty($editErrors) && is_array($editErrors)): ?>
+            <div class="alert alert-danger crop-request-alert-error">
                 <strong>Please fix the following errors:</strong>
-                <ul style="margin: 10px 0 0 20px; list-style: disc;">
-                    <?php foreach ($_SESSION['errors'] as $error): ?>
-                        <li><?= $error ?></li>
-                    <?php endforeach;
-                    unset($_SESSION['errors']); ?>
+                <ul class="crop-request-error-list">
+                    <?php foreach ($editErrors as $error): ?>
+                        <li><?= htmlspecialchars((string)$error) ?></li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
         <?php endif; ?>
@@ -310,7 +310,7 @@
                 </div>
 
                 <!-- Buttons -->
-                <div style="display: flex; gap: 16px; margin-top: 24px;">
+                <div class="crop-request-form-actions">
                     <button type="submit" class="btn btn-primary">
                         Update Request
                     </button>
@@ -325,7 +325,7 @@
     // ==================== VIEW/SHOW VIEW ====================
     else:
     ?>
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="content-header crop-request-detail-header">
             <div>
                 <h1 class="content-title">Crop Request Details</h1>
                 <p class="content-subtitle">View your crop request information</p>
@@ -338,7 +338,7 @@
         <!-- Details Card -->
         <div class="content-card">
             <!-- Status Badge -->
-            <div style="margin-bottom: 24px;">
+            <div class="crop-request-detail-status-wrap">
                 <?php
                 // Default to 'active' if status is empty or null
                 $status = !empty($request->status) ? strtolower(trim((string)$request->status)) : 'active';
@@ -351,46 +351,46 @@
             </div>
 
             <!-- Details Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div class="crop-request-detail-grid">
                 <!-- Crop Name -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Crop Name</label>
-                    <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->crop_name) ?></p>
+                    <label class="crop-request-detail-label">Crop Name</label>
+                    <p class="crop-request-detail-value"><?= htmlspecialchars($request->crop_name) ?></p>
                 </div>
 
                 <!-- Quantity -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Quantity</label>
-                    <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->quantity) ?> units</p>
+                    <label class="crop-request-detail-label">Quantity</label>
+                    <p class="crop-request-detail-value"><?= htmlspecialchars($request->quantity) ?> units</p>
                 </div>
 
                 <!-- Target Price -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Target Price per Unit</label>
-                    <p style="font-size: 18px; color: var(--primary-color); margin: 0; font-weight: 600;">Rs.<?= number_format($request->target_price, 2) ?></p>
+                    <label class="crop-request-detail-label">Target Price per Unit</label>
+                    <p class="crop-request-detail-value crop-request-detail-value-price">Rs.<?= number_format($request->target_price, 2) ?></p>
                 </div>
 
                 <!-- Delivery Date -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Date</label>
-                    <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= date('M d, Y', strtotime($request->delivery_date)) ?></p>
+                    <label class="crop-request-detail-label">Delivery Date</label>
+                    <p class="crop-request-detail-value"><?= date('M d, Y', strtotime($request->delivery_date)) ?></p>
                 </div>
 
                 <!-- Location -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Location</label>
-                    <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= htmlspecialchars($request->location) ?></p>
+                    <label class="crop-request-detail-label">Location</label>
+                    <p class="crop-request-detail-value"><?= htmlspecialchars($request->location) ?></p>
                 </div>
 
                 <!-- Created At -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: var(--text-light); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Created On</label>
-                    <p style="font-size: 18px; color: var(--text-dark); margin: 0; font-weight: 500;"><?= date('M d, Y H:i', strtotime($request->created_at)) ?></p>
+                    <label class="crop-request-detail-label">Created On</label>
+                    <p class="crop-request-detail-value"><?= date('M d, Y H:i', strtotime($request->created_at)) ?></p>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div style="display: flex; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+            <div class="crop-request-detail-actions">
                 <a href="<?= ROOT ?>/croprequest/edit/<?= $request->id ?>" class="btn btn-primary">
                     Edit Request
                 </a>
@@ -402,103 +402,3 @@
     <?php endif; ?>
 
 </div>
-
-<!-- Filter and Table Functionality -->
-<?php if (isset($requests) && !empty($requests)): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterCropType = document.getElementById('filterCropType');
-            const filterStatus = document.getElementById('filterStatus');
-            const filterYear = document.getElementById('filterYear');
-            const table = document.querySelector('table');
-
-            if (!table || !filterCropType || !filterStatus || !filterYear) return;
-
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
-
-            function filterTable() {
-                const cropTypeValue = filterCropType.value.toLowerCase();
-                const statusValue = filterStatus.value.toLowerCase();
-                const yearValue = filterYear.value;
-
-                rows.forEach(row => {
-                    let show = true;
-
-                    // Filter by crop type
-                    if (cropTypeValue) {
-                        const cropTypeCell = row.cells[3]; // Crop Type column
-                        if (cropTypeCell && !cropTypeCell.textContent.toLowerCase().includes(cropTypeValue)) {
-                            show = false;
-                        }
-                    }
-
-                    // Filter by status
-                    if (statusValue) {
-                        const statusCell = row.cells[6]; // Status column
-                        if (statusCell) {
-                            const statusText = statusCell.textContent.trim().toLowerCase();
-                            if (statusText !== statusValue) {
-                                show = false;
-                            }
-                        }
-                    }
-
-                    // Filter by year
-                    if (yearValue) {
-                        const submittedCell = row.cells[1]; // Submitted column
-                        if (submittedCell) {
-                            const dateText = submittedCell.textContent.trim();
-                            try {
-                                const dateParts = dateText.split(' ');
-                                if (dateParts.length >= 3) {
-                                    const months = {
-                                        'jan': 0,
-                                        'feb': 1,
-                                        'mar': 2,
-                                        'apr': 3,
-                                        'may': 4,
-                                        'jun': 5,
-                                        'jul': 6,
-                                        'aug': 7,
-                                        'sep': 8,
-                                        'oct': 9,
-                                        'nov': 10,
-                                        'dec': 11
-                                    };
-                                    const month = months[dateParts[1].toLowerCase().substring(0, 3)];
-                                    const day = parseInt(dateParts[0]);
-                                    const year = parseInt(dateParts[2].replace(',', ''));
-                                    if (year.toString() !== yearValue) {
-                                        show = false;
-                                    }
-                                }
-                            } catch (e) {
-                                // If date parsing fails, don't filter by year
-                            }
-                        }
-                    }
-
-                    row.style.display = show ? '' : 'none';
-                });
-            }
-
-            filterCropType.addEventListener('change', filterTable);
-            filterStatus.addEventListener('change', filterTable);
-            filterYear.addEventListener('change', filterTable);
-
-            // Table header checkbox functionality
-            const headerCheckbox = table.querySelector('thead input[type="checkbox"]');
-            const rowCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-
-            if (headerCheckbox && rowCheckboxes.length > 0) {
-                headerCheckbox.addEventListener('change', function() {
-                    rowCheckboxes.forEach(cb => {
-                        cb.checked = headerCheckbox.checked;
-                    });
-                });
-            }
-        });
-    </script>
-<?php endif; ?>
-
-<!-- scripts are loaded by the layout -->

@@ -162,7 +162,7 @@
     </div>
 </div>
 
-<div id="review-modal" class="modal buyer-review-modal" style="display: none;">
+<div id="review-modal" class="modal buyer-review-modal">
     <div class="modal-content buyer-review-modal-content">
         <span class="close-modal buyer-review-modal-close" onclick="BuyerReviews.closeReviewModal()">&times;</span>
         <h2 class="buyer-review-modal-title">Write Review / Complaint</h2>

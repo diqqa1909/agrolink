@@ -13,7 +13,7 @@ class WishlistController
 
     private function requireBuyer()
     {
-        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'buyer') {
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return false;
@@ -26,24 +26,25 @@ class WishlistController
      */
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $wishlistItems = $this->wishlistModel->getByUserId($user_id);
 
         $data = [
             'pageTitle' => 'My Wishlist',
             'activePage' => 'wishlist',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'wishlistItems' => $wishlistItems ?: [],
+            'pageStyles' => ['products.css', 'wishlist.css'],
             'pageScript' => 'buyerDashboard.js',
             'contentView' => 'buyer/wishlist.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -57,7 +58,7 @@ class WishlistController
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $items = $this->wishlistModel->getByUserId($user_id);
 
         echo json_encode([
@@ -87,7 +88,7 @@ class WishlistController
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $result = $this->wishlistModel->add($user_id, $product_id);
 
         if ($result) {
@@ -122,7 +123,7 @@ class WishlistController
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $result = $this->wishlistModel->remove($user_id, (int)$product_id);
 
         if ($result) {
@@ -151,7 +152,7 @@ class WishlistController
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $this->wishlistModel->clear($user_id);
 
         echo json_encode(['success' => true, 'message' => 'Wishlist cleared']);

@@ -19,12 +19,12 @@ class CartController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
@@ -54,10 +54,11 @@ class CartController
             'cartTotal' => $cartTotal,
             'pageTitle' => 'Shopping Cart',
             'activePage' => 'cart',
+            'pageStyles' => 'cart.css',
             'contentView' => 'buyer/cart.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -74,7 +75,7 @@ class CartController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $data = [
             'user_id' => $user_id,
             'product_id' => $_POST['product_id'] ?? null,
@@ -180,7 +181,7 @@ class CartController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         
         // Handle both JSON and form-encoded data
         $data = [];
@@ -249,7 +250,7 @@ class CartController
         header('Content-Type: application/json');
         if (!$this->requireBuyer()) exit;
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         
         // Handle both JSON and form-encoded data
         $data = [];
@@ -298,7 +299,7 @@ class CartController
         if (!$this->requireBuyer()) exit;
 
         try {
-            $user_id = $_SESSION['USER']->id;
+            $user_id = authUserId();
             $cleared = $this->cartModel->clearCart($user_id);
 
             if ($cleared) {
@@ -327,7 +328,7 @@ class CartController
         if (!$this->requireBuyer()) exit;
 
         try {
-            $user_id = $_SESSION['USER']->id;
+            $user_id = authUserId();
             $cartItemCount = $this->cartModel->getCartItemCount($user_id);
             $cartTotal = $this->cartModel->getCartTotal($user_id);
 
@@ -346,12 +347,12 @@ class CartController
     // Helper
     private function requireBuyer()
     {
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return false;
         }
-        if (($_SESSION['USER']->role ?? '') !== 'buyer') {
+        if (!hasRole('buyer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Forbidden']);
             return false;

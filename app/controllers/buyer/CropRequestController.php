@@ -17,12 +17,12 @@ class CropRequestController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $requests = $this->cropRequestModel->getRequestsByBuyer($user_id);
 
         // Ensure $requests is an array (Database->query returns 1 when no rows)
@@ -34,10 +34,12 @@ class CropRequestController
             'requests' => $requests,
             'pageTitle' => 'My Crop Requests',
             'activePage' => 'requests',
-            'contentView' => 'buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php',
+            'pageStyles' => 'cropRequest.css',
+            'pageScript' => 'cropRequest.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -46,14 +48,14 @@ class CropRequestController
     public function create()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $formData = [
-                'buyer_id' => $_SESSION['USER']->id,
+                'buyer_id' => authUserId(),
                 'crop_name' => $_POST['crop_name'] ?? '',
                 'quantity' => $_POST['quantity'] ?? '',
                 'target_price' => $_POST['target_price'] ?? '',
@@ -77,10 +79,12 @@ class CropRequestController
             'action' => 'create',
             'pageTitle' => 'New Crop Request',
             'activePage' => 'requests',
-            'contentView' => 'buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php',
+            'pageStyles' => 'cropRequest.css',
+            'pageScript' => 'cropRequest.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -89,14 +93,14 @@ class CropRequestController
     public function edit($id = '')
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
         $request = $this->cropRequestModel->getRequestById($id);
 
-        if (!$request || $request->buyer_id != $_SESSION['USER']->id) {
+        if (!$request || $request->buyer_id != authUserId()) {
             redirect('croprequest');
             return;
         }
@@ -126,10 +130,12 @@ class CropRequestController
             'action' => 'edit',
             'pageTitle' => 'Edit Crop Request',
             'activePage' => 'requests',
-            'contentView' => 'buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php',
+            'pageStyles' => 'cropRequest.css',
+            'pageScript' => 'cropRequest.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -138,14 +144,14 @@ class CropRequestController
     public function show($id = '')
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
         $request = $this->cropRequestModel->getRequestById($id);
 
-        if (!$request || $request->buyer_id != $_SESSION['USER']->id) {
+        if (!$request || $request->buyer_id != authUserId()) {
             redirect('croprequest');
             return;
         }
@@ -154,10 +160,12 @@ class CropRequestController
             'request' => $request,
             'pageTitle' => 'Crop Request Details',
             'activePage' => 'requests',
-            'contentView' => 'buyer/cropRequest.view.php'
+            'contentView' => 'buyer/cropRequest.view.php',
+            'pageStyles' => 'cropRequest.css',
+            'pageScript' => 'cropRequest.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -166,14 +174,14 @@ class CropRequestController
     public function delete($id = '')
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
         $request = $this->cropRequestModel->getRequestById($id);
 
-        if (!$request || $request->buyer_id != $_SESSION['USER']->id) {
+        if (!$request || $request->buyer_id != authUserId()) {
             redirect('croprequest');
             return;
         }
@@ -194,7 +202,7 @@ class CropRequestController
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -214,7 +222,7 @@ class CropRequestController
             exit;
         }
 
-        if ($request->buyer_id != $_SESSION['USER']->id && $_SESSION['USER']->role !== 'farmer') {
+        if ($request->buyer_id != authUserId() && authUserRole() !== 'farmer') {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Forbidden']);
             exit;

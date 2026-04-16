@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../../simple_shipping_calculator.php';
-
 class CheckoutController
 {
     use Controller;
@@ -20,7 +18,7 @@ class CheckoutController
         $this->orderModel = new OrderModel();
         $this->productModel = new ProductsModel();
         $this->farmerModel = new FarmerModel();
-        
+
         // Initialize shipping calculator
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
@@ -32,29 +30,18 @@ class CheckoutController
         }
     }
 
-    private function logCheckoutDebug($message)
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $logFile = $projectRoot . '/public/debug_log.txt';
-        $line = date('Y-m-d H:i:s') . ' - ' . $message;
-
-        if (@file_put_contents($logFile, $line, FILE_APPEND) === false) {
-            error_log('CheckoutController debug log write failed: ' . $logFile);
-        }
-    }
-
     /**
      * Display checkout page
      */
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Check if this is a "Buy Now" checkout (single product)
         $isBuyNow = isset($_GET['buy_now']) && $_GET['buy_now'] == '1';
@@ -62,7 +49,7 @@ class CheckoutController
             $_SESSION['buy_now_product_id'] = (int)$_GET['product_id'];
         }
         $isBuyNow = isset($_SESSION['buy_now_product_id']);
-        
+
         // Get cart items with product details including available quantity
         $cartItems = $this->cartModel->getCartByUserId($user_id);
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
@@ -87,11 +74,11 @@ class CheckoutController
         // If Buy Now mode, filter to show only that product
         if ($isBuyNow && isset($_SESSION['buy_now_product_id'])) {
             $buyNowProductId = $_SESSION['buy_now_product_id'];
-            $cartItems = array_filter($cartItems, function($item) use ($buyNowProductId) {
+            $cartItems = array_filter($cartItems, function ($item) use ($buyNowProductId) {
                 return $item->product_id == $buyNowProductId;
             });
             $cartItems = array_values($cartItems); // Re-index array
-            
+
             // Recalculate totals for Buy Now item only
             $cartTotal = 0;
             $cartItemCount = 0;
@@ -115,7 +102,7 @@ class CheckoutController
         // Calculate shipping cost using shipping calculator
         $deliveryFee = 150.00; // Default fallback
         $shippingCalculation = null;
-        
+
         if ($hasDeliveryDetails && $this->shippingCalculator && !empty($cartItems)) {
             // Try to calculate shipping cost
             $shippingCalculation = $this->calculateShippingForCart($cartItems, $buyerProfile);
@@ -126,7 +113,7 @@ class CheckoutController
                 error_log("Shipping calculation failed: " . ($shippingCalculation['error'] ?? 'Unknown error'));
             }
         }
-        
+
         $orderTotal = $cartTotal + $deliveryFee;
 
         $data = [
@@ -141,10 +128,12 @@ class CheckoutController
             'shippingCalculation' => $shippingCalculation,
             'pageTitle' => 'Checkout',
             'activePage' => 'checkout',
-            'contentView' => 'buyer/checkout.view.php'
+            'contentView' => 'buyer/checkout.view.php',
+            'pageStyles' => 'checkout.css',
+            'pageScript' => 'checkout.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -160,7 +149,7 @@ class CheckoutController
         // Get buyer's district and town IDs
         $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
         $buyerTownId = $this->getTownIdByName($buyerProfile->city ?? '', $buyerDistrictId);
-        
+
         if (!$buyerDistrictId) {
             return null;
         }
@@ -172,7 +161,7 @@ class CheckoutController
             if (!$product) {
                 continue;
             }
-            
+
             $farmerId = $product->farmer_id;
             if (!isset($itemsByFarmer[$farmerId])) {
                 $itemsByFarmer[$farmerId] = [
@@ -181,7 +170,7 @@ class CheckoutController
                     'product' => $product
                 ];
             }
-            
+
             $itemsByFarmer[$farmerId]['items'][] = $item;
             $itemsByFarmer[$farmerId]['total_weight'] += $item->quantity; // Assuming quantity is in kg
         }
@@ -208,7 +197,7 @@ class CheckoutController
             if (!$farmerDistrictId) {
                 // Get farmer's district from farmer profile
                 $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
-                
+
                 // Get farmer's district and town (legacy fallback)
                 $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? 'Colombo') : ($product->location ?? 'Colombo');
                 $farmerDistrictId = $this->getDistrictIdByName($farmerDistrictName);
@@ -229,7 +218,7 @@ class CheckoutController
             ];
 
             $calculation = $this->shippingCalculator->calculateShippingCost($params);
-            
+
             if ($calculation && $calculation['success']) {
                 $totalShippingCost += $calculation['calculation']['total_shipping_cost_lkr'];
                 $allCalculations[] = $calculation['calculation'];
@@ -293,8 +282,8 @@ class CheckoutController
     public function saveDeliveryDetails()
     {
         header('Content-Type: application/json');
-        
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -306,7 +295,7 @@ class CheckoutController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         $data = [
             'phone' => trim($_POST['phone'] ?? ''),
@@ -327,7 +316,7 @@ class CheckoutController
         try {
             // Check if profile exists
             $existingProfile = $this->buyerProfileModel->getProfileByUserId($user_id);
-            
+
             if ($existingProfile && is_object($existingProfile)) {
                 // Update existing profile
                 $result = $this->buyerProfileModel->updateProfile($user_id, $data);
@@ -368,15 +357,7 @@ class CheckoutController
     {
         header('Content-Type: application/json');
 
-        // DEBUG: Log debugging info
-        $this->logCheckoutDebug("placeOrder Called\n");
-        $this->logCheckoutDebug("Session ID: " . session_id() . "\n");
-        $this->logCheckoutDebug("Session Data: " . print_r($_SESSION, true) . "\n");
-        $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $this->logCheckoutDebug("Headers: " . print_r($headers, true) . "\n");
-        
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->logCheckoutDebug("Auth Failed: USER not set or role not buyer\n");
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -388,7 +369,7 @@ class CheckoutController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
@@ -422,20 +403,20 @@ class CheckoutController
         // --- STEP 1: VALIDATE STOCK FOR ALL ITEMS ---
         $errors = [];
         $itemsByFarmer = []; // Group items by farmer for later
-        
+
         foreach ($cartItems as $item) {
             $product = $this->productModel->getById($item->product_id);
             if (!$product) {
                 $errors[] = "Product not found: {$item->product_name}";
                 continue;
             }
-            
+
             $availableQuantity = $product->quantity ?? 0;
-            
+
             // Check for valid quantity
             if ($item->quantity <= 0) {
-                 $errors[] = "Item '{$item->product_name}' is out of stock. Please remove it from cart.";
-                 continue;
+                $errors[] = "Item '{$item->product_name}' is out of stock. Please remove it from cart.";
+                continue;
             }
 
             if ($item->quantity > $availableQuantity) {
@@ -444,15 +425,12 @@ class CheckoutController
 
             // Group by farmer
             $farmerId = $this->getFarmerIdByProductId($item->product_id);
-            
-            // DEBUG: Log farmer ID retrieval
-            $this->logCheckoutDebug("Product {$item->product_id} ({$item->product_name}) - Farmer ID: " . ($farmerId ?? 'NULL') . "\n");
-            
+
             if (!$farmerId) {
                 $errors[] = "Could not find farmer for product: {$item->product_name}";
                 continue;
             }
-            
+
             if (!isset($itemsByFarmer[$farmerId])) {
                 $itemsByFarmer[$farmerId] = [];
             }
@@ -480,7 +458,7 @@ class CheckoutController
             // Calculate shipping for this specific group of items
             $shippingCalculation = $this->calculateShippingForCart($farmerItems, $buyerProfile);
             $shippingCost = 150.00; // Default fallback for this sub-order
-            
+
             if ($shippingCalculation && $shippingCalculation['success']) {
                 $shippingCost = $shippingCalculation['calculation']['total_shipping_cost_lkr'];
             } else {
@@ -492,7 +470,7 @@ class CheckoutController
             foreach ($farmerItems as $item) {
                 $cartTotal += $item->product_price * $item->quantity;
             }
-            
+
             $orderTotal = $cartTotal + $shippingCost;
             $overallTotal += $orderTotal;
 
@@ -518,7 +496,7 @@ class CheckoutController
                 // For now, we continue but this is messy partial failure state.
                 continue;
             }
-            
+
             $orderIds[] = $orderId;
 
             // --- STEP 3: ADD ITEMS & UPDATE STOCK FOR THIS SUB-ORDER ---
@@ -528,18 +506,18 @@ class CheckoutController
                 // You can modify this logic based on your product weight structure
                 $product = $this->productModel->getById($item->product_id);
                 $itemWeight = 0;
-                
+
                 // Try to get weight from crop_volume_factors table
                 if ($product && !empty($product->name)) {
                     $weightData = $this->getProductWeight($product->name);
                     $itemWeight = $weightData * $item->quantity;
                 }
-                
+
                 // If no weight found, use default 1kg per unit
                 if ($itemWeight == 0) {
                     $itemWeight = $item->quantity * 1.0; // Default 1kg per unit
                 }
-                
+
                 $totalWeight += $itemWeight;
 
                 $itemData = [
@@ -549,20 +527,13 @@ class CheckoutController
                     'product_price' => $item->product_price,
                     'quantity' => $item->quantity,
                     'item_weight_kg' => $itemWeight,
-                    'farmer_id' => $farmerId 
+                    'farmer_id' => $farmerId
                 ];
 
-                // DEBUG: Log item data before insertion
-                $this->logCheckoutDebug("Inserting order item: " . json_encode($itemData) . "\n");
-                
                 $addResult = $this->orderModel->addOrderItem($itemData);
-                
-                // DEBUG: Log insertion result
-                $this->logCheckoutDebug("Add order item result: " . ($addResult ? 'SUCCESS' : 'FAILED') . "\n");
-                
+
                 if (!$addResult) {
                     error_log("Failed to add item {$item->product_name} to order {$orderId}");
-                    $this->logCheckoutDebug("ERROR: Failed to add item {$item->product_name} to order {$orderId}\n");
                 }
 
                 if (!$this->orderModel->updateProductQuantity($item->product_id, $item->quantity)) {
@@ -579,9 +550,9 @@ class CheckoutController
         }
 
         if (empty($orderIds)) {
-             http_response_code(500);
-             echo json_encode(['success' => false, 'message' => 'Failed to process valid orders']);
-             exit;
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Failed to process valid orders']);
+            exit;
         }
 
         // Clear cart (only if at least one order succeeded)
@@ -621,11 +592,11 @@ class CheckoutController
         $dbModel = new CartModel(); // Use existing model to access Database trait
         $sql = "SELECT volume_factor FROM crop_volume_factors WHERE LOWER(crop_name) = LOWER(:crop_name) LIMIT 1";
         $result = $dbModel->query($sql, ['crop_name' => $cropName]);
-        
+
         if ($result && is_array($result) && !empty($result)) {
             return (float)$result[0]->volume_factor;
         }
-        
+
         return 1.0; // Default 1kg per unit
     }
 
@@ -647,12 +618,12 @@ class CheckoutController
                          LEFT JOIN farmer_profiles fp ON u.id = fp.user_id 
                          WHERE u.id = :id LIMIT 1";
             $farmerResult = $dbModel->query($farmerSql, ['id' => $farmerId]);
-            
+
             if (!$farmerResult || empty($farmerResult)) {
                 error_log("Failed to get farmer details for farmer_id: {$farmerId}");
                 return false;
             }
-            
+
             $farmer = $farmerResult[0];
 
             // Determine required vehicle type based on weight
@@ -678,9 +649,9 @@ class CheckoutController
             $distance = $distanceResult && !empty($distanceResult) ? $distanceResult[0]->distance_km : null;
 
             // Prepare buyer full address
-            $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' . 
-                                    ($buyerProfile->street_name ?? '') . ', ' . 
-                                    ($buyerProfile->city ?? ''));
+            $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' .
+                ($buyerProfile->street_name ?? '') . ', ' .
+                ($buyerProfile->city ?? ''));
 
             // Insert delivery request
             $insertSql = "INSERT INTO delivery_requests (

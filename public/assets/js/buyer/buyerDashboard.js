@@ -327,10 +327,9 @@ function filterProducts() {
         const existingMessage = productsGrid.querySelector('.no-results-message');
         if (!existingMessage) {
             const noResults = document.createElement('div');
-            noResults.className = 'no-results-message';
-            noResults.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 60px; color: #999;';
+            noResults.className = 'no-results-message buyer-products-empty-state';
             noResults.innerHTML = `
-                <div style="font-size: 3rem; margin-bottom: 20px;">🔍</div>
+                <div class="buyer-products-empty-icon">🔍</div>
                 <h3>No products found</h3>
                 <p>Try adjusting your search or filters</p>
             `;
@@ -887,8 +886,8 @@ function loadWishlist() {
             } else {
                 console.error('❌ Failed to load wishlist:', data.error);
                 container.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+                <div class="buyer-wishlist-empty-state">
+                    <div class="buyer-wishlist-empty-icon">⚠️</div>
                     <h3>${escapeHtml(data.error || 'Failed to load wishlist')}</h3>
                 </div>
             `;
@@ -897,8 +896,8 @@ function loadWishlist() {
         .catch(error => {
             console.error('❌ Load wishlist error:', error);
             container.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+            <div class="buyer-wishlist-empty-state">
+                <div class="buyer-wishlist-empty-icon">⚠️</div>
                 <h3>Unable to load wishlist</h3>
                 <p>${escapeHtml(error.message)}</p>
             </div>
@@ -921,8 +920,8 @@ function renderWishlist(items) {
     if (!items || !items.length) {
         console.log('📭 Wishlist is empty, rendering empty state');
         container.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">❤️</div>
+            <div class="buyer-wishlist-empty-state">
+                <div class="buyer-wishlist-empty-icon">❤️</div>
                 <h3>Your wishlist is empty</h3>
                 <p>Browse products and click "Wishlist" to save them here.</p>
             </div>
@@ -960,7 +959,7 @@ function renderWishlist(items) {
                  data-name="${escapeHtml((item.name || 'Product').toLowerCase())}" 
                  data-image="${escapeHtml(item.image || '')}">
                 <div class="product-image">
-                    <img src="${image}" alt="${escapeHtml(item.name || 'Product')}" ${item.image ? '' : 'style="opacity:0.6;"'}>
+                    <img src="${image}" alt="${escapeHtml(item.name || 'Product')}" class="${item.image ? '' : 'buyer-wishlist-fallback-image'}">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${escapeHtml(item.name || 'Product unavailable')}</h3>

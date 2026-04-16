@@ -19,12 +19,12 @@ class BuyerDashboardController
         $data = [];
 
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
 
         // Load Products model
@@ -67,7 +67,7 @@ class BuyerDashboardController
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'cartItemCount' => $cartItemCount,
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
@@ -77,11 +77,12 @@ class BuyerDashboardController
             'pendingOrders' => $pendingOrders,
             'totalSpent' => $totalSpent,
             'wishlistCount' => count($wishlistItems),
+            'pageStyles' => 'dashboard.css',
             'pageScript' => 'buyerDashboard.js?v=' . time(),
             'contentView' => 'buyer/buyerDashboard.view.php'
         ];
 
         // Load the view through main layout
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 }
