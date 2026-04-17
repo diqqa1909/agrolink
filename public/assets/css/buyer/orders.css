@@ -14,7 +14,12 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
+    margin-bottom: 24px;
     transition: all 0.3s ease;
+}
+
+.buyer-orders-section .order-card:last-of-type {
+    margin-bottom: 0;
 }
 
 .buyer-orders-section .order-card:hover {
@@ -72,19 +77,15 @@
 
 .buyer-orders-section .order-status,
 .buyer-order-modal-status {
-    padding: 6px 12px;
     border-radius: 8px;
     border: 1px solid transparent;
-    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
 .buyer-orders-section .order-status.pending,
-.buyer-orders-section .order-status.pending_payment,
-.buyer-order-modal-status.pending,
-.buyer-order-modal-status.pending_payment {
+.buyer-order-modal-status.pending {
     background: #fff7e6;
     color: #b54708;
     border-color: #f7d7a1;

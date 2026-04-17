@@ -4,6 +4,18 @@
     max-width: 180px;
 }
 
+.crop-requests-page .crop-request-filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.crop-requests-page .crop-request-new-btn {
+    margin-left: auto;
+    white-space: nowrap;
+}
+
 .crop-request-filter-status {
     max-width: 160px;
 }
@@ -64,6 +76,47 @@
 
 .crop-request-actions-cell {
     text-align: center;
+    white-space: nowrap;
+}
+
+.crop-request-view-btn {
+    min-width: 76px;
+    justify-content: center;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.crop-request-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 112px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.crop-request-status--active {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.crop-request-status--accepted {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.crop-request-status--declined {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.crop-request-status--completed {
+    background: #eceff1;
+    color: #455a64;
 }
 
 .crop-request-actions-group {
@@ -163,5 +216,9 @@
     .crop-request-detail-header {
         flex-direction: column;
         gap: 12px;
+    }
+
+    .crop-requests-page .crop-request-new-btn {
+        margin-left: 0;
     }
 }
