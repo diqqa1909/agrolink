@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const phone = document.getElementById('phone').value.trim();
             const city = document.getElementById('city').value.trim();
             const deliveryAddress = document.getElementById('delivery_address').value.trim();
+            const district = document.getElementById('state').value.trim();
 
-            if (!phone || !city || !deliveryAddress) {
+            if (!phone || !city || !deliveryAddress || !district) {
                 alert('Please fill in all required fields');
                 return;
             }
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('delivery_address', deliveryAddress);
             formData.append('address2', document.getElementById('address2')?.value || '');
             formData.append('zipCode', document.getElementById('zipCode')?.value || '');
-            formData.append('state', document.getElementById('state')?.value || '');
+            formData.append('state', district);
 
             const btn = this.querySelector('button[type="submit"]');
             const originalText = btn.textContent;
@@ -119,15 +120,14 @@ function finalConfirmOrder() {
         return;
     }
 
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash_on_delivery';
-
     const btn = document.getElementById('finalConfirmBtn');
+    const spinner = document.getElementById('checkoutGatewaySpinner');
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Processing...';
+    btn.textContent = 'Processing payment...';
+    if (spinner) spinner.classList.remove('checkout-hidden');
 
     const formData = new FormData();
-    formData.append('payment_method', paymentMethod);
 
     fetch(window.APP_ROOT + '/Checkout/placeOrder', {
         method: 'POST',
@@ -137,14 +137,17 @@ function finalConfirmOrder() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification(data.message || 'Order placed successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = window.APP_ROOT + '/buyerDashboard#orders';
-                }, 1500);
+                const redirectUrl = data.redirect || null;
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                    return;
+                }
+                window.location.href = window.APP_ROOT + '/buyerorders';
             } else {
                 showNotification(data.message || 'Failed to place order', 'error');
                 btn.disabled = false;
                 btn.textContent = originalText;
+                if (spinner) spinner.classList.add('checkout-hidden');
             }
         })
         .catch(error => {
@@ -152,6 +155,7 @@ function finalConfirmOrder() {
             showNotification('An error occurred while placing order: ' + error.message, 'error');
             btn.disabled = false;
             btn.textContent = originalText;
+            if (spinner) spinner.classList.add('checkout-hidden');
         });
 }
 

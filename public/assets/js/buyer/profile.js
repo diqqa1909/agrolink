@@ -1,18 +1,54 @@
 // Buyer profile management (uses BuyerProfileController endpoints)
 let buyerOriginalProfile = null;
 
+function parseJsonResponse(response) {
+    return response.text().then(text => {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('Invalid server response');
+        }
+    });
+}
+
+function updateGlobalUserName(name) {
+    const normalized = String(name || '').trim();
+    if (!normalized) return;
+
+    window.USER_NAME = normalized;
+    if (document.body) {
+        document.body.setAttribute('data-user-name', normalized);
+    }
+
+    if (typeof window.updateNavbarUserName === 'function') {
+        window.updateNavbarUserName(normalized);
+    }
+}
+
 function avatarPlaceholder() {
     const name = (window.USER_NAME || 'Buyer').trim() || 'Buyer';
     const encoded = encodeURIComponent(name);
     return `https://ui-avatars.com/api/?name=${encoded}&background=4CAF50&color=fff&size=180`;
 }
 
+function updatePhotoActionState(hasPhoto) {
+    const addBtn = document.getElementById('addPhotoBtn');
+    const changeBtn = document.getElementById('changePhotoBtn');
+    const removeBtn = document.getElementById('removePhotoBtn');
+
+    if (addBtn) addBtn.classList.toggle('is-hidden', hasPhoto);
+    if (changeBtn) changeBtn.classList.toggle('is-hidden', !hasPhoto);
+    if (removeBtn) removeBtn.classList.toggle('is-hidden', !hasPhoto);
+}
+
 function setProfilePhoto(url) {
     const img = document.getElementById('profilePhotoDisplay');
     const defaultIcon = document.getElementById('defaultProfileIcon');
     if (!img) return;
+
+    const hasPhoto = !!(url && url.length && url !== 'undefined');
     
-    if (url && url.length && url !== 'undefined') {
+    if (hasPhoto) {
         img.style.display = 'block';
         if (defaultIcon) defaultIcon.style.display = 'none';
         img.src = url;
@@ -20,16 +56,18 @@ function setProfilePhoto(url) {
         img.style.display = 'none';
         if (defaultIcon) defaultIcon.style.display = 'flex';
     }
+
+    updatePhotoActionState(hasPhoto);
 }
 
-function formatMonthYear(dateStr) {
+function formatDateLabel(dateStr) {
     if (!dateStr) return '-';
-    const d = new Date(dateStr.replace(' ', 'T'));
+    const d = new Date(String(dateStr).replace(' ', 'T'));
     if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
-function populateProfileForm(profile, photoUrl) {
+function populateProfileForm(profile, photoUrl, profileStats) {
     const nameField = document.getElementById('profileName');
     const emailField = document.getElementById('profileEmail');
     const phoneField = document.getElementById('profilePhone');
@@ -38,26 +76,29 @@ function populateProfileForm(profile, photoUrl) {
     const streetNameField = document.getElementById('profileStreetName');
     const cityField = document.getElementById('profileCity');
     const postalField = document.getElementById('profilePostalCode');
-    const addressField = document.getElementById('profileAddress');
+    const addressField = document.getElementById('profileAdditionalAddress');
+    const accountSettingsEmail = document.getElementById('accountSettingsEmail');
 
     if (nameField) nameField.value = profile.name || '';
     if (emailField) emailField.value = profile.email || '';
+    if (accountSettingsEmail) accountSettingsEmail.value = profile.email || '';
     if (phoneField) phoneField.value = profile.phone || '';
     if (districtField) districtField.value = profile.district || '';
     if (apartmentField) apartmentField.value = profile.apartment_code || '';
     if (streetNameField) streetNameField.value = profile.street_name || '';
     if (cityField) cityField.value = profile.city || '';
     if (postalField) postalField.value = profile.postal_code || '';
-    if (addressField) addressField.value = profile.full_address || '';
+    if (addressField) addressField.value = profile.additional_address_details || '';
 
     const displayName = document.getElementById('profileDisplayName');
     const displayEmail = document.getElementById('profileDisplayEmail');
     if (displayName) displayName.textContent = profile.name || '';
     if (displayEmail) displayEmail.textContent = profile.email || '';
+    updateGlobalUserName(profile.name || '');
 
     const resolvedPhoto = photoUrl || profile.profile_photo_url || profile.profile_photo;
     setProfilePhoto(resolvedPhoto);
-    updateProfileStatistics(profile);
+    updateProfileStatistics(profileStats || profile);
 
     buyerOriginalProfile = {
         name: profile.name || '',
@@ -68,26 +109,26 @@ function populateProfileForm(profile, photoUrl) {
         street_name: profile.street_name || '',
         city: profile.city || '',
         postal_code: profile.postal_code || '',
-        full_address: profile.full_address || '',
+        additional_address_details: profile.additional_address_details || '',
         created_at: profile.created_at || '',
         orders_count: profile.total_orders ?? profile.orders_count ?? 0,
-        wishlist_count: profile.wishlist_items ?? profile.wishlist_count ?? 0,
-        reviews_count: profile.reviews_count ?? 0,
+        active_deliveries: profile.active_deliveries ?? 0,
         profile_photo: resolvedPhoto
     };
 }
 
-function updateProfileStatistics(profile) {
-    const memberSince = formatMonthYear(profile.created_at || profile.joined_at || '');
-    const statMember = document.getElementById('statMemberSince');
-    const statOrders = document.getElementById('statTotalOrders');
-    const statWishlist = document.getElementById('statWishlistItems');
-    const statReviews = document.getElementById('statReviewsGiven');
+function updateProfileStatistics(stats) {
+    const statMember = document.getElementById('memberSinceValue');
+    const statOrders = document.getElementById('totalOrdersValue');
+    const statActiveDeliveries = document.getElementById('activeDeliveriesValue');
+
+    const memberSince = formatDateLabel(stats.member_since || stats.created_at || stats.joined_at || '');
+    const totalOrders = stats.total_orders ?? stats.orders_count ?? 0;
+    const activeDeliveries = stats.active_deliveries ?? 0;
 
     if (statMember) statMember.textContent = memberSince;
-    if (statOrders) statOrders.textContent = profile.total_orders ?? profile.orders_count ?? 0;
-    if (statWishlist) statWishlist.textContent = profile.wishlist_items ?? profile.wishlist_count ?? 0;
-    if (statReviews) statReviews.textContent = profile.reviews_count ?? 0;
+    if (statOrders) statOrders.textContent = String(totalOrders);
+    if (statActiveDeliveries) statActiveDeliveries.textContent = String(activeDeliveries);
 }
 
 function clearFieldErrors(scope) {
@@ -107,11 +148,11 @@ function loadProfileData() {
     })
         .then(r => {
             if (!r.ok) throw new Error('Failed to load profile');
-            return r.json();
+            return parseJsonResponse(r);
         })
         .then(res => {
             if (res.success && res.profile) {
-                populateProfileForm(res.profile, res.photoUrl);
+                populateProfileForm(res.profile, res.photoUrl, res.profileStats || null);
             } else {
                 showNotification(res.error || 'Could not load profile', 'error');
             }
@@ -140,7 +181,7 @@ function saveProfileData() {
         additional_address_details: formData.get('additional_address_details') || ''
     };
 
-    const saveBtn = document.querySelector('.btn-save-profile');
+    const saveBtn = document.getElementById('saveProfileBtn');
     const originalText = saveBtn ? saveBtn.textContent : '';
     if (saveBtn) {
         saveBtn.disabled = true;
@@ -153,7 +194,7 @@ function saveProfileData() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams(data)
     })
-        .then(r => r.json())
+        .then(parseJsonResponse)
         .then(res => {
             if (saveBtn) {
                 saveBtn.disabled = false;
@@ -161,6 +202,7 @@ function saveProfileData() {
             }
 
             if (res.success) {
+                updateGlobalUserName(data.name);
                 showNotification(res.message || 'Profile updated', 'success');
                 loadProfileData();
                 return;
@@ -271,29 +313,205 @@ function removeProfilePhoto() {
 }
 
 function openChangePasswordModal() {
-    clearFieldErrors('#changePasswordModal');
-    const form = document.getElementById('changePasswordForm');
-    if (form) form.reset();
-    if (typeof openModal === 'function') {
-        openModal('changePasswordModal');
-    } else {
-        const modal = document.getElementById('changePasswordModal');
-        if (modal) modal.style.display = 'block';
-    }
+    openAccountSettingsModal();
+    toggleSettingsPanel('passwordSettingsPanel', true);
 }
 
 function closeChangePasswordModal() {
-    if (typeof closeModal === 'function') {
-        closeModal('changePasswordModal');
-    } else {
-        const modal = document.getElementById('changePasswordModal');
-        if (modal) modal.style.display = 'none';
+    closeModalCard('accountSettingsModal');
+}
+
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('show');
+}
+
+function closeModalCard(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('show');
+}
+
+function clearInlineStatus(statusId) {
+    const statusEl = document.getElementById(statusId);
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.classList.remove('success', 'error');
+    statusEl.classList.add('is-hidden');
+}
+
+function setInlineStatus(statusId, message, type) {
+    const statusEl = document.getElementById(statusId);
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove('is-hidden', 'success', 'error');
+    statusEl.classList.add(type === 'error' ? 'error' : 'success');
+}
+
+function toggleSettingsPanel(panelId, forceOpen) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('is-open');
+    const toggleBtn = document.querySelector(`.account-settings-toggle[data-settings-target="${panelId}"]`);
+
+    if (shouldOpen) {
+        document.querySelectorAll('.account-settings-panel').forEach(otherPanel => {
+            if (otherPanel.id !== panelId) otherPanel.classList.remove('is-open');
+        });
+        document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(otherBtn => {
+            if (otherBtn.getAttribute('data-settings-target') !== panelId) {
+                otherBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
     }
+
+    panel.classList.toggle('is-open', shouldOpen);
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+}
+
+function openAccountSettingsModal() {
+    const profileEmail = document.getElementById('profileEmail');
+    const accountEmail = document.getElementById('accountSettingsEmail');
+    if (profileEmail && accountEmail) {
+        accountEmail.value = profileEmail.value || '';
+    }
+
+    clearInlineStatus('emailChangeStatus');
+    clearInlineStatus('passwordChangeStatus');
+
+    const emailForm = document.getElementById('changeEmailForm');
+    const passwordForm = document.getElementById('changePasswordForm');
+    if (emailForm) emailForm.reset();
+    if (passwordForm) passwordForm.reset();
+
+    document.querySelectorAll('.account-settings-panel').forEach(panel => panel.classList.remove('is-open'));
+    document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+
+    openModal('accountSettingsModal');
+}
+
+function handleChangeEmailSubmit(event) {
+    event.preventDefault();
+
+    clearInlineStatus('emailChangeStatus');
+
+    const newEmail = (document.getElementById('newEmailAddress')?.value || '').trim().toLowerCase();
+    const password = document.getElementById('emailChangePassword')?.value || '';
+
+    if (!newEmail) {
+        setInlineStatus('emailChangeStatus', 'New email is required', 'error');
+        return;
+    }
+
+    if (!password) {
+        setInlineStatus('emailChangeStatus', 'Password confirmation is required', 'error');
+        return;
+    }
+
+    const submitBtn = document.getElementById('changeEmailBtn');
+    const originalText = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating...';
+    }
+
+    fetch(`${window.APP_ROOT}/buyerprofile/changeEmail`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            newEmail,
+            password
+        })
+    })
+        .then(r => r.json())
+        .then(res => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+
+            if (res.success) {
+                const profileEmail = document.getElementById('profileEmail');
+                const accountEmail = document.getElementById('accountSettingsEmail');
+                const displayEmail = document.getElementById('profileDisplayEmail');
+                if (profileEmail) profileEmail.value = res.email || newEmail;
+                if (accountEmail) accountEmail.value = res.email || newEmail;
+                if (displayEmail) displayEmail.textContent = res.email || newEmail;
+
+                const newEmailField = document.getElementById('newEmailAddress');
+                const passwordField = document.getElementById('emailChangePassword');
+                if (newEmailField) newEmailField.value = '';
+                if (passwordField) passwordField.value = '';
+
+                setInlineStatus('emailChangeStatus', res.message || 'Email updated successfully', 'success');
+                showNotification('Email updated successfully', 'success');
+                return;
+            }
+
+            if (res.errors && typeof res.errors === 'object') {
+                const message = Object.values(res.errors)[0] || 'Validation failed';
+                setInlineStatus('emailChangeStatus', String(message), 'error');
+                return;
+            }
+
+            setInlineStatus('emailChangeStatus', res.error || 'Failed to update email', 'error');
+        })
+        .catch(err => {
+            console.error('Change email error:', err);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+            setInlineStatus('emailChangeStatus', 'Error updating email', 'error');
+        });
+}
+
+function handleBuyerDeactivation() {
+    const btn = document.getElementById('confirmDeactivateBtn');
+    const originalText = btn ? btn.textContent : '';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+    }
+
+    fetch(`${window.APP_ROOT}/buyerprofile/requestDeactivation`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams()
+    })
+        .then(r => r.json())
+        .then(res => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+
+            if (res.success) {
+                showNotification(res.message || 'Account deactivated successfully', 'success');
+                if (res.redirect) {
+                    window.location.href = res.redirect;
+                }
+                return;
+            }
+
+            showNotification(res.error || 'Failed to deactivate account', 'error');
+        })
+        .catch(err => {
+            console.error('Deactivation error:', err);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+            showNotification('Error requesting deactivation', 'error');
+        });
 }
 
 function handleChangePasswordSubmit(event) {
     event.preventDefault();
-    clearFieldErrors('#changePasswordModal');
+    clearFieldErrors('#accountSettingsModal');
 
     const form = event.target;
     const formData = new FormData(form);
@@ -355,46 +573,68 @@ function handleChangePasswordSubmit(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadProfileData();
+
     const passwordForm = document.getElementById('changePasswordForm');
     if (passwordForm) {
         passwordForm.addEventListener('submit', handleChangePasswordSubmit);
     }
-    
-    // Initialize profile photo upload and hover functionality
-    if (document.getElementById('profilePhotoWrapper')) {
-        const photoDisplay = document.getElementById('profilePhotoDisplay');
-        const photoOverlay = document.getElementById('photoOverlay');
-        const photoWrapper = document.getElementById('profilePhotoWrapper');
-        
-        if (photoDisplay && photoOverlay && photoWrapper) {
-            const showOverlay = () => {
-                photoOverlay.style.opacity = '1';
-            };
-            const hideOverlay = () => {
-                photoOverlay.style.opacity = '0';
-            };
-            
-            photoWrapper.addEventListener('mouseenter', showOverlay);
-            photoWrapper.addEventListener('mouseleave', hideOverlay);
-            photoOverlay.addEventListener('mouseenter', showOverlay);
-            photoOverlay.addEventListener('mouseleave', hideOverlay);
-        }
-        
-        // Create hidden file input for photo upload
-        const profilePhotoInput = document.createElement('input');
-        profilePhotoInput.type = 'file';
-        profilePhotoInput.accept = 'image/*';
-        profilePhotoInput.id = 'profilePhotoInput';
-        profilePhotoInput.style.display = 'none';
-        document.body.appendChild(profilePhotoInput);
-        
-        profilePhotoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                uploadSelectedPhoto(file);
+
+    const emailForm = document.getElementById('changeEmailForm');
+    if (emailForm) {
+        emailForm.addEventListener('submit', handleChangeEmailSubmit);
+    }
+
+    const addPhotoBtn = document.getElementById('addPhotoBtn');
+    const changePhotoBtn = document.getElementById('changePhotoBtn');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+    if (addPhotoBtn) addPhotoBtn.addEventListener('click', triggerProfilePhotoUpload);
+    if (changePhotoBtn) changePhotoBtn.addEventListener('click', triggerProfilePhotoUpload);
+    if (removePhotoBtn) removePhotoBtn.addEventListener('click', removeProfilePhoto);
+
+    document.querySelectorAll('.profile-shortcut-card[data-open-modal]').forEach(card => {
+        card.addEventListener('click', function () {
+            const target = this.getAttribute('data-open-modal');
+            if (target === 'accountSettingsModal') {
+                openAccountSettingsModal();
+            } else {
+                openModal(target);
             }
         });
-    }
+    });
+
+    document.querySelectorAll('[data-open-modal]').forEach(btn => {
+        if (btn.classList.contains('profile-shortcut-card')) return;
+        btn.addEventListener('click', function () {
+            const target = this.getAttribute('data-open-modal');
+            if (target === 'accountSettingsModal') {
+                openAccountSettingsModal();
+            } else {
+                openModal(target);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            closeModalCard(this.getAttribute('data-close-modal'));
+        });
+    });
+
+    document.querySelectorAll('.modal.profile-modal').forEach(modal => {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) modal.classList.remove('show');
+        });
+    });
+
+    document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-settings-target');
+            if (targetId) toggleSettingsPanel(targetId);
+        });
+    });
+
+    const deactivateBtn = document.getElementById('confirmDeactivateBtn');
+    if (deactivateBtn) deactivateBtn.addEventListener('click', handleBuyerDeactivation);
 });
 
 // Namespaced API for inline handlers

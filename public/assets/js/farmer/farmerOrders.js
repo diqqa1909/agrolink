@@ -230,7 +230,7 @@
             return;
         }
 
-        fetch(`${APP_ROOT}/farmerorders/updateItemStatus`, {
+        fetch(`${APP_ROOT}/farmerorders/updateOrderStatus`, {
             method: 'POST',
             credentials: 'include',
             headers: {

@@ -1115,7 +1115,7 @@ function viewOrderDetails(orderId) {
                     <p style="margin: 0 0 4px 0;"><strong>Address:</strong> ${escapeHtml(order.delivery_address)}</p>
                     <p style="margin: 0 0 4px 0;"><strong>District:</strong> ${escapeHtml(order.district_name || order.delivery_city)}</p>
                     <p style="margin: 0 0 4px 0;"><strong>Phone:</strong> ${escapeHtml(order.delivery_phone)}</p>
-                    <p style="margin: 0;"><strong>Payment Method:</strong> ${escapeHtml(order.payment_method)}</p>
+                    <p style="margin: 0;"><strong>Payment Status:</strong> ${escapeHtml(order.payment_status || 'pending')}</p>
                 </div>
             `;
             } else {
