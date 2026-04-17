@@ -172,7 +172,6 @@
                                             <span class="delivery-date"><?= date('M d', strtotime('+3 days')) ?> - <?= date('M d', strtotime('+7 days')) ?></span>
                                         </div>
                                         <div class="shipping-method">Standard Shipping</div>
-                                        <div class="returns-policy">30 days returns accepted</div>
                                     </div>
                                     <div class="order-item-price">
                                         Rs. <?= number_format($item->product_price * $item->quantity, 2) ?>
