@@ -6,11 +6,13 @@ class BuyerReviewsController
 
     private $reviewModel;
     private $orderModel;
+    private $transporterFeedbackModel;
 
     public function __construct()
     {
         $this->reviewModel = new ReviewModel();
         $this->orderModel = new OrderModel();
+        $this->transporterFeedbackModel = new TransporterFeedbackModel();
     }
 
     public function index()
@@ -63,11 +65,25 @@ class BuyerReviewsController
         $transporterId = $_POST['transporter_id'] ?? null;
         $rating = $_POST['rating'] ?? null;
         $comment = trim($_POST['comment'] ?? '');
+        $complaintText = trim($_POST['complaint_text'] ?? '');
+        $satisfactionStatus = trim($_POST['satisfaction_status'] ?? 'neutral');
+        $validSatisfactionStatuses = ['very_satisfied', 'satisfied', 'neutral', 'dissatisfied', 'very_dissatisfied'];
 
         if (!$orderId || !$rating || !$comment) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'All fields are required']);
             exit;
+        }
+
+        $rating = (int)$rating;
+        if ($rating < 1 || $rating > 5) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Rating must be between 1 and 5']);
+            exit;
+        }
+
+        if (!in_array($satisfactionStatus, $validSatisfactionStatuses, true)) {
+            $satisfactionStatus = 'neutral';
         }
 
         if ($reviewType === 'transporter') {
@@ -90,30 +106,33 @@ class BuyerReviewsController
                 exit;
             }
 
-            $allowedTransporterStatuses = ['shipped', 'delivered'];
-            if (!in_array($orderContext->order_status, $allowedTransporterStatuses, true)) {
+            if ($orderContext->order_status !== 'delivered') {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Transporter reviews are available after order is shipped']);
+                echo json_encode(['success' => false, 'message' => 'Transporter reviews are available after delivery is completed']);
                 exit;
             }
 
             $canonicalProductId = (int)$orderContext->product_id;
-            if ($this->reviewModel->existsForTarget($orderId, $canonicalProductId, $buyerId, $transporterId)) {
+            if ($this->transporterFeedbackModel->hasFeedback('buyer', $buyerId, $transporterId, $orderId)) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'You have already reviewed this transporter for this order']);
                 exit;
             }
 
             $data = [
+                'reviewer_type' => 'buyer',
+                'reviewer_id' => $buyerId,
+                'transporter_id' => $transporterId,
                 'order_id' => $orderId,
-                'product_id' => $canonicalProductId,
-                'buyer_id' => $buyerId,
-                'farmer_id' => $transporterId,
                 'rating' => $rating,
-                'comment' => $comment
+                'review_text' => $comment,
+                'on_time_flag' => !empty($_POST['on_time_flag']),
+                'satisfaction_status' => $satisfactionStatus,
+                'complaint_text' => $complaintText,
+                'complaint_status' => $complaintText !== '' ? 'open' : 'none',
             ];
 
-            if ($this->reviewModel->createReview($data)) {
+            if ($this->transporterFeedbackModel->createFeedback($data)) {
                 echo json_encode(['success' => true, 'message' => 'Transporter review submitted successfully']);
             } else {
                 http_response_code(500);

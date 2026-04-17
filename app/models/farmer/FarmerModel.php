@@ -12,9 +12,13 @@ class FarmerModel
      */
     public function getProfileByUserId($userId)
     {
-        $sql = "SELECT fp.*, u.name, u.email 
+        $sql = "SELECT fp.*, u.name, u.email,
+                       d.district_name,
+                       t.town_name
                 FROM {$this->table} fp
                 LEFT JOIN {$this->userTable} u ON u.id = fp.user_id
+                LEFT JOIN districts d ON d.id = fp.district_id
+                LEFT JOIN towns t ON t.id = fp.town_id
                 WHERE fp.user_id = :user_id";
 
         return $this->get_row($sql, ['user_id' => $userId]);
@@ -26,13 +30,15 @@ class FarmerModel
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, district, crops_selling, full_address, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :district, :crops_selling, :full_address, :profile_photo, NOW(), NOW())";
+                (user_id, phone, district, district_id, town_id, crops_selling, full_address, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :district, :district_id, :town_id, :crops_selling, :full_address, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
-            'phone' => $data['phone'] ?? null,
+            'phone' => isset($data['phone']) ? normalize_phone_number($data['phone']) : null,
             'district' => $data['district'] ?? null,
+            'district_id' => !empty($data['district_id']) ? (int)$data['district_id'] : null,
+            'town_id' => !empty($data['town_id']) ? (int)$data['town_id'] : null,
             'crops_selling' => $data['crops_selling'] ?? null,
             'full_address' => $data['full_address'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
@@ -46,14 +52,16 @@ class FarmerModel
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'district', 'crops_selling', 'full_address', 'profile_photo'];
+        $allowed = ['phone', 'district', 'district_id', 'town_id', 'crops_selling', 'full_address', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $data)) {
                 $set[] = "$field = :$field";
-                $params[$field] = $data[$field];
+                $params[$field] = $field === 'phone'
+                    ? normalize_phone_number($data[$field])
+                    : $data[$field];
             }
         }
 
@@ -122,7 +130,7 @@ class FarmerModel
         }
 
         // Validate phone (required, exactly 10 digits)
-        $cleanPhone = preg_replace('/\D/', '', $data['phone'] ?? '');
+        $cleanPhone = normalize_phone_number($data['phone'] ?? '');
         if ($cleanPhone === '') {
             $errors['phone'] = 'Phone number is required';
         } elseif (!preg_match('/^\d{10}$/', $cleanPhone)) {
@@ -130,36 +138,32 @@ class FarmerModel
         }
 
         // Validate district (if provided)
-        if (!empty($data['district'])) {
-            $validDistricts = [
-                'Ampara',
-                'Anuradhapura',
-                'Badulla',
-                'Batticaloa',
-                'Colombo',
-                'Galle',
-                'Gampaha',
-                'Jaffna',
-                'Kalutara',
-                'Kandy',
-                'Kegalle',
-                'Kilinochchi',
-                'Kurunegala',
-                'Mannar',
-                'Matale',
-                'Matara',
-                'Mullaitivu',
-                'Nuwara Eliya',
-                'Polonnaruwa',
-                'Puttalam',
-                'Ratnapura',
-                'Trincomalee',
-                'Vavuniya'
-            ];
-
-            if (!in_array($data['district'], $validDistricts)) {
+        $locationModel = new LocationModel();
+        if (!empty($data['district_id'])) {
+            $district = $locationModel->getDistrictById((int)$data['district_id']);
+            if (!$district) {
                 $errors['district'] = 'Please select a valid district';
             }
+        } elseif (!empty($data['district'])) {
+            $district = $locationModel->getDistrictByName($data['district']);
+            if (!$district) {
+                $errors['district'] = 'Please select a valid district';
+            }
+        } else {
+            $errors['district'] = 'District is required';
+        }
+
+        if (!empty($data['town_id'])) {
+            if (empty($data['district_id'])) {
+                $errors['city'] = 'Please select a district first';
+            } else {
+                $town = $locationModel->getTownById((int)$data['town_id']);
+                if (!$town || (int)$town->district_id !== (int)$data['district_id']) {
+                    $errors['city'] = 'Please select a valid town/city';
+                }
+            }
+        } else {
+            $errors['city'] = 'Town/City is required';
         }
 
         // Validate crops selling (optional but if provided, must be valid)

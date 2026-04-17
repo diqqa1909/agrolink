@@ -26,16 +26,18 @@ class BuyerModel
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, apartment_code, street_name, city, district, postal_code, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :apartment_code, :street_name, :city, :district, :postal_code, :profile_photo, NOW(), NOW())";
+                (user_id, phone, apartment_code, street_name, city, district, district_id, town_id, postal_code, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :apartment_code, :street_name, :city, :district, :district_id, :town_id, :postal_code, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
-            'phone' => $data['phone'] ?? null,
+            'phone' => isset($data['phone']) ? normalize_phone_number($data['phone']) : null,
             'apartment_code' => $data['apartment_code'] ?? null,
             'street_name' => $data['street_name'] ?? null,
             'city' => $data['city'] ?? null,
             'district' => $data['district'] ?? null,
+            'district_id' => !empty($data['district_id']) ? (int)$data['district_id'] : null,
+            'town_id' => !empty($data['town_id']) ? (int)$data['town_id'] : null,
             'postal_code' => $data['postal_code'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
         ];
@@ -48,14 +50,16 @@ class BuyerModel
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'apartment_code', 'street_name', 'city', 'district', 'postal_code', 'profile_photo'];
+        $allowed = ['phone', 'apartment_code', 'street_name', 'city', 'district', 'district_id', 'town_id', 'postal_code', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $data)) {
                 $set[] = "$field = :$field";
-                $params[$field] = $data[$field];
+                $params[$field] = $field === 'phone'
+                    ? normalize_phone_number($data[$field])
+                    : $data[$field];
             }
         }
 
@@ -159,44 +163,32 @@ class BuyerModel
 
         // Validate phone (optional but if provided, must be valid)
         if (!empty($data['phone'])) {
-            // Remove all non-digit characters for validation
-            $cleanPhone = preg_replace('/[^0-9+]/', '', $data['phone']);
-
-            if (!preg_match('/^(\+?94|0)[0-9]{9}$/', $cleanPhone)) {
-                $errors['phone'] = 'Phone number must be a valid Sri Lankan number (e.g., +94XXXXXXXXX or 0XXXXXXXXX)';
+            if (!is_valid_phone_number($data['phone'])) {
+                $errors['phone'] = 'Phone number must contain exactly 10 digits';
             }
         }
 
-        // Validate district (if provided)
-        if (!empty($data['district'])) {
-            $validDistricts = [
-                'Ampara',
-                'Anuradhapura',
-                'Badulla',
-                'Batticaloa',
-                'Colombo',
-                'Galle',
-                'Gampaha',
-                'Jaffna',
-                'Kalutara',
-                'Kandy',
-                'Kegalle',
-                'Kilinochchi',
-                'Kurunegala',
-                'Mannar',
-                'Matale',
-                'Matara',
-                'Mullaitivu',
-                'Nuwara Eliya',
-                'Polonnaruwa',
-                'Puttalam',
-                'Ratnapura',
-                'Trincomalee',
-                'Vavuniya'
-            ];
-
-            if (!in_array($data['district'], $validDistricts)) {
+        $locationModel = new LocationModel();
+        if (!empty($data['district_id'])) {
+            $district = $locationModel->getDistrictById((int)$data['district_id']);
+            if (!$district) {
                 $errors['district'] = 'Please select a valid district';
+            }
+        } elseif (!empty($data['district'])) {
+            $district = $locationModel->getDistrictByName($data['district']);
+            if (!$district) {
+                $errors['district'] = 'Please select a valid district';
+            }
+        }
+
+        if (!empty($data['town_id'])) {
+            if (empty($data['district_id'])) {
+                $errors['city'] = 'Please select a district first';
+            } else {
+                $town = $locationModel->getTownById((int)$data['town_id']);
+                if (!$town || (int)$town->district_id !== (int)$data['district_id']) {
+                    $errors['city'] = 'Please select a valid town';
+                }
             }
         }
 

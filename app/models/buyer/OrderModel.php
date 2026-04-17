@@ -13,10 +13,12 @@ class OrderModel
     public function createOrder($orderData)
     {
         $sql = "INSERT INTO {$this->table} 
-            (buyer_id, total_amount, shipping_cost, order_total, payment_status,
+                (buyer_id, total_amount, shipping_cost, order_total, payment_method, 
+                 total_weight_kg,
                  delivery_address, delivery_city, delivery_district_id, delivery_town_id,
                  delivery_phone, status, created_at)
-            VALUES (:buyer_id, :total_amount, :shipping_cost, :order_total, :payment_status,
+                VALUES (:buyer_id, :total_amount, :shipping_cost, :order_total, :payment_method,
+                        :total_weight_kg,
                         :delivery_address, :delivery_city, :delivery_district_id, :delivery_town_id,
                         :delivery_phone, :status, NOW())";
 
@@ -321,15 +323,15 @@ class OrderModel
                     FROM {$this->orderItemsTable}
                     GROUP BY order_id
                 ) os ON os.order_id = o.id
-                LEFT JOIN reviews r
-                    ON r.order_id = o.id
-                    AND r.product_id = oi.product_id
-                    AND r.buyer_id = :buyer_id
-                    AND r.farmer_id = dr.transporter_id
+                LEFT JOIN transporter_feedback tf
+                    ON tf.order_id = o.id
+                    AND tf.reviewer_type = 'buyer'
+                    AND tf.reviewer_id = :buyer_id
+                    AND tf.transporter_id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('shipped', 'delivered')
+                AND o.status = 'delivered'
                 AND dr.transporter_id IS NOT NULL
-                AND r.id IS NULL
+                AND tf.id IS NULL
                 ORDER BY o.created_at DESC";
 
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
@@ -357,6 +359,7 @@ class OrderModel
                 ) first_item ON first_item.order_id = o.id
                 WHERE o.id = :order_id
                 AND o.buyer_id = :buyer_id
+                AND o.status = 'delivered'
                 LIMIT 1";
 
         return $this->get_row($sql, [

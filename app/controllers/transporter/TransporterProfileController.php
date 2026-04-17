@@ -6,13 +6,13 @@ class TransporterProfileController
 
     protected $transporterModel;
     protected $userModel;
-    protected $payoutAccountsModel;
+    protected $locationModel;
 
     public function __construct()
     {
         $this->transporterModel = new TransporterModel();
         $this->userModel = new UserModel();
-        $this->payoutAccountsModel = new PayoutAccountsModel();
+        $this->locationModel = new LocationModel();
     }
 
     /**
@@ -41,11 +41,21 @@ class TransporterProfileController
             $profile = $this->transporterModel->getProfileByUserId($userId);
         }
 
+        $profile = $this->hydrateProfileLocationIds($profile);
+
         // Build photo URL
         $photoUrl = null;
         if (!empty($profile->profile_photo)) {
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
+
+        // Get vehicle types from database
+        $vehicleTypeModel = new VehicleTypeModel();
+        $vehicleTypes = $vehicleTypeModel->getActiveTypes();
+        $districts = $this->locationModel->getDistricts();
+        $towns = !empty($profile->district_id)
+            ? $this->locationModel->getTownsByDistrict((int)$profile->district_id)
+            : [];
 
         // Load and display the profile view through transporterMain layout
         $maxEmailChanges = 2;
@@ -57,8 +67,9 @@ class TransporterProfileController
             'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
-            'emailChangesUsed' => $emailChangesUsed,
-            'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed),
+            'vehicleTypes' => $vehicleTypes,
+            'districts' => $districts,
+            'towns' => $towns,
             'contentView' => '../app/views/transporter/transporterProfileContent.view.php',
             'pageScript' => 'profile.js'
         ];
@@ -75,6 +86,23 @@ class TransporterProfileController
             return null;
         }
         return rtrim(ROOT, '/') . '/assets/images/transporter-profiles/' . rawurlencode($filename);
+    }
+
+    private function hydrateProfileLocationIds($profile)
+    {
+        if (!$profile) {
+            return $profile;
+        }
+
+        if (empty($profile->district_id) && !empty($profile->district)) {
+            $profile->district_id = $this->locationModel->resolveDistrictId($profile->district);
+        }
+
+        if (!empty($profile->district_id) && empty($profile->town_id) && !empty($profile->city)) {
+            $profile->town_id = $this->locationModel->resolveTownId($profile->city, (int)$profile->district_id);
+        }
+
+        return $profile;
     }
 
     /**
@@ -115,6 +143,8 @@ class TransporterProfileController
             $this->transporterModel->createProfile($userId, []);
             $profile = $this->transporterModel->getProfileByUserId($userId);
         }
+
+        $profile = $this->hydrateProfileLocationIds($profile);
 
         // Add computed photo URL for the frontend
         $photoUrl = null;
@@ -168,64 +198,125 @@ class TransporterProfileController
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
-                'phone' => trim($_POST['phone'] ?? ''),
+                'phone' => normalize_phone_number($_POST['phone'] ?? ''),
+                'apartment_code' => trim($_POST['apartment_code'] ?? ''),
+                'street_name' => trim($_POST['street_name'] ?? ''),
+                'city' => trim($_POST['city'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
+                'district_id' => is_numeric($_POST['district_id'] ?? null) ? (int)$_POST['district_id'] : 0,
+                'town_id' => is_numeric($_POST['town_id'] ?? null) ? (int)$_POST['town_id'] : 0,
+                'postal_code' => trim($_POST['postal_code'] ?? ''),
                 'full_address' => trim($_POST['full_address'] ?? ''),
                 'company_name' => trim($_POST['company_name'] ?? ''),
+                'license_number' => trim($_POST['license_number'] ?? ''),
+                'vehicle_type' => trim($_POST['vehicle_type'] ?? ''),
                 'availability' => trim($_POST['availability'] ?? '')
             ];
+
+            if ($data['district_id'] <= 0 && $data['district'] !== '') {
+                $data['district_id'] = (int)($this->locationModel->resolveDistrictId($data['district']) ?? 0);
+            }
+
+            if ($data['district_id'] > 0 && $data['town_id'] <= 0 && $data['city'] !== '') {
+                $data['town_id'] = (int)($this->locationModel->resolveTownId($data['city'], $data['district_id']) ?? 0);
+            }
+
+            if ($data['district_id'] > 0) {
+                $district = $this->locationModel->getDistrictById($data['district_id']);
+                $data['district'] = $district->district_name ?? '';
+            }
+
+            if ($data['town_id'] > 0) {
+                $town = $this->locationModel->getTownById($data['town_id']);
+                if ($town) {
+                    $data['city'] = $town->town_name;
+                }
+            }
 
             // Validate profile data at model level
             $validation = $this->transporterModel->validateProfile($data);
 
             if ($validation !== true) {
+                $firstError = reset($validation) ?: 'Validation failed';
                 http_response_code(422);
                 echo json_encode([
                     'success' => false,
                     'error' => 'Validation failed',
+                    'message' => $firstError,
                     'errors' => $validation
                 ]);
                 exit;
             }
 
-            // Name is editable from profile form; email changes should follow account settings/audit flow.
-            if (!empty($data['name'])) {
-                $this->userModel->update($userId, ['name' => $data['name']]);
-                setAuthUserName((string)$data['name']);
+            // Update name and email in users table if provided
+            if (!empty($data['name']) || !empty($data['email'])) {
+                $userUpdateData = [];
+
+                if (!empty($data['name'])) {
+                    $userUpdateData['name'] = $data['name'];
+                }
+
+                if (!empty($data['email'])) {
+                    // Check if email is already taken by another user
+                    $existingUser = $this->userModel->findByEmail($data['email']);
+                    if ($existingUser && $existingUser->id !== $userId) {
+                        http_response_code(422);
+                        echo json_encode([
+                            'success' => false,
+                            'error' => 'Validation failed',
+                            'message' => 'This email is already in use',
+                            'errors' => ['email' => 'This email is already in use']
+                        ]);
+                        exit;
+                    }
+                    $userUpdateData['email'] = $data['email'];
+                }
+
+                if (!empty($userUpdateData)) {
+                    $this->userModel->update($userId, $userUpdateData);
+
+                    // Update session with new name/email
+                    if (!empty($userUpdateData['name'])) {
+                        $_SESSION['USER']->name = $userUpdateData['name'];
+                    }
+                    if (!empty($userUpdateData['email'])) {
+                        $_SESSION['USER']->email = $userUpdateData['email'];
+                    }
+                }
             }
 
             // Prepare profile data (exclude name and email from transporter profile update)
             $profileData = [
                 'phone' => $data['phone'],
+                'apartment_code' => $data['apartment_code'],
+                'street_name' => $data['street_name'],
+                'city' => $data['city'],
                 'district' => $data['district'],
+                'district_id' => $data['district_id'],
+                'town_id' => $data['town_id'],
+                'postal_code' => $data['postal_code'],
                 'full_address' => $data['full_address'],
                 'company_name' => $data['company_name'],
+                'license_number' => $data['license_number'],
+                'vehicle_type' => $data['vehicle_type'],
                 'availability' => $data['availability']
             ];
 
-            // DEBUG: Log profile data
-            error_log("=== TRANSPORTER PROFILE SAVE DEBUG ===");
-            error_log("User ID: " . $userId);
-            error_log("Profile Data: " . json_encode($profileData));
-
-            // Check if profile exists
             $existingProfile = $this->transporterModel->getProfileByUserId($userId);
-            error_log("Existing Profile: " . ($existingProfile ? "Found (ID: {$existingProfile->id})" : "Not Found"));
 
             if (!$existingProfile) {
-                // Create profile
                 $result = $this->transporterModel->createProfile($userId, $profileData);
-                error_log("Create Profile Result: " . ($result ? "SUCCESS" : "FAILED"));
             } else {
-                // Update profile
                 $result = $this->transporterModel->updateProfile($userId, $profileData);
-                error_log("Update Profile Result: " . ($result ? "SUCCESS" : "FAILED"));
             }
 
             if ($result) {
+                $profile = $this->hydrateProfileLocationIds($this->transporterModel->getProfileByUserId($userId));
+
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Profile updated successfully'
+                    'message' => 'Profile updated successfully',
+                    'profile' => $profile
                 ]);
             } else {
                 http_response_code(500);
@@ -619,10 +710,11 @@ class TransporterProfileController
 
         $userId = (int)authUserId();
         $payload = [
-            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? $_POST['account_holder'] ?? '')),
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
             'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
             'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
             'account_number' => trim((string)($_POST['account_number'] ?? '')),
+            'account_type' => trim((string)($_POST['account_type'] ?? '')),
             'is_default' => 1,
         ];
 
@@ -672,6 +764,7 @@ class TransporterProfileController
         }
 
         $userId = (int)authUserId();
+        $reason = trim((string)($_POST['reason'] ?? ''));
 
         $incompleteDeliveryCount = $this->transporterModel->countIncompleteDeliveries($userId);
         if ($incompleteDeliveryCount > 0) {
@@ -680,14 +773,12 @@ class TransporterProfileController
             echo json_encode([
                 'success' => false,
                 'error' => 'Cannot deactivate account while ' . $incompleteDeliveryCount . ' ' . $deliveryLabel . ' still incomplete.',
-                'blockedType' => 'deliveries',
-                'blockedCount' => $incompleteDeliveryCount,
                 'incompleteDeliveryCount' => $incompleteDeliveryCount,
             ]);
             exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, '');
+        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
         if (!$deactivated) {
             http_response_code(500);
             echo json_encode([
@@ -704,6 +795,42 @@ class TransporterProfileController
             'message' => 'Account deactivated successfully.',
             'redirect' => ROOT . '/login?deactivated=1',
         ]);
+        exit;
+    }
+
+    /**
+     * Mark transporter's license as verified (admin-only action).
+     * Also allows the transporter themselves to re-submit for review.
+     * POST /transporterprofile/verifyLicense
+     */
+    public function verifyLicense()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!hasRole('transporter') && !hasRole('admin')) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $userId = authUserId();
+        $targetUserId = hasRole('admin') && !empty($_POST['user_id']) ? (int)$_POST['user_id'] : $userId;
+
+        // Admins can verify, transporters submit for re-review (sets verified=0 until admin acts)
+        $verified = hasRole('admin') ? 1 : 0;
+        $data = [
+            'license_verified' => $verified,
+            'license_verified_at' => $verified ? date('Y-m-d H:i:s') : null,
+        ];
+
+        $this->transporterModel->updateProfile($targetUserId, $data);
+
+        $msg = $verified
+            ? 'License marked as verified successfully.'
+            : 'License verification request submitted. Admin will review shortly.';
+
+        echo json_encode(['success' => true, 'message' => $msg]);
         exit;
     }
 }

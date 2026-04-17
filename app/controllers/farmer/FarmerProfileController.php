@@ -6,15 +6,13 @@ class FarmerProfileController
 
     protected $farmerModel;
     protected $userModel;
-    protected $payoutAccountsModel;
-    protected $orderModel;
+    protected $locationModel;
 
     public function __construct()
     {
         $this->farmerModel = new FarmerModel();
         $this->userModel = new UserModel();
-        $this->payoutAccountsModel = new PayoutAccountsModel();
-        $this->orderModel = new OrderModel();
+        $this->locationModel = new LocationModel();
     }
 
     /**
@@ -57,6 +55,8 @@ class FarmerProfileController
             'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
+            'districts' => $this->locationModel->getDistricts(),
+            'towns' => !empty($profile->district_id) ? $this->locationModel->getTownsByDistrict((int)$profile->district_id) : [],
             'contentView' => '../app/views/farmer/farmerProfileContent.view.php',
             'pageScript' => 'profile.js'
         ];
@@ -153,35 +153,79 @@ class FarmerProfileController
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
-                'phone' => preg_replace('/\D/', '', trim($_POST['phone'] ?? '')),
+                'phone' => normalize_phone_number($_POST['phone'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
+                'district_id' => (int)($_POST['district_id'] ?? 0),
+                'town_id' => (int)($_POST['town_id'] ?? 0),
                 'crops_selling' => trim($_POST['crops_selling'] ?? ''),
                 'full_address' => trim($_POST['full_address'] ?? '')
             ];
+
+            if ($data['district_id'] > 0) {
+                $district = $this->locationModel->getDistrictById($data['district_id']);
+                if ($district) {
+                    $data['district'] = $district->district_name;
+                }
+            }
 
             // Validate profile data at model level
             $validation = $this->farmerModel->validateProfile($data);
 
             if ($validation !== true) {
+                $firstError = reset($validation) ?: 'Validation failed';
                 http_response_code(422);
                 echo json_encode([
                     'success' => false,
                     'error' => 'Validation failed',
+                    'message' => $firstError,
                     'errors' => $validation
                 ]);
                 exit;
             }
 
-            // Name is editable from profile form; email changes are handled via Account Settings.
-            if (!empty($data['name'])) {
-                $this->userModel->update($userId, ['name' => $data['name']]);
-                setAuthUserName((string)$data['name']);
+            // Update name and email in users table if provided
+            if (!empty($data['name']) || !empty($data['email'])) {
+                $userUpdateData = [];
+
+                if (!empty($data['name'])) {
+                    $userUpdateData['name'] = $data['name'];
+                }
+
+                if (!empty($data['email'])) {
+                    // Check if email is already taken by another user
+                    $existingUser = $this->userModel->findByEmail($data['email']);
+                    if ($existingUser && $existingUser->id !== $userId) {
+                        http_response_code(422);
+                        echo json_encode([
+                            'success' => false,
+                            'error' => 'Validation failed',
+                            'message' => 'This email is already in use',
+                            'errors' => ['email' => 'This email is already in use']
+                        ]);
+                        exit;
+                    }
+                    $userUpdateData['email'] = $data['email'];
+                }
+
+                if (!empty($userUpdateData)) {
+                    $this->userModel->update($userId, $userUpdateData);
+
+                    // Update session with new name/email
+                    if (!empty($userUpdateData['name'])) {
+                        $_SESSION['USER']->name = $userUpdateData['name'];
+                    }
+                    if (!empty($userUpdateData['email'])) {
+                        $_SESSION['USER']->email = $userUpdateData['email'];
+                    }
+                }
             }
 
             // Prepare profile data (exclude name and email from farmer profile update)
             $profileData = [
                 'phone' => $data['phone'],
                 'district' => $data['district'],
+                'district_id' => $data['district_id'] > 0 ? $data['district_id'] : null,
+                'town_id' => $data['town_id'] > 0 ? $data['town_id'] : null,
                 'crops_selling' => $data['crops_selling'],
                 'full_address' => $data['full_address']
             ];

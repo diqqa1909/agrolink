@@ -10,15 +10,19 @@ class VehicleModel
         'type',
         'vehicle_type_id',
         'registration',
+        'license_number',
+        'vehicle_image',
+        'license_verified',
         'capacity',
         'fuel_type',
         'model',
-        'status'
+        'status',
+        'is_selected'
     ];
 
     public function getByUserId($user_id)
     {
-        $query = "SELECT * FROM $this->table WHERE transporter_id = :transporter_id ORDER BY created_at DESC";
+        $query = "SELECT * FROM $this->table WHERE transporter_id = :transporter_id ORDER BY is_selected DESC, created_at DESC";
         $result = $this->query($query, ['transporter_id' => $user_id]);
         return is_array($result) ? $result : [];
     }
@@ -36,11 +40,22 @@ class VehicleModel
             $data['status'] = 'active';
         }
 
+        if (!isset($data['is_selected'])) {
+            $data['is_selected'] = 0;
+        }
+
+        if (!empty($data['registration'])) {
+            $data['registration'] = normalize_vehicle_registration($data['registration']);
+        }
+
         return $this->insert($data);
     }
 
     public function updateVehicle($id, $data)
     {
+        if (!empty($data['registration'])) {
+            $data['registration'] = normalize_vehicle_registration($data['registration']);
+        }
         return $this->update($id, $data);
     }
 
@@ -67,6 +82,38 @@ class VehicleModel
         return $this->write($query, ['transporter_id' => $user_id]) !== false;
     }
 
+    public function setSelectedVehicle($vehicleId, $userId)
+    {
+        $this->write(
+            "UPDATE {$this->table} SET is_selected = 0 WHERE transporter_id = :transporter_id",
+            ['transporter_id' => (int)$userId]
+        );
+
+        return $this->write(
+            "UPDATE {$this->table}
+             SET is_selected = 1, updated_at = CURRENT_TIMESTAMP
+             WHERE id = :id AND transporter_id = :transporter_id",
+            [
+                'id' => (int)$vehicleId,
+                'transporter_id' => (int)$userId,
+            ]
+        );
+    }
+
+    public function getSelectedVehicleByUserId($userId)
+    {
+        $result = $this->query(
+            "SELECT *
+             FROM {$this->table}
+             WHERE transporter_id = :transporter_id
+             AND is_selected = 1
+             LIMIT 1",
+            ['transporter_id' => (int)$userId]
+        );
+
+        return (is_array($result) && !empty($result)) ? $result[0] : false;
+    }
+
     public function validate($data)
     {
         $this->errors = [];
@@ -77,6 +124,11 @@ class VehicleModel
 
         if (empty($data['registration'])) {
             $this->errors['registration'] = "Registration number is required";
+        } else {
+            $data['registration'] = normalize_vehicle_registration($data['registration']);
+            if (!is_valid_vehicle_registration($data['registration'])) {
+                $this->errors['registration'] = "Registration must be 2 or 3 uppercase letters followed by 4 numbers (e.g. WP 1234)";
+            }
         }
 
         // Capacity is now automatically set based on vehicle type
@@ -100,5 +152,28 @@ class VehicleModel
         }
 
         return empty($this->errors);
+    }
+
+    /**
+     * Update vehicle image filename
+     */
+    public function updateVehicleImage($vehicleId, $filename)
+    {
+        return $this->write(
+            "UPDATE {$this->table} SET vehicle_image = :vehicle_image, updated_at = NOW() WHERE id = :id",
+            ['id' => (int)$vehicleId, 'vehicle_image' => $filename]
+        );
+    }
+
+    /**
+     * Get vehicles belonging to a user filtered by vehicle id
+     */
+    public function getByUserIdAndVehicleId($userId, $vehicleId)
+    {
+        $result = $this->query(
+            "SELECT * FROM {$this->table} WHERE transporter_id = :transporter_id AND id = :id LIMIT 1",
+            ['transporter_id' => (int)$userId, 'id' => (int)$vehicleId]
+        );
+        return (is_array($result) && !empty($result)) ? $result[0] : false;
     }
 }

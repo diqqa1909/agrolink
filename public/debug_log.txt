@@ -1,0 +1,600 @@
+2026-02-03 07:03:37 - placeOrder Called
+Session ID: tvogebbijod3c8r4b2cgs13rfh
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 38
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryOoiKE4HXWK0XXiwq
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=38
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=tvogebbijod3c8r4b2cgs13rfh
+)
+
+2026-02-03 07:14:47 - placeOrder Called
+Session ID: tvogebbijod3c8r4b2cgs13rfh
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundarydLAbIWJp5ajBtZ0Q
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=tvogebbijod3c8r4b2cgs13rfh
+)
+
+2026-02-06 06:46:06 - placeOrder Called
+Session ID: d65vrrdmc3abfel2fpfg94sl83
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 38
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryaDgmcXwWiQ03DLTE
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=38
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=d65vrrdmc3abfel2fpfg94sl83
+)
+
+2026-02-06 07:57:19 - placeOrder Called
+Session ID: 5il82l3n61dm3boq8r87a36vg0
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 39
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryltGoSEp2m3Akoyqm
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=39
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=5il82l3n61dm3boq8r87a36vg0
+)
+
+2026-02-06 08:16:19 - placeOrder Called
+Session ID: pr8ctrr7nq4r6e379l2cdkdvca
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 41
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryqvAEIWRA8cpNsTG5
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=pr8ctrr7nq4r6e379l2cdkdvca
+)
+
+2026-02-09 08:55:53 - placeOrder Called
+Session ID: ckm56nqlkjj7bkv39cmmplgk2o
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 35
+            [name] => W.P.Perera
+            [email] => wp@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-01-05 23:35:34
+            [updated_at] => 2026-01-21 19:47:49
+        )
+
+    [buy_now_product_id] => 38
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 158
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryTj7VjJEf6QJUVvdq
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=38
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=ckm56nqlkjj7bkv39cmmplgk2o
+)
+
+2026-02-09 18:52:06 - placeOrder Called
+Session ID: du9e123iv49eajvbvmklnq1h7r
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 35
+            [name] => W.P.Perera
+            [email] => wp@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-01-05 23:35:34
+            [updated_at] => 2026-01-21 19:47:49
+        )
+
+    [buy_now_product_id] => 44
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryXvWnn5aMAoA1H7Uf
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=44
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=du9e123iv49eajvbvmklnq1h7r
+)
+
+2026-02-09 21:04:06 - placeOrder Called
+Session ID: 43csa11u54jaokkkqq3sgoubml
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 43
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 158
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundarygNiQE1iRyllcQ7Bd
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=43
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=43csa11u54jaokkkqq3sgoubml
+)
+
+2026-02-09 21:29:59 - placeOrder Called
+Session ID: 43csa11u54jaokkkqq3sgoubml
+Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 11
+            [name] => Yomal Chandima
+            [email] => yc@gmail.com
+            [password] => 12345678
+            [role] => buyer
+            [status] => active
+            [created_at] => 2025-10-19 17:44:27
+            [updated_at] => 2026-01-21 19:49:54
+        )
+
+    [buy_now_product_id] => 35
+)
+
+Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryUDXArIFyKvTaxiEb
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/Checkout?buy_now=1&product_id=35
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-GB,en-US;q=0.9,en;q=0.8
+    [Cookie] => PHPSESSID=43csa11u54jaokkkqq3sgoubml
+)
+
+2026-04-12 10:27:20 - placeOrder Called
+2026-04-12 10:27:20 - Session ID: d4phm53n3kc55r36vreqrpvh5n
+2026-04-12 10:27:20 - Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 42
+            [name] => buyer1
+            [email] => buy1@gmail.com
+            [password] => $2y$10$n5Tx2ZTVXXYm.geP7P4IZeTiIf4S/nUOXeqQ6xd5.slyt7TUcFzSO
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-04-12 13:31:40
+            [updated_at] => 2026-04-12 13:31:40
+        )
+
+    [buy_now_product_id] => 59
+)
+
+2026-04-12 10:27:20 - Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryytdnj6HFSCLZorLv
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-US,en;q=0.9,si;q=0.8
+    [Cookie] => ph_phc_XER41Cya8lZH6DXgQpNpHZb8NRHljrXBBJ8VSOeqBqG_posthog=%7B%22distinct_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24device_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24user_state%22%3A%22anonymous%22%2C%22%24session_recording_enabled_server_side%22%3Afalse%2C%22%24autocapture_disabled_server_side%22%3Afalse%2C%22%24active_feature_flags%22%3A%5B%22hero_text_test2%22%2C%22hero_text%22%2C%22extension-notice%22%5D%2C%22%24enabled_feature_flags%22%3A%7B%22hero_text_test2%22%3A%22control%22%2C%22hero_text%22%3A%22control%22%2C%22extension-notice%22%3Atrue%7D%2C%22%24feature_flag_payloads%22%3A%7B%7D%7D; PHPSESSID=d4phm53n3kc55r36vreqrpvh5n
+)
+
+2026-04-12 10:27:20 - Product 59 (Banana) - Farmer ID: 40
+2026-04-12 10:27:21 - Inserting order item: {"order_id":45,"product_id":"59","product_name":"Banana","product_price":"12.00","quantity":2,"item_weight_kg":3.2,"farmer_id":40}
+2026-04-12 10:27:21 - Add order item result: SUCCESS
+2026-04-12 10:31:01 - placeOrder Called
+2026-04-12 10:31:01 - Session ID: mev151r6afhg01nb4eoefhl2ic
+2026-04-12 10:31:01 - Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 43
+            [name] => buyer2
+            [email] => buy2@gmail.com
+            [password] => $2y$10$OGvs1pc3XhMSouEh.JzG7Oq8OT6CNXhWfRdh3xfvENsAHJYq2t.gu
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-04-12 13:32:10
+            [updated_at] => 2026-04-12 13:32:10
+        )
+
+)
+
+2026-04-12 10:31:01 - Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundary7amR6q17RIPOXV7A
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-US,en;q=0.9,si;q=0.8
+    [Cookie] => ph_phc_XER41Cya8lZH6DXgQpNpHZb8NRHljrXBBJ8VSOeqBqG_posthog=%7B%22distinct_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24device_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24user_state%22%3A%22anonymous%22%2C%22%24session_recording_enabled_server_side%22%3Afalse%2C%22%24autocapture_disabled_server_side%22%3Afalse%2C%22%24active_feature_flags%22%3A%5B%22hero_text_test2%22%2C%22hero_text%22%2C%22extension-notice%22%5D%2C%22%24enabled_feature_flags%22%3A%7B%22hero_text_test2%22%3A%22control%22%2C%22hero_text%22%3A%22control%22%2C%22extension-notice%22%3Atrue%7D%2C%22%24feature_flag_payloads%22%3A%7B%7D%7D; PHPSESSID=mev151r6afhg01nb4eoefhl2ic
+)
+
+2026-04-12 10:31:01 - Product 55 (Cabbage) - Farmer ID: 38
+2026-04-12 10:31:01 - Product 56 (Chili) - Farmer ID: 39
+2026-04-12 10:31:01 - Product 61 (Chili) - Farmer ID: 40
+2026-04-12 10:31:01 - Product 58 (Beans) - Farmer ID: 39
+2026-04-12 10:31:01 - Inserting order item: {"order_id":46,"product_id":"55","product_name":"Cabbage","product_price":"56.00","quantity":2,"item_weight_kg":3.2,"farmer_id":38}
+2026-04-12 10:31:01 - Add order item result: SUCCESS
+2026-04-12 10:31:02 - Inserting order item: {"order_id":47,"product_id":"56","product_name":"Chili","product_price":"45.00","quantity":2,"item_weight_kg":2.2,"farmer_id":39}
+2026-04-12 10:31:02 - Add order item result: SUCCESS
+2026-04-12 10:31:02 - Inserting order item: {"order_id":47,"product_id":"58","product_name":"Beans","product_price":"50.00","quantity":2,"item_weight_kg":2.4,"farmer_id":39}
+2026-04-12 10:31:02 - Add order item result: SUCCESS
+2026-04-12 10:31:02 - Inserting order item: {"order_id":48,"product_id":"61","product_name":"Chili","product_price":"150.00","quantity":2,"item_weight_kg":2.2,"farmer_id":40}
+2026-04-12 10:31:02 - Add order item result: SUCCESS
+2026-04-12 10:32:19 - placeOrder Called
+2026-04-12 10:32:19 - Session ID: mev151r6afhg01nb4eoefhl2ic
+2026-04-12 10:32:19 - Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 43
+            [name] => buyer2
+            [email] => buy2@gmail.com
+            [password] => $2y$10$OGvs1pc3XhMSouEh.JzG7Oq8OT6CNXhWfRdh3xfvENsAHJYq2t.gu
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-04-12 13:32:10
+            [updated_at] => 2026-04-12 13:32:10
+        )
+
+)
+
+2026-04-12 10:32:19 - Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryfAsIHtBNzu0jWRUY
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-US,en;q=0.9,si;q=0.8
+    [Cookie] => ph_phc_XER41Cya8lZH6DXgQpNpHZb8NRHljrXBBJ8VSOeqBqG_posthog=%7B%22distinct_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24device_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24user_state%22%3A%22anonymous%22%2C%22%24session_recording_enabled_server_side%22%3Afalse%2C%22%24autocapture_disabled_server_side%22%3Afalse%2C%22%24active_feature_flags%22%3A%5B%22hero_text_test2%22%2C%22hero_text%22%2C%22extension-notice%22%5D%2C%22%24enabled_feature_flags%22%3A%7B%22hero_text_test2%22%3A%22control%22%2C%22hero_text%22%3A%22control%22%2C%22extension-notice%22%3Atrue%7D%2C%22%24feature_flag_payloads%22%3A%7B%7D%7D; PHPSESSID=mev151r6afhg01nb4eoefhl2ic
+)
+
+2026-04-12 10:32:19 - Product 49 (Banana) - Farmer ID: 23
+2026-04-12 10:32:19 - Product 55 (Cabbage) - Farmer ID: 38
+2026-04-12 10:32:19 - Product 54 (Orange) - Farmer ID: 38
+2026-04-12 10:32:19 - Inserting order item: {"order_id":49,"product_id":"49","product_name":"Banana","product_price":"100.00","quantity":1,"item_weight_kg":1.6,"farmer_id":23}
+2026-04-12 10:32:19 - Add order item result: SUCCESS
+2026-04-12 10:32:19 - Inserting order item: {"order_id":50,"product_id":"55","product_name":"Cabbage","product_price":"56.00","quantity":1,"item_weight_kg":1.6,"farmer_id":38}
+2026-04-12 10:32:19 - Add order item result: SUCCESS
+2026-04-12 10:32:19 - Inserting order item: {"order_id":50,"product_id":"54","product_name":"Orange","product_price":"120.00","quantity":1,"item_weight_kg":1.5,"farmer_id":38}
+2026-04-12 10:32:19 - Add order item result: SUCCESS
+2026-04-12 10:33:57 - placeOrder Called
+2026-04-12 10:33:57 - Session ID: 3gpt8lv6541mom53lsj1u936um
+2026-04-12 10:33:57 - Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 44
+            [name] => buyer3
+            [email] => buy3@gmail.com
+            [password] => $2y$10$hbk4NI4KzAunsZO6C7jv7OGLPSc6VQq/V7aUR2xKeUUkI04Dva/gS
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-04-12 13:32:42
+            [updated_at] => 2026-04-12 13:32:42
+        )
+
+)
+
+2026-04-12 10:33:57 - Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundaryOANy3vrjLnkZWv0U
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-US,en;q=0.9,si;q=0.8
+    [Cookie] => ph_phc_XER41Cya8lZH6DXgQpNpHZb8NRHljrXBBJ8VSOeqBqG_posthog=%7B%22distinct_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24device_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24user_state%22%3A%22anonymous%22%2C%22%24session_recording_enabled_server_side%22%3Afalse%2C%22%24autocapture_disabled_server_side%22%3Afalse%2C%22%24active_feature_flags%22%3A%5B%22hero_text_test2%22%2C%22hero_text%22%2C%22extension-notice%22%5D%2C%22%24enabled_feature_flags%22%3A%7B%22hero_text_test2%22%3A%22control%22%2C%22hero_text%22%3A%22control%22%2C%22extension-notice%22%3Atrue%7D%2C%22%24feature_flag_payloads%22%3A%7B%7D%7D; PHPSESSID=3gpt8lv6541mom53lsj1u936um
+)
+
+2026-04-12 10:33:57 - Product 50 (Carrot) - Farmer ID: 37
+2026-04-12 10:33:57 - Product 47 (Pumpkin) - Farmer ID: 23
+2026-04-12 10:33:57 - Inserting order item: {"order_id":51,"product_id":"50","product_name":"Carrot","product_price":"48.00","quantity":1,"item_weight_kg":1,"farmer_id":37}
+2026-04-12 10:33:57 - Add order item result: SUCCESS
+2026-04-12 10:33:58 - Inserting order item: {"order_id":52,"product_id":"47","product_name":"Pumpkin","product_price":"95.00","quantity":1,"item_weight_kg":2.2,"farmer_id":23}
+2026-04-12 10:33:58 - Add order item result: SUCCESS
+2026-04-12 10:35:39 - placeOrder Called
+2026-04-12 10:35:39 - Session ID: fhtabp41g6lcoclhr1i4bs80k1
+2026-04-12 10:35:39 - Session Data: Array
+(
+    [USER] => stdClass Object
+        (
+            [id] => 46
+            [name] => buyer4
+            [email] => buy4@gmail.com
+            [password] => $2y$10$Qw9Fs94QdW6yADM7HbQGGesxxPgluw6RpdDhismiMyp3b7.Q2vBDi
+            [role] => buyer
+            [status] => active
+            [created_at] => 2026-04-12 13:34:49
+            [updated_at] => 2026-04-12 13:34:49
+        )
+
+)
+
+2026-04-12 10:35:39 - Headers: Array
+(
+    [Host] => localhost
+    [Connection] => keep-alive
+    [Content-Length] => 161
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+    [sec-ch-ua] => "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"
+    [Content-Type] => multipart/form-data; boundary=----WebKitFormBoundarysevbKElUaU5hnQRA
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost
+    [Sec-Fetch-Site] => same-origin
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost/agrolink/public/checkout
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-US,en;q=0.9,si;q=0.8
+    [Cookie] => ph_phc_XER41Cya8lZH6DXgQpNpHZb8NRHljrXBBJ8VSOeqBqG_posthog=%7B%22distinct_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24device_id%22%3A%22019734d2-84fc-73cd-bbc2-b87567b1b759%22%2C%22%24user_state%22%3A%22anonymous%22%2C%22%24session_recording_enabled_server_side%22%3Afalse%2C%22%24autocapture_disabled_server_side%22%3Afalse%2C%22%24active_feature_flags%22%3A%5B%22hero_text_test2%22%2C%22hero_text%22%2C%22extension-notice%22%5D%2C%22%24enabled_feature_flags%22%3A%7B%22hero_text_test2%22%3A%22control%22%2C%22hero_text%22%3A%22control%22%2C%22extension-notice%22%3Atrue%7D%2C%22%24feature_flag_payloads%22%3A%7B%7D%7D; PHPSESSID=fhtabp41g6lcoclhr1i4bs80k1
+)
+
+2026-04-12 10:35:39 - Product 49 (Banana) - Farmer ID: 23
+2026-04-12 10:35:39 - Product 44 (Orange) - Farmer ID: 23
+2026-04-12 10:35:39 - Product 54 (Orange) - Farmer ID: 38
+2026-04-12 10:35:39 - Product 52 (Leeks) - Farmer ID: 37
+2026-04-12 10:35:39 - Product 57 (Ginger) - Farmer ID: 39
+2026-04-12 10:35:39 - Inserting order item: {"order_id":53,"product_id":"49","product_name":"Banana","product_price":"100.00","quantity":1,"item_weight_kg":1.6,"farmer_id":23}
+2026-04-12 10:35:39 - Add order item result: SUCCESS
+2026-04-12 10:35:39 - Inserting order item: {"order_id":53,"product_id":"44","product_name":"Orange","product_price":"45.00","quantity":1,"item_weight_kg":1.5,"farmer_id":23}
+2026-04-12 10:35:39 - Add order item result: SUCCESS
+2026-04-12 10:35:39 - Inserting order item: {"order_id":54,"product_id":"54","product_name":"Orange","product_price":"120.00","quantity":1,"item_weight_kg":1.5,"farmer_id":38}
+2026-04-12 10:35:39 - Add order item result: SUCCESS
+2026-04-12 10:35:39 - Inserting order item: {"order_id":55,"product_id":"52","product_name":"Leeks","product_price":"45.00","quantity":1,"item_weight_kg":1.4,"farmer_id":37}
+2026-04-12 10:35:39 - Add order item result: SUCCESS
+2026-04-12 10:35:39 - Inserting order item: {"order_id":56,"product_id":"57","product_name":"Ginger","product_price":"45.00","quantity":1,"item_weight_kg":1.2,"farmer_id":39}
+2026-04-12 10:35:39 - Add order item result: SUCCESS

@@ -6,13 +6,13 @@ class BuyerProfileController
 
     protected $buyerModel;
     protected $userModel;
-    protected $orderModel;
+    protected $locationModel;
 
     public function __construct()
     {
         $this->buyerModel = new BuyerModel();
         $this->userModel = new UserModel();
-        $this->orderModel = new OrderModel();
+        $this->locationModel = new LocationModel();
     }
 
     /**
@@ -42,8 +42,8 @@ class BuyerProfileController
             'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
-            'profileStats' => $profileStats,
-            'pageStyles' => 'profile.css',
+            'districts' => $this->locationModel->getDistricts(),
+            'towns' => !empty($profile->district_id) ? $this->locationModel->getTownsByDistrict((int)$profile->district_id) : [],
             'pageScript' => 'profile.js',
             'contentView' => 'buyer/buyerProfileContent.view.php'
         ];
@@ -212,42 +212,94 @@ class BuyerProfileController
             // Get POST data
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
-                'phone' => trim($_POST['phone'] ?? ''),
+                'email' => trim($_POST['email'] ?? ''),
+                'phone' => normalize_phone_number($_POST['phone'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
+                'district_id' => (int)($_POST['district_id'] ?? 0),
                 'apartment_code' => trim($_POST['apartment_code'] ?? ''),
                 'street_name' => trim($_POST['street_name'] ?? ''),
                 'city' => trim($_POST['city'] ?? ''),
-                'postal_code' => trim($_POST['postal_code'] ?? ''),
-                'additional_address_details' => trim($_POST['additional_address_details'] ?? ''),
+                'town_id' => (int)($_POST['town_id'] ?? 0),
+                'postal_code' => trim($_POST['postal_code'] ?? '')
             ];
+
+            if ($data['district_id'] > 0) {
+                $district = $this->locationModel->getDistrictById($data['district_id']);
+                if ($district) {
+                    $data['district'] = $district->district_name;
+                }
+            }
+
+            if ($data['town_id'] > 0) {
+                $town = $this->locationModel->getTownById($data['town_id']);
+                if ($town) {
+                    $data['city'] = $town->town_name;
+                }
+            }
 
             // Validate profile data at model level
             $validation = $this->buyerModel->validateProfile($data);
 
             if ($validation !== true) {
                 error_log("Buyer Profile Validation Failed: " . json_encode($validation));
-                $this->jsonResponse(422, [
+                $firstError = reset($validation) ?: 'Validation failed';
+                http_response_code(422);
+                echo json_encode([
                     'success' => false,
                     'error' => 'Validation failed',
+                    'message' => $firstError,
                     'errors' => $validation
                 ]);
             }
 
-            // Name is editable from profile form; email changes are handled via Account Settings flow.
-            if (!empty($data['name'])) {
-                $this->userModel->update($userId, ['name' => $data['name']]);
-                setAuthUserName((string)$data['name']);
+            // Update name and email in users table if provided
+            if (!empty($data['name']) || !empty($data['email'])) {
+                $userUpdateData = [];
+
+                if (!empty($data['name'])) {
+                    $userUpdateData['name'] = $data['name'];
+                }
+
+                if (!empty($data['email'])) {
+                    // Check if email is already taken by another user
+                    $existingUser = $this->userModel->findByEmail($data['email']);
+                    if ($existingUser && $existingUser->id !== $userId) {
+                        error_log("Buyer Profile Save: Email already in use: " . $data['email']);
+                        http_response_code(422);
+                        echo json_encode([
+                            'success' => false,
+                            'error' => 'Validation failed',
+                            'message' => 'This email is already in use',
+                            'errors' => ['email' => 'This email is already in use']
+                        ]);
+                        exit;
+                    }
+                    $userUpdateData['email'] = $data['email'];
+                }
+
+                if (!empty($userUpdateData)) {
+                    $this->userModel->update($userId, $userUpdateData);
+
+                    // Update session with new name/email
+                    if (!empty($userUpdateData['name'])) {
+                        $_SESSION['USER']->name = $userUpdateData['name'];
+                    }
+                    if (!empty($userUpdateData['email'])) {
+                        $_SESSION['USER']->email = $userUpdateData['email'];
+                    }
+                }
             }
 
             // Prepare profile data (exclude name and email from buyer profile update)
             $profileData = [
                 'phone' => $data['phone'],
                 'district' => $data['district'],
+                'district_id' => $data['district_id'] > 0 ? $data['district_id'] : null,
                 'apartment_code' => $data['apartment_code'],
                 'street_name' => $data['street_name'],
                 'city' => $data['city'],
-                'postal_code' => $data['postal_code'],
-                'additional_address_details' => $data['additional_address_details'],
+                'town_id' => $data['town_id'] > 0 ? $data['town_id'] : null,
+                'postal_code' => $data['postal_code']
             ];
 
             // Update profile (creates if doesn't exist)

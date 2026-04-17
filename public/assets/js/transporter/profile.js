@@ -1,5 +1,5 @@
 // Transporter Profile Management
-// Profile page handles general info; vehicle details are managed in dedicated vehicle flows.
+// Matched to transporter_profiles table: phone, company_name, license_number, vehicle_type, availability
 
 // Ensure APP_ROOT is defined (set in transporterMain.view.php, fallback if missing)
 if (typeof window.APP_ROOT === 'undefined' || !window.APP_ROOT) {
@@ -19,18 +19,87 @@ function parseJsonResponse(response) {
     });
 }
 
-function updateGlobalUserName(name) {
-    const normalized = String(name || '').trim();
-    if (!normalized) return;
+function digitsOnly(value) {
+    return String(value || '').replace(/\D+/g, '').slice(0, 10);
+}
 
-    window.USER_NAME = normalized;
-    if (document.body) {
-        document.body.setAttribute('data-user-name', normalized);
+function getFirstErrorMessage(errors, fallback = 'Please fix the highlighted fields') {
+    if (!errors || typeof errors !== 'object') {
+        return fallback;
     }
 
-    if (typeof window.updateNavbarUserName === 'function') {
-        window.updateNavbarUserName(normalized);
+    const firstKey = Object.keys(errors)[0];
+    if (!firstKey) {
+        return fallback;
     }
+
+    return errors[firstKey] || fallback;
+}
+
+function escapeHtml(text) {
+    return String(text || '').replace(/[&<>"']/g, function(char) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return map[char];
+    });
+}
+
+function findOptionValueByLabel(selectEl, label) {
+    if (!selectEl || !label) return '';
+    const normalizedLabel = String(label).trim().toLowerCase();
+    const matchedOption = Array.from(selectEl.options || []).find(option =>
+        String(option.textContent || '').trim().toLowerCase() === normalizedLabel
+    );
+    return matchedOption ? matchedOption.value : '';
+}
+
+function loadTownsForDistrict(districtId, selectedTownId = '', selectedTownName = '') {
+    const townField = document.getElementById('profileCity');
+    if (!townField) return Promise.resolve();
+
+    if (!districtId) {
+        townField.innerHTML = '<option value="">-- Select Town / City --</option>';
+        townField.disabled = true;
+        return Promise.resolve();
+    }
+
+    townField.disabled = true;
+    townField.innerHTML = '<option value="">Loading towns...</option>';
+
+    return fetch(`${window.APP_ROOT}/location/towns/${districtId}`, {
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.success) {
+            throw new Error(res.message || 'Failed to load towns');
+        }
+
+        const selected = String(selectedTownId || '');
+        const selectedName = String(selectedTownName || '').trim().toLowerCase();
+        townField.innerHTML = '<option value="">-- Select Town / City --</option>' +
+            (res.towns || []).map(town => {
+                const townId = String(town.id || '');
+                const isSelected = townId === selected ||
+                    (selected === '' && selectedName !== '' && String(town.town_name || '').trim().toLowerCase() === selectedName)
+                    ? 'selected'
+                    : '';
+                return `<option value="${townId}" ${isSelected}>${escapeHtml(town.town_name || '')}</option>`;
+            }).join('');
+        townField.disabled = false;
+    })
+    .catch(err => {
+        console.error('Town load error:', err);
+        townField.innerHTML = '<option value="">-- Select Town / City --</option>';
+        townField.disabled = false;
+        showNotification('Unable to load towns for the selected district', 'error');
+    });
 }
 
 // Helper function to update profile photo display and default icon
@@ -87,18 +156,31 @@ function loadProfileData() {
             const emailField = document.getElementById('profileEmail');
             const phoneField = document.getElementById('profilePhone');
             const districtField = document.getElementById('profileDistrict');
+            const apartmentCodeField = document.getElementById('profileApartmentCode');
+            const streetNameField = document.getElementById('profileStreetName');
+            const cityField = document.getElementById('profileCity');
+            const postalCodeField = document.getElementById('profilePostalCode');
             const fullAddressField = document.getElementById('profileFullAddress');
             const companyNameField = document.getElementById('profileCompanyName');
+            const licenseNumberField = document.getElementById('profileLicenseNumber');
+            const vehicleTypeField = document.getElementById('profileVehicleType');
             const availabilityField = document.getElementById('profileAvailability');
+            const resolvedDistrictId = profile.district_id || findOptionValueByLabel(districtField, profile.district || '');
             
             if (nameField) nameField.value = profile.name || '';
             if (emailField) emailField.value = profile.email || '';
-            const accountSettingsEmailField = document.getElementById('accountSettingsEmail');
-            if (accountSettingsEmailField) accountSettingsEmailField.value = profile.email || '';
             if (phoneField) phoneField.value = profile.phone || '';
-            if (districtField) districtField.value = profile.district || '';
+            if (districtField) districtField.value = resolvedDistrictId || '';
+            if (apartmentCodeField) apartmentCodeField.value = profile.apartment_code || '';
+            if (streetNameField) streetNameField.value = profile.street_name || '';
+            if (cityField) {
+                loadTownsForDistrict(resolvedDistrictId || '', profile.town_id || '', profile.city || '');
+            }
+            if (postalCodeField) postalCodeField.value = profile.postal_code || '';
             if (fullAddressField) fullAddressField.value = profile.full_address || '';
             if (companyNameField) companyNameField.value = profile.company_name || '';
+            if (licenseNumberField) licenseNumberField.value = profile.license_number || '';
+            if (vehicleTypeField) vehicleTypeField.value = profile.vehicle_type || '';
             if (availabilityField) availabilityField.value = profile.availability || '';
             
             // Update header display (name and email in header section)
@@ -106,7 +188,6 @@ function loadProfileData() {
             const displayEmail = document.getElementById('profileDisplayEmail');
             if (displayName) displayName.textContent = profile.name || '';
             if (displayEmail) displayEmail.textContent = profile.email || '';
-            updateGlobalUserName(profile.name || '');
             
             // Store original data for reset
             if (!originalProfileData) {
@@ -114,9 +195,17 @@ function loadProfileData() {
                     name: profile.name || '',
                     email: profile.email || '',
                     phone: profile.phone || '',
+                    district_id: resolvedDistrictId || '',
                     district: profile.district || '',
+                    apartment_code: profile.apartment_code || '',
+                    street_name: profile.street_name || '',
+                    town_id: profile.town_id || '',
+                    city: profile.city || '',
+                    postal_code: profile.postal_code || '',
                     full_address: profile.full_address || '',
                     company_name: profile.company_name || '',
+                    license_number: profile.license_number || '',
+                    vehicle_type: profile.vehicle_type || '',
                     availability: profile.availability || ''
                 };
             }
@@ -157,14 +246,31 @@ function saveProfileData() {
     // Collect form data
     const formData = new FormData();
     formData.append('name', document.getElementById('profileName')?.value?.trim() || '');
-    formData.append('phone', document.getElementById('profilePhone')?.value?.trim() || '');
-    formData.append('district', document.getElementById('profileDistrict')?.value?.trim() || '');
+    formData.append('phone', digitsOnly(document.getElementById('profilePhone')?.value));
+    formData.append('district_id', document.getElementById('profileDistrict')?.value?.trim() || '');
+    formData.append('apartment_code', document.getElementById('profileApartmentCode')?.value?.trim() || '');
+    formData.append('street_name', document.getElementById('profileStreetName')?.value?.trim() || '');
+    formData.append('town_id', document.getElementById('profileCity')?.value?.trim() || '');
+    // Sync hidden name fields before submit
+    const districtSel = document.getElementById('profileDistrict');
+    const citySel = document.getElementById('profileCity');
+    const districtName = districtSel?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const cityName = citySel?.selectedOptions?.[0]?.textContent?.trim() || '';
+    formData.append('district', districtName);
+    formData.append('city', cityName);
+    // Keep hidden fields in sync too
+    const hiddenDistrict = document.getElementById('profileDistrictName');
+    const hiddenCity = document.getElementById('profileCityName');
+    if (hiddenDistrict) hiddenDistrict.value = districtName;
+    if (hiddenCity) hiddenCity.value = cityName;
+    formData.append('postal_code', document.getElementById('profilePostalCode')?.value?.trim() || '');
     formData.append('full_address', document.getElementById('profileFullAddress')?.value?.trim() || '');
     formData.append('company_name', document.getElementById('profileCompanyName')?.value?.trim() || '');
-    formData.append('availability', document.getElementById('profileAvailability')?.value?.trim() || '');
+    formData.append('license_number', document.getElementById('profileLicenseNumber')?.value?.trim() || '');
+    // vehicle_type and availability removed from Personal Information form
 
     // Get button and disable it
-    const saveBtn = document.getElementById('saveProfileBtn');
+    const saveBtn = document.querySelector('.btn-save-profile');
     if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Saving...';
@@ -187,16 +293,24 @@ function saveProfileData() {
                 name: formData.get('name'),
                 email: document.getElementById('profileEmail')?.value || '',
                 phone: formData.get('phone'),
+                district_id: formData.get('district_id'),
                 district: formData.get('district'),
+                apartment_code: formData.get('apartment_code'),
+                street_name: formData.get('street_name'),
+                town_id: formData.get('town_id'),
+                city: formData.get('city'),
+                postal_code: formData.get('postal_code'),
                 full_address: formData.get('full_address'),
                 company_name: formData.get('company_name'),
+                license_number: formData.get('license_number'),
+                vehicle_type: formData.get('vehicle_type'),
                 availability: formData.get('availability')
             };
             
             // Update display header
             const displayName = document.getElementById('profileDisplayName');
             if (displayName) displayName.textContent = formData.get('name');
-            updateGlobalUserName(formData.get('name'));
+            loadProfileData();
         } else {
             console.error('Save profile failed:', res);
             
@@ -211,7 +325,7 @@ function saveProfileData() {
                 });
             }
             
-            showNotification(res.message || 'Failed to update profile', 'error');
+            showNotification(res.message || getFirstErrorMessage(res.errors, res.error || 'Failed to update profile'), 'error');
         }
     })
     .catch(err => {
@@ -238,15 +352,31 @@ function resetProfileForm() {
     const nameField = document.getElementById('profileName');
     const phoneField = document.getElementById('profilePhone');
     const districtField = document.getElementById('profileDistrict');
+    const apartmentCodeField = document.getElementById('profileApartmentCode');
+    const streetNameField = document.getElementById('profileStreetName');
+    const cityField = document.getElementById('profileCity');
+    const postalCodeField = document.getElementById('profilePostalCode');
     const fullAddressField = document.getElementById('profileFullAddress');
     const companyNameField = document.getElementById('profileCompanyName');
-    const availabilityField = document.getElementById('profileAvailability');
+    const licenseNumberField = document.getElementById('profileLicenseNumber');
+    // vehicle_type and availability removed from Personal Information form
     
     if (nameField) nameField.value = originalProfileData.name || '';
     if (phoneField) phoneField.value = originalProfileData.phone || '';
-    if (districtField) districtField.value = originalProfileData.district || '';
+    if (districtField) districtField.value = originalProfileData.district_id || '';
+    if (apartmentCodeField) apartmentCodeField.value = originalProfileData.apartment_code || '';
+    if (streetNameField) streetNameField.value = originalProfileData.street_name || '';
+    if (cityField) {
+        loadTownsForDistrict(originalProfileData.district_id || '', originalProfileData.town_id || '', originalProfileData.city || '');
+    }
+    if (postalCodeField) postalCodeField.value = originalProfileData.postal_code || '';
     if (fullAddressField) fullAddressField.value = originalProfileData.full_address || '';
     if (companyNameField) companyNameField.value = originalProfileData.company_name || '';
+    if (licenseNumberField) licenseNumberField.value = originalProfileData.license_number || '';
+    // vehicle_type and availability removed from form
+    const vehicleTypeField = document.getElementById('profileVehicleType');
+    const availabilityField = document.getElementById('profileAvailability');
+    if (vehicleTypeField) vehicleTypeField.value = originalProfileData.vehicle_type || '';
     if (availabilityField) availabilityField.value = originalProfileData.availability || '';
     
     // Clear errors
@@ -263,7 +393,7 @@ function resetProfileForm() {
  * Upload profile photo
  */
 function uploadProfilePhoto() {
-    const fileInput = document.getElementById('profilePhotoFileInput');
+    const fileInput = document.getElementById('photoFileInput');
     if (!fileInput || !fileInput.files || !fileInput.files[0]) {
         console.error('No file selected');
         return;
@@ -360,309 +490,69 @@ function removeProfilePhoto() {
 }
 
 /**
- * Open change password modal
+ * Open change password modal — uses the accountSettingsModal with the password panel expanded
  */
 function openChangePasswordModal() {
-    openAccountSettingsModal();
-    toggleSettingsPanel('passwordSettingsPanel', true);
+    // Try the inline accountSettingsModal first (new structure)
+    const settingsModal = document.getElementById('accountSettingsModal');
+    if (settingsModal) {
+        settingsModal.style.display = 'flex';
+        // Auto-expand the password panel
+        const passwordPanel = document.getElementById('passwordSettingsPanel');
+        const passwordToggle = document.querySelector('[data-settings-target="passwordSettingsPanel"]');
+        if (passwordPanel) passwordPanel.style.display = 'block';
+        if (passwordToggle) passwordToggle.setAttribute('aria-expanded', 'true');
+        return;
+    }
+    // Fallback: legacy changePasswordModal
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        const form = document.getElementById('changePasswordForm');
+        if (form) form.reset();
+    }
+}
+
+/**
+ * Request license number verification from admin
+ */
+function requestLicenseVerification() {
+    const licenseNumber = document.getElementById('profileLicenseNumber')?.value?.trim();
+    if (!licenseNumber) {
+        showNotification('Please enter your license number first before requesting verification.', 'error');
+        return;
+    }
+    const btn = document.getElementById('requestLicenseVerifyBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+    fetch(`${window.APP_ROOT}/transporterprofile/verifyLicense`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: new URLSearchParams({ license_number: licenseNumber, action: 'request' })
+    })
+    .then(parseJsonResponse)
+    .then(res => {
+        if (res.success) {
+            showNotification(res.message || 'Verification request submitted. Admin will review shortly.', 'success');
+        } else {
+            showNotification(res.message || 'Failed to submit verification request', 'error');
+        }
+    })
+    .catch(() => showNotification('Failed to submit verification request', 'error'))
+    .finally(() => {
+        if (btn) { btn.disabled = false; btn.textContent = 'Request Verification'; }
+    });
 }
 
 /**
  * Close change password modal
  */
 function closeChangePasswordModal() {
-    closeModalCard('accountSettingsModal');
-}
-
-function openModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.add('show');
-}
-
-function closeModalCard(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('show');
-}
-
-function clearInlineStatus(statusId) {
-    const statusEl = document.getElementById(statusId);
-    if (!statusEl) return;
-    statusEl.textContent = '';
-    statusEl.classList.remove('success', 'error');
-    statusEl.classList.add('is-hidden');
-}
-
-function setInlineStatus(statusId, message, type) {
-    const statusEl = document.getElementById(statusId);
-    if (!statusEl) return;
-    statusEl.textContent = message;
-    statusEl.classList.remove('is-hidden', 'success', 'error');
-    statusEl.classList.add(type === 'error' ? 'error' : 'success');
-}
-
-function toggleSettingsPanel(panelId, forceOpen) {
-    const panel = document.getElementById(panelId);
-    if (!panel) return;
-
-    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('is-open');
-    const toggleBtn = document.querySelector(`.account-settings-toggle[data-settings-target="${panelId}"]`);
-
-    if (shouldOpen) {
-        document.querySelectorAll('.account-settings-panel').forEach(otherPanel => {
-            if (otherPanel.id !== panelId) otherPanel.classList.remove('is-open');
-        });
-        document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(otherBtn => {
-            if (otherBtn.getAttribute('data-settings-target') !== panelId) {
-                otherBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'none';
     }
-
-    panel.classList.toggle('is-open', shouldOpen);
-    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-}
-
-function openAccountSettingsModal() {
-    const profileEmail = document.getElementById('profileEmail');
-    const accountEmail = document.getElementById('accountSettingsEmail');
-    if (profileEmail && accountEmail) {
-        accountEmail.value = profileEmail.value || '';
-    }
-
-    clearInlineStatus('emailChangeStatus');
-    clearInlineStatus('passwordChangeStatus');
-
-    const emailForm = document.getElementById('changeEmailForm');
-    const passwordForm = document.getElementById('changePasswordForm');
-    if (emailForm) emailForm.reset();
-    if (passwordForm) passwordForm.reset();
-
-    document.querySelectorAll('.account-settings-panel').forEach(panel => panel.classList.remove('is-open'));
-    document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
-
-    openModal('accountSettingsModal');
-}
-
-function handleChangeEmailSubmit(event) {
-    event.preventDefault();
-    clearInlineStatus('emailChangeStatus');
-
-    const newEmail = (document.getElementById('newEmailAddress')?.value || '').trim().toLowerCase();
-    const password = document.getElementById('emailChangePassword')?.value || '';
-
-    if (!newEmail) {
-        setInlineStatus('emailChangeStatus', 'New email is required', 'error');
-        return;
-    }
-
-    if (!password) {
-        setInlineStatus('emailChangeStatus', 'Password confirmation is required', 'error');
-        return;
-    }
-
-    const submitBtn = document.getElementById('changeEmailBtn');
-    const originalText = submitBtn ? submitBtn.textContent : '';
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Updating...';
-    }
-
-    fetch(`${window.APP_ROOT}/transporterprofile/changeEmail`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            newEmail,
-            password
-        })
-    })
-        .then(parseJsonResponse)
-        .then(res => {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-
-            if (res.success) {
-                const profileEmail = document.getElementById('profileEmail');
-                const accountEmail = document.getElementById('accountSettingsEmail');
-                const displayEmail = document.getElementById('profileDisplayEmail');
-
-                if (profileEmail) profileEmail.value = res.email || newEmail;
-                if (accountEmail) accountEmail.value = res.email || newEmail;
-                if (displayEmail) displayEmail.textContent = res.email || newEmail;
-
-                const newEmailField = document.getElementById('newEmailAddress');
-                const passwordField = document.getElementById('emailChangePassword');
-                if (newEmailField) newEmailField.value = '';
-                if (passwordField) passwordField.value = '';
-
-                setInlineStatus('emailChangeStatus', res.message || 'Email updated successfully', 'success');
-                showNotification('Email updated successfully', 'success');
-                return;
-            }
-
-            if (res.errors && typeof res.errors === 'object') {
-                const message = Object.values(res.errors)[0] || 'Validation failed';
-                setInlineStatus('emailChangeStatus', String(message), 'error');
-                return;
-            }
-
-            setInlineStatus('emailChangeStatus', res.error || 'Failed to update email', 'error');
-        })
-        .catch(err => {
-            console.error('Change email error:', err);
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-            setInlineStatus('emailChangeStatus', 'Error updating email', 'error');
-        });
-}
-
-function populatePayoutDetails(data) {
-    if (!data || typeof data !== 'object') {
-        return;
-    }
-
-    const holderField = document.getElementById('payoutAccountName');
-    const bankField = document.getElementById('payoutBankName');
-    const branchField = document.getElementById('payoutBranchName');
-    const numberField = document.getElementById('payoutAccountNumber');
-
-    if (holderField) holderField.value = data.account_holder_name || '';
-    if (bankField) bankField.value = data.bank_name || '';
-    if (branchField) branchField.value = data.branch_name || '';
-    if (numberField) numberField.value = data.account_number || '';
-}
-
-function loadPayoutDetails() {
-    fetch(`${window.APP_ROOT}/transporterprofile/getPayoutAccount`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(parseJsonResponse)
-        .then(res => {
-            if (res.success) {
-                populatePayoutDetails(res.account || null);
-            }
-        })
-        .catch(err => {
-            console.error('Load payout details error:', err);
-        });
-}
-
-function savePayoutDetails(event) {
-    if (event) {
-        event.preventDefault();
-    }
-
-    const bankName = (document.getElementById('payoutBankName')?.value || '').trim();
-    const branchName = (document.getElementById('payoutBranchName')?.value || '').trim();
-    const accountHolder = (document.getElementById('payoutAccountName')?.value || '').trim();
-    const accountNumber = (document.getElementById('payoutAccountNumber')?.value || '').trim();
-
-    if (!bankName || !accountHolder || !accountNumber) {
-        showNotification('Please fill bank name, account holder, and account number', 'error');
-        return;
-    }
-
-    if (!/^\d{8,30}$/.test(accountNumber)) {
-        showNotification('Account number must be 8-30 digits', 'error');
-        return;
-    }
-
-    const saveBtn = event?.submitter || document.querySelector('#payoutDetailsForm button[type="submit"]');
-    const originalText = saveBtn ? saveBtn.textContent : '';
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-    }
-
-    fetch(`${window.APP_ROOT}/transporterprofile/savePayoutAccount`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            account_holder_name: accountHolder,
-            bank_name: bankName,
-            branch_name: branchName,
-            account_number: accountNumber
-        })
-    })
-        .then(parseJsonResponse)
-        .then(res => {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-
-            if (res.success) {
-                showNotification(res.message || 'Payout account saved successfully', 'success');
-                populatePayoutDetails(res.account || null);
-                closeModalCard('payoutDetailsModal');
-                return;
-            }
-
-            if (res.errors && typeof res.errors === 'object') {
-                const message = Object.values(res.errors)[0] || 'Validation failed';
-                showNotification(String(message), 'error');
-                return;
-            }
-
-            showNotification(res.error || 'Failed to save payout account', 'error');
-        })
-        .catch(err => {
-            console.error('Save payout details error:', err);
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-            showNotification('Error saving payout details', 'error');
-        });
-}
-
-function confirmDeactivateAccount() {
-    const btn = document.getElementById('confirmDeactivateBtn');
-    const originalText = btn ? btn.textContent : '';
-
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Processing...';
-    }
-
-    fetch(`${window.APP_ROOT}/transporterprofile/requestDeactivation`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams()
-    })
-        .then(parseJsonResponse)
-        .then(res => {
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-
-            if (res.success) {
-                showNotification(res.message || 'Account deactivated successfully', 'success');
-                if (res.redirect) {
-                    window.location.href = res.redirect;
-                }
-                return;
-            }
-
-            showNotification(res.error || 'Failed to deactivate account', 'error');
-        })
-        .catch(err => {
-            console.error('Deactivate account error:', err);
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-            showNotification('Error processing deactivation request', 'error');
-        });
 }
 
 /**
@@ -671,8 +561,6 @@ function confirmDeactivateAccount() {
 function submitChangePassword() {
     const form = document.getElementById('changePasswordForm');
     if (!form) return;
-
-    clearInlineStatus('passwordChangeStatus');
     
     // Clear errors
     const errorElements = form.querySelectorAll('.error-message');
@@ -687,17 +575,29 @@ function submitChangePassword() {
     
     // Basic validation
     if (!currentPassword) {
-        setInlineStatus('passwordChangeStatus', 'Current password is required', 'error');
+        const errorEl = document.getElementById('error-current');
+        if (errorEl) {
+            errorEl.textContent = 'Current password is required';
+            errorEl.classList.add('show');
+        }
         return;
     }
     
     if (!newPassword || newPassword.length < 8) {
-        setInlineStatus('passwordChangeStatus', 'New password must be at least 8 characters', 'error');
+        const errorEl = document.getElementById('error-new');
+        if (errorEl) {
+            errorEl.textContent = 'New password must be at least 8 characters';
+            errorEl.classList.add('show');
+        }
         return;
     }
     
     if (newPassword !== confirmPassword) {
-        setInlineStatus('passwordChangeStatus', 'Passwords do not match', 'error');
+        const errorEl = document.getElementById('error-confirm');
+        if (errorEl) {
+            errorEl.textContent = 'Passwords do not match';
+            errorEl.classList.add('show');
+        }
         return;
     }
     
@@ -715,16 +615,22 @@ function submitChangePassword() {
     .then(parseJsonResponse)
     .then(res => {
         if (res.success) {
-            setInlineStatus('passwordChangeStatus', res.message || 'Password changed successfully', 'success');
             showNotification(res.message || 'Password changed successfully', 'success');
+            closeChangePasswordModal();
             form.reset();
         } else {
             // Display field-specific errors
             if (res.errors) {
-                const message = Object.values(res.errors)[0] || 'Validation failed';
-                setInlineStatus('passwordChangeStatus', String(message), 'error');
+                Object.keys(res.errors).forEach(field => {
+                    const errorEl = form.querySelector(`#error-${field}`);
+                    if (errorEl) {
+                        errorEl.textContent = res.errors[field];
+                        errorEl.classList.add('show');
+                    }
+                });
+                showNotification(res.message || getFirstErrorMessage(res.errors, 'Please fix the highlighted fields'), 'error');
             } else {
-                setInlineStatus('passwordChangeStatus', res.message || 'Failed to change password', 'error');
+                showNotification(res.message || 'Failed to change password', 'error');
             }
         }
     })
@@ -741,15 +647,11 @@ window.TransporterProfile = {
     openChangePasswordModal,
     closeChangePasswordModal,
     submitChangePassword,
-    handleChangeEmailSubmit,
-    openAccountSettingsModal,
-    savePayoutDetails,
-    loadPayoutDetails,
-    confirmDeactivateAccount,
     removeProfilePhoto,
     uploadProfilePhoto,
     loadProfileData,
-    setProfilePhoto
+    setProfilePhoto,
+    requestLicenseVerification
 };
 
 // Backward-compatible aliases (temporary)
@@ -758,86 +660,41 @@ window.resetProfileForm = window.TransporterProfile.resetProfileForm;
 window.openChangePasswordModal = window.TransporterProfile.openChangePasswordModal;
 window.closeChangePasswordModal = window.TransporterProfile.closeChangePasswordModal;
 window.removeProfilePhoto = window.TransporterProfile.removeProfilePhoto;
+window.requestLicenseVerification = window.TransporterProfile.requestLicenseVerification;
 
 // Event listeners setup
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Transporter profile page loaded, APP_ROOT:', window.APP_ROOT);
-    
+
     // Load profile data on page load
     loadProfileData();
-    loadPayoutDetails();
 
+    // Bind Save button
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveProfileData);
 
+    // Bind Reset button
     const resetBtn = document.getElementById('resetProfileBtn');
     if (resetBtn) resetBtn.addEventListener('click', resetProfileForm);
-    
-    const addPhotoBtn = document.getElementById('addPhotoBtn');
-    const changePhotoBtn = document.getElementById('changePhotoBtn');
-    if (addPhotoBtn) addPhotoBtn.addEventListener('click', function() {
-        const fileInput = document.getElementById('profilePhotoFileInput');
-        if (fileInput) fileInput.click();
-    });
-    if (changePhotoBtn) changePhotoBtn.addEventListener('click', function() {
-        const fileInput = document.getElementById('profilePhotoFileInput');
-        if (fileInput) fileInput.click();
-    });
-    
-    const removePhotoBtn = document.getElementById('removePhotoBtn');
-    if (removePhotoBtn) removePhotoBtn.addEventListener('click', removeProfilePhoto);
-    
-    // File input change handler
-    const fileInput = document.getElementById('profilePhotoFileInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', uploadProfilePhoto);
+
+    // Photo upload button (edit button in overlay)
+    const editPhotoBtn = document.getElementById('editPhotoBtn');
+    if (editPhotoBtn) {
+        editPhotoBtn.addEventListener('click', function() {
+            const fileInput = document.getElementById('photoFileInput') || document.getElementById('profilePhotoFileInput');
+            if (fileInput) fileInput.click();
+        });
     }
 
-    document.querySelectorAll('.profile-shortcut-card[data-open-modal]').forEach(card => {
-        card.addEventListener('click', function() {
-            const target = this.getAttribute('data-open-modal');
-            if (target === 'accountSettingsModal') {
-                openAccountSettingsModal();
-            } else {
-                openModal(target);
-            }
-        });
-    });
+    // Photo delete button
+    const deletePhotoBtn = document.getElementById('deletePhotoBtn');
+    if (deletePhotoBtn) deletePhotoBtn.addEventListener('click', removeProfilePhoto);
 
-    document.querySelectorAll('[data-open-modal]').forEach(btn => {
-        if (btn.classList.contains('profile-shortcut-card')) return;
-        btn.addEventListener('click', function() {
-            const target = this.getAttribute('data-open-modal');
-            if (target === 'accountSettingsModal') {
-                openAccountSettingsModal();
-            } else {
-                openModal(target);
-            }
-        });
-    });
+    // File input change handler
+    const fileInput = document.getElementById('photoFileInput') || document.getElementById('profilePhotoFileInput');
+    if (fileInput) fileInput.addEventListener('change', uploadProfilePhoto);
 
-    document.querySelectorAll('[data-close-modal]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            closeModalCard(this.getAttribute('data-close-modal'));
-        });
-    });
-
-    document.querySelectorAll('.modal.profile-modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.remove('show');
-            }
-        });
-    });
-
-    document.querySelectorAll('.account-settings-toggle[data-settings-target]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const target = this.getAttribute('data-settings-target');
-            if (target) toggleSettingsPanel(target);
-        });
-    });
-    
-    // Change password form submit handler
+    // Change password form submit handler (works for both modals)
     const changePasswordForm = document.getElementById('changePasswordForm');
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', function(e) {
@@ -846,26 +703,71 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const changeEmailForm = document.getElementById('changeEmailForm');
-    if (changeEmailForm) {
-        changeEmailForm.addEventListener('submit', handleChangeEmailSubmit);
+    // Phone: digits only
+    const phoneInput = document.getElementById('profilePhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = digitsOnly(this.value);
+        });
     }
 
-    const payoutDetailsForm = document.getElementById('payoutDetailsForm');
-    if (payoutDetailsForm) {
-        payoutDetailsForm.addEventListener('submit', savePayoutDetails);
+    // District cascade
+    const districtField = document.getElementById('profileDistrict');
+    if (districtField) {
+        districtField.addEventListener('change', function() {
+            loadTownsForDistrict(this.value, '');
+        });
     }
 
-    const confirmDeactivateBtn = document.getElementById('confirmDeactivateBtn');
-    if (confirmDeactivateBtn) confirmDeactivateBtn.addEventListener('click', confirmDeactivateAccount);
-    
-    // Close modal on outside click
-    const modal = document.getElementById('accountSettingsModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeChangePasswordModal();
+    // accountSettingsModal: expand/collapse toggle panels
+    document.querySelectorAll('.account-settings-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-settings-target');
+            const panel = document.getElementById(targetId);
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            // Collapse all panels first
+            document.querySelectorAll('.account-settings-panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.account-settings-toggle').forEach(b => b.setAttribute('aria-expanded', 'false'));
+            // Toggle this one
+            if (!isExpanded && panel) {
+                panel.style.display = 'block';
+                this.setAttribute('aria-expanded', 'true');
             }
+        });
+    });
+
+    // Close accountSettingsModal on backdrop click
+    const settingsModal = document.getElementById('accountSettingsModal');
+    if (settingsModal) {
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) settingsModal.style.display = 'none';
+        });
+    }
+
+    // data-close-modal buttons
+    document.querySelectorAll('[data-close-modal]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-close-modal');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none';
+        });
+    });
+
+    // data-open-modal buttons/cards
+    document.querySelectorAll('[data-open-modal]').forEach(function(el) {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-open-modal');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'flex';
+        });
+    });
+
+    // Legacy changePasswordModal close on backdrop
+    const legacyModal = document.getElementById('changePasswordModal');
+    if (legacyModal) {
+        legacyModal.addEventListener('click', function(e) {
+            if (e.target === legacyModal) closeChangePasswordModal();
         });
     }
 });

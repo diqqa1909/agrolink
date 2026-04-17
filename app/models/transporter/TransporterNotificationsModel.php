@@ -179,8 +179,8 @@ class TransporterNotificationsModel
 
     private function getReviewNotifications($transporterId)
     {
-        $reviewModel = new ReviewModel();
-        $reviews = $this->asArray($reviewModel->getReviewsByTransporter($transporterId));
+        $feedbackModel = new TransporterFeedbackModel();
+        $reviews = $this->asArray($feedbackModel->getFeedbackByTransporter($transporterId));
         $notifications = [];
 
         foreach (array_slice($reviews, 0, 20) as $review) {
@@ -190,15 +190,16 @@ class TransporterNotificationsModel
             }
 
             $rating = (int)($review->rating ?? 0);
-            $buyer = trim((string)($review->buyer_name ?? 'Buyer'));
-            $product = trim((string)($review->product_name ?? 'order item'));
+            $reviewer = trim((string)($review->reviewer_name ?? 'Reviewer'));
+            $reviewerType = ucfirst(strtolower(trim((string)($review->reviewer_type ?? 'buyer'))));
+            $stars = str_repeat('★', $rating) . str_repeat('☆', max(0, 5 - $rating));
 
             $notifications[] = [
                 'id' => 'transporter_review_' . $reviewId,
                 'category' => 'reviews',
                 'icon' => 'reviews',
                 'title' => 'New Feedback Received',
-                'message' => $buyer . ' gave ' . $rating . '-star feedback for ' . $product,
+                'message' => $reviewerType . ' ' . $reviewer . ' gave ' . $rating . '-star feedback ' . $stars,
                 'related_id' => $reviewId,
                 'created_at' => $review->created_at ?? date('Y-m-d H:i:s'),
                 'link' => 'transporterdashboard?section=feedback',
@@ -214,7 +215,6 @@ class TransporterNotificationsModel
 
         $transporterModel = new TransporterModel();
         $vehicleModel = new VehicleModel();
-        $payoutModel = new PayoutAccountsModel();
 
         $profile = $transporterModel->getProfileByUserId($transporterId);
         $profileObj = is_object($profile) ? $profile : null;
@@ -248,7 +248,12 @@ class TransporterNotificationsModel
             ];
         }
 
-        $payoutAccount = $payoutModel->getDefaultAccountByUserId($transporterId);
+        $payoutAccount = null;
+        if (class_exists('PayoutAccountsModel')) {
+            $payoutModel = new PayoutAccountsModel();
+            $payoutAccount = $payoutModel->getDefaultAccountByUserId($transporterId);
+        }
+
         if (!$payoutAccount) {
             $notifications[] = [
                 'id' => 'transporter_system_payout_' . $transporterId,

@@ -205,11 +205,65 @@ $profileStats = is_array($profileStats ?? null) ? $profileStats : [];
                             <input id="emailChangePassword" name="emailChangePassword" class="form-control" type="password" autocomplete="current-password" required>
                             <small class="form-hint">Enter your account password to confirm email change.</small>
                         </div>
-                        <small class="form-hint" id="emailChangePolicyHint">You can change email up to 2 times after account creation.</small>
-                        <div id="emailChangeStatus" class="settings-inline-status is-hidden"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-close-modal="accountSettingsModal">Cancel</button>
-                            <button type="submit" id="changeEmailBtn" class="btn btn-primary">Update Email</button>
+
+                        <!-- Phone -->
+                        <div class="form-group-modern">
+                            <label for="profilePhone" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Phone Number *</label>
+                            <input type="tel" id="profilePhone" name="phone" class="form-control" placeholder="07XXXXXXXX" value="<?= esc($profile->phone ?? '') ?>" maxlength="10" inputmode="numeric" style="text-align: left;">
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Enter exactly 10 digits</small>
+                        </div>
+
+                        <!-- District -->
+                        <div class="form-group-modern">
+                            <label for="profileDistrict" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">District *</label>
+                            <select id="profileDistrict" name="district_id" class="form-control" style="text-align: left;">
+                                <option value="">-- Select District --</option>
+                                <?php foreach (($districts ?? []) as $district): ?>
+                                    <option value="<?= (int)$district->id ?>" <?= ((int)($profile->district_id ?? 0) === (int)$district->id || (($profile->district ?? '') === $district->district_name)) ? 'selected' : '' ?>>
+                                        <?= esc($district->district_name) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Apartment Code -->
+                        <div class="form-group-modern">
+                            <label for="profileApartmentCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Apartment/Building Code</label>
+                            <input type="text" id="profileApartmentCode" name="apartment_code" class="form-control" placeholder="e.g., A-101" value="<?= esc($profile->apartment_code ?? '') ?>" style="text-align: left;">
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Building or apartment number (if applicable)</small>
+                        </div>
+
+                        <!-- Street Name -->
+                        <div class="form-group-modern">
+                            <label for="profileStreetName" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Street Name *</label>
+                            <input type="text" id="profileStreetName" name="street_name" class="form-control" placeholder="e.g., Galle Road" value="<?= esc($profile->street_name ?? '') ?>" style="text-align: left;">
+                        </div>
+
+                        <!-- City -->
+                        <div class="form-group-modern">
+                            <label for="profileCity" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Town / City *</label>
+                            <select id="profileCity" name="town_id" class="form-control" style="text-align: left;" <?= empty($towns) ? 'disabled' : '' ?>>
+                                <option value="">-- Select Town / City --</option>
+                                <?php foreach (($towns ?? []) as $town): ?>
+                                    <option value="<?= (int)$town->id ?>" <?= ((int)($profile->town_id ?? 0) === (int)$town->id || (($profile->city ?? '') === $town->town_name)) ? 'selected' : '' ?>>
+                                        <?= esc($town->town_name) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Postal Code -->
+                        <div class="form-group-modern">
+                            <label for="profilePostalCode" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Postal Code *</label>
+                            <input type="text" id="profilePostalCode" name="postal_code" class="form-control" placeholder="e.g., 10100" value="<?= esc($profile->postal_code ?? '') ?>" style="text-align: left;">
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">5-digit Sri Lankan postal code</small>
+                        </div>
+
+                        <!-- Full Address -->
+                        <div class="form-group-modern full-width">
+                            <label for="profileAddress" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; text-align: left;">Additional Address Details</label>
+                            <textarea id="profileAddress" name="full_address" class="form-control" placeholder="e.g., Near City Mall, Opposite Police Station" rows="2" style="text-align: left;"><?= esc($profile->full_address ?? '') ?></textarea>
+                            <small style="color: #666; display: block; text-align: left; margin-top: 5px;">Landmarks or additional directions (optional)</small>
                         </div>
                     </form>
                 </div>

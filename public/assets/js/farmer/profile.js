@@ -63,6 +63,7 @@
         email: 'profileEmail',
         phone: 'profilePhone',
         district: 'profileDistrict',
+        city: 'profileTown',
         crops_selling: 'profileCrops',
         full_address: 'profileAddress'
     };
@@ -92,6 +93,64 @@
             return { valid: false, error: 'Phone number must be exactly 10 digits' };
         }
         return { valid: true, value: digits };
+    }
+
+    function getFirstErrorMessage(errors, fallback = 'Please fix the highlighted fields') {
+        if (!errors || typeof errors !== 'object') {
+            return fallback;
+        }
+
+        const firstKey = Object.keys(errors)[0];
+        if (!firstKey) {
+            return fallback;
+        }
+
+        return errors[firstKey] || fallback;
+    }
+
+    function findOptionValueByText(selectEl, text) {
+        if (!selectEl || !text) return '';
+        const normalizedText = String(text).trim().toLowerCase();
+        const matched = Array.from(selectEl.options || []).find(option =>
+            String(option.textContent || '').trim().toLowerCase() === normalizedText
+        );
+        return matched ? matched.value : '';
+    }
+
+    function loadTownOptions(districtId, selectedTownId = '', selectedTownName = '') {
+        const townSelect = document.getElementById('profileTown');
+        if (!townSelect) return Promise.resolve();
+
+        if (!districtId) {
+            townSelect.innerHTML = '<option value="">Select Town / City</option>';
+            townSelect.disabled = true;
+            return Promise.resolve();
+        }
+
+        townSelect.disabled = true;
+        townSelect.innerHTML = '<option value="">Loading towns...</option>';
+
+        return fetch(`${APP_ROOT}/location/towns/${districtId}`, {
+            credentials: 'include',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(parseJsonResponse)
+            .then(data => {
+                const towns = Array.isArray(data.towns) ? data.towns : [];
+                const selectedName = String(selectedTownName || '').trim().toLowerCase();
+                townSelect.innerHTML = '<option value="">Select Town / City</option>' +
+                    towns.map(town => {
+                        const isSelected = String(selectedTownId) === String(town.id) ||
+                            (String(selectedTownId || '') === '' && selectedName !== '' && String(town.town_name || '').trim().toLowerCase() === selectedName);
+                        return `<option value="${town.id}" ${isSelected ? 'selected' : ''}>${town.town_name}</option>`;
+                    }).join('');
+                townSelect.disabled = false;
+            })
+            .catch(() => {
+                townSelect.innerHTML = '<option value="">Select Town / City</option>';
+                townSelect.disabled = false;
+                profileNotify('Failed to load towns', 'error');
+            });
     }
 
     function getFieldErrorContainer(fieldId) {
@@ -296,12 +355,14 @@
     function populateProfile(profile, photoUrl) {
         const name = profile.name || '';
         const email = profile.email || '';
+        const districtField = document.getElementById('profileDistrict');
+        const resolvedDistrictId = profile.district_id || findOptionValueByText(districtField, profile.district || '');
 
         const fields = {
             profileName: name,
             profileEmail: email,
             profilePhone: profile.phone || '',
-            profileDistrict: profile.district || '',
+            profileDistrict: resolvedDistrictId || '',
             profileCrops: profile.crops_selling || '',
             profileAddress: profile.full_address || '',
             accountSettingsEmail: email
@@ -324,6 +385,7 @@
         updateGlobalUserName(name || '');
 
         setProfilePhoto(photoUrl || null);
+        loadTownOptions(resolvedDistrictId || '', profile.town_id || '', profile.city || '');
     }
 
     function loadProfileData() {
@@ -379,7 +441,8 @@
             name: document.getElementById('profileName')?.value?.trim() || '',
             email: document.getElementById('profileEmail')?.value?.trim() || '',
             phone: phoneCheck.value,
-            district: document.getElementById('profileDistrict')?.value?.trim() || '',
+            district_id: document.getElementById('profileDistrict')?.value?.trim() || '',
+            town_id: document.getElementById('profileTown')?.value?.trim() || '',
             crops_selling: document.getElementById('profileCrops')?.value?.trim() || '',
             full_address: document.getElementById('profileAddress')?.value?.trim() || ''
         };
@@ -418,6 +481,7 @@
                     const firstFieldId = profileFieldMap[Object.keys(res.errors)[0]];
                     const firstField = firstFieldId ? document.getElementById(firstFieldId) : null;
                     if (firstField) firstField.focus();
+                    profileNotify(res.message || getFirstErrorMessage(res.errors), 'error');
                     return;
                 }
 
@@ -956,6 +1020,15 @@
             });
         }
 
+        const districtInput = document.getElementById('profileDistrict');
+        if (districtInput) {
+            districtInput.addEventListener('change', function () {
+                clearFieldError('profileDistrict');
+                clearFieldError('profileTown');
+                loadTownOptions(this.value);
+            });
+        }
+
         const accountNumberInput = document.getElementById('payoutAccountNumber');
         if (accountNumberInput) {
             accountNumberInput.addEventListener('input', function () {
@@ -964,7 +1037,7 @@
             });
         }
 
-        ['profileName', 'profileDistrict', 'profileCrops', 'profileAddress'].forEach(id => {
+        ['profileName', 'profileDistrict', 'profileTown', 'profileCrops', 'profileAddress'].forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             el.addEventListener('input', function () { clearFieldError(id); });

@@ -58,6 +58,7 @@
                         <th>Shipping</th>
                         <th>Status</th>
                         <th>Updated</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,6 +84,30 @@
                                 </span>
                             </td>
                             <td><?= !empty($delivery->updated_at) ? date('M d, Y H:i', strtotime($delivery->updated_at)) : '-' ?></td>
+                            <td>
+                                <?php
+                                $canReviewTransporter =
+                                    ($delivery->status ?? '') === 'delivered'
+                                    && !empty($delivery->transporter_id)
+                                    && !in_array((int)$delivery->order_id, $submittedFeedbackOrderIds ?? [], true);
+                                ?>
+                                <?php if ($canReviewTransporter): ?>
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        onclick="FarmerDeliveryFeedback.openModal(
+                                            <?= (int)$delivery->order_id ?>,
+                                            <?= (int)$delivery->transporter_id ?>,
+                                            '<?= htmlspecialchars(addslashes($delivery->transporter_name ?? 'Transporter')) ?>'
+                                        )">
+                                        Review Transporter
+                                    </button>
+                                <?php elseif (($delivery->status ?? '') === 'delivered' && !empty($delivery->transporter_id)): ?>
+                                    <span style="color: #65b57c; font-weight: 600;">Feedback sent</span>
+                                <?php else: ?>
+                                    <span style="color: #666;">-</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -91,3 +116,132 @@
         </div>
     <?php endif; ?>
 </div>
+
+<div id="farmerTransporterFeedbackModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 560px;">
+        <div class="modal-header">
+            <h3>Review Transporter</h3>
+            <button type="button" class="modal-close" onclick="FarmerDeliveryFeedback.closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="farmerTransporterFeedbackForm">
+                <input type="hidden" id="feedbackOrderId" name="order_id">
+                <input type="hidden" id="feedbackTransporterId" name="transporter_id">
+
+                <div class="form-group">
+                    <label for="feedbackTransporterName">Transporter</label>
+                    <input type="text" id="feedbackTransporterName" class="form-control" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackRating">Rating *</label>
+                    <select id="feedbackRating" name="rating" class="form-control" required>
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackComment">Review *</label>
+                    <textarea id="feedbackComment" name="comment" class="form-control" rows="4" required placeholder="Share your delivery experience"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackSatisfaction">Customer Satisfaction</label>
+                    <select id="feedbackSatisfaction" name="satisfaction_status" class="form-control">
+                        <option value="very_satisfied">Very Satisfied</option>
+                        <option value="satisfied">Satisfied</option>
+                        <option value="neutral" selected>Neutral</option>
+                        <option value="dissatisfied">Dissatisfied</option>
+                        <option value="very_dissatisfied">Very Dissatisfied</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="feedbackOnTime" name="on_time_flag" value="1">
+                    <label for="feedbackOnTime" style="margin: 0;">The delivery was completed on time</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackComplaint">Complaint Details</label>
+                    <textarea id="feedbackComplaint" name="complaint_text" class="form-control" rows="3" placeholder="Optional complaint details"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="FarmerDeliveryFeedback.closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const FarmerDeliveryFeedback = (() => {
+    const modal = document.getElementById('farmerTransporterFeedbackModal');
+    const form = document.getElementById('farmerTransporterFeedbackForm');
+
+    function notify(message, type = 'info') {
+        if (typeof showNotification === 'function') {
+            showNotification(message, type);
+        } else {
+            alert(message);
+        }
+    }
+
+    function openModal(orderId, transporterId, transporterName) {
+        document.getElementById('feedbackOrderId').value = orderId;
+        document.getElementById('feedbackTransporterId').value = transporterId;
+        document.getElementById('feedbackTransporterName').value = transporterName;
+        form.reset();
+        document.getElementById('feedbackOrderId').value = orderId;
+        document.getElementById('feedbackTransporterId').value = transporterId;
+        document.getElementById('feedbackTransporterName').value = transporterName;
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function submit(event) {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        fetch('<?= ROOT ?>/farmerdeliveries/submitFeedback', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notify(data.message || 'Feedback submitted successfully', 'success');
+                    closeModal();
+                    window.location.reload();
+                } else {
+                    notify(data.message || 'Failed to submit feedback', 'error');
+                }
+            })
+            .catch(() => {
+                notify('Failed to submit feedback', 'error');
+            });
+    }
+
+    if (form) {
+        form.addEventListener('submit', submit);
+    }
+
+    window.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    return { openModal, closeModal };
+})();
+</script>
