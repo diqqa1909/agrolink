@@ -1912,6 +1912,10 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+ALTER TABLE `users`
+  ADD COLUMN `verification_status`
+  enum('not_required','pending','approved','rejected') DEFAULT 'not_required'
+  AFTER `status`;
 
 
 CREATE TABLE `verification_documents` (
@@ -1937,8 +1941,3 @@ CREATE TABLE `verification_documents` (
   CONSTRAINT `vd_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `vd_reviewer_fk` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-ALTER TABLE `users`
-  ADD COLUMN `verification_status`
-  enum('not_required','pending','approved','rejected') DEFAULT 'not_required'
-  AFTER `status`;

@@ -1,0 +1,143 @@
+/* Admin Payments Page Styles */
+
+.admin-payments-modern .payments-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-payments-modern .payment-stat-card {
+  background: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.admin-payments-modern .payment-stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.admin-payments-modern .payment-stat-label {
+  font-size: 0.75rem;
+  color: #667085;
+  margin-top: 4px;
+}
+
+/* Payment Status Summary */
+.admin-payment-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-payment-status-card {
+  background: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.admin-payment-status-card .status-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.admin-payment-status-card h4 {
+  font-size: 0.8rem;
+  color: #667085;
+  margin-bottom: 8px;
+}
+
+.admin-payment-status-card .status-number {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Payment Methods Grid */
+.admin-payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-payment-method-card {
+  background: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.admin-payment-method-card .method-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.admin-payment-method-card h4 {
+  font-size: 0.8rem;
+  color: #667085;
+  margin-bottom: 8px;
+}
+
+.admin-payment-method-card .method-revenue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+/* Payment Table */
+.admin-payment-table .transaction-id {
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.admin-payment-table .amount {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Payment Badges */
+.admin-payment-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.admin-payment-badge-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.admin-payment-badge-pending {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.admin-payment-badge-failed {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.admin-payment-badge-refunded {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-payments-modern .payments-stats,
+  .admin-payment-status-grid,
+  .admin-payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

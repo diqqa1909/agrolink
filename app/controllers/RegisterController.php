@@ -4,7 +4,7 @@ class RegisterController
     use Controller;
     use Database;
 
-    private string $uploadDir = UPLOAD_DIR . '/assets/uploads/verification/';
+    private string $uploadDir = UPLOAD_DIR . 'assets/uploads/verification/';
 
     public function index($a = '', $b = '', $c = '')
     {
@@ -29,7 +29,7 @@ class RegisterController
                     $user->setVerificationStatus($userId, 'pending');
 
                 } elseif ($role === 'transporter') {
-                    (new TransporterProfileModel())->createProfile($userId, []);
+                    (new TransporterModel())->createProfile($userId, []);
                     $this->handleUploads($userId, [
                         'driving_license'        => $_FILES['driving_license']        ?? null,
                         'vehicle_insurance'      => $_FILES['vehicle_insurance']      ?? null,

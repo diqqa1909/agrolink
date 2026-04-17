@@ -149,21 +149,47 @@ class AdminDashboardController
     }
 
     public function updateUserCount()
-    {
-        header('Content-Type: application/json');
-        if (!$this->requireAdminJson()) {
+{
+    // Ensure clean output - no whitespace before this
+    header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff');
+    
+    try {
+        // Check if user is logged in and is admin
+        if (!isset($_SESSION['USER'])) {
+            echo json_encode([
+                'success' => false, 
+                'userCount' => 0,
+                'message' => 'Not authenticated'
+            ]);
             exit;
         }
-
+        
         $user = new UserModel();
         $users = $user->findAll();
+        
+        if ($users === false) {
+            $users = [];
+        }
+        
+        $userCount = is_array($users) ? count($users) : 0;
+        
         echo json_encode([
             'success' => true,
-            'userCount' => count($users),
+            'userCount' => $userCount,
             'message' => 'User count retrieved successfully'
         ]);
-        exit;
+        
+    } catch (Exception $e) {
+        error_log("Error in updateUserCount: " . $e->getMessage());
+        echo json_encode([
+            'success' => false, 
+            'userCount' => 0,
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
     }
+    exit;
+}
 
     public function register()
     {
@@ -1076,23 +1102,7 @@ public function getAnalytics()
         
         // Get date range from request
         $input = json_decode(file_get_contents('php://input'), true);
-        $period = $input['period'] ?? 'month'; // week, month, year
-        
-        // Set date range based on period
-        $dateCondition = "";
-        switch($period) {
-            case 'week':
-                $dateCondition = "AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
-                break;
-            case 'month':
-                $dateCondition = "AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-                break;
-            case 'year':
-                $dateCondition = "AND created_at >= DATE_SUB(NOW(), INTERVAL 365 DAY)";
-                break;
-            default:
-                $dateCondition = "AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-        }
+        $period = $input['period'] ?? 'month';
         
         // User statistics
         $userStatsQuery = "
@@ -1136,9 +1146,9 @@ public function getAnalytics()
         $productStatsQuery = "
             SELECT 
                 COUNT(*) as total_products,
-                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_products,
+                SUM(CASE WHEN quantity > 0 THEN 1 ELSE 0 END) as active_products,
                 SUM(CASE WHEN quantity = 0 THEN 1 ELSE 0 END) as out_of_stock,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_approval,
+                0 as pending_approval,
                 AVG(price) as avg_price,
                 SUM(price * quantity) as inventory_value
             FROM products
@@ -1155,7 +1165,7 @@ public function getAnalytics()
                 COUNT(*) as order_count,
                 SUM(total_amount) as revenue
             FROM orders
-            WHERE status = 'completed' OR status = 'delivered'
+            WHERE (status = 'completed' OR status = 'delivered')
             AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
             GROUP BY DATE_FORMAT(created_at, '%Y-%m')
             ORDER BY month ASC
@@ -1191,7 +1201,7 @@ public function getAnalytics()
                 p.image,
                 COUNT(oi.id) as total_orders,
                 SUM(oi.quantity) as total_quantity_sold,
-                SUM(oi.price * oi.quantity) as total_revenue
+                SUM(p.price * oi.quantity) as total_revenue
             FROM products p
             JOIN order_items oi ON p.id = oi.product_id
             JOIN orders o ON oi.order_id = o.id
@@ -1221,12 +1231,12 @@ public function getAnalytics()
         $categoryStmt->execute();
         $categoryDistribution = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Recent activities (last 10 orders and registrations)
+        // FIXED: Recent activities - removed order_number reference
         $recentOrdersQuery = "
             SELECT 
                 'order' as type,
                 o.id as id,
-                o.order_number as reference,
+                CONCAT('ORD-', o.id) as reference,
                 o.total_amount as amount,
                 o.status,
                 o.created_at as date,

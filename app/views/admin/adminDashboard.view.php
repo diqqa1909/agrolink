@@ -5,9 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <!-- <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css"> -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/dashboard.css">
+<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/verifications.css">
+<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/products.css">
+<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/payments.css">
+<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/disputes.css">
 </head>
 
 <body>
@@ -214,10 +219,10 @@
             <!-- User Management -->
             <div id="users-section" class="content-section" style="display: none;">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
                     <h1>User Management</h1>
-                    <div style="display: flex; gap: 15px;">
-                        <!-- <button class="btn btn-secondary" onclick="exportUsers()">Export Users</button> -->
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-secondary" onclick="generateReport('users')">📄 Export Report</button>
                         <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
                     </div>
                 </div>
@@ -259,10 +264,66 @@
                 </div>
             </div>
 
+            <!-- Verification Management -->
+            <div id="verifications-section" class="content-section" style="display: none;">
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Account Verifications</h1>
+                        <p class="content-subtitle">Review submitted documents for farmers and transporters.</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="generateReport('verifications')">📄 Export
+                        Report</button>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="vPendingCount">0</div>
+                        <div class="stat-label">Pending Review</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="vApprovedCount">0</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="vRejectedCount">0</div>
+                        <div class="stat-label">Rejected</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin:1.5rem 0 1rem;">
+                    <button class="btn btn-primary v-tab-btn active" data-filter="pending"
+                        onclick="setVerificationFilter('pending')">Pending</button>
+                    <button class="btn btn-secondary v-tab-btn" data-filter="approved"
+                        onclick="setVerificationFilter('approved')">Approved</button>
+                    <button class="btn btn-secondary v-tab-btn" data-filter="rejected"
+                        onclick="setVerificationFilter('rejected')">Rejected</button>
+                    <button class="btn btn-secondary v-tab-btn" data-filter="all"
+                        onclick="setVerificationFilter('all')">All</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Documents</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verificationsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Order Management -->
             <div id="orders-section" class="content-section" style="display: none;">
-                <div class="content-header">
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
                     <h1 class="content-title">Order Management</h1>
+                    <button class="btn btn-secondary" onclick="generateReport('orders')">📄 Export Report</button>
                 </div>
 
                 <div class="dashboard-stats">
@@ -346,11 +407,13 @@
             </div>
 
             <!-- Product Management -->
-            <!-- Product Management -->
             <div id="products-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Product Management</h1>
-                    <p class="content-subtitle">Overview of all products listed on the platform</p>
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Product Management</h1>
+                        <p class="content-subtitle">Overview of all products listed on the platform</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="generateReport('products')">📄 Export Report</button>
                 </div>
 
                 <!-- Product Statistics -->
@@ -398,11 +461,13 @@
             </div>
 
             <!-- Payments & Finance -->
-            <!-- Payments & Finance -->
             <div id="payments-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Payments & Finance</h1>
-                    <p class="content-subtitle">Track and manage all platform payments</p>
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Payments & Finance</h1>
+                        <p class="content-subtitle">Track and manage all platform payments</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="generateReport('payments')">📄 Export Report</button>
                 </div>
 
                 <!-- Payment Statistics -->
@@ -573,26 +638,14 @@
                 </div>
             </div>
 
-            <!-- Payment Details Modal -->
-            <div id="paymentDetailsModal" class="modal" style="display:none;">
-                <div class="modal-content" style="max-width:600px;width:95%;">
-                    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
-                        <h3>Payment Details</h3>
-                        <button onclick="closeModal('paymentDetailsModal')"
-                            style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
-                    </div>
-                    <div class="modal-body" id="paymentDetailsBody">
-                        <!-- Payment details will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Disputes -->
             <!-- Disputes -->
             <div id="disputes-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Disputes Management</h1>
-                    <p class="content-subtitle">Manage and resolve customer disputes</p>
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Disputes Management</h1>
+                        <p class="content-subtitle">Manage and resolve customer disputes</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="generateReport('disputes')">📄 Export Report</button>
                 </div>
 
                 <!-- Dispute Statistics -->
@@ -747,33 +800,21 @@
                 </div>
             </div>
 
-            <!-- Dispute Details Modal -->
-            <div id="disputeDetailsModal" class="modal" style="display:none;">
-                <div class="modal-content" style="max-width:800px;width:95%;max-height:80vh;overflow-y:auto;">
-                    <div class="modal-header"
-                        style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid #eee;">
-                        <h3>Dispute Details</h3>
-                        <button onclick="closeModal('disputeDetailsModal')"
-                            style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
-                    </div>
-                    <div class="modal-body" id="disputeDetailsBody" style="padding:20px;">
-                        <!-- Dispute details will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics -->
             <!-- Analytics -->
             <div id="analytics-section" class="content-section" style="display: none;">
-                <div class="analytics-header">
+                <div class="analytics-header" style="display:flex;justify-content:space-between;align-items:center;">
                     <h1>Platform Analytics</h1>
-                    <div class="period-selector">
-                        <select id="analyticsPeriod" class="form-control" style="width: auto; display: inline-block;">
-                            <option value="week">Last 7 Days</option>
-                            <option value="month" selected>Last 30 Days</option>
-                            <option value="year">Last 12 Months</option>
-                        </select>
-                        <button class="btn btn-primary" onclick="refreshAnalytics()">Refresh</button>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <div class="period-selector">
+                            <select id="analyticsPeriod" class="form-control" style="width:auto;display:inline-block;">
+                                <option value="week">Last 7 Days</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="year">Last 12 Months</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="refreshAnalytics()">Refresh</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="generateReport('analytics')">📄 Export
+                            Report</button>
                     </div>
                 </div>
 
@@ -875,6 +916,38 @@
                 </div>
             </div>
 
+            <!-- Payment Details Modal -->
+            <div id="paymentDetailsModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:600px;width:95%;">
+                    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3>Payment Details</h3>
+                        <button onclick="closeModal('paymentDetailsModal')"
+                            style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+                    </div>
+                    <div class="modal-body" id="paymentDetailsBody">
+                        <!-- Payment details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dispute Details Modal -->
+            <div id="disputeDetailsModal" class="modal" style="display:none;">
+                <div class="modal-content" style="max-width:800px;width:95%;max-height:80vh;overflow-y:auto;">
+                    <div class="modal-header"
+                        style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid #eee;">
+                        <h3>Dispute Details</h3>
+                        <button onclick="closeModal('disputeDetailsModal')"
+                            style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+                    </div>
+                    <div class="modal-body" id="disputeDetailsBody" style="padding:20px;">
+                        <!-- Dispute details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+
+
             <!-- Notifications -->
             <div id="notifications-section" class="content-section" style="display: none;">
                 <div class="content-header">
@@ -910,56 +983,7 @@
                 </div>
             </div>
 
-            <!-- Verification Management -->
-            <div id="verifications-section" class="content-section" style="display: none;">
-                <div class="content-header">
-                    <h1 class="content-title">Account Verifications</h1>
-                    <p class="content-subtitle">Review submitted documents for farmers and transporters.</p>
-                </div>
 
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-number" id="vPendingCount">0</div>
-                        <div class="stat-label">Pending Review</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="vApprovedCount">0</div>
-                        <div class="stat-label">Approved</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="vRejectedCount">0</div>
-                        <div class="stat-label">Rejected</div>
-                    </div>
-                </div>
-
-                <div style="display:flex;gap:8px;margin:1.5rem 0 1rem;">
-                    <button class="btn btn-primary v-tab-btn active" data-filter="pending"
-                        onclick="setVerificationFilter('pending')">Pending</button>
-                    <button class="btn btn-secondary v-tab-btn" data-filter="approved"
-                        onclick="setVerificationFilter('approved')">Approved</button>
-                    <button class="btn btn-secondary v-tab-btn" data-filter="rejected"
-                        onclick="setVerificationFilter('rejected')">Rejected</button>
-                    <button class="btn btn-secondary v-tab-btn" data-filter="all"
-                        onclick="setVerificationFilter('all')">All</button>
-                </div>
-
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Documents</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="verificationsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
 
             <!-- Document Review Modal -->
             <div id="docReviewModal" class="modal" style="display:none;">
@@ -1126,6 +1150,78 @@
         </div>
     </div>
 
+    <!-- Report Generation Modal -->
+    <div id="reportModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:480px;width:95%;">
+            <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 id="reportModalTitle">Generate Report</h3>
+                <button onclick="closeModal('reportModal')"
+                    style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div class="modal-body" style="padding:20px;">
+                <p style="color:#666;font-size:14px;margin-bottom:16px;" id="reportModalDesc">
+                    Choose a format to export your data.
+                </p>
+
+                <!-- Date range (shown for time-based sections) -->
+                <div id="reportDateRange" style="margin-bottom:16px;display:none;">
+                    <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:6px;">Date
+                        Range</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label style="font-size:12px;color:#888;">From</label>
+                            <input type="date" id="reportDateFrom" class="form-control">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:#888;">To</label>
+                            <input type="date" id="reportDateTo" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columns selector -->
+                <div id="reportColumnsSection" style="margin-bottom:16px;">
+                    <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px;">Include
+                        Columns</label>
+                    <div id="reportColumnsGrid"
+                        style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow-y:auto;padding:2px;">
+                    </div>
+                </div>
+
+                <!-- Format selection -->
+                <label style="font-size:13px;font-weight:600;color:#555;display:block;margin-bottom:8px;">Export
+                    Format</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                    <label
+                        style="border:1px solid #ddd;border-radius:8px;padding:14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.15s;"
+                        id="fmtCsvLabel">
+                        <input type="radio" name="reportFormat" value="csv" checked onchange="highlightFormat()"
+                            style="accent-color:#1a7a4a;">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;">CSV</div>
+                            <div style="font-size:12px;color:#888;">Excel compatible</div>
+                        </div>
+                    </label>
+                    <label
+                        style="border:1px solid #ddd;border-radius:8px;padding:14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.15s;"
+                        id="fmtPrintLabel">
+                        <input type="radio" name="reportFormat" value="print" onchange="highlightFormat()"
+                            style="accent-color:#1a7a4a;">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;">Print / PDF</div>
+                            <div style="font-size:12px;color:#888;">Browser print dialog</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="executeReport()">Generate Report</button>
+                    <button class="btn btn-secondary" onclick="closeModal('reportModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script>
         let currentReviewUserId = null;
@@ -1144,7 +1240,7 @@
             setupOrderFilters();
             setupProductFilters();
             setupPaymentFilters();
-            setupDisputeFilters(); 
+            setupDisputeFilters();
             setupNavigation();
             setupForms();
             showSection('dashboard');
@@ -1339,7 +1435,7 @@
         }
 
         // Add clear filters button functionality
-        /* function addClearFiltersButton() {
+        function addClearFiltersButton() {
             const filtersDiv = document.querySelector('#users-section .filters');
             if (filtersDiv && !document.getElementById('clearFiltersBtn')) {
                 const clearBtn = document.createElement('button');
@@ -1361,7 +1457,7 @@
                     filterRow.appendChild(buttonDiv);
                 }
             }
-        } */
+        }
 
         // Enhanced initialization
         document.addEventListener('DOMContentLoaded', function () {
@@ -3320,7 +3416,7 @@
                         dispute_id: disputeId,
                         message: message,
                         sender_id: <?= $_SESSION['USER']->id ?? 'null' ?>
-            })
+                    })
                 });
 
                 const result = await response.json();
@@ -3583,6 +3679,391 @@
             updateUserCount();
             setInterval(updateUserCount, 30000);
         });
+
+        // ============================================================
+        // REPORT GENERATION SYSTEM
+        // ============================================================
+
+        let _reportSection = null;
+
+        // Column definitions per section
+        const REPORT_COLUMNS = {
+            dashboard: [
+                { key: 'metric', label: 'Metric' },
+                { key: 'value', label: 'Value' }
+            ],
+            users: [
+                { key: 'id', label: 'User ID' },
+                { key: 'name', label: 'Name' },
+                { key: 'email', label: 'Email' },
+                { key: 'role', label: 'Role' },
+                { key: 'verification_status', label: 'Verification' },
+                { key: 'status', label: 'Status' },
+                { key: 'created_at', label: 'Registered' }
+            ],
+            verifications: [
+                { key: 'user_id', label: 'User ID' },
+                { key: 'name', label: 'Name' },
+                { key: 'email', label: 'Email' },
+                { key: 'role', label: 'Role' },
+                { key: 'verification_status', label: 'Status' },
+                { key: 'doc_count', label: 'Total Docs' },
+                { key: 'approved_docs', label: 'Approved' },
+                { key: 'registered_at', label: 'Registered' }
+            ],
+            orders: [
+                { key: 'order_number', label: 'Order ID' },
+                { key: 'buyer_name', label: 'Buyer' },
+                { key: 'farmer_name', label: 'Farmer' },
+                { key: 'total_amount', label: 'Amount (Rs.)' },
+                { key: 'order_status', label: 'Status' },
+                { key: 'payment_status', label: 'Payment' },
+                { key: 'payment_method', label: 'Pay Method' },
+                { key: 'order_date', label: 'Date' }
+            ],
+            products: [
+                { key: 'id', label: 'Product ID' },
+                { key: 'name', label: 'Product Name' },
+                { key: 'farmer_name', label: 'Farmer' },
+                { key: 'category', label: 'Category' },
+                { key: 'price', label: 'Price (Rs.)' },
+                { key: 'quantity', label: 'Stock' },
+                { key: 'status', label: 'Status' },
+                { key: 'created_at', label: 'Listed On' }
+            ],
+            payments: [
+                { key: 'transaction_id', label: 'Transaction ID' },
+                { key: 'order_number', label: 'Order ID' },
+                { key: 'buyer_name', label: 'Buyer' },
+                { key: 'amount', label: 'Amount (Rs.)' },
+                { key: 'payment_method', label: 'Method' },
+                { key: 'payment_status', label: 'Status' },
+                { key: 'payment_date', label: 'Date' }
+            ],
+            disputes: [
+                { key: 'dispute_id', label: 'Dispute ID' },
+                { key: 'order_number', label: 'Order ID' },
+                { key: 'complainant_name', label: 'Complainant' },
+                { key: 'respondent_name', label: 'Respondent' },
+                { key: 'type', label: 'Type' },
+                { key: 'priority', label: 'Priority' },
+                { key: 'status', label: 'Status' },
+                { key: 'created_at', label: 'Created' }
+            ],
+            analytics: [
+                { key: 'metric', label: 'Metric' },
+                { key: 'value', label: 'Value' }
+            ]
+        };
+
+        const REPORT_TITLES = {
+            dashboard: 'Platform Overview Report',
+            users: 'User Management Report',
+            verifications: 'Account Verifications Report',
+            orders: 'Order Management Report',
+            products: 'Product Catalogue Report',
+            payments: 'Payments & Finance Report',
+            disputes: 'Disputes Report',
+            analytics: 'Platform Analytics Report'
+        };
+
+        // Sections that benefit from a date range filter
+        const DATE_RANGE_SECTIONS = ['orders', 'payments', 'disputes', 'analytics'];
+
+        function generateReport(section) {
+            _reportSection = section;
+
+            document.getElementById('reportModalTitle').textContent = REPORT_TITLES[section] || 'Generate Report';
+            document.getElementById('reportModalDesc').textContent =
+                `Exporting data from the ${section.charAt(0).toUpperCase() + section.slice(1)} section.`;
+
+            // Date range
+            const drDiv = document.getElementById('reportDateRange');
+            drDiv.style.display = DATE_RANGE_SECTIONS.includes(section) ? 'block' : 'none';
+
+            // Default date range: last 30 days
+            const today = new Date();
+            const prior = new Date(); prior.setDate(today.getDate() - 30);
+            document.getElementById('reportDateTo').value = today.toISOString().slice(0, 10);
+            document.getElementById('reportDateFrom').value = prior.toISOString().slice(0, 10);
+
+            // Build column checkboxes
+            const cols = REPORT_COLUMNS[section] || [];
+            const grid = document.getElementById('reportColumnsGrid');
+            grid.innerHTML = cols.map(col => `
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;
+                       padding:4px 8px;border-radius:6px;border:1px solid #eee;background:#fafafa;">
+            <input type="checkbox" name="reportCol" value="${col.key}" checked
+                   style="accent-color:#1a7a4a;width:14px;height:14px;">
+            ${col.label}
+        </label>
+    `).join('');
+
+            // Reset format highlight
+            highlightFormat();
+
+            document.getElementById('reportModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function highlightFormat() {
+            const selected = document.querySelector('input[name="reportFormat"]:checked')?.value;
+            document.getElementById('fmtCsvLabel').style.borderColor = selected === 'csv' ? '#1a7a4a' : '#ddd';
+            document.getElementById('fmtPrintLabel').style.borderColor = selected === 'print' ? '#1a7a4a' : '#ddd';
+        }
+
+        function executeReport() {
+            const format = document.querySelector('input[name="reportFormat"]:checked')?.value || 'csv';
+            const selCols = Array.from(document.querySelectorAll('input[name="reportCol"]:checked')).map(c => c.value);
+
+            if (selCols.length === 0) {
+                alert('Please select at least one column.');
+                return;
+            }
+
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+
+            const data = getReportData(_reportSection, selCols, dateFrom, dateTo);
+            const cols = (REPORT_COLUMNS[_reportSection] || []).filter(c => selCols.includes(c.key));
+            const title = REPORT_TITLES[_reportSection] || 'Report';
+
+            if (format === 'csv') {
+                exportCSV(data, cols, title);
+            } else {
+                printReport(data, cols, title, dateFrom, dateTo);
+            }
+        }
+
+        // ── Data extraction per section ────────────────────────────────────────
+
+        function getReportData(section, selCols, dateFrom, dateTo) {
+            switch (section) {
+                case 'dashboard': return getDashboardReportData();
+                case 'users': return filterByDate(getJsVar('allUsers') || [], 'created_at', dateFrom, dateTo);
+                case 'verifications': return getJsVar('allVerifications') || getVerificationsFromPage();
+                case 'orders': return filterByDate(getJsVar('allOrders') || [], 'order_date', dateFrom, dateTo);
+                case 'products': return getJsVar('allProducts') || [];
+                case 'payments': return filterByDate(getJsVar('allPayments') || [], 'payment_date', dateFrom, dateTo);
+                case 'disputes': return filterByDate(getJsVar('allDisputes') || [], 'created_at', dateFrom, dateTo);
+                case 'analytics': return getAnalyticsReportData();
+                default: return [];
+            }
+        }
+
+        function getJsVar(name) {
+            try { return window[name]; } catch (e) { return null; }
+        }
+
+        function filterByDate(rows, dateKey, from, to) {
+            if (!from && !to) return rows;
+            return rows.filter(r => {
+                if (!r[dateKey]) return true;
+                const d = r[dateKey].substring(0, 10);
+                if (from && d < from) return false;
+                if (to && d > to) return false;
+                return true;
+            });
+        }
+
+        function getDashboardReportData() {
+            const metrics = [
+                { metric: 'Total Users', value: document.getElementById('totalUsers')?.textContent || 0 },
+                { metric: 'Farmers', value: document.getElementById('farmerCount')?.textContent || 0 },
+                { metric: 'Buyers', value: document.getElementById('buyerCount')?.textContent || 0 },
+                { metric: 'Transporters', value: document.getElementById('transporterCount')?.textContent || 0 },
+                { metric: 'Admins', value: document.getElementById('adminCount')?.textContent || 0 },
+                { metric: 'Pending Verifications', value: document.getElementById('vPendingCount')?.textContent || 0 },
+                { metric: 'Active Orders', value: document.getElementById('activeOrders')?.textContent || 0 },
+                { metric: 'Total Revenue', value: document.getElementById('totalRevenue')?.textContent || 0 }
+            ];
+            return metrics;
+        }
+
+        function getVerificationsFromPage() {
+            // Fall back to reading from the PHP-injected variable used by loadVerifications()
+            try {
+                return <?= json_encode($verifications ?? []) ?>;
+            } catch (e) { return []; }
+        }
+
+        function getAnalyticsReportData() {
+            return [
+                { metric: 'Total Revenue', value: document.getElementById('totalRevenue')?.textContent || 0 },
+                { metric: 'Total Orders', value: document.getElementById('totalOrders')?.textContent || 0 },
+                { metric: 'Total Users', value: document.getElementById('totalUsers')?.textContent || 0 },
+                { metric: 'Avg Order Value', value: document.getElementById('avgOrderValue')?.textContent || 0 },
+                { metric: 'Total Transactions', value: document.getElementById('totalTransactions')?.textContent || 0 }
+            ];
+        }
+
+        // ── CSV export ─────────────────────────────────────────────────────────
+
+        function exportCSV(data, cols, title) {
+            if (!data || data.length === 0) {
+                alert('No data to export. Try loading this section first.');
+                return;
+            }
+
+            const header = cols.map(c => `"${c.label}"`).join(',');
+
+            const rows = data.map(row =>
+                cols.map(col => {
+                    let val = row[col.key] ?? '';
+                    // Clean up values
+                    val = String(val).replace(/"/g, '""');
+                    return `"${val}"`;
+                }).join(',')
+            );
+
+            const csv = [header, ...rows].join('\n');
+            const bom = '\uFEFF'; // UTF-8 BOM for Excel
+            const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            closeModal('reportModal');
+        }
+
+        // ── Print / PDF export ─────────────────────────────────────────────────
+
+        function printReport(data, cols, title, dateFrom, dateTo) {
+            if (!data || data.length === 0) {
+                alert('No data to export. Try loading this section first.');
+                return;
+            }
+
+            const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            const dateStr = dateFrom && dateTo ? `${dateFrom} → ${dateTo}` : 'All time';
+
+            // Summary stats
+            const numericCols = cols.filter(c => {
+                const sample = data[0]?.[c.key];
+                return !isNaN(parseFloat(sample)) && isFinite(sample);
+            });
+
+            const summaryRows = numericCols.map(c => {
+                const vals = data.map(r => parseFloat(r[c.key]) || 0);
+                const sum = vals.reduce((a, b) => a + b, 0);
+                const avg = vals.length ? (sum / vals.length) : 0;
+                const max = Math.max(...vals);
+                return `<tr>
+            <td>${c.label}</td>
+            <td>${sum.toLocaleString()}</td>
+            <td>${avg.toFixed(2)}</td>
+            <td>${max.toLocaleString()}</td>
+        </tr>`;
+            }).join('');
+
+            const summarySection = numericCols.length > 0 ? `
+        <div class="summary-box">
+            <h3>Summary Statistics</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Total</th><th>Average</th><th>Max</th></tr></thead>
+                <tbody>${summaryRows}</tbody>
+            </table>
+        </div>` : '';
+
+            // Table rows — stripe every other row
+            const tableRows = data.map((row, i) =>
+                `<tr class="${i % 2 === 0 ? 'even' : 'odd'}">
+            ${cols.map(c => `<td>${escapeHtml(String(row[c.key] ?? ''))}</td>`).join('')}
+        </tr>`
+            ).join('');
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #2c3e50; padding: 24px; }
+
+    .report-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     border-bottom: 3px solid #1a7a4a; padding-bottom: 16px; margin-bottom: 20px; }
+    .brand { font-size: 22px; font-weight: 700; color: #1a7a4a; letter-spacing: -0.5px; }
+    .brand span { color: #2c3e50; }
+    .report-meta { text-align: right; }
+    .report-meta h2 { font-size: 15px; color: #2c3e50; margin-bottom: 4px; }
+    .report-meta p  { font-size: 11px; color: #777; }
+
+    .summary-box { background: #f0f9f4; border: 1px solid #c3e6cb; border-radius: 8px;
+                   padding: 14px 18px; margin-bottom: 20px; }
+    .summary-box h3 { font-size: 13px; color: #1a7a4a; margin-bottom: 10px; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    thead th { background: #1a7a4a; color: #fff; padding: 8px 10px; text-align: left;
+               font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    tbody td { padding: 7px 10px; border-bottom: 1px solid #eee; font-size: 11px; vertical-align: top; }
+    tr.even { background: #fff; }
+    tr.odd  { background: #f8fdf9; }
+
+    .data-section h3 { font-size: 13px; color: #2c3e50; margin-bottom: 10px; font-weight: 600; }
+    .footer { border-top: 1px solid #ddd; padding-top: 12px; margin-top: 8px;
+              display: flex; justify-content: space-between; color: #aaa; font-size: 10px; }
+
+    .count-badge { display: inline-block; background: #e8f5e9; color: #1a7a4a;
+                   padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    @page { size: A4 landscape; margin: 15mm; }
+    @media print {
+        body { padding: 0; }
+        button { display: none !important; }
+    }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+    <div>
+        <div class="brand">Agro<span>Link</span></div>
+        <div style="font-size:11px;color:#777;margin-top:4px;">Sri Lanka Agricultural Marketplace</div>
+    </div>
+    <div class="report-meta">
+        <h2>${title}</h2>
+        <p>Period: ${dateStr}</p>
+        <p>Generated: ${now}</p>
+        <p>Total records: <strong>${data.length}</strong></p>
+    </div>
+</div>
+
+${summarySection}
+
+<div class="data-section">
+    <table>
+        <thead>
+            <tr>${cols.map(c => `<th>${c.label}</th>`).join('')}</tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+    </table>
+</div>
+
+<div class="footer">
+    <span>AgroLink Admin Dashboard — Confidential</span>
+    <span>${title} | ${now}</span>
+    <span>Total: ${data.length} records</span>
+</div>
+
+<script>
+    window.onload = function() {
+        window.print();
+        window.onafterprint = function() { window.close(); };
+    };
+<\/script>
+</body>
+</html>`;
+
+            const win = window.open('', '_blank', 'width=1100,height=750');
+            win.document.write(html);
+            win.document.close();
+
+            closeModal('reportModal');
+        }
     </script>
     <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
 </body>
