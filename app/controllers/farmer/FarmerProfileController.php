@@ -53,6 +53,7 @@ class FarmerProfileController
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
+            'pageStyles' => ['profile.css'],
             'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
@@ -694,11 +695,10 @@ class FarmerProfileController
 
         $userId = (int)authUserId();
         $payload = [
-            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? $_POST['account_holder'] ?? '')),
             'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
             'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
             'account_number' => trim((string)($_POST['account_number'] ?? '')),
-            'account_type' => trim((string)($_POST['account_type'] ?? '')),
             'is_default' => 1,
         ];
 
@@ -748,7 +748,6 @@ class FarmerProfileController
         }
 
         $userId = (int)authUserId();
-        $reason = trim((string)($_POST['reason'] ?? ''));
 
         $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
         $activeOrderCount = $this->orderModel->countFarmerOrdersByStatuses($userId, $blockingStatuses);
@@ -757,12 +756,14 @@ class FarmerProfileController
             echo json_encode([
                 'success' => false,
                 'error' => 'Cannot deactivate account while active orders exist.',
+                'blockedType' => 'orders',
+                'blockedCount' => $activeOrderCount,
                 'activeOrderCount' => $activeOrderCount,
             ]);
             exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
 
         if (!$deactivated) {
             http_response_code(500);

@@ -53,6 +53,7 @@ class FarmerDashboardController
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
+            'pageStyles' => ['dashboard.css'],
             'contentView' => '../app/views/farmer/farmerDashboard.view.php',
             'pageScript' => 'farmerDashboard.js',
             'activeProducts' => $activeProducts,

@@ -70,21 +70,130 @@ class UserModel
         return $this->first(['email' => $email]);
     }
 
+    public function findById($id)
+    {
+        $id = (int)$id;
+        if ($id <= 0) {
+            return null;
+        }
+
+        return $this->first(['id' => $id]);
+    }
+
+    public function updatePassword($userId, $newPassword)
+    {
+        $userId = (int)$userId;
+        $newPassword = (string)$newPassword;
+
+        if ($userId <= 0 || $newPassword === '') {
+            return false;
+        }
+
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        if ($hash === false) {
+            return false;
+        }
+
+        return $this->write(
+            "UPDATE {$this->table}
+             SET password = :password,
+                 password_updated_at = NOW()
+             WHERE id = :id
+             LIMIT 1",
+            [
+                'id' => $userId,
+                'password' => $hash,
+            ]
+        ) !== false;
+    }
+
+    public function changeEmailWithAudit($userId, $newEmail)
+    {
+        $userId = (int)$userId;
+        $newEmail = strtolower(trim((string)$newEmail));
+
+        if ($userId <= 0 || $newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
+        $currentUser = $this->findById($userId);
+        if (!$currentUser) {
+            return false;
+        }
+
+        $existing = $this->findByEmail($newEmail);
+        if ($existing && (int)($existing->id ?? 0) !== $userId) {
+            return false;
+        }
+
+        $updated = $this->write(
+            "UPDATE {$this->table}
+             SET email = :email
+             WHERE id = :id
+             LIMIT 1",
+            [
+                'id' => $userId,
+                'email' => $newEmail,
+            ]
+        );
+
+        if ($updated === false) {
+            return false;
+        }
+
+        $oldEmail = (string)($currentUser->email ?? '');
+        if ($oldEmail !== '' && strcasecmp($oldEmail, $newEmail) !== 0) {
+            $this->recordEmailChange($userId, $oldEmail, $newEmail);
+        }
+
+        return true;
+    }
+
+    public function deactivateAccount($userId, $reason = '')
+    {
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $reason = trim((string)$reason);
+        if ($reason === '') {
+            $reason = null;
+        } else {
+            $reason = substr($reason, 0, 500);
+        }
+
+        return $this->write(
+            "UPDATE {$this->table}
+             SET status = 'inactive',
+                 deactivated_at = NOW(),
+                 deactivation_reason = :reason
+             WHERE id = :id
+             LIMIT 1",
+            [
+                'id' => $userId,
+                'reason' => $reason,
+            ]
+        ) !== false;
+    }
+
     private function ensureEmailChangesTable()
     {
-        static $checked = false;
-        if ($checked) return true;
+        static $checked = null;
+        if ($checked !== null) {
+            return $checked;
+        }
 
-        $sql = "CREATE TABLE IF NOT EXISTS {$this->emailChangesTable} (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    old_email VARCHAR(255) NOT NULL,
-                    new_email VARCHAR(255) NOT NULL,
-                    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_user_id (user_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        $row = $this->get_row(
+            "SELECT 1 AS table_exists
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name = :table_name
+             LIMIT 1",
+            ['table_name' => $this->emailChangesTable]
+        );
 
-        $checked = (bool)$this->write($sql);
+        $checked = (bool)$row;
         return $checked;
     }
 
@@ -130,6 +239,10 @@ class UserModel
             }
         }
 
+        if (empty($data)) {
+            return false;
+        }
+
         $keys = array_keys($data);
         $query = "update $this->table set ";
 
@@ -142,7 +255,7 @@ class UserModel
 
         $data[$id_column] = $id;
 
-        $this->query($query, $data);
-        return 1;
+        $result = $this->write($query, $data);
+        return $result === false ? false : (int)$result;
     }
 }

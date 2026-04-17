@@ -11,10 +11,10 @@ class FarmerCropRequestsController
 
         // Load CropRequestModel to fetch all crop requests
         $cropRequestModel = new CropRequestModel();
-        
+
         // Get all crop requests from buyers (not filtered by farmer - farmers see all open requests)
         $requests = $cropRequestModel->findAll();
-        
+
         // Ensure it's an array
         if (!is_array($requests)) {
             $requests = [];
@@ -23,6 +23,7 @@ class FarmerCropRequestsController
         $data = [
             'pageTitle' => 'Crop Requests',
             'activePage' => 'crop-requests',
+            'pageStyles' => ['crop-requests.css'],
             'contentView' => '../app/views/farmer/cropRequests.view.php',
             'requests' => $requests
         ];
@@ -47,6 +48,7 @@ class FarmerCropRequestsController
         $data = [
             'pageTitle' => 'Crop Request Details',
             'activePage' => 'crop-requests',
+            'pageStyles' => ['crop-requests.css'],
             'contentView' => '../app/views/farmer/cropRequestDetails.view.php',
             'request' => $request
         ];

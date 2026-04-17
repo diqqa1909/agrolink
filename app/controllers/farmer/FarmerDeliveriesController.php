@@ -37,6 +37,7 @@ class FarmerDeliveriesController
         $data = [
             'pageTitle' => 'Deliveries',
             'activePage' => 'deliveries',
+            'pageStyles' => ['deliveries.css'],
             'filter' => $filter,
             'deliverySummary' => $summary,
             'deliveries' => $deliveries,

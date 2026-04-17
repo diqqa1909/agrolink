@@ -14,6 +14,7 @@ class TransporterDashboardController
         $data['pageTitle'] = 'Dashboard';
         $data['activePage'] = 'dashboard';
         $data['username'] = authUserName();
+        $data['pageStyles'] = ['dashboard.css'];
         $data['pageScript'] = 'transporterDashboard.js';
         $data['contentView'] = '../app/views/transporter/transporterDashboard.view.php';
 
@@ -370,11 +371,11 @@ class TransporterDashboardController
             $transporterModel = new TransporterModel();
             $result = $transporterModel->acceptDeliveryRequest($id, authUserId());
 
-            if ($result) {
+            if (is_array($result) && !empty($result['success'])) {
                 $response['success'] = true;
                 $response['message'] = 'Delivery request accepted successfully!';
             } else {
-                $response['message'] = 'This request is no longer available or has already been accepted';
+                $response['message'] = (string)($result['error'] ?? 'This request is no longer available or has already been accepted');
             }
         }
 
@@ -428,7 +429,7 @@ class TransporterDashboardController
             }
 
             $transporterModel = new TransporterModel();
-            $request = $transporterModel->getDeliveryRequestById($id);
+            $request = $transporterModel->getDeliveryRequestById($id, authUserId());
 
             if ($request) {
                 $response['success'] = true;

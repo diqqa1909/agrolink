@@ -10,7 +10,7 @@ class FarmerProductsController
     public function __construct()
     {
         $this->productModel = new ProductsModel();
-        
+
         // Initialize shipping calculator for location helpers
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
@@ -47,6 +47,7 @@ class FarmerProductsController
         $data = [
             'pageTitle'   => 'My Products',
             'activePage'  => 'products',
+            'pageStyles'  => ['products.css'],
             'contentView' => '../app/views/farmer/farmerProductsContent.view.php',
             'pageScript'  => 'products.js'
         ];
@@ -110,7 +111,7 @@ class FarmerProductsController
             if (empty($category)) {
                 $errors['category'] = 'Category is required';
             }
-            
+
             // If product_master_id provided, fetch standardized name from crop_volume_factors
             if ($productMasterId) {
                 try {
@@ -129,7 +130,7 @@ class FarmerProductsController
                     $errors['product_master_id'] = 'Database error';
                 }
             }
-            
+
             if (empty($name)) {
                 $errors['name'] = 'Product name is required';
             } elseif (strlen($name) < 3) {
@@ -182,7 +183,7 @@ class FarmerProductsController
                 if (empty($location)) {
                     $location = authUserLocation();
                 }
-                
+
                 if (empty($location)) {
                     $errors['location'] = 'Location is required';
                 }
@@ -286,13 +287,13 @@ class FarmerProductsController
     public function farmerList()
     {
         header('Content-Type: application/json');
-        
+
         if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Not logged in']);
             return;
         }
-        
+
         if (!hasRole('farmer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Not a farmer']);
@@ -337,18 +338,18 @@ class FarmerProductsController
             echo json_encode(['success' => false, 'error' => 'Calculator not initialized']);
             return;
         }
-        
+
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
+
             $stmt = $pdo->query(
                 "SELECT DISTINCT category FROM crop_volume_factors 
                  WHERE category IS NOT NULL 
                  ORDER BY category"
             );
             $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
+
             echo json_encode(['success' => true, 'categories' => $categories]);
         } catch (PDOException $e) {
             error_log("Get categories error: " . $e->getMessage());
@@ -361,16 +362,16 @@ class FarmerProductsController
     {
         header('Content-Type: application/json');
         $category = $_GET['category'] ?? '';
-        
+
         if (!$category) {
             echo json_encode(['success' => false, 'products' => []]);
             return;
         }
-        
+
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
+
             $stmt = $pdo->prepare(
                 "SELECT id, crop_name, volume_factor 
                  FROM crop_volume_factors 
@@ -379,7 +380,7 @@ class FarmerProductsController
             );
             $stmt->execute([$category]);
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             echo json_encode(['success' => true, 'products' => $products]);
         } catch (PDOException $e) {
             error_log("Get products error: " . $e->getMessage());

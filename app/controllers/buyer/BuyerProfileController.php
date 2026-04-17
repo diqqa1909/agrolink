@@ -609,7 +609,6 @@ class BuyerProfileController
         $this->requirePostRequest();
 
         $userId = (int)authUserId();
-        $reason = trim((string)($_POST['reason'] ?? ''));
 
         $blockingStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped'];
         $activeOrderCount = $this->orderModel->countBuyerOrdersByStatuses($userId, $blockingStatuses);
@@ -617,11 +616,13 @@ class BuyerProfileController
             $this->jsonResponse(409, [
                 'success' => false,
                 'error' => 'Cannot deactivate account while active orders exist.',
+                'blockedType' => 'orders',
+                'blockedCount' => $activeOrderCount,
                 'activeOrderCount' => $activeOrderCount,
             ]);
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
         if (!$deactivated) {
             $this->jsonResponse(500, [
                 'success' => false,

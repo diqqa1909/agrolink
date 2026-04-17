@@ -35,6 +35,7 @@ class FarmerNotificationsController
         $data = [
             'pageTitle' => 'Notifications',
             'activePage' => 'notifications',
+            'pageStyles' => ['notifications.css'],
             'notificationUnreadCount' => $unreadCount,
             'notifications' => $notifications,
             'notificationSettings' => $settings,
@@ -136,4 +137,3 @@ class FarmerNotificationsController
         exit;
     }
 }
-

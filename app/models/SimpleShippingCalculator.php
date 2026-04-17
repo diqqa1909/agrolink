@@ -1,4 +1,5 @@
 <?php
+
 /**
  * AgroLink Simple Shipping Cost Calculator.
  *
@@ -47,8 +48,18 @@ class SimpleShippingCalculator
                 return ['success' => false, 'error' => $validation['error']];
             }
 
-            $cropFactor = $this->getCropVolumeFactor($params['crop_name']);
-            $effectiveWeight = $params['weight_kg'] * $cropFactor;
+            $weightKg = (float)$params['weight_kg'];
+            $cropName = trim((string)($params['crop_name'] ?? 'mixed'));
+            $weightAlreadyAdjusted = !empty($params['weight_already_adjusted']);
+
+            if ($weightAlreadyAdjusted) {
+                $cropFactor = 1.0;
+                $effectiveWeight = $weightKg;
+            } else {
+                $cropFactor = $this->getCropVolumeFactor($cropName);
+                $effectiveWeight = $weightKg * $cropFactor;
+            }
+
             $vehicles = $this->getAvailableVehicles($effectiveWeight);
 
             if (empty($vehicles)) {
@@ -89,8 +100,8 @@ class SimpleShippingCalculator
             return [
                 'success' => true,
                 'calculation' => [
-                    'crop_name' => $params['crop_name'],
-                    'order_weight_kg' => $params['weight_kg'],
+                    'crop_name' => $cropName,
+                    'order_weight_kg' => $weightKg,
                     'crop_volume_factor' => $cropFactor,
                     'effective_weight_kg' => round($effectiveWeight, 2),
                     'district_distance_km' => $distanceData['district_distance_km'],
@@ -128,7 +139,6 @@ class SimpleShippingCalculator
             'pickup_town_id',
             'delivery_district_id',
             'delivery_town_id',
-            'crop_name',
             'weight_kg',
         ];
 
@@ -141,11 +151,21 @@ class SimpleShippingCalculator
             }
         }
 
-        if ($params['weight_kg'] <= 0) {
+        if (empty($params['weight_already_adjusted'])) {
+            $cropName = trim((string)($params['crop_name'] ?? ''));
+            if ($cropName === '') {
+                return [
+                    'valid' => false,
+                    'error' => 'Missing required field: crop_name',
+                ];
+            }
+        }
+
+        if ((float)$params['weight_kg'] <= 0) {
             return ['valid' => false, 'error' => 'Weight must be greater than 0'];
         }
 
-        if ($params['weight_kg'] > 5000) {
+        if ((float)$params['weight_kg'] > 5000) {
             return [
                 'valid' => false,
                 'error' => 'Weight exceeds maximum (5000 kg). Contact support for bulk orders.',

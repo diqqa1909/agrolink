@@ -22,8 +22,8 @@ class OrderModel
 
         $result = $this->write($sql, $orderData);
 
-        if ($result && $result !== false && $result !== 1) {
-            return $result; // Returns order ID
+        if ($result !== false && (int)$result > 0) {
+            return (int)$result; // Returns order ID
         }
 
         return false;
@@ -40,11 +40,7 @@ class OrderModel
 
         $result = $this->write($sql, $itemData);
 
-        // DEBUG: Log the actual result from write()
-        error_log("OrderModel::addOrderItem - write() returned: " . var_export($result, true));
-
-        // Return true if we got an insert ID (int) or true, false if we got false
-        return $result !== false;
+        return $result !== false && (int)$result > 0;
     }
 
     /**
@@ -127,12 +123,21 @@ class OrderModel
     public function restoreOrderStock($orderId)
     {
         $items = $this->getOrderItems($orderId);
+        $affectedRows = 0;
+
         foreach ($items as $item) {
             // Increment quantity directly
             $sql = "UPDATE products SET quantity = quantity + :qty WHERE id = :id";
-            $this->write($sql, ['qty' => $item->quantity, 'id' => $item->product_id]);
+            $result = $this->write($sql, ['qty' => $item->quantity, 'id' => $item->product_id]);
+
+            if ($result === false) {
+                return false;
+            }
+
+            $affectedRows += (int)$result;
         }
-        return true;
+
+        return $affectedRows;
     }
 
     /**
@@ -234,7 +239,8 @@ class OrderModel
                 WHERE buyer_id = :buyer_id
                   AND id IN (" . implode(', ', $placeholders) . ")";
 
-        return $this->write($sql, $params) !== false;
+        $result = $this->write($sql, $params);
+        return $result === false ? false : (int)$result;
     }
 
     /**

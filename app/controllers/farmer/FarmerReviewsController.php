@@ -24,6 +24,7 @@ class FarmerReviewsController
         $data = [
             'pageTitle' => 'My Reviews',
             'activePage' => 'reviews',
+            'pageStyles' => ['reviews.css'],
             'reviews' => $reviews,
             'contentView' => '../app/views/farmer/reviews.view.php'
         ];

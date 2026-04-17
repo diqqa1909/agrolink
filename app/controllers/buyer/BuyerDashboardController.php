@@ -36,6 +36,21 @@ class BuyerDashboardController
 
         // Fetch orders for the buyer
         $orders = $this->orderModel->getOrdersByBuyer($user_id);
+        if (!is_array($orders)) {
+            $orders = [];
+        }
+
+        // Keep dashboard "recent orders" consistent by sorting latest first.
+        usort($orders, function ($a, $b) {
+            $aTs = strtotime((string)($a->created_at ?? '')) ?: 0;
+            $bTs = strtotime((string)($b->created_at ?? '')) ?: 0;
+
+            if ($aTs === $bTs) {
+                return ((int)($b->id ?? 0)) <=> ((int)($a->id ?? 0));
+            }
+
+            return $bTs <=> $aTs;
+        });
 
         // Calculate statistics
         $totalOrders = count($orders);

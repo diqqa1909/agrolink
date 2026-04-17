@@ -27,6 +27,7 @@ class FarmerEarningsController
         $data = [
             'pageTitle' => 'Earnings',
             'activePage' => 'earnings',
+            'pageStyles' => ['earnings.css'],
             'totalEarnings' => $summary['totalEarnings'],
             'monthlyEarnings' => $summary['monthlyEarnings'],
             'earningsByProduct' => $summary['earningsByProduct'],

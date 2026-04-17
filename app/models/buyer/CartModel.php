@@ -95,8 +95,7 @@ class CartModel
 
         $result = $this->write($sql, ['user_id' => $user_id]);
 
-        // Return true even if cart was already empty
-        return true;
+        return $result !== false;
     }
 
     /**

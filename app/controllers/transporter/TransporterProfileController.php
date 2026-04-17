@@ -47,10 +47,6 @@ class TransporterProfileController
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
-        // Get vehicle types from database
-        $vehicleTypeModel = new VehicleTypeModel();
-        $vehicleTypes = $vehicleTypeModel->getActiveTypes();
-
         // Load and display the profile view through transporterMain layout
         $maxEmailChanges = 2;
         $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
@@ -61,7 +57,6 @@ class TransporterProfileController
             'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
-            'vehicleTypes' => $vehicleTypes,
             'emailChangesUsed' => $emailChangesUsed,
             'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed),
             'contentView' => '../app/views/transporter/transporterProfileContent.view.php',
@@ -174,15 +169,9 @@ class TransporterProfileController
                 'name' => trim($_POST['name'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
-                'apartment_code' => trim($_POST['apartment_code'] ?? ''),
-                'street_name' => trim($_POST['street_name'] ?? ''),
-                'city' => trim($_POST['city'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
-                'postal_code' => trim($_POST['postal_code'] ?? ''),
                 'full_address' => trim($_POST['full_address'] ?? ''),
                 'company_name' => trim($_POST['company_name'] ?? ''),
-                'license_number' => trim($_POST['license_number'] ?? ''),
-                'vehicle_type' => trim($_POST['vehicle_type'] ?? ''),
                 'availability' => trim($_POST['availability'] ?? '')
             ];
 
@@ -208,15 +197,9 @@ class TransporterProfileController
             // Prepare profile data (exclude name and email from transporter profile update)
             $profileData = [
                 'phone' => $data['phone'],
-                'apartment_code' => $data['apartment_code'],
-                'street_name' => $data['street_name'],
-                'city' => $data['city'],
                 'district' => $data['district'],
-                'postal_code' => $data['postal_code'],
                 'full_address' => $data['full_address'],
                 'company_name' => $data['company_name'],
-                'license_number' => $data['license_number'],
-                'vehicle_type' => $data['vehicle_type'],
                 'availability' => $data['availability']
             ];
 
@@ -636,11 +619,10 @@ class TransporterProfileController
 
         $userId = (int)authUserId();
         $payload = [
-            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? $_POST['account_holder'] ?? '')),
             'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
             'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
             'account_number' => trim((string)($_POST['account_number'] ?? '')),
-            'account_type' => trim((string)($_POST['account_type'] ?? '')),
             'is_default' => 1,
         ];
 
@@ -690,7 +672,6 @@ class TransporterProfileController
         }
 
         $userId = (int)authUserId();
-        $reason = trim((string)($_POST['reason'] ?? ''));
 
         $incompleteDeliveryCount = $this->transporterModel->countIncompleteDeliveries($userId);
         if ($incompleteDeliveryCount > 0) {
@@ -699,12 +680,14 @@ class TransporterProfileController
             echo json_encode([
                 'success' => false,
                 'error' => 'Cannot deactivate account while ' . $incompleteDeliveryCount . ' ' . $deliveryLabel . ' still incomplete.',
+                'blockedType' => 'deliveries',
+                'blockedCount' => $incompleteDeliveryCount,
                 'incompleteDeliveryCount' => $incompleteDeliveryCount,
             ]);
             exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
         if (!$deactivated) {
             http_response_code(500);
             echo json_encode([

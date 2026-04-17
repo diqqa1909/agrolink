@@ -26,21 +26,15 @@ class TransporterModel
     public function createProfile($userId, $data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, phone, apartment_code, street_name, city, district, postal_code, full_address, company_name, license_number, vehicle_type, availability, profile_photo, created_at, updated_at)
-                VALUES (:user_id, :phone, :apartment_code, :street_name, :city, :district, :postal_code, :full_address, :company_name, :license_number, :vehicle_type, :availability, :profile_photo, NOW(), NOW())";
+                (user_id, phone, district, full_address, company_name, availability, profile_photo, created_at, updated_at)
+                VALUES (:user_id, :phone, :district, :full_address, :company_name, :availability, :profile_photo, NOW(), NOW())";
 
         $params = [
             'user_id' => $userId,
             'phone' => $data['phone'] ?? null,
-            'apartment_code' => $data['apartment_code'] ?? null,
-            'street_name' => $data['street_name'] ?? null,
-            'city' => $data['city'] ?? null,
             'district' => $data['district'] ?? null,
-            'postal_code' => $data['postal_code'] ?? null,
             'full_address' => $data['full_address'] ?? null,
             'company_name' => $data['company_name'] ?? null,
-            'license_number' => $data['license_number'] ?? null,
-            'vehicle_type' => $data['vehicle_type'] ?? null,
             'availability' => $data['availability'] ?? null,
             'profile_photo' => $data['profile_photo'] ?? null
         ];
@@ -53,32 +47,32 @@ class TransporterModel
      */
     public function updateProfile($userId, $data)
     {
-        $allowed = ['phone', 'apartment_code', 'street_name', 'city', 'district', 'postal_code', 'full_address', 'company_name', 'license_number', 'vehicle_type', 'availability', 'profile_photo'];
+        $allowed = ['phone', 'district', 'full_address', 'company_name', 'availability', 'profile_photo'];
         $set = [];
         $params = ['user_id' => $userId];
 
-        error_log("=== TransporterModel::updateProfile DEBUG ===");
-        error_log("Incoming data: " . json_encode($data));
+        $this->debugLog('=== TransporterModel::updateProfile DEBUG ===');
+        $this->debugLog('Incoming data: ' . json_encode($data));
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $data)) {
                 $set[] = "$field = :$field";
                 $params[$field] = $data[$field];
-                error_log("Added field: $field = " . $data[$field]);
+                $this->debugLog("Added field: $field = " . $data[$field]);
             }
         }
 
         if (empty($set)) {
-            error_log("ERROR: No fields to update!");
+            $this->debugLog('ERROR: No fields to update!');
             return false;
         }
 
         $sql = "UPDATE {$this->table} SET " . implode(', ', $set) . ", updated_at = NOW() WHERE user_id = :user_id";
-        error_log("SQL: " . $sql);
-        error_log("Params: " . json_encode($params));
+        $this->debugLog('SQL: ' . $sql);
+        $this->debugLog('Params: ' . json_encode($params));
 
         $result = $this->write($sql, $params);
-        error_log("Write result: " . ($result ? "SUCCESS" : "FAILED"));
+        $this->debugLog('Write result: ' . ($result !== false ? 'SUCCESS' : 'FAILED'));
 
         return $result;
     }
@@ -155,34 +149,6 @@ class TransporterModel
             }
         }
 
-        // Validate street_name (optional)
-        if (!empty($data['street_name'])) {
-            if (strlen($data['street_name']) > 150) {
-                $errors['street_name'] = 'Street name is too long (max 150 characters)';
-            }
-        }
-
-        // Validate city (optional)
-        if (!empty($data['city'])) {
-            if (strlen($data['city']) > 100) {
-                $errors['city'] = 'City name is too long (max 100 characters)';
-            }
-        }
-
-        // Validate postal_code (optional)
-        if (!empty($data['postal_code'])) {
-            if (!preg_match('/^[0-9]{5}$/', $data['postal_code'])) {
-                $errors['postal_code'] = 'Postal code must be exactly 5 digits';
-            }
-        }
-
-        // Validate apartment_code (optional)
-        if (!empty($data['apartment_code'])) {
-            if (strlen($data['apartment_code']) > 50) {
-                $errors['apartment_code'] = 'Apartment code is too long (max 50 characters)';
-            }
-        }
-
         // Validate full_address (optional)
         if (!empty($data['full_address'])) {
             if (strlen($data['full_address']) > 500) {
@@ -194,30 +160,6 @@ class TransporterModel
         if (!empty($data['company_name'])) {
             if (strlen($data['company_name']) > 255) {
                 $errors['company_name'] = 'Company name is too long (max 255 characters)';
-            }
-        }
-
-        // Validate license_number (optional)
-        if (!empty($data['license_number'])) {
-            if (strlen($data['license_number']) > 100) {
-                $errors['license_number'] = 'License number is too long (max 100 characters)';
-            }
-        }
-
-        // Validate vehicle_type (if provided)
-        if (!empty($data['vehicle_type'])) {
-            // Get valid vehicle types from database
-            $vehicleTypeModel = new VehicleTypeModel();
-            $activeTypes = $vehicleTypeModel->getActiveTypes();
-            $validTypes = [];
-
-            foreach ($activeTypes as $vType) {
-                // Convert vehicle_name to slug (e.g., "Small Van" -> "smallvan")
-                $validTypes[] = strtolower(str_replace(' ', '', $vType->vehicle_name));
-            }
-
-            if (!in_array(strtolower($data['vehicle_type']), $validTypes)) {
-                $errors['vehicle_type'] = 'Please select a valid vehicle type';
             }
         }
 
@@ -313,33 +255,8 @@ class TransporterModel
         $maxWeight = isset($filters['max_weight']) ? (float)$filters['max_weight'] : 0;
         $minPayment = isset($filters['min_payment']) ? (float)$filters['min_payment'] : 0;
 
-        // First, get transporter's active vehicles and their capacities
-        $vehicleSql = "SELECT v.*, vt.min_weight_kg, vt.max_weight_kg, vt.vehicle_name
-                      FROM vehicles v
-                      INNER JOIN vehicle_types vt ON v.vehicle_type_id = vt.id
-                      WHERE v.transporter_id = :transporter_id 
-                      AND v.status = 'active'";
-
-        $vehicles = $this->query($vehicleSql, ['transporter_id' => $transporterId]);
-
-        // Ensure vehicles is an array
-        if (!is_array($vehicles) || empty($vehicles)) {
-            return []; // No active vehicles
-        }
-
-        // Get min and max weight capacity across all active vehicles
-        $minCapacity = PHP_INT_MAX;
-        $maxCapacity = 0;
-        foreach ($vehicles as $vehicle) {
-            if ($vehicle->min_weight_kg < $minCapacity) {
-                $minCapacity = $vehicle->min_weight_kg;
-            }
-            if ($vehicle->max_weight_kg > $maxCapacity) {
-                $maxCapacity = $vehicle->max_weight_kg;
-            }
-        }
-
-        // Get pending delivery requests that match the transporter's vehicle capacity range
+        // Get pending delivery requests. Per-request vehicle capability checks are
+        // enforced below using active transporter vehicles.
         $sql = "SELECT 
                     dr.*,
                     o.status as order_status,
@@ -352,14 +269,11 @@ class TransporterModel
                 LEFT JOIN districts bd ON dr.buyer_district_id = bd.id
                 LEFT JOIN districts fd ON dr.farmer_district_id = fd.id
                 WHERE dr.status = 'pending'
-                AND dr.total_weight_kg >= :min_weight
-                AND dr.total_weight_kg <= :max_weight
+                AND dr.required_vehicle_type_id IS NOT NULL
+                AND dr.total_weight_kg > 0
                 AND o.status IN ('pending', 'confirmed')";
 
-        $params = [
-            'min_weight' => $minCapacity,
-            'max_weight' => $maxCapacity,
-        ];
+        $params = [];
 
         if ($location !== '') {
             $sql .= " AND (
@@ -386,9 +300,105 @@ class TransporterModel
 
         $sql .= " ORDER BY dr.created_at DESC";
 
-        $result = $this->query($sql, $params);
+        $requests = $this->query($sql, $params);
+        if (!is_array($requests) || empty($requests)) {
+            return [];
+        }
 
+        $matchedRequests = [];
+        foreach ($requests as $request) {
+            $orderWeightKg = (float)($request->total_weight_kg ?? 0);
+            $requiredVehicleTypeId = (int)($request->required_vehicle_type_id ?? 0);
+
+            $eligibleVehicles = $this->getEligibleVehiclesForRequest(
+                $transporterId,
+                $orderWeightKg,
+                $requiredVehicleTypeId
+            );
+
+            if (empty($eligibleVehicles)) {
+                continue;
+            }
+
+            $distanceKm = (float)($request->distance_km ?? 0);
+            $bestVehicle = null;
+            $bestEstimatedCost = null;
+
+            foreach ($eligibleVehicles as $vehicle) {
+                $estimatedCost = $this->estimateVehicleDeliveryCost($vehicle, $distanceKm, $orderWeightKg);
+                if ($bestEstimatedCost === null || $estimatedCost < $bestEstimatedCost) {
+                    $bestEstimatedCost = $estimatedCost;
+                    $bestVehicle = $vehicle;
+                }
+            }
+
+            $request->eligible_vehicle_count = count($eligibleVehicles);
+            $request->matched_vehicle_name = $bestVehicle ? (string)$bestVehicle->vehicle_name : null;
+            $request->matched_vehicle_id = $bestVehicle ? (int)$bestVehicle->vehicle_id : null;
+            $request->estimated_vehicle_cost_lkr = $bestEstimatedCost !== null ? (float)$bestEstimatedCost : null;
+
+            $matchedRequests[] = $request;
+        }
+
+        return $matchedRequests;
+    }
+
+    private function getEligibleVehiclesForRequest($transporterId, $orderWeightKg, $requiredVehicleTypeId = null)
+    {
+        $transporterId = (int)$transporterId;
+        $orderWeightKg = (float)$orderWeightKg;
+        $requiredVehicleTypeId = (int)$requiredVehicleTypeId;
+
+        if ($transporterId <= 0 || $orderWeightKg <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT
+                    v.id as vehicle_id,
+                    v.vehicle_type_id,
+                    v.registration,
+                    v.model,
+                    v.status,
+                    vt.vehicle_name,
+                    vt.min_weight_kg,
+                    vt.max_weight_kg,
+                    vt.base_fee_lkr,
+                    vt.cost_per_km_lkr,
+                    vt.cost_per_kg_lkr
+                FROM vehicles v
+                INNER JOIN vehicle_types vt ON vt.id = v.vehicle_type_id
+                WHERE v.transporter_id = :transporter_id
+                AND LOWER(COALESCE(v.status, '')) = 'active'
+                AND vt.is_active = 1
+                AND :order_weight >= vt.min_weight_kg
+                AND :order_weight <= vt.max_weight_kg";
+
+        $params = [
+            'transporter_id' => $transporterId,
+            'order_weight' => $orderWeightKg,
+        ];
+
+        if ($requiredVehicleTypeId > 0) {
+            $sql .= " AND v.vehicle_type_id = :required_vehicle_type_id";
+            $params['required_vehicle_type_id'] = $requiredVehicleTypeId;
+        }
+
+        $sql .= " ORDER BY vt.max_weight_kg ASC, v.id ASC";
+
+        $result = $this->query($sql, $params);
         return is_array($result) ? $result : [];
+    }
+
+    private function estimateVehicleDeliveryCost($vehicle, $distanceKm, $orderWeightKg)
+    {
+        $baseFee = (float)($vehicle->base_fee_lkr ?? 0);
+        $perKm = (float)($vehicle->cost_per_km_lkr ?? 0);
+        $perKg = (float)($vehicle->cost_per_kg_lkr ?? 0);
+
+        $distanceKm = max(0.0, (float)$distanceKm);
+        $orderWeightKg = max(0.0, (float)$orderWeightKg);
+
+        return round($baseFee + ($distanceKm * $perKm) + ($orderWeightKg * $perKg), 2);
     }
 
     /**
@@ -427,34 +437,95 @@ class TransporterModel
      */
     public function acceptDeliveryRequest($requestId, $transporterId)
     {
-        // First check if request is still available
-        $checkSql = "SELECT * FROM delivery_requests WHERE id = :id AND status = 'pending'";
+        $requestId = (int)$requestId;
+        $transporterId = (int)$transporterId;
+
+        if ($requestId <= 0 || $transporterId <= 0) {
+            return ['success' => false, 'error' => 'Invalid delivery request'];
+        }
+
+        $checkSql = "SELECT dr.*, o.status as order_status
+                     FROM delivery_requests dr
+                     INNER JOIN orders o ON o.id = dr.order_id
+                     WHERE dr.id = :id
+                     AND dr.status = 'pending'
+                     LIMIT 1";
         $request = $this->get_row($checkSql, ['id' => $requestId]);
 
         if (!$request) {
-            return false;
+            return ['success' => false, 'error' => 'This request is no longer available'];
         }
 
-        // Update the request
-        $sql = "UPDATE delivery_requests 
-                SET transporter_id = :transporter_id, 
-                    status = 'accepted',
-                    accepted_at = NOW(),
-                    updated_at = NOW()
-                WHERE id = :id AND status = 'pending'";
-
-        $result = $this->write($sql, [
-            'id' => $requestId,
-            'transporter_id' => $transporterId
-        ]);
-
-        // Also update the order status to 'processing'
-        if ($result) {
-            $updateOrderSql = "UPDATE orders SET status = 'processing' WHERE id = :order_id";
-            $this->write($updateOrderSql, ['order_id' => $request->order_id]);
+        $orderStatus = strtolower((string)($request->order_status ?? ''));
+        if (!in_array($orderStatus, ['pending', 'confirmed'], true)) {
+            return ['success' => false, 'error' => 'Order is not ready for transporter assignment'];
         }
 
-        return $result;
+        $requiredVehicleTypeId = (int)($request->required_vehicle_type_id ?? 0);
+        if ($requiredVehicleTypeId <= 0) {
+            return ['success' => false, 'error' => 'Required vehicle type is not resolved for this delivery'];
+        }
+
+        $orderWeightKg = (float)($request->total_weight_kg ?? 0);
+        if ($orderWeightKg <= 0) {
+            return ['success' => false, 'error' => 'Invalid delivery weight for this request'];
+        }
+
+        $eligibleVehicles = $this->getEligibleVehiclesForRequest($transporterId, $orderWeightKg, $requiredVehicleTypeId);
+        if (empty($eligibleVehicles)) {
+            return ['success' => false, 'error' => 'No active vehicle can fulfill this request'];
+        }
+
+        if (!$this->beginTransaction()) {
+            return ['success' => false, 'error' => 'Could not start delivery acceptance transaction'];
+        }
+
+        try {
+            $sql = "UPDATE delivery_requests
+                    SET transporter_id = :transporter_id,
+                        status = 'accepted',
+                        accepted_at = NOW(),
+                        updated_at = NOW()
+                    WHERE id = :id
+                    AND status = 'pending'
+                    AND transporter_id IS NULL";
+
+            $result = $this->write($sql, [
+                'id' => $requestId,
+                'transporter_id' => $transporterId,
+            ]);
+
+            if ($result === false || (int)$result === 0) {
+                $this->rollBack();
+                return ['success' => false, 'error' => 'This request is no longer available'];
+            }
+
+            $updateOrderSql = "UPDATE orders
+                               SET status = 'processing',
+                                   updated_at = NOW()
+                               WHERE id = :order_id
+                               AND status IN ('pending', 'confirmed')";
+            $orderResult = $this->write($updateOrderSql, ['order_id' => (int)$request->order_id]);
+
+            if ($orderResult === false) {
+                $this->rollBack();
+                return ['success' => false, 'error' => 'Failed to update order state'];
+            }
+
+            if (!$this->commit()) {
+                $this->rollBack();
+                return ['success' => false, 'error' => 'Failed to commit delivery acceptance'];
+            }
+
+            return ['success' => true];
+        } catch (Throwable $e) {
+            if ($this->inTransaction()) {
+                $this->rollBack();
+            }
+
+            error_log('TransporterModel::acceptDeliveryRequest error: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Failed to accept delivery request'];
+        }
     }
 
     /**
@@ -506,12 +577,19 @@ class TransporterModel
     /**
      * Get delivery request details by ID
      */
-    public function getDeliveryRequestById($requestId)
+    public function getDeliveryRequestById($requestId, $transporterId = null)
     {
+        $requestId = (int)$requestId;
+        $transporterId = $transporterId === null ? null : (int)$transporterId;
+
+        if ($requestId <= 0) {
+            return false;
+        }
+
         $sql = "SELECT 
                     dr.*,
                     o.status as order_status,
-                    o.payment_method,
+                    o.payment_status,
                     vt.vehicle_name as required_vehicle_type,
                     bd.district_name as buyer_district_name,
                     fd.district_name as farmer_district_name
@@ -522,7 +600,32 @@ class TransporterModel
                 LEFT JOIN districts fd ON dr.farmer_district_id = fd.id
                 WHERE dr.id = :id";
 
-        return $this->get_row($sql, ['id' => $requestId]);
+        $request = $this->get_row($sql, ['id' => $requestId]);
+        if (!$request) {
+            return false;
+        }
+
+        if ($transporterId === null || $transporterId <= 0) {
+            return $request;
+        }
+
+        if ((int)($request->transporter_id ?? 0) === $transporterId) {
+            return $request;
+        }
+
+        // Allow details for pending requests only when transporter has eligible active vehicles.
+        if (strtolower((string)($request->status ?? '')) !== 'pending') {
+            return false;
+        }
+
+        $requiredVehicleTypeId = (int)($request->required_vehicle_type_id ?? 0);
+        $orderWeightKg = (float)($request->total_weight_kg ?? 0);
+        if ($requiredVehicleTypeId <= 0 || $orderWeightKg <= 0) {
+            return false;
+        }
+
+        $eligible = $this->getEligibleVehiclesForRequest($transporterId, $orderWeightKg, $requiredVehicleTypeId);
+        return empty($eligible) ? false : $request;
     }
 
     /**
@@ -590,143 +693,184 @@ class TransporterModel
         $successCount = 0;
         $errorCount = 0;
 
-        // Get all orders that don't have delivery requests yet
-        $sql = "SELECT DISTINCT o.*, 
-                GROUP_CONCAT(DISTINCT oi.farmer_id) as farmer_ids
+        // Idempotent source list: only order/farmer pairs that still do not have a delivery request.
+        $sql = "SELECT DISTINCT
+                    o.id AS order_id,
+                    o.buyer_id,
+                    o.shipping_cost,
+                    o.delivery_address,
+                    o.delivery_city,
+                    oi.farmer_id
                 FROM orders o
-                LEFT JOIN delivery_requests dr ON dr.order_id = o.id
-                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN order_items oi ON oi.order_id = o.id
+                LEFT JOIN delivery_requests dr
+                    ON dr.order_id = o.id
+                    AND dr.farmer_id = oi.farmer_id
                 WHERE dr.id IS NULL
-                GROUP BY o.id";
+                ORDER BY o.id ASC, oi.farmer_id ASC";
 
-        $orders = $this->query($sql, []);
+        $pendingPairs = $this->query($sql, []);
 
-        if (empty($orders) || !is_array($orders)) {
+        if (empty($pendingPairs) || !is_array($pendingPairs)) {
             $details[] = "No orders found that need migration.";
             return ['success' => $successCount, 'errors' => $errorCount, 'details' => $details];
         }
 
-        $details[] = "Found " . count($orders) . " orders to migrate.";
+        $details[] = "Found " . count($pendingPairs) . " order/farmer pairs to migrate.";
 
-        foreach ($orders as $order) {
+        foreach ($pendingPairs as $pair) {
             try {
-                // Get farmer IDs for this order
-                $farmerIds = explode(',', $order->farmer_ids);
+                $orderId = (int)($pair->order_id ?? 0);
+                $buyerId = (int)($pair->buyer_id ?? 0);
+                $farmerId = (int)($pair->farmer_id ?? 0);
 
-                foreach ($farmerIds as $farmerId) {
-                    // Get buyer details
-                    $buyerSql = "SELECT u.name, bp.phone, bp.apartment_code, bp.street_name, bp.city, bp.district
-                                FROM users u
-                                LEFT JOIN buyer_profiles bp ON u.id = bp.user_id
-                                WHERE u.id = :buyer_id";
-                    $buyer = $this->get_row($buyerSql, ['buyer_id' => $order->buyer_id]);
+                if ($orderId <= 0 || $buyerId <= 0 || $farmerId <= 0) {
+                    $details[] = '✗ Skipped invalid migration row (missing order/buyer/farmer id).';
+                    $errorCount++;
+                    continue;
+                }
 
-                    if (!$buyer) {
-                        $details[] = "✗ Order #{$order->id}: Buyer ID {$order->buyer_id} not found in users table";
-                        $errorCount++;
-                        continue;
-                    }
+                // Secondary idempotency guard in case another process inserted meanwhile.
+                $existing = $this->get_row(
+                    "SELECT id FROM delivery_requests WHERE order_id = :order_id AND farmer_id = :farmer_id LIMIT 1",
+                    ['order_id' => $orderId, 'farmer_id' => $farmerId]
+                );
+                if ($existing) {
+                    $details[] = "• Order #{$orderId} (Farmer ID: {$farmerId}): already migrated, skipped.";
+                    continue;
+                }
 
-                    // Get farmer details
-                    $farmerSql = "SELECT u.name, fp.phone, fp.full_address, fp.district
-                                FROM users u
-                                LEFT JOIN farmer_profiles fp ON u.id = fp.user_id
-                                WHERE u.id = :farmer_id";
-                    $farmer = $this->get_row($farmerSql, ['farmer_id' => $farmerId]);
+                $buyerSql = "SELECT u.name, bp.phone, bp.apartment_code, bp.street_name, bp.city, bp.district
+                            FROM users u
+                            LEFT JOIN buyer_profiles bp ON u.id = bp.user_id
+                            WHERE u.id = :buyer_id";
+                $buyer = $this->get_row($buyerSql, ['buyer_id' => $buyerId]);
+                if (!$buyer) {
+                    $details[] = "✗ Order #{$orderId}: Buyer ID {$buyerId} not found in users table";
+                    $errorCount++;
+                    continue;
+                }
 
-                    if (!$farmer) {
-                        $details[] = "✗ Order #{$order->id}: Farmer ID {$farmerId} not found in users table";
-                        $errorCount++;
-                        continue;
-                    }
+                $farmerSql = "SELECT u.name, fp.phone, fp.full_address, fp.district
+                            FROM users u
+                            LEFT JOIN farmer_profiles fp ON u.id = fp.user_id
+                            WHERE u.id = :farmer_id";
+                $farmer = $this->get_row($farmerSql, ['farmer_id' => $farmerId]);
+                if (!$farmer) {
+                    $details[] = "✗ Order #{$orderId}: Farmer ID {$farmerId} not found in users table";
+                    $errorCount++;
+                    continue;
+                }
 
-                    // Get district IDs
-                    $buyerDistrictId = $this->getDistrictIdByName($buyer->district ?? 'Colombo');
-                    $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? 'Colombo');
+                $buyerDistrictId = $this->getDistrictIdByName($buyer->district ?? '');
+                $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? '');
+                if (!$buyerDistrictId || !$farmerDistrictId) {
+                    $details[] = "✗ Order #{$orderId}: Invalid district mapping for buyer/farmer profile";
+                    $errorCount++;
+                    continue;
+                }
 
-                    // Calculate weight for this farmer's items
-                    $weightSql = "SELECT COALESCE(SUM(weight_kg), 5.0) as total_weight
-                                 FROM order_items
-                                 WHERE order_id = :order_id AND farmer_id = :farmer_id";
-                    $weightResult = $this->get_row($weightSql, [
-                        'order_id' => $order->id,
-                        'farmer_id' => $farmerId
-                    ]);
-                    $totalWeight = $weightResult ? $weightResult->total_weight : 5.0;
+                // Prefer per-item migrated weight. For legacy single-farmer orders,
+                // fallback to order-level total only when per-item weights are missing.
+                $weightSql = "SELECT COALESCE(SUM(item_weight_kg), 0) AS farmer_weight
+                             FROM order_items
+                             WHERE order_id = :order_id AND farmer_id = :farmer_id";
+                $weightResult = $this->get_row($weightSql, [
+                    'order_id' => $orderId,
+                    'farmer_id' => $farmerId,
+                ]);
+                $totalWeight = (float)($weightResult->farmer_weight ?? 0);
 
-                    // Determine required vehicle type based on weight
-                    $vehicleTypeSql = "SELECT id FROM vehicle_types 
-                                      WHERE min_weight_kg <= :weight 
-                                      AND max_weight_kg >= :weight 
-                                      AND is_active = 1 
-                                      ORDER BY min_weight_kg ASC LIMIT 1";
-                    $vehicleTypeResult = $this->query($vehicleTypeSql, ['weight' => $totalWeight]);
-                    $requiredVehicleTypeId = ($vehicleTypeResult && !empty($vehicleTypeResult)) ? $vehicleTypeResult[0]->id : null;
+                if ($totalWeight <= 0) {
+                    $farmerCountRow = $this->get_row(
+                        "SELECT COUNT(DISTINCT farmer_id) AS farmer_count FROM order_items WHERE order_id = :order_id",
+                        ['order_id' => $orderId]
+                    );
+                    $singleFarmerOrder = ((int)($farmerCountRow->farmer_count ?? 0) === 1);
 
-                    // Prepare buyer address
-                    $buyerAddress = trim(($buyer->apartment_code ?? '') . ', ' .
-                        ($buyer->street_name ?? '') . ', ' .
-                        ($buyer->city ?? ''));
-                    if (empty(trim($buyerAddress, ', '))) {
-                        $buyerAddress = $order->delivery_address ?? 'Not provided';
-                    }
-
-                    // Insert delivery request
-                    $insertSql = "INSERT INTO delivery_requests (
-                        order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
-                        farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
-                        total_weight_kg, shipping_fee, distance_km, required_vehicle_type_id, status, 
-                        created_at, updated_at
-                    ) VALUES (
-                        :order_id, :buyer_id, :buyer_name, :buyer_phone, :buyer_address, :buyer_city, :buyer_district_id,
-                        :farmer_id, :farmer_name, :farmer_phone, :farmer_address, :farmer_city, :farmer_district_id,
-                        :total_weight_kg, :shipping_fee, :distance_km, :required_vehicle_type_id, 'pending',
-                        NOW(), NOW()
-                    )";
-
-                    $params = [
-                        'order_id' => $order->id,
-                        'buyer_id' => $order->buyer_id,
-                        'buyer_name' => $buyer->name ?? 'Unknown',
-                        'buyer_phone' => $buyer->phone ?? ($order->delivery_phone ?? ''),
-                        'buyer_address' => $buyerAddress,
-                        'buyer_city' => $buyer->city ?? ($order->delivery_city ?? ''),
-                        'buyer_district_id' => $buyerDistrictId,
-                        'farmer_id' => $farmerId,
-                        'farmer_name' => $farmer->name ?? 'Unknown',
-                        'farmer_phone' => $farmer->phone ?? '',
-                        'farmer_address' => $farmer->full_address ?? '',
-                        'farmer_city' => $farmer->district ?? '',
-                        'farmer_district_id' => $farmerDistrictId,
-                        'total_weight_kg' => $totalWeight,
-                        'shipping_fee' => $order->shipping_cost ?? 0,
-                        'distance_km' => null,
-                        'required_vehicle_type_id' => $requiredVehicleTypeId
-                    ];
-
-                    try {
-                        // Use a direct PDO connection to get better error info
-                        $string = "mysql:hostname=" . DBHOST . ";dbname=" . DBNAME;
-                        $con = new PDO($string, DBUSER, DBPASS);
-                        $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        $stm = $con->prepare($insertSql);
-                        $result = $stm->execute($params);
-
-                        if ($result) {
-                            $details[] = "✓ Order #{$order->id} (Farmer ID: {$farmerId}): Created - {$totalWeight}kg, Rs.{$order->shipping_cost}";
-                            $successCount++;
-                        } else {
-                            $errorInfo = $stm->errorInfo();
-                            $details[] = "✗ Order #{$order->id}: Insert failed - " . ($errorInfo[2] ?? 'Unknown error');
-                            $errorCount++;
+                    if ($singleFarmerOrder) {
+                        $orderWeightRow = $this->get_row(
+                            "SELECT total_weight_kg FROM orders WHERE id = :order_id LIMIT 1",
+                            ['order_id' => $orderId]
+                        );
+                        $fallbackWeight = (float)($orderWeightRow->total_weight_kg ?? 0);
+                        if ($fallbackWeight > 0) {
+                            $totalWeight = $fallbackWeight;
+                            $details[] = "• Order #{$orderId} (Farmer ID: {$farmerId}): used order-level total_weight_kg fallback.";
                         }
-                    } catch (PDOException $e) {
-                        $details[] = "✗ Order #{$order->id}: " . $e->getMessage();
-                        $errorCount++;
                     }
                 }
-            } catch (Exception $e) {
-                $details[] = "Order #{$order->id}: ERROR - " . $e->getMessage();
+
+                if ($totalWeight <= 0) {
+                    $details[] = "✗ Order #{$orderId} (Farmer ID: {$farmerId}): missing valid item_weight_kg/total_weight_kg";
+                    $errorCount++;
+                    continue;
+                }
+
+                $vehicleTypeSql = "SELECT id FROM vehicle_types
+                                  WHERE min_weight_kg <= :weight
+                                  AND max_weight_kg >= :weight
+                                  AND is_active = 1
+                                  ORDER BY min_weight_kg ASC
+                                  LIMIT 1";
+                $vehicleTypeResult = $this->query($vehicleTypeSql, ['weight' => $totalWeight]);
+                $requiredVehicleTypeId = ($vehicleTypeResult && !empty($vehicleTypeResult)) ? (int)$vehicleTypeResult[0]->id : 0;
+                if ($requiredVehicleTypeId <= 0) {
+                    $details[] = "✗ Order #{$orderId} (Farmer ID: {$farmerId}): no eligible vehicle type for {$totalWeight}kg";
+                    $errorCount++;
+                    continue;
+                }
+
+                $buyerAddress = trim(($buyer->apartment_code ?? '') . ', ' .
+                    ($buyer->street_name ?? '') . ', ' .
+                    ($buyer->city ?? ''));
+                if (empty(trim($buyerAddress, ', '))) {
+                    $buyerAddress = (string)($pair->delivery_address ?? 'Not provided');
+                }
+
+                $insertSql = "INSERT INTO delivery_requests (
+                    order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
+                    farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
+                    total_weight_kg, shipping_fee, distance_km, required_vehicle_type_id, status,
+                    created_at, updated_at
+                ) VALUES (
+                    :order_id, :buyer_id, :buyer_name, :buyer_phone, :buyer_address, :buyer_city, :buyer_district_id,
+                    :farmer_id, :farmer_name, :farmer_phone, :farmer_address, :farmer_city, :farmer_district_id,
+                    :total_weight_kg, :shipping_fee, :distance_km, :required_vehicle_type_id, 'pending',
+                    NOW(), NOW()
+                )";
+
+                $params = [
+                    'order_id' => $orderId,
+                    'buyer_id' => $buyerId,
+                    'buyer_name' => $buyer->name ?? 'Unknown',
+                    'buyer_phone' => $buyer->phone ?? '',
+                    'buyer_address' => $buyerAddress,
+                    'buyer_city' => $buyer->city ?? ($pair->delivery_city ?? ''),
+                    'buyer_district_id' => $buyerDistrictId,
+                    'farmer_id' => $farmerId,
+                    'farmer_name' => $farmer->name ?? 'Unknown',
+                    'farmer_phone' => $farmer->phone ?? '',
+                    'farmer_address' => $farmer->full_address ?? '',
+                    'farmer_city' => $farmer->district ?? '',
+                    'farmer_district_id' => $farmerDistrictId,
+                    'total_weight_kg' => round($totalWeight, 2),
+                    'shipping_fee' => (float)($pair->shipping_cost ?? 0),
+                    'distance_km' => null,
+                    'required_vehicle_type_id' => $requiredVehicleTypeId,
+                ];
+
+                $insertResult = $this->write($insertSql, $params);
+                if ($insertResult === false || (int)$insertResult <= 0) {
+                    $details[] = "✗ Order #{$orderId} (Farmer ID: {$farmerId}): insert failed";
+                    $errorCount++;
+                    continue;
+                }
+
+                $details[] = "✓ Order #{$orderId} (Farmer ID: {$farmerId}): Created - " . round($totalWeight, 2) . "kg, Rs." . (float)($pair->shipping_cost ?? 0);
+                $successCount++;
+            } catch (Throwable $e) {
+                $details[] = "Order #" . (int)($pair->order_id ?? 0) . ": ERROR - " . $e->getMessage();
                 $errorCount++;
             }
         }
@@ -739,13 +883,24 @@ class TransporterModel
      */
     private function getDistrictIdByName($districtName)
     {
+        $districtName = trim((string)$districtName);
+        if ($districtName === '') {
+            return null;
+        }
+
         $sql = "SELECT id FROM districts WHERE district_name = :name LIMIT 1";
         $result = $this->query($sql, ['name' => $districtName]);
         if ($result && is_array($result) && !empty($result)) {
-            return $result[0]->id;
+            return (int)$result[0]->id;
         }
-        // Default to Colombo if not found
-        $result = $this->query($sql, ['name' => 'Colombo']);
-        return ($result && is_array($result) && !empty($result)) ? $result[0]->id : 5;
+
+        return null;
+    }
+
+    private function debugLog($message)
+    {
+        if (defined('DEBUG') && DEBUG) {
+            error_log((string)$message);
+        }
     }
 }

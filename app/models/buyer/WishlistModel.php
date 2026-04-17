@@ -40,9 +40,8 @@ class WishlistModel
             'user_id' => $user_id,
             'product_id' => $product_id
         ]);
-        
-        // write() returns insert ID on success or 1 on failure
-        return $result !== 1 ? true : false;
+
+        return $result !== false;
     }
 
     public function remove($user_id, $product_id)
@@ -52,18 +51,16 @@ class WishlistModel
             'user_id' => $user_id,
             'product_id' => $product_id
         ]);
-        
-        // write() returns row count or 1 on failure
-        return $result !== 1 ? true : false;
+
+        return $result !== false;
     }
 
     public function clear($user_id)
     {
         $sql = "DELETE FROM {$this->table} WHERE user_id = :user_id";
         $result = $this->write($sql, ['user_id' => $user_id]);
-        
-        // write() returns row count or 1 on failure
-        return $result !== 1 ? true : false;
+
+        return $result !== false;
     }
 
     public function countByUser($user_id)
@@ -76,4 +73,3 @@ class WishlistModel
         return 0;
     }
 }
-

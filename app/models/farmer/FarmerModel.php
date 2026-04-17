@@ -269,7 +269,7 @@ class FarmerModel
     public function getFarmerDeliveryRequests($farmerId, $status = null)
     {
         $sql = "SELECT dr.*,
-                       o.payment_method,
+                       o.payment_status,
                        o.order_total,
                        o.delivery_city,
                        b.name AS buyer_name,
@@ -358,14 +358,6 @@ class FarmerModel
         ]);
 
         return $result !== false;
-    }
-
-    /**
-     * Update order item status
-     */
-    public function updateOrderItemStatus($itemId, $status)
-    {
-        return false;
     }
 
     /**
@@ -514,7 +506,7 @@ class FarmerModel
                     o.created_at as order_date,
                     COALESCE(o.updated_at, o.created_at) as transaction_date,
                     o.status,
-                    o.payment_method,
+                    o.payment_status,
                     o.delivery_city,
                     u.name as buyer_name,
                     SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT oi.product_name ORDER BY oi.product_name SEPARATOR ', '), ', ', 1) as lead_product,
@@ -526,7 +518,7 @@ class FarmerModel
                 WHERE oi.farmer_id = :farmer_id
                 AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
                 AND COALESCE(o.updated_at, o.created_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
-                GROUP BY o.id, o.created_at, o.updated_at, o.status, o.payment_method, o.delivery_city, u.name
+                GROUP BY o.id, o.created_at, o.updated_at, o.status, o.payment_status, o.delivery_city, u.name
                 ORDER BY COALESCE(o.updated_at, o.created_at) DESC
                 LIMIT {$limit}";
 
