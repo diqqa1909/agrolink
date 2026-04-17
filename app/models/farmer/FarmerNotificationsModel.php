@@ -52,6 +52,7 @@ class FarmerNotificationsModel
         }
 
         $this->store->syncNotifications($farmerId, $this->buildAllNotifications($farmerId), $this->getManagedTypes());
+
         $settings = $this->getSettings($farmerId);
         $allowedTypes = $this->getEnabledTypes($settings);
         if (empty($allowedTypes)) {
@@ -69,6 +70,7 @@ class FarmerNotificationsModel
         }
 
         $this->store->syncNotifications($farmerId, $this->buildAllNotifications($farmerId), $this->getManagedTypes());
+
         $settings = $this->getSettings($farmerId);
         $allowedTypes = $this->getEnabledTypes($settings);
         if (empty($allowedTypes)) {
@@ -84,6 +86,9 @@ class FarmerNotificationsModel
         if ($farmerId <= 0) {
             return false;
         }
+
+        // Ensure generated notifications are persisted before bulk mark-as-read.
+        $this->store->syncNotifications($farmerId, $this->buildAllNotifications($farmerId), $this->getManagedTypes());
 
         return $this->store->markAllAsRead($farmerId);
     }
@@ -107,7 +112,6 @@ class FarmerNotificationsModel
             if ($key === 'email_notifications') {
                 continue;
             }
-
             if (!empty($enabled)) {
                 $types[] = $key;
             }
@@ -121,6 +125,27 @@ class FarmerNotificationsModel
         return is_array($rows) ? $rows : [];
     }
 
+    private function resolveTime(array $candidates)
+    {
+        foreach ($candidates as $candidate) {
+            if (!empty($candidate) && strtotime((string)$candidate)) {
+                return date('Y-m-d H:i:s', strtotime((string)$candidate));
+            }
+        }
+
+        return date('Y-m-d H:i:s');
+    }
+
+    private function formatStatusText($status)
+    {
+        $status = strtolower(trim((string)$status));
+        if ($status === '') {
+            return 'Updated';
+        }
+
+        return ucwords(str_replace('_', ' ', $status));
+    }
+
     private function buildAllNotifications($farmerId)
     {
         $items = [];
@@ -128,7 +153,7 @@ class FarmerNotificationsModel
         $items = array_merge($items, $this->getCropRequestNotifications());
         $items = array_merge($items, $this->getDeliveryNotifications($farmerId));
         $items = array_merge($items, $this->getReviewNotifications($farmerId));
-        $items = array_merge($items, $this->getSystemNotifications($farmerId));
+        $items = array_merge($items, $this->getSystemNotifications());
 
         return $items;
     }
@@ -136,24 +161,33 @@ class FarmerNotificationsModel
     private function getOrderNotifications($farmerId)
     {
         $farmerModel = new FarmerModel();
-        $orders = $farmerModel->getFarmerOrders($farmerId);
+        $orders = $this->asArray($farmerModel->getFarmerOrders($farmerId));
         $notifications = [];
 
         foreach (array_slice($orders, 0, 20) as $order) {
-            $status = strtolower((string)($order->status ?? 'pending'));
-            $statusText = ucwords(str_replace('_', ' ', $status));
+            $orderId = (int)($order->id ?? 0);
+            if ($orderId <= 0) {
+                continue;
+            }
 
-            $title = $status === 'pending' ? 'New Order Received' : 'Order Status Updated';
+            $status = strtolower((string)($order->status ?? 'pending'));
+            $statusText = $this->formatStatusText($status);
+            $title = in_array($status, ['pending', 'pending_payment'], true)
+                ? 'New Order Received'
+                : 'Order Status Updated';
             $amount = number_format((float)($order->my_order_total ?? 0), 2);
 
             $notifications[] = [
-                'id' => 'order_' . (int)$order->id . '_' . $status,
+                'id' => 'farmer_order_' . $orderId . '_' . $status,
                 'category' => 'orders',
                 'icon' => 'orders',
                 'title' => $title,
-                'message' => 'Order #' . (int)$order->id . ' • ' . $statusText . ' • Your earning: Rs. ' . $amount,
-                'related_id' => (int)$order->id,
-                'created_at' => $order->updated_at ?? $order->created_at ?? date('Y-m-d H:i:s'),
+                'message' => 'Order #' . $orderId . ' | ' . $statusText . ' | Your earning: Rs. ' . $amount,
+                'related_id' => $orderId,
+                'created_at' => $this->resolveTime([
+                    $order->updated_at ?? null,
+                    $order->created_at ?? null,
+                ]),
                 'link' => 'farmerorders',
             ];
         }
@@ -164,27 +198,32 @@ class FarmerNotificationsModel
     private function getCropRequestNotifications()
     {
         $cropModel = new CropRequestModel();
-        $requests = $cropModel->findAll();
-        if (!is_array($requests)) {
-            $requests = [];
-        }
-
+        $requests = $this->asArray($cropModel->findAll());
         $notifications = [];
+
         foreach (array_slice($requests, 0, 20) as $request) {
+            $requestId = (int)($request->id ?? 0);
+            if ($requestId <= 0) {
+                continue;
+            }
+
             $status = strtolower((string)($request->status ?? 'pending'));
-            $statusText = ucwords(str_replace('_', ' ', $status));
+            $statusText = $this->formatStatusText($status);
             $crop = ucfirst((string)($request->crop_name ?? 'Crop'));
             $qty = (float)($request->quantity ?? 0);
-
             $title = $status === 'pending' ? 'New Crop Request' : 'Crop Request Updated';
+
             $notifications[] = [
-                'id' => 'crop_' . (int)$request->id . '_' . $status,
+                'id' => 'farmer_crop_' . $requestId . '_' . $status,
                 'category' => 'crop_requests',
                 'icon' => 'crop_requests',
                 'title' => $title,
-                'message' => $crop . ' • ' . rtrim(rtrim(number_format($qty, 2), '0'), '.') . ' kg • ' . $statusText,
-                'related_id' => (int)$request->id,
-                'created_at' => $request->updated_at ?? $request->created_at ?? date('Y-m-d H:i:s'),
+                'message' => $crop . ' | ' . rtrim(rtrim(number_format($qty, 2), '0'), '.') . ' kg | ' . $statusText,
+                'related_id' => $requestId,
+                'created_at' => $this->resolveTime([
+                    $request->updated_at ?? null,
+                    $request->created_at ?? null,
+                ]),
                 'link' => 'farmercroprequests',
             ];
         }
@@ -195,24 +234,31 @@ class FarmerNotificationsModel
     private function getDeliveryNotifications($farmerId)
     {
         $farmerModel = new FarmerModel();
-        $deliveries = $farmerModel->getFarmerDeliveryRequests($farmerId);
+        $deliveries = $this->asArray($farmerModel->getFarmerDeliveryRequests($farmerId));
         $notifications = [];
 
         foreach (array_slice($deliveries, 0, 20) as $delivery) {
-            $status = strtolower((string)($delivery->status ?? 'pending'));
-            $statusText = ucwords(str_replace('_', ' ', $status));
-            $title = $status === 'accepted' ? 'Delivery Accepted' : 'Delivery Update';
             $deliveryId = (int)($delivery->id ?? 0);
             $orderId = (int)($delivery->order_id ?? 0);
+            if ($deliveryId <= 0 && $orderId <= 0) {
+                continue;
+            }
+
+            $status = strtolower((string)($delivery->status ?? 'pending'));
+            $statusText = $this->formatStatusText($status);
+            $title = $status === 'accepted' ? 'Delivery Accepted' : 'Delivery Update';
 
             $notifications[] = [
-                'id' => 'delivery_' . $deliveryId . '_' . $status,
+                'id' => 'farmer_delivery_' . $deliveryId . '_' . $status,
                 'category' => 'deliveries',
                 'icon' => 'deliveries',
                 'title' => $title,
-                'message' => 'Delivery #' . $deliveryId . ' for Order #' . $orderId . ' • ' . $statusText,
-                'related_id' => $deliveryId,
-                'created_at' => $delivery->updated_at ?? $delivery->created_at ?? date('Y-m-d H:i:s'),
+                'message' => 'Delivery #' . $deliveryId . ' for Order #' . $orderId . ' | ' . $statusText,
+                'related_id' => $deliveryId > 0 ? $deliveryId : $orderId,
+                'created_at' => $this->resolveTime([
+                    $delivery->updated_at ?? null,
+                    $delivery->created_at ?? null,
+                ]),
                 'link' => 'farmerdeliveries',
             ];
         }
@@ -223,25 +269,29 @@ class FarmerNotificationsModel
     private function getReviewNotifications($farmerId)
     {
         $reviewModel = new ReviewModel();
-        $reviews = $reviewModel->getReviewsByFarmer($farmerId);
-        if (!is_array($reviews)) {
-            $reviews = [];
-        }
-
+        $reviews = $this->asArray($reviewModel->getReviewsByFarmer($farmerId));
         $notifications = [];
+
         foreach (array_slice($reviews, 0, 20) as $review) {
+            $reviewId = (int)($review->id ?? 0);
+            if ($reviewId <= 0) {
+                continue;
+            }
+
             $rating = (int)($review->rating ?? 0);
             $buyer = (string)($review->buyer_name ?? 'Buyer');
-            $product = ucfirst((string)($review->product_name ?? 'product'));
+            $product = ucfirst((string)($review->product_name ?? 'Product'));
 
             $notifications[] = [
-                'id' => 'review_' . (int)$review->id,
+                'id' => 'farmer_review_' . $reviewId,
                 'category' => 'reviews',
                 'icon' => 'reviews',
                 'title' => 'New Review Received',
                 'message' => $buyer . ' gave ' . $rating . '-star review for ' . $product,
-                'related_id' => (int)$review->id,
-                'created_at' => $review->created_at ?? date('Y-m-d H:i:s'),
+                'related_id' => $reviewId,
+                'created_at' => $this->resolveTime([
+                    $review->created_at ?? null,
+                ]),
                 'link' => 'farmerreviews',
             ];
         }
@@ -249,70 +299,27 @@ class FarmerNotificationsModel
         return $notifications;
     }
 
-    private function getSystemNotifications($farmerId)
+    private function getSystemNotifications()
     {
-        $farmerId = (int)$farmerId;
-        if ($farmerId <= 0) {
-            return [];
-        }
-
-        $notifications = [];
-        $farmerModel = new FarmerModel();
-        $profile = $farmerModel->getProfileByUserId($farmerId);
-        $productsModel = new ProductsModel();
-        $payoutModel = new PayoutAccountsModel();
-
-        $profileObj = is_object($profile) ? $profile : null;
-        $missingFields = [];
-
-        if (trim((string)($profileObj->phone ?? '')) === '') {
-            $missingFields[] = 'phone number';
-        }
-        if (trim((string)($profileObj->district ?? '')) === '') {
-            $missingFields[] = 'district';
-        }
-        if (trim((string)($profileObj->full_address ?? '')) === '') {
-            $missingFields[] = 'farm address';
-        }
-
-        if (!empty($missingFields)) {
-            $notifications[] = [
-                'id' => 'system_profile_missing_' . $farmerId,
+        return [
+            [
+                'id' => 'farmer_system_profile',
                 'category' => 'system',
                 'icon' => 'system',
-                'title' => 'Complete Profile Details',
-                'message' => 'Add ' . implode(', ', array_slice($missingFields, 0, 3)) . ' to keep order and delivery operations smooth.',
-                'created_at' => date('Y-m-d H:i:s'),
+                'title' => 'Keep Profile Updated',
+                'message' => 'Ensure profile and payout details are up to date to avoid payout delays.',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
                 'link' => 'farmerprofile',
-            ];
-        }
-
-        $payoutAccount = $payoutModel->getDefaultAccountByUserId($farmerId);
-        if (!$payoutAccount) {
-            $notifications[] = [
-                'id' => 'system_payout_missing_' . $farmerId,
+            ],
+            [
+                'id' => 'farmer_system_shipping',
                 'category' => 'system',
                 'icon' => 'system',
-                'title' => 'Add Payout Account',
-                'message' => 'Set your payout account details to receive earnings without delay.',
-                'created_at' => date('Y-m-d H:i:s'),
-                'link' => 'farmerprofile',
-            ];
-        }
-
-        $products = $productsModel->getByFarmer($farmerId);
-        if (!is_array($products) || empty($products)) {
-            $notifications[] = [
-                'id' => 'system_no_products_' . $farmerId,
-                'category' => 'system',
-                'icon' => 'system',
-                'title' => 'No Products Listed',
-                'message' => 'Add products to start receiving orders from buyers.',
-                'created_at' => date('Y-m-d H:i:s'),
-                'link' => 'farmerproducts',
-            ];
-        }
-
-        return $notifications;
+                'title' => 'System Update',
+                'message' => 'Delivery status and earnings views were improved for better tracking.',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-3 days')),
+                'link' => 'farmerdashboard',
+            ],
+        ];
     }
 }

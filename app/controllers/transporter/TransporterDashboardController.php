@@ -5,42 +5,36 @@ class TransporterDashboardController
 
     public function index()
     {
-        $data = [];
-        // Require login
-        if (!isset($_SESSION['USER'])) {
-            redirect('login');
+        if (!requireRole('transporter')) {
             return;
         }
 
-        // Only transporters can access
-        if ($_SESSION['USER']->role !== 'transporter') {
-            redirect('home');
-            return;
-        }
+        $data = [];
 
         $data['pageTitle'] = 'Dashboard';
         $data['activePage'] = 'dashboard';
-        $data['username'] = $_SESSION['USER']->name;
+        $data['username'] = authUserName();
+        $data['pageStyles'] = ['dashboard.css'];
         $data['pageScript'] = 'transporterDashboard.js';
         $data['contentView'] = '../app/views/transporter/transporterDashboard.view.php';
 
         $vehicleModel = new VehicleModel();
-        $data['vehicles'] = $vehicleModel->getByUserId($_SESSION['USER']->id);
-        
+        $data['vehicles'] = $vehicleModel->getByUserId(authUserId());
+
         // Get vehicle types from database
         $vehicleTypeModel = new VehicleTypeModel();
         $data['vehicleTypes'] = $vehicleTypeModel->getActiveTypes();
 
         // Get delivery request statistics
         $transporterModel = new TransporterModel();
-        $earningsSummary = $transporterModel->getEarningsSummary($_SESSION['USER']->id);
+        $earningsSummary = $transporterModel->getEarningsSummary(authUserId());
         $data['earningsSummary'] = $earningsSummary;
 
         // Get available delivery requests count
-        $availableRequests = $transporterModel->getAvailableDeliveryRequests($_SESSION['USER']->id);
+        $availableRequests = $transporterModel->getAvailableDeliveryRequests(authUserId());
         $data['availableRequestsCount'] = is_array($availableRequests) ? count($availableRequests) : 0;
 
-        $this->view('transporter/transporterMain', $data);
+        $this->view('transporter/transporterSidebar', $data);
     }
 
     public function addVehicle()
@@ -48,7 +42,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'message' => 'Failed to add vehicle'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -56,7 +50,7 @@ class TransporterDashboardController
 
             $vehicleModel = new VehicleModel();
             $vehicleTypeModel = new VehicleTypeModel();
-            
+
             // Get vehicle type to determine capacity
             $vehicleType = null;
             if (!empty($_POST['type'])) {
@@ -69,12 +63,12 @@ class TransporterDashboardController
                     }
                 }
             }
-            
+
             // Use max_weight_kg from vehicle type as capacity
             $capacity = $vehicleType ? $vehicleType->max_weight_kg : 0;
 
             $data = [
-                'transporter_id' => $_SESSION['USER']->id,
+                'transporter_id' => authUserId(),
                 'type' => $_POST['type'] ?? '',
                 'vehicle_type_id' => $vehicleType ? $vehicleType->id : null,
                 'registration' => $_POST['registration'] ?? '',
@@ -83,7 +77,7 @@ class TransporterDashboardController
                 'model' => $_POST['model'] ?? '',
                 'status' => 'active'
             ];
-            
+
             error_log("Data to validate: " . json_encode($data));
 
             if ($vehicleModel->validate($data)) {
@@ -108,7 +102,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'message' => 'Failed to update vehicle'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -118,12 +112,12 @@ class TransporterDashboardController
             $vehicleTypeModel = new VehicleTypeModel();
 
             $vehicle = $vehicleModel->getById($id);
-            if (!$vehicle || $vehicle->transporter_id != $_SESSION['USER']->id) {
+            if (!$vehicle || $vehicle->transporter_id != authUserId()) {
                 $response['message'] = 'Vehicle not found or unauthorized';
                 echo json_encode($response);
                 exit;
             }
-            
+
             // Resolve vehicle type and capacity consistently.
             $newType = $_POST['type'] ?? $vehicle->type;
             $capacity = (float)($vehicle->capacity ?? 0);
@@ -183,7 +177,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'message' => 'Failed to delete vehicle'];
 
         if ($id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -192,7 +186,7 @@ class TransporterDashboardController
             $vehicleModel = new VehicleModel();
 
             $vehicle = $vehicleModel->getById($id);
-            if (!$vehicle || $vehicle->transporter_id != $_SESSION['USER']->id) {
+            if (!$vehicle || $vehicle->transporter_id != authUserId()) {
                 $response['message'] = 'Vehicle not found or unauthorized';
                 echo json_encode($response);
                 exit;
@@ -211,9 +205,9 @@ class TransporterDashboardController
     {
         $response = ['success' => false, 'vehicles' => []];
 
-        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+        if (hasRole('transporter')) {
             $vehicleModel = new VehicleModel();
-            $vehicles = $vehicleModel->getByUserId($_SESSION['USER']->id);
+            $vehicles = $vehicleModel->getByUserId(authUserId());
             $response['success'] = true;
             $response['vehicles'] = $vehicles ?: [];
         }
@@ -226,7 +220,7 @@ class TransporterDashboardController
     {
         $response = ['success' => false, 'vehicleTypes' => []];
 
-        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+        if (hasRole('transporter')) {
             $vehicleTypeModel = new VehicleTypeModel();
             $types = $vehicleTypeModel->getActiveTypes();
             $response['success'] = true;
@@ -242,7 +236,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'message' => 'Failed to set active vehicle'];
 
         if ($id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -251,7 +245,7 @@ class TransporterDashboardController
             $vehicleModel = new VehicleModel();
 
             $vehicle = $vehicleModel->getById($id);
-            if (!$vehicle || $vehicle->transporter_id != $_SESSION['USER']->id) {
+            if (!$vehicle || $vehicle->transporter_id != authUserId()) {
                 $response['message'] = 'Vehicle not found or unauthorized';
                 echo json_encode($response);
                 exit;
@@ -279,7 +273,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'requests' => []];
 
         try {
-            if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+            if (hasRole('transporter')) {
                 $transporterModel = new TransporterModel();
 
                 $filters = [
@@ -289,7 +283,7 @@ class TransporterDashboardController
                     'min_payment' => isset($_GET['min_payment']) ? (float)$_GET['min_payment'] : 0,
                 ];
 
-                $requests = $transporterModel->getAvailableDeliveryRequests($_SESSION['USER']->id, $filters);
+                $requests = $transporterModel->getAvailableDeliveryRequests(authUserId(), $filters);
                 $response['success'] = true;
                 $response['requests'] = is_array($requests) ? $requests : [];
             }
@@ -308,7 +302,7 @@ class TransporterDashboardController
     {
         $response = ['success' => false, 'requests' => []];
 
-        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+        if (hasRole('transporter')) {
             $rawStatus = strtolower(trim((string)($_GET['status'] ?? '')));
             $statusMap = [
                 'all' => null,
@@ -325,7 +319,7 @@ class TransporterDashboardController
 
             $status = array_key_exists($rawStatus, $statusMap) ? $statusMap[$rawStatus] : null;
             $transporterModel = new TransporterModel();
-            $requests = $transporterModel->getMyDeliveryRequests($_SESSION['USER']->id, $status);
+            $requests = $transporterModel->getMyDeliveryRequests(authUserId(), $status);
             $response['success'] = true;
             $response['requests'] = $requests ?: [];
         }
@@ -346,9 +340,9 @@ class TransporterDashboardController
             echo json_encode($response);
             exit;
         }
-        
+
         if ($id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -356,8 +350,8 @@ class TransporterDashboardController
 
             // Check if transporter has active vehicles
             $vehicleModel = new VehicleModel();
-            $vehicles = $vehicleModel->getByUserId($_SESSION['USER']->id);
-            
+            $vehicles = $vehicleModel->getByUserId(authUserId());
+
             $hasActiveVehicle = false;
             if (is_array($vehicles)) {
                 foreach ($vehicles as $vehicle) {
@@ -375,13 +369,13 @@ class TransporterDashboardController
             }
 
             $transporterModel = new TransporterModel();
-            $result = $transporterModel->acceptDeliveryRequest($id, $_SESSION['USER']->id);
+            $result = $transporterModel->acceptDeliveryRequest($id, authUserId());
 
-            if ($result) {
+            if (is_array($result) && !empty($result['success'])) {
                 $response['success'] = true;
                 $response['message'] = 'Delivery request accepted successfully!';
             } else {
-                $response['message'] = 'This request is no longer available or has already been accepted';
+                $response['message'] = (string)($result['error'] ?? 'This request is no longer available or has already been accepted');
             }
         }
 
@@ -397,7 +391,7 @@ class TransporterDashboardController
         $response = ['success' => false, 'message' => 'Failed to update delivery status'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
@@ -405,8 +399,8 @@ class TransporterDashboardController
 
             $status = $_POST['status'] ?? '';
             $transporterModel = new TransporterModel();
-            
-            $result = $transporterModel->updateDeliveryStatus($id, $_SESSION['USER']->id, $status);
+
+            $result = $transporterModel->updateDeliveryStatus($id, authUserId(), $status);
 
             if ($result) {
                 $response['success'] = true;
@@ -428,14 +422,14 @@ class TransporterDashboardController
         $response = ['success' => false, 'request' => null];
 
         if ($id) {
-            if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+            if (!hasRole('transporter')) {
                 $response['message'] = 'Unauthorized access';
                 echo json_encode($response);
                 exit;
             }
 
             $transporterModel = new TransporterModel();
-            $request = $transporterModel->getDeliveryRequestById($id);
+            $request = $transporterModel->getDeliveryRequestById($id, authUserId());
 
             if ($request) {
                 $response['success'] = true;
@@ -456,9 +450,9 @@ class TransporterDashboardController
     {
         $response = ['success' => false, 'earnings' => null];
 
-        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+        if (hasRole('transporter')) {
             $transporterModel = new TransporterModel();
-            $earnings = $transporterModel->getEarningsSummary($_SESSION['USER']->id);
+            $earnings = $transporterModel->getEarningsSummary(authUserId());
             $response['success'] = true;
             $response['earnings'] = $earnings;
         }
@@ -474,9 +468,9 @@ class TransporterDashboardController
     {
         $response = ['success' => false, 'reviews' => []];
 
-        if (isset($_SESSION['USER']) && $_SESSION['USER']->role === 'transporter') {
+        if (hasRole('transporter')) {
             $reviewModel = new ReviewModel();
-            $reviews = $reviewModel->getReviewsByTransporter($_SESSION['USER']->id);
+            $reviews = $reviewModel->getReviewsByTransporter(authUserId());
             $response['success'] = true;
             $response['reviews'] = is_array($reviews) ? $reviews : [];
         }
@@ -491,8 +485,8 @@ class TransporterDashboardController
      */
     public function migrateOrders()
     {
-        // Only allow admin or transporter to run this
-        if (!isset($_SESSION['USER']) || !in_array($_SESSION['USER']->role, ['transporter', 'admin'])) {
+        // Restrict migration endpoint to admins only.
+        if (!hasRole('admin')) {
             die('Unauthorized access');
         }
 
@@ -512,31 +506,32 @@ class TransporterDashboardController
      */
     public function debugStatus()
     {
-        if (!isset($_SESSION['USER'])) {
+        // Restrict debug internals to admins only.
+        if (!hasRole('admin')) {
             die('Unauthorized');
         }
 
-        $transporterId = $_SESSION['USER']->id;
+        $transporterId = authUserId();
         $transporterModel = new TransporterModel();
         $vehicleModel = new VehicleModel();
 
         echo "<h2>Debug Information</h2>";
         echo "<h3>Transporter ID: {$transporterId}</h3>";
-        
+
         // Check vehicles
         $vehicles = $vehicleModel->getByUserId($transporterId);
-        echo "<h3>Vehicles (".count($vehicles)." found):</h3>";
+        echo "<h3>Vehicles (" . count($vehicles) . " found):</h3>";
         echo "<pre>" . print_r($vehicles, true) . "</pre>";
-        
+
         // Check delivery requests in database
         $allRequests = $transporterModel->query("SELECT COUNT(*) as total FROM delivery_requests WHERE status = 'pending'", []);
         echo "<h3>Total Pending Delivery Requests: " . ($allRequests[0]->total ?? 0) . "</h3>";
-        
+
         // Check available requests for this transporter
         $availableRequests = $transporterModel->getAvailableDeliveryRequests($transporterId);
-        echo "<h3>Available for This Transporter (".count($availableRequests)." found):</h3>";
+        echo "<h3>Available for This Transporter (" . count($availableRequests) . " found):</h3>";
         echo "<pre>" . print_r($availableRequests, true) . "</pre>";
-        
+
         echo "<br><a href='" . ROOT . "/transporter/transporterdashboard'>Go to Dashboard</a>";
     }
 }

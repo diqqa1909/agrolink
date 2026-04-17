@@ -16,12 +16,12 @@ class BuyerReviewsController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $reviews = $this->reviewModel->getReviewsByBuyer($userId);
         $reviewableItems = $this->orderModel->getReviewableItemsByBuyer($userId);
         $reviewableTransporters = $this->orderModel->getReviewableTransportersByBuyer($userId);
@@ -32,17 +32,18 @@ class BuyerReviewsController
             'reviews' => $reviews,
             'reviewableItems' => $reviewableItems,
             'reviewableTransporters' => $reviewableTransporters,
+            'pageStyles' => 'reviews.css',
             'contentView' => 'buyer/reviews.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     public function submit()
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -54,7 +55,7 @@ class BuyerReviewsController
             exit;
         }
 
-        $buyerId = $_SESSION['USER']->id;
+        $buyerId = authUserId();
         $reviewType = strtolower(trim($_POST['review_type'] ?? 'farmer'));
         $productId = $_POST['product_id'] ?? null;
         $orderId = $_POST['order_id'] ?? null;

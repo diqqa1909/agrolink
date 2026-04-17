@@ -13,12 +13,12 @@ class BuyerNotificationsController
 
     private function isAuthorizedBuyer()
     {
-        return isset($_SESSION['USER']) && (($_SESSION['USER']->role ?? '') === 'buyer');
+        return hasRole('buyer');
     }
 
     private function getBuyerId()
     {
-        return (int)($_SESSION['USER']->id ?? 0);
+        return (int)(authUserId() ?? 0);
     }
 
     public function index()
@@ -36,10 +36,11 @@ class BuyerNotificationsController
             'notificationUnreadCount' => $this->notificationsModel->getUnreadCount($buyerId),
             'notificationSettings' => $this->notificationsModel->getSettings($buyerId),
             'contentView' => 'buyer/notifications.view.php',
+            'pageStyles' => 'notifications.css',
             'pageScript' => 'buyerNotifications.js',
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     public function list()

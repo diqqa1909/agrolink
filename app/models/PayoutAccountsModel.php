@@ -14,7 +14,6 @@ class PayoutAccountsModel
         $bankName = trim((string)($payload['bank_name'] ?? ''));
         $branchName = trim((string)($payload['branch_name'] ?? ''));
         $accountNumber = preg_replace('/\s+/', '', (string)($payload['account_number'] ?? ''));
-        $accountType = trim((string)($payload['account_type'] ?? ''));
 
         if ($accountHolderName === '') {
             $errors['account_holder_name'] = 'Account holder name is required';
@@ -38,10 +37,6 @@ class PayoutAccountsModel
             $errors['account_number'] = 'Account number must be 8 to 30 digits';
         }
 
-        if ($accountType !== '' && strlen($accountType) > 40) {
-            $errors['account_type'] = 'Account type is too long';
-        }
-
         if (!empty($errors)) {
             return $errors;
         }
@@ -51,7 +46,6 @@ class PayoutAccountsModel
             'bank_name' => $bankName,
             'branch_name' => $branchName !== '' ? $branchName : null,
             'account_number' => $accountNumber,
-            'account_type' => $accountType !== '' ? $accountType : null,
             'is_default' => !empty($payload['is_default']) ? 1 : 0,
         ];
     }
@@ -68,7 +62,6 @@ class PayoutAccountsModel
             'bank_name' => (string)($row->bank_name ?? ''),
             'branch_name' => (string)($row->branch_name ?? ''),
             'account_number' => (string)($row->account_number ?? ''),
-            'account_type' => (string)($row->account_type ?? ''),
             'is_default' => ((int)($row->is_default ?? 0)) === 1,
             'is_verified' => ((int)($row->is_verified ?? 0)) === 1,
             'created_at' => (string)($row->created_at ?? ''),
@@ -118,7 +111,18 @@ class PayoutAccountsModel
         }
 
         $normalized = $this->validatePayoutData($payload);
-        if (!is_array($normalized) || isset($normalized['account_holder_name']) === false) {
+        $requiredKeys = ['account_holder_name', 'bank_name', 'branch_name', 'account_number', 'is_default'];
+        $hasNormalizedShape = is_array($normalized);
+        if ($hasNormalizedShape) {
+            foreach ($requiredKeys as $requiredKey) {
+                if (!array_key_exists($requiredKey, $normalized)) {
+                    $hasNormalizedShape = false;
+                    break;
+                }
+            }
+        }
+
+        if (!$hasNormalizedShape) {
             return ['success' => false, 'errors' => $normalized];
         }
 
@@ -141,7 +145,6 @@ class PayoutAccountsModel
                          bank_name = :bank_name,
                          branch_name = :branch_name,
                          account_number = :account_number,
-                         account_type = :account_type,
                          is_default = 1,
                          updated_at = NOW()
                      WHERE id = :id AND user_id = :user_id"
@@ -153,7 +156,6 @@ class PayoutAccountsModel
                     'bank_name' => $normalized['bank_name'],
                     'branch_name' => $normalized['branch_name'],
                     'account_number' => $normalized['account_number'],
-                    'account_type' => $normalized['account_type'],
                 ]);
             } else {
                 $clearStmt = $con->prepare("UPDATE {$this->table} SET is_default = 0 WHERE user_id = :user_id");
@@ -161,9 +163,9 @@ class PayoutAccountsModel
 
                 $insertStmt = $con->prepare(
                     "INSERT INTO {$this->table}
-                        (user_id, account_holder_name, bank_name, branch_name, account_number, account_type, is_default, is_verified, created_at, updated_at)
+                        (user_id, account_holder_name, bank_name, branch_name, account_number, is_default, is_verified, created_at, updated_at)
                      VALUES
-                        (:user_id, :account_holder_name, :bank_name, :branch_name, :account_number, :account_type, 1, 0, NOW(), NOW())"
+                        (:user_id, :account_holder_name, :bank_name, :branch_name, :account_number, 1, 0, NOW(), NOW())"
                 );
                 $insertStmt->execute([
                     'user_id' => $userId,
@@ -171,7 +173,6 @@ class PayoutAccountsModel
                     'bank_name' => $normalized['bank_name'],
                     'branch_name' => $normalized['branch_name'],
                     'account_number' => $normalized['account_number'],
-                    'account_type' => $normalized['account_type'],
                 ]);
             }
 

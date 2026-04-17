@@ -18,12 +18,12 @@ class BuyerProductsController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
 
         // Fetch all available products with farmer details
@@ -34,16 +34,17 @@ class BuyerProductsController
         $data = [
             'pageTitle' => 'Browse Products',
             'activePage' => 'products',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'cartItemCount' => $cartItemCount,
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
+            'pageStyles' => 'products.css',
             'pageScript' => 'buyerDashboard.js',
             'contentView' => 'buyer/products.view.php'
         ];
 
         // Load the view through main layout
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     private function attachDisplayDates(array $products): array

@@ -13,11 +13,11 @@ class FarmerDeliveriesController
 
     public function index()
     {
-        if (!isset($_SESSION['USER']) || ($_SESSION['USER']->role ?? '') !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $farmerId = (int)$_SESSION['USER']->id;
+        $farmerId = (int)authUserId();
         $filter = strtolower(trim($_GET['status'] ?? 'running'));
 
         $deliveries = $this->farmerModel->getFarmerDeliveryRequests($farmerId);
@@ -37,12 +37,13 @@ class FarmerDeliveriesController
         $data = [
             'pageTitle' => 'Deliveries',
             'activePage' => 'deliveries',
+            'pageStyles' => ['deliveries.css'],
             'filter' => $filter,
             'deliverySummary' => $summary,
             'deliveries' => $deliveries,
             'contentView' => '../app/views/farmer/farmerDeliveries.view.php'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 }

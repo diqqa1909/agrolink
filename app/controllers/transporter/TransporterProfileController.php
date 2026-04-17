@@ -26,11 +26,11 @@ class TransporterProfileController
         }
 
         // Regular page view
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get transporter profile
         $profile = $this->transporterModel->getProfileByUserId($userId);
@@ -47,10 +47,6 @@ class TransporterProfileController
             $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
         }
 
-        // Get vehicle types from database
-        $vehicleTypeModel = new VehicleTypeModel();
-        $vehicleTypes = $vehicleTypeModel->getActiveTypes();
-
         // Load and display the profile view through transporterMain layout
         $maxEmailChanges = 2;
         $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
@@ -58,17 +54,16 @@ class TransporterProfileController
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
-            'vehicleTypes' => $vehicleTypes,
             'emailChangesUsed' => $emailChangesUsed,
             'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed),
             'contentView' => '../app/views/transporter/transporterProfileContent.view.php',
             'pageScript' => 'profile.js'
         ];
 
-        $this->view('transporter/transporterMain', $data);
+        $this->view('transporter/transporterSidebar', $data);
     }
 
     /**
@@ -103,7 +98,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -112,7 +107,7 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $profile = $this->transporterModel->getProfileByUserId($userId);
 
         if (!$profile) {
@@ -151,7 +146,7 @@ class TransporterProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -167,22 +162,16 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get POST data
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
-                'apartment_code' => trim($_POST['apartment_code'] ?? ''),
-                'street_name' => trim($_POST['street_name'] ?? ''),
-                'city' => trim($_POST['city'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
-                'postal_code' => trim($_POST['postal_code'] ?? ''),
                 'full_address' => trim($_POST['full_address'] ?? ''),
                 'company_name' => trim($_POST['company_name'] ?? ''),
-                'license_number' => trim($_POST['license_number'] ?? ''),
-                'vehicle_type' => trim($_POST['vehicle_type'] ?? ''),
                 'availability' => trim($_POST['availability'] ?? '')
             ];
 
@@ -202,21 +191,15 @@ class TransporterProfileController
             // Name is editable from profile form; email changes should follow account settings/audit flow.
             if (!empty($data['name'])) {
                 $this->userModel->update($userId, ['name' => $data['name']]);
-                $_SESSION['USER']->name = $data['name'];
+                setAuthUserName((string)$data['name']);
             }
 
             // Prepare profile data (exclude name and email from transporter profile update)
             $profileData = [
                 'phone' => $data['phone'],
-                'apartment_code' => $data['apartment_code'],
-                'street_name' => $data['street_name'],
-                'city' => $data['city'],
                 'district' => $data['district'],
-                'postal_code' => $data['postal_code'],
                 'full_address' => $data['full_address'],
                 'company_name' => $data['company_name'],
-                'license_number' => $data['license_number'],
-                'vehicle_type' => $data['vehicle_type'],
                 'availability' => $data['availability']
             ];
 
@@ -251,7 +234,6 @@ class TransporterProfileController
                     'error' => 'Failed to update profile'
                 ]);
             }
-
         } catch (Throwable $e) {
             error_log('Transporter profile save error: ' . $e->getMessage());
             http_response_code(500);
@@ -274,7 +256,7 @@ class TransporterProfileController
         ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -287,7 +269,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Check if file was uploaded
             if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
@@ -389,7 +371,7 @@ class TransporterProfileController
         ini_set('html_errors', '0');
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -402,7 +384,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get old photo filename
             $oldPhoto = $this->transporterModel->getOldPhotoFilename($userId);
@@ -442,7 +424,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -458,7 +440,7 @@ class TransporterProfileController
         }
 
         try {
-            $userId = (int)$_SESSION['USER']->id;
+            $userId = (int)authUserId();
             $newEmail = strtolower(trim((string)($_POST['newEmail'] ?? '')));
             $password = (string)($_POST['password'] ?? '');
             $maxEmailChanges = 2;
@@ -519,7 +501,7 @@ class TransporterProfileController
                 exit;
             }
 
-            $_SESSION['USER']->email = $newEmail;
+            setAuthUserEmail((string)$newEmail);
 
             $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
             $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
@@ -550,7 +532,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -562,7 +544,7 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $currentPassword = $_POST['current_password'] ?? '';
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
@@ -602,13 +584,13 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
+        $userId = (int)authUserId();
         $account = $this->payoutAccountsModel->getDefaultAccountByUserId($userId);
 
         echo json_encode([
@@ -623,7 +605,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -635,13 +617,12 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
+        $userId = (int)authUserId();
         $payload = [
-            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? $_POST['account_holder'] ?? '')),
             'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
             'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
             'account_number' => trim((string)($_POST['account_number'] ?? '')),
-            'account_type' => trim((string)($_POST['account_type'] ?? '')),
             'is_default' => 1,
         ];
 
@@ -678,7 +659,7 @@ class TransporterProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'transporter') {
+        if (!hasRole('transporter')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -690,8 +671,7 @@ class TransporterProfileController
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
-        $reason = trim((string)($_POST['reason'] ?? ''));
+        $userId = (int)authUserId();
 
         $incompleteDeliveryCount = $this->transporterModel->countIncompleteDeliveries($userId);
         if ($incompleteDeliveryCount > 0) {
@@ -700,12 +680,14 @@ class TransporterProfileController
             echo json_encode([
                 'success' => false,
                 'error' => 'Cannot deactivate account while ' . $incompleteDeliveryCount . ' ' . $deliveryLabel . ' still incomplete.',
+                'blockedType' => 'deliveries',
+                'blockedCount' => $incompleteDeliveryCount,
                 'incompleteDeliveryCount' => $incompleteDeliveryCount,
             ]);
             exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
         if (!$deactivated) {
             http_response_code(500);
             echo json_encode([
@@ -715,11 +697,7 @@ class TransporterProfileController
             exit;
         }
 
-        $_SESSION = [];
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
-        }
-        session_destroy();
+        clearAuthSession();
 
         echo json_encode([
             'success' => true,

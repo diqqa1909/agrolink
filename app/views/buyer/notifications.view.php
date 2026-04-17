@@ -3,7 +3,7 @@ $notifications = is_array($notifications ?? null) ? $notifications : [];
 $notificationSettings = is_array($notificationSettings ?? null) ? $notificationSettings : [];
 ?>
 
-<div class="content-section notifications-page farmer-notifications-page buyer-notifications-page">
+<div class="content-section notifications-page buyer-notifications-page">
     <div class="content-header notifications-header">
         <div>
             <h1 class="content-title">Notifications</h1>
@@ -81,8 +81,10 @@ $notificationSettings = is_array($notificationSettings ?? null) ? $notificationS
     </div>
 </div>
 
-<script id="buyerNotificationsSeed" type="application/json"><?= json_encode([
-    'notifications' => $notifications,
-    'settings' => $notificationSettings,
-    'unreadCount' => (int)($notificationUnreadCount ?? 0),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<script id="buyerNotificationsSeed" type="application/json">
+    <?= json_encode([
+        'notifications' => $notifications,
+        'settings' => $notificationSettings,
+        'unreadCount' => (int)($notificationUnreadCount ?? 0),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+</script>

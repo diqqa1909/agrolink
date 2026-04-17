@@ -14,13 +14,34 @@ class BuyerOrdersController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        // Redirect to dashboard with orders section hash - orders section is in buyerDashboard.view.php
-        redirect('buyerDashboard#orders');
+        $buyerId = (int)authUserId();
+        $orders = $this->orderModel->getOrdersByBuyer($buyerId);
+
+        $ordersWithItems = [];
+        foreach ($orders as $order) {
+            $orderItems = $this->orderModel->getOrderItems($order->id);
+            $ordersWithItems[] = [
+                'order' => $order,
+                'items' => $orderItems,
+            ];
+        }
+
+        $data = [
+            'pageTitle' => 'My Orders',
+            'activePage' => 'orders',
+            'username' => authUserName(),
+            'orders' => $ordersWithItems,
+            'pageStyles' => 'orders.css',
+            'pageScript' => 'buyerDashboard.js?v=' . time(),
+            'contentView' => 'buyer/orders.view.php',
+        ];
+
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     public function cancel()
@@ -28,7 +49,7 @@ class BuyerOrdersController
         // Set JSON header since this is an API endpoint
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
             return;
         }
@@ -54,13 +75,13 @@ class BuyerOrdersController
         }
 
         // Verify ownership
-        if ($order->buyer_id != $_SESSION['USER']->id) {
+        if ($order->buyer_id != authUserId()) {
             echo json_encode(['success' => false, 'message' => 'You do not have permission to cancel this order']);
             return;
         }
 
         // Check if order can be cancelled
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
+        if (!in_array($order->status, ['pending_payment', 'pending', 'confirmed'])) {
             echo json_encode(['success' => false, 'message' => 'This order cannot be cancelled in its current status']);
             return;
         }
@@ -80,7 +101,7 @@ class BuyerOrdersController
         // Set JSON header
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
             return;
         }
@@ -101,7 +122,7 @@ class BuyerOrdersController
         }
 
         // Verify ownership
-        if ($order->buyer_id != $_SESSION['USER']->id) {
+        if ($order->buyer_id != authUserId()) {
             echo json_encode(['success' => false, 'message' => 'You do not have permission to view this order']);
             return;
         }

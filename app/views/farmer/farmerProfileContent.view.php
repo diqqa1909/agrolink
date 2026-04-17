@@ -1,8 +1,28 @@
 <?php
 $districts = [
-    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Jaffna',
-    'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara',
-    'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+    'Ampara',
+    'Anuradhapura',
+    'Badulla',
+    'Batticaloa',
+    'Colombo',
+    'Galle',
+    'Gampaha',
+    'Jaffna',
+    'Kalutara',
+    'Kandy',
+    'Kegalle',
+    'Kilinochchi',
+    'Kurunegala',
+    'Mannar',
+    'Matale',
+    'Matara',
+    'Mullaitivu',
+    'Nuwara Eliya',
+    'Polonnaruwa',
+    'Puttalam',
+    'Ratnapura',
+    'Trincomalee',
+    'Vavuniya'
 ];
 ?>
 
@@ -33,7 +53,7 @@ $districts = [
 
         <div class="profile-hero-meta">
             <h2 id="profileDisplayName"><?= esc($username ?? 'Farmer') ?></h2>
-            <p id="profileDisplayEmail"><?= esc($_SESSION['USER']->email ?? '') ?></p>
+            <p id="profileDisplayEmail"><?= esc(authUserEmail()) ?></p>
             <span class="profile-role-badge">Farmer</span>
         </div>
     </div>
@@ -53,7 +73,7 @@ $districts = [
             <form id="profileForm" class="profile-form-grid">
                 <div class="form-group">
                     <label for="profileName">Full Name *</label>
-                    <input type="text" id="profileName" name="name" class="form-control" value="<?= esc($username ?? '') ?>" placeholder="Enter your full name">
+                    <input type="text" id="profileName" name="name" class="form-control" value="<?= esc($username ?? '') ?>" placeholder="Enter your full name" required>
                 </div>
 
                 <div class="form-group">
@@ -63,7 +83,7 @@ $districts = [
 
                 <div class="form-group">
                     <label for="profileDistrict">District *</label>
-                    <select id="profileDistrict" name="district" class="form-control">
+                    <select id="profileDistrict" name="district" class="form-control" required>
                         <option value="">Select District</option>
                         <?php foreach ($districts as $district): ?>
                             <option value="<?= esc($district) ?>" <?= (($profile->district ?? '') === $district) ? 'selected' : '' ?>>
@@ -75,15 +95,15 @@ $districts = [
 
                 <div class="form-group">
                     <label for="profileCrops">Crops You Sell *</label>
-                    <input type="text" id="profileCrops" name="crops_selling" class="form-control" value="<?= esc($profile->crops_selling ?? '') ?>" placeholder="Tomatoes, Carrots, Potatoes">
+                    <input type="text" id="profileCrops" name="crops_selling" class="form-control" value="<?= esc($profile->crops_selling ?? '') ?>" placeholder="Tomatoes, Carrots, Potatoes" required>
                 </div>
 
                 <div class="form-group form-group-wide">
                     <label for="profileAddress">Farm Address *</label>
-                    <input type="text" id="profileAddress" name="full_address" class="form-control" value="<?= esc($profile->full_address ?? '') ?>" placeholder="Enter your farm address">
+                    <input type="text" id="profileAddress" name="full_address" class="form-control" value="<?= esc($profile->full_address ?? '') ?>" placeholder="Enter your farm address" required>
                 </div>
 
-                <input type="email" id="profileEmail" value="<?= esc($_SESSION['USER']->email ?? '') ?>" hidden>
+                <input type="email" id="profileEmail" value="<?= esc(authUserEmail()) ?>" hidden>
             </form>
         </div>
 
@@ -93,7 +113,7 @@ $districts = [
         </div>
     </div>
 
-    <div class="content-card profile-shortcut-card" data-open-modal="accountSettingsModal">
+    <div class="content-card profile-shortcut-card account-settings-shortcut-card" data-open-modal="accountSettingsModal">
         <div class="profile-shortcut-head">
             <h3>Account Settings</h3>
         </div>
@@ -104,7 +124,7 @@ $districts = [
         <div class="profile-shortcut-head">
             <h3>Payout Details</h3>
         </div>
-        <p>Add or update bank account details for earnings</p>
+        <p>Add or update bank account details for farmer earnings transfers</p>
     </div>
 
     <div class="content-card profile-account-info-card">
@@ -131,18 +151,20 @@ $districts = [
         </div>
     </div>
 
-    <div class="content-card profile-danger-card">
+    <div class="content-card profile-danger-card deactivate-section-card">
         <div class="profile-section-head danger">
-            <h3>Danger Zone</h3>
+            <h3>Deactivate Account</h3>
         </div>
-        <p>Deactivate your farmer account. Products become unavailable until admin reactivation.</p>
-        <button type="button" class="btn btn-danger" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        <div class="deactivate-section-body">
+            <p class="deactivate-section-note">Disable this farmer account when you no longer want it active. Contact admin to reactivate it later.</p>
+            <button type="button" class="btn btn-danger deactivate-section-btn" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        </div>
     </div>
 </div>
 
-<div id="accountSettingsModal" class="modal profile-modal">
-    <div class="modal-content profile-modal-content">
-        <div class="modal-header profile-modal-header">
+<div id="accountSettingsModal" class="modal farmer-profile-modal">
+    <div class="modal-content farmer-profile-modal-content">
+        <div class="modal-header farmer-profile-modal-header">
             <h3>Account Settings</h3>
             <button type="button" class="modal-close" data-close-modal="accountSettingsModal" aria-label="Close">×</button>
         </div>
@@ -176,6 +198,7 @@ $districts = [
                             <small class="form-hint">Enter your account password to confirm email change.</small>
                         </div>
                         <small class="form-hint" id="emailChangePolicyHint">You can change email up to 2 times after account creation.</small>
+                        <small class="form-hint">After successful change, your session is updated. Continue using the new email for login.</small>
                         <div id="emailChangeStatus" class="settings-inline-status is-hidden"></div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-close-modal="accountSettingsModal">Cancel</button>
@@ -225,9 +248,9 @@ $districts = [
     </div>
 </div>
 
-<div id="payoutDetailsModal" class="modal profile-modal">
-    <div class="modal-content profile-modal-content">
-        <div class="modal-header profile-modal-header">
+<div id="payoutDetailsModal" class="modal farmer-profile-modal">
+    <div class="modal-content farmer-profile-modal-content">
+        <div class="modal-header farmer-profile-modal-header">
             <h3>Add or Change Bank Details</h3>
             <button type="button" class="modal-close" data-close-modal="payoutDetailsModal" aria-label="Close">×</button>
         </div>
@@ -247,8 +270,8 @@ $districts = [
                     <input type="text" id="payoutAccountNumber" class="form-control" maxlength="18" inputmode="numeric" pattern="[0-9]{8,18}" required>
                 </div>
                 <div class="form-group">
-                    <label for="payoutBranchName">Branch Name</label>
-                    <input type="text" id="payoutBranchName" class="form-control" maxlength="80">
+                    <label for="payoutBranchName">Branch Name *</label>
+                    <input type="text" id="payoutBranchName" class="form-control" maxlength="80" required>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-close-modal="payoutDetailsModal">Cancel</button>
@@ -259,18 +282,27 @@ $districts = [
     </div>
 </div>
 
-<div id="deactivateAccountModal" class="modal profile-modal">
-    <div class="modal-content profile-modal-content">
-        <div class="modal-header profile-modal-header danger">
+<div id="deactivateAccountModal" class="modal farmer-profile-modal deactivate-modal">
+    <div class="modal-content farmer-profile-modal-content deactivate-modal-content">
+        <div class="modal-header farmer-profile-modal-header danger deactivate-modal-header">
             <h3>Deactivate Farmer Account</h3>
             <button type="button" class="modal-close" data-close-modal="deactivateAccountModal" aria-label="Close">×</button>
         </div>
-        <div class="modal-body">
-            <p class="deactivate-warning-text">
-                Your farmer account and products will become unavailable to buyers.
-                To reactivate the account, you must contact admin.
-            </p>
-            <div class="modal-footer">
+        <div class="modal-body deactivate-modal-body">
+            <div class="deactivate-warning-box">
+                <span class="deactivate-warning-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3 22 21H2L12 3Z"></path>
+                        <path d="M12 9v5"></path>
+                        <path d="M12 17.5h.01"></path>
+                    </svg>
+                </span>
+                <p class="deactivate-warning-text">
+                    Your farmer account and products will become unavailable to buyers.
+                    To reactivate the account, you must contact admin.
+                </p>
+            </div>
+            <div class="modal-footer deactivate-modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="deactivateAccountModal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeactivateBtn">Confirm Deactivation</button>
             </div>

@@ -76,8 +76,10 @@ $notificationSettings = is_array($notificationSettings ?? null) ? $notificationS
     </div>
 </div>
 
-<script id="farmerNotificationsSeed" type="application/json"><?= json_encode([
-    'notifications' => $notifications,
-    'settings' => $notificationSettings,
-    'unreadCount' => (int)($notificationUnreadCount ?? 0),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+<script id="farmerNotificationsSeed" type="application/json">
+    <?= json_encode([
+        'notifications' => $notifications,
+        'settings' => $notificationSettings,
+        'unreadCount' => (int)($notificationUnreadCount ?? 0),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+</script>

@@ -18,11 +18,11 @@ class FarmerOrdersController
      */
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get all orders that contain this farmer's products
         $orders = $this->farmerModel->getFarmerOrders($userId);
@@ -30,12 +30,13 @@ class FarmerOrdersController
         $data = [
             'pageTitle' => 'Orders',
             'activePage' => 'orders',
+            'pageStyles' => ['orders.css'],
             'orders' => $orders,
             'contentView' => '../app/views/farmer/farmerOrders.view.php',
             'pageScript' => 'farmerOrders.js'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     /**
@@ -46,7 +47,7 @@ class FarmerOrdersController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -59,7 +60,13 @@ class FarmerOrdersController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
+
+        if (!$this->farmerModel->verifyFarmerOrderOwnership((int)$orderId, (int)$userId)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
 
         // Get order details
         $order = $this->orderModel->getOrderById($orderId);
@@ -81,14 +88,14 @@ class FarmerOrdersController
     }
 
     /**
-     * Update order item status (AJAX)
+     * Update order status (AJAX)
      */
-    public function updateItemStatus()
+    public function updateOrderStatus()
     {
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -102,58 +109,32 @@ class FarmerOrdersController
 
         $input = json_decode(file_get_contents('php://input'), true);
         $orderId = $input['order_id'] ?? null;
-        $itemId = $input['item_id'] ?? null;
         $status = $input['status'] ?? null;
 
-        if ((!$orderId && !$itemId) || !$status) {
+        if (!$orderId || !$status) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Order ID and status required']);
+            echo json_encode(['success' => false, 'error' => 'Order ID and status are required']);
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
-        // Preferred path: order-level workflow transitions.
-        if ($orderId) {
-            if (!$this->farmerModel->verifyFarmerOrderOwnership($orderId, $userId)) {
-                http_response_code(403);
-                echo json_encode(['success' => false, 'error' => 'Unauthorized to update this order']);
-                exit;
-            }
-
-            $result = $this->farmerModel->updateFarmerOrderStatus((int)$orderId, (int)$userId, (string)$status);
-
-            if ($result) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Order status updated successfully'
-                ]);
-            } else {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'Invalid status transition']);
-            }
-            exit;
-        }
-
-        // Backward compatibility: item-level payloads.
-        // Verify the item belongs to this farmer
-        if (!$this->farmerModel->verifyOrderItemOwnership($itemId, $userId)) {
+        if (!$this->farmerModel->verifyFarmerOrderOwnership($orderId, $userId)) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized to update this item']);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized to update this order']);
             exit;
         }
 
-        // Update the item status
-        $result = $this->farmerModel->updateOrderItemStatus($itemId, $status);
+        $result = $this->farmerModel->updateFarmerOrderStatus((int)$orderId, (int)$userId, (string)$status);
 
         if ($result) {
             echo json_encode([
                 'success' => true,
-                'message' => 'Order item status updated successfully'
+                'message' => 'Order status updated successfully'
             ]);
         } else {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'Failed to update status']);
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Invalid status transition']);
         }
         exit;
     }

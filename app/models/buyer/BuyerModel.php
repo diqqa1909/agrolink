@@ -92,7 +92,7 @@ class BuyerModel
         // First check if profile exists
         $checkSql = "SELECT id FROM {$this->table} WHERE user_id = :user_id";
         $profileExists = $this->get_row($checkSql, ['user_id' => $userId]);
-        
+
         if (!$profileExists) {
             // Profile doesn't exist, create it with the new data
             $data['user_id'] = $userId;
@@ -102,7 +102,7 @@ class BuyerModel
         $sql = "UPDATE {$this->table} SET " . implode(', ', $set) . ", updated_at = NOW() WHERE user_id = :user_id";
 
         $result = $this->write($sql, $params);
-        
+
         // write() returns:
         // - true on successful UPDATE/DELETE (when lastInsertId is 0)
         // - insert ID (int > 0) on successful INSERT
@@ -137,6 +137,23 @@ class BuyerModel
         $sql = "SELECT profile_photo FROM {$this->table} WHERE user_id = :user_id";
         $result = $this->get_row($sql, ['user_id' => $userId]);
         return $result ? $result->profile_photo : null;
+    }
+
+    /**
+     * Check whether minimum delivery details are present.
+     */
+    public function hasDeliveryDetails($userId)
+    {
+        $profile = $this->getProfileByUserId($userId);
+        if (!$profile) {
+            return false;
+        }
+
+        return !empty($profile->phone)
+            && !empty($profile->street_name)
+            && !empty($profile->city)
+            && !empty($profile->district)
+            && !empty($profile->postal_code);
     }
 
     /**

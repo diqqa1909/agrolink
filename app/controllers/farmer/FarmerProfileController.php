@@ -28,11 +28,11 @@ class FarmerProfileController
         }
 
         // Regular page view
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
 
         // Get farmer profile
         $profile = $this->farmerModel->getProfileByUserId($userId);
@@ -53,14 +53,15 @@ class FarmerProfileController
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
-            'username' => $_SESSION['USER']->name,
+            'pageStyles' => ['profile.css'],
+            'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
             'contentView' => '../app/views/farmer/farmerProfileContent.view.php',
             'pageScript' => 'profile.js'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     /**
@@ -82,7 +83,7 @@ class FarmerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -91,7 +92,7 @@ class FarmerProfileController
             exit;
         }
 
-        $userId = $_SESSION['USER']->id;
+        $userId = authUserId();
         $profile = $this->farmerModel->getProfileByUserId($userId);
 
         if (!$profile) {
@@ -130,7 +131,7 @@ class FarmerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -146,7 +147,7 @@ class FarmerProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get POST data
             $data = [
@@ -174,7 +175,7 @@ class FarmerProfileController
             // Name is editable from profile form; email changes are handled via Account Settings.
             if (!empty($data['name'])) {
                 $this->userModel->update($userId, ['name' => $data['name']]);
-                $_SESSION['USER']->name = $data['name'];
+                setAuthUserName((string)$data['name']);
             }
 
             // Prepare profile data (exclude name and email from farmer profile update)
@@ -233,7 +234,7 @@ class FarmerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -249,7 +250,7 @@ class FarmerProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Validate file upload
             if (!isset($_FILES['photo']) || $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
@@ -411,7 +412,7 @@ class FarmerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -427,7 +428,7 @@ class FarmerProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get current photo filename
             $currentPhoto = $this->farmerModel->getOldPhotoFilename($userId);
@@ -479,7 +480,7 @@ class FarmerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -495,7 +496,7 @@ class FarmerProfileController
         }
 
         try {
-            $userId = (int)$_SESSION['USER']->id;
+            $userId = (int)authUserId();
             $newEmail = strtolower(trim($_POST['newEmail'] ?? ''));
             $password = (string)($_POST['password'] ?? '');
             $maxEmailChanges = 2;
@@ -556,7 +557,7 @@ class FarmerProfileController
                 exit;
             }
 
-            $_SESSION['USER']->email = $newEmail;
+            setAuthUserEmail((string)$newEmail);
 
             $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
             $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
@@ -588,7 +589,7 @@ class FarmerProfileController
         header('Content-Type: application/json');
 
         // Check authentication
-        if (!isset($_SESSION['USER']) || (($_SESSION['USER']->role ?? '') !== 'farmer')) {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -604,7 +605,7 @@ class FarmerProfileController
         }
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             $currentPassword = $_POST['currentPassword'] ?? '';
             $newPassword = $_POST['newPassword'] ?? '';
@@ -659,13 +660,13 @@ class FarmerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
+        $userId = (int)authUserId();
         $account = $this->payoutAccountsModel->getDefaultAccountByUserId($userId);
 
         echo json_encode([
@@ -680,7 +681,7 @@ class FarmerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -692,13 +693,12 @@ class FarmerProfileController
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
+        $userId = (int)authUserId();
         $payload = [
-            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? $_POST['account_holder'] ?? '')),
             'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
             'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
             'account_number' => trim((string)($_POST['account_number'] ?? '')),
-            'account_type' => trim((string)($_POST['account_type'] ?? '')),
             'is_default' => 1,
         ];
 
@@ -735,7 +735,7 @@ class FarmerProfileController
         if (ob_get_level()) ob_clean();
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
@@ -747,8 +747,7 @@ class FarmerProfileController
             exit;
         }
 
-        $userId = (int)$_SESSION['USER']->id;
-        $reason = trim((string)($_POST['reason'] ?? ''));
+        $userId = (int)authUserId();
 
         $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
         $activeOrderCount = $this->orderModel->countFarmerOrdersByStatuses($userId, $blockingStatuses);
@@ -757,12 +756,14 @@ class FarmerProfileController
             echo json_encode([
                 'success' => false,
                 'error' => 'Cannot deactivate account while active orders exist.',
+                'blockedType' => 'orders',
+                'blockedCount' => $activeOrderCount,
                 'activeOrderCount' => $activeOrderCount,
             ]);
             exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
 
         if (!$deactivated) {
             http_response_code(500);
@@ -773,11 +774,7 @@ class FarmerProfileController
             exit;
         }
 
-        $_SESSION = [];
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
-        }
-        session_destroy();
+        clearAuthSession();
 
         echo json_encode([
             'success' => true,

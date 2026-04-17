@@ -222,10 +222,6 @@ class TransporterNotificationsModel
         $missingFields = [];
         if (trim((string)($profileObj->phone ?? '')) === '') $missingFields[] = 'phone number';
         if (trim((string)($profileObj->district ?? '')) === '') $missingFields[] = 'district';
-        if (trim((string)($profileObj->street_name ?? '')) === '') $missingFields[] = 'street name';
-        if (trim((string)($profileObj->city ?? '')) === '') $missingFields[] = 'city';
-        if (trim((string)($profileObj->license_number ?? '')) === '') $missingFields[] = 'license number';
-        if (trim((string)($profileObj->vehicle_type ?? '')) === '') $missingFields[] = 'vehicle type';
 
         if (!empty($missingFields)) {
             $notifications[] = [

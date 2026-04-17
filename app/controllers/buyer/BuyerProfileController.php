@@ -7,14 +7,12 @@ class BuyerProfileController
     protected $buyerModel;
     protected $userModel;
     protected $orderModel;
-    protected $paymentMethodsModel;
 
     public function __construct()
     {
         $this->buyerModel = new BuyerModel();
         $this->userModel = new UserModel();
         $this->orderModel = new OrderModel();
-        $this->paymentMethodsModel = new BuyerPaymentMethodsModel();
     }
 
     /**
@@ -28,41 +26,29 @@ class BuyerProfileController
         }
 
         // Regular page view
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             return redirect('login');
         }
 
-        $userId = $_SESSION['USER']->id;
-
-        // Get buyer profile
-        $profile = $this->buyerModel->getProfileByUserId($userId);
-
-        // If no profile exists, create empty one
-        if (!$profile) {
-            $this->buyerModel->createProfile($userId, []);
-            $profile = $this->buyerModel->getProfileByUserId($userId);
-        }
-
-        // Build photo URL if exists
-        $photoUrl = null;
-        if (!empty($profile->profile_photo)) {
-            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
-        }
+        $userId = authUserId();
+        $profile = $this->getOrCreateProfile($userId);
+        $photoUrl = $this->extractPhotoUrl($profile);
 
         $profileStats = $this->buildProfileStats($userId, $profile);
 
         $data = [
             'pageTitle' => 'Profile',
             'activePage' => 'profile',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'profile' => $profile,
             'photoUrl' => $photoUrl,
             'profileStats' => $profileStats,
+            'pageStyles' => 'profile.css',
             'pageScript' => 'profile.js',
             'contentView' => 'buyer/buyerProfileContent.view.php'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -77,42 +63,100 @@ class BuyerProfileController
     }
 
     /**
+     * Ensure buyer profile row exists and return the latest profile data.
+     */
+    private function getOrCreateProfile(int $userId)
+    {
+        $profile = $this->buyerModel->getProfileByUserId($userId);
+
+        if ($profile) {
+            return $profile;
+        }
+
+        $this->buyerModel->createProfile($userId, []);
+        return $this->buyerModel->getProfileByUserId($userId);
+    }
+
+    private function extractPhotoUrl($profile): ?string
+    {
+        if (!$profile || empty($profile->profile_photo)) {
+            return null;
+        }
+
+        return $this->buildPhotoUrl($profile->profile_photo);
+    }
+
+    private function prepareJsonResponse(): void
+    {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
+        header('Content-Type: application/json');
+    }
+
+    private function jsonResponse(int $statusCode, array $payload): void
+    {
+        http_response_code($statusCode);
+        echo json_encode($payload);
+        exit;
+    }
+
+    private function requireBuyerRole(): void
+    {
+        if (!hasRole('buyer')) {
+            $this->jsonResponse(401, [
+                'success' => false,
+                'error' => 'Unauthorized'
+            ]);
+        }
+    }
+
+    private function requirePostRequest(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->jsonResponse(405, [
+                'success' => false,
+                'error' => 'Method not allowed'
+            ]);
+        }
+    }
+
+    private function getBuyerPhotoUploadDir(bool $createIfMissing = false): string
+    {
+        $publicPath = realpath(__DIR__ . '/../../../public');
+        if ($publicPath === false) {
+            throw new RuntimeException('Public directory not found');
+        }
+
+        $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'buyer-profiles' . DIRECTORY_SEPARATOR;
+
+        if ($createIfMissing && !is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                throw new RuntimeException('Failed to create upload directory');
+            }
+        }
+
+        return $uploadDir;
+    }
+
+    /**
      * Get profile data as JSON (for AJAX requests)
      */
     private function getProfileJson()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        $userId = $_SESSION['USER']->id;
-        $profile = $this->buyerModel->getProfileByUserId($userId);
-
-        if (!$profile) {
-            // Create default profile if doesn't exist
-            $this->buyerModel->createProfile($userId, []);
-            $profile = $this->buyerModel->getProfileByUserId($userId);
-        }
-
-        // Add computed photo URL for the frontend
-        $photoUrl = null;
-        if (!empty($profile->profile_photo)) {
-            $photoUrl = $this->buildPhotoUrl($profile->profile_photo);
-        }
+        $userId = authUserId();
+        $profile = $this->getOrCreateProfile($userId);
+        $photoUrl = $this->extractPhotoUrl($profile);
 
         $maxEmailChanges = 2;
         $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
         $profileStats = $this->buildProfileStats($userId, $profile);
 
-        echo json_encode([
+        $this->jsonResponse(200, [
             'success' => true,
             'profile' => $profile,
             'photoUrl' => $photoUrl,
@@ -120,7 +164,6 @@ class BuyerProfileController
             'emailChangesUsed' => $emailChangesUsed,
             'emailChangesRemaining' => max(0, $maxEmailChanges - $emailChangesUsed)
         ]);
-        exit;
     }
 
     private function buildProfileStats($userId, $profile)
@@ -159,32 +202,16 @@ class BuyerProfileController
      */
     public function saveProfile()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get POST data
             $data = [
                 'name' => trim($_POST['name'] ?? ''),
-                'email' => trim($_POST['email'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
                 'district' => trim($_POST['district'] ?? ''),
                 'apartment_code' => trim($_POST['apartment_code'] ?? ''),
@@ -199,19 +226,17 @@ class BuyerProfileController
 
             if ($validation !== true) {
                 error_log("Buyer Profile Validation Failed: " . json_encode($validation));
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Validation failed',
                     'errors' => $validation
                 ]);
-                exit;
             }
 
             // Name is editable from profile form; email changes are handled via Account Settings flow.
             if (!empty($data['name'])) {
                 $this->userModel->update($userId, ['name' => $data['name']]);
-                $_SESSION['USER']->name = $data['name'];
+                setAuthUserName((string)$data['name']);
             }
 
             // Prepare profile data (exclude name and email from buyer profile update)
@@ -229,40 +254,33 @@ class BuyerProfileController
             $result = $this->buyerModel->updateProfile($userId, $profileData);
 
             if ($result === false) {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to update profile - database error'
                 ]);
-                exit;
             }
 
             // Get updated profile
             $profile = $this->buyerModel->getProfileByUserId($userId);
 
             if (!$profile) {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Profile updated but failed to retrieve'
                 ]);
-                exit;
             }
 
-            http_response_code(200);
-            echo json_encode([
+            $this->jsonResponse(200, [
                 'success' => true,
                 'message' => 'Profile updated successfully',
                 'profile' => $profile
             ]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
-        exit;
     }
 
     /**
@@ -271,36 +289,19 @@ class BuyerProfileController
      */
     public function uploadPhoto()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Validate file upload
             if (!isset($_FILES['photo']) || $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'No file uploaded'
                 ]);
-                exit;
             }
 
             if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
@@ -314,12 +315,10 @@ class BuyerProfileController
                     UPLOAD_ERR_EXTENSION => 'File upload stopped by PHP extension'
                 ];
 
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => $uploadErrors[$_FILES['photo']['error']] ?? 'Unknown upload error'
                 ]);
-                exit;
             }
 
             $filename = $_FILES['photo']['name'];
@@ -330,69 +329,47 @@ class BuyerProfileController
             $allowed = ['jpg', 'jpeg', 'png', 'webp'];
             $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
             if (!in_array($ext, $allowed, true)) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Invalid image format. Allowed: ' . implode(', ', $allowed)
                 ]);
-                exit;
             }
 
             // Validate size (max 5MB)
             if ($filesize > 5 * 1024 * 1024) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Image size must be less than 5MB'
                 ]);
-                exit;
             }
 
             // Validate image content
             if (!is_uploaded_file($tmpName)) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Invalid upload'
                 ]);
-                exit;
             }
 
             $imgInfo = @getimagesize($tmpName);
             if ($imgInfo === false) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'File is not a valid image'
                 ]);
-                exit;
             }
 
             // Generate unique filename
             $uniqueFilename = 'profile_photo_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 
-            // FIX: correct path to /agrolink/public
-            $publicPath = realpath(__DIR__ . '/../../../public');
-            if ($publicPath === false) {
-                throw new RuntimeException('Public directory not found');
-            }
-            $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'buyer-profiles' . DIRECTORY_SEPARATOR;
-
-            // Create directory if it doesn't exist
-            if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
-                    throw new RuntimeException('Failed to create upload directory');
-                }
-            }
+            $uploadDir = $this->getBuyerPhotoUploadDir(true);
 
             // Move uploaded file
             if (!move_uploaded_file($tmpName, $uploadDir . $uniqueFilename)) {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to save image to server'
                 ]);
-                exit;
             }
 
             // Delete old profile photo if exists (handle full URL vs filename safely)
@@ -409,8 +386,7 @@ class BuyerProfileController
             $result = $this->buyerModel->updateProfilePhoto($userId, $uniqueFilename);
 
             if ($result) {
-                http_response_code(200);
-                echo json_encode([
+                $this->jsonResponse(200, [
                     'success' => true,
                     'message' => 'Profile photo uploaded successfully',
                     'filename' => $uniqueFilename,
@@ -420,20 +396,17 @@ class BuyerProfileController
                 // Delete the uploaded file if database update fails
                 @unlink($uploadDir . $uniqueFilename);
 
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to update profile photo in database'
                 ]);
             }
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
-        exit;
     }
 
     /**
@@ -441,41 +414,27 @@ class BuyerProfileController
      */
     public function removePhoto()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             // Get current photo filename
             $currentPhoto = $this->buyerModel->getOldPhotoFilename($userId);
 
             // Delete physical file if it exists
             if ($currentPhoto) {
-                $publicPath = realpath(__DIR__ . '/../../../public');
-                if ($publicPath !== false) {
-                    $uploadDir = $publicPath . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'buyer-profiles' . DIRECTORY_SEPARATOR;
+                try {
+                    $uploadDir = $this->getBuyerPhotoUploadDir();
                     $filePath = $uploadDir . basename($currentPhoto);
 
                     if (is_file($filePath)) {
                         @unlink($filePath);
                     }
+                } catch (RuntimeException $e) {
+                    // Keep DB cleanup functional even if path resolution fails.
                 }
             }
 
@@ -483,26 +442,22 @@ class BuyerProfileController
             $result = $this->buyerModel->removeProfilePhoto($userId);
 
             if ($result) {
-                http_response_code(200);
-                echo json_encode([
+                $this->jsonResponse(200, [
                     'success' => true,
                     'message' => 'Profile photo removed successfully'
                 ]);
             } else {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to remove profile photo from database'
                 ]);
             }
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
-        exit;
     }
 
     /**
@@ -510,27 +465,12 @@ class BuyerProfileController
      */
     public function changePassword()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        // Check authentication
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
         try {
-            $userId = $_SESSION['USER']->id;
+            $userId = authUserId();
 
             $currentPassword = $_POST['currentPassword'] ?? '';
             $newPassword = $_POST['newPassword'] ?? '';
@@ -545,39 +485,33 @@ class BuyerProfileController
             );
 
             if ($validation !== true) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Validation failed',
                     'errors' => $validation
                 ]);
-                exit;
             }
 
             // Change password
             $result = $this->userModel->updatePassword($userId, $newPassword);
 
             if ($result) {
-                http_response_code(200);
-                echo json_encode([
+                $this->jsonResponse(200, [
                     'success' => true,
                     'message' => 'Password changed successfully'
                 ]);
             } else {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to change password'
                 ]);
             }
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
-        exit;
     }
 
     /**
@@ -585,26 +519,12 @@ class BuyerProfileController
      */
     public function changeEmail()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
         try {
-            $userId = (int)$_SESSION['USER']->id;
+            $userId = (int)authUserId();
             $newEmail = strtolower(trim($_POST['newEmail'] ?? ''));
             $password = (string)($_POST['password'] ?? '');
             $maxEmailChanges = 2;
@@ -612,9 +532,7 @@ class BuyerProfileController
 
             $currentUser = $this->userModel->first(['id' => $userId]);
             if (!$currentUser) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'error' => 'User not found']);
-                exit;
+                $this->jsonResponse(404, ['success' => false, 'error' => 'User not found']);
             }
 
             $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
@@ -644,32 +562,28 @@ class BuyerProfileController
             }
 
             if (!empty($errors)) {
-                http_response_code(422);
-                echo json_encode([
+                $this->jsonResponse(422, [
                     'success' => false,
                     'error' => 'Validation failed',
                     'errors' => $errors,
                     'emailChangesUsed' => $emailChangesUsed,
                     'emailChangesRemaining' => $emailChangesRemaining
                 ]);
-                exit;
             }
 
             $updated = $this->userModel->changeEmailWithAudit($userId, $newEmail);
             if (!$updated) {
-                http_response_code(500);
-                echo json_encode([
+                $this->jsonResponse(500, [
                     'success' => false,
                     'error' => 'Failed to update email'
                 ]);
-                exit;
             }
-            $_SESSION['USER']->email = $newEmail;
+            setAuthUserEmail((string)$newEmail);
 
             $emailChangesUsed = $this->userModel->getEmailChangeCount($userId);
             $emailChangesRemaining = max(0, $maxEmailChanges - $emailChangesUsed);
 
-            echo json_encode([
+            $this->jsonResponse(200, [
                 'success' => true,
                 'message' => 'Email updated successfully.',
                 'email' => $newEmail,
@@ -678,13 +592,11 @@ class BuyerProfileController
                 'emailChangesRemaining' => $emailChangesRemaining
             ]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
-        exit;
     }
 
     /**
@@ -692,231 +604,38 @@ class BuyerProfileController
      */
     public function requestDeactivation()
     {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized'
-            ]);
-            exit;
-        }
+        $userId = (int)authUserId();
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
-
-        $userId = (int)$_SESSION['USER']->id;
-        $reason = trim((string)($_POST['reason'] ?? ''));
-
-        $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+        $blockingStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped'];
         $activeOrderCount = $this->orderModel->countBuyerOrdersByStatuses($userId, $blockingStatuses);
         if ($activeOrderCount > 0) {
-            http_response_code(409);
-            echo json_encode([
+            $this->jsonResponse(409, [
                 'success' => false,
                 'error' => 'Cannot deactivate account while active orders exist.',
+                'blockedType' => 'orders',
+                'blockedCount' => $activeOrderCount,
                 'activeOrderCount' => $activeOrderCount,
             ]);
-            exit;
         }
 
-        $deactivated = $this->userModel->deactivateAccount($userId, $reason);
+        $deactivated = $this->userModel->deactivateAccount($userId, '');
         if (!$deactivated) {
-            http_response_code(500);
-            echo json_encode([
+            $this->jsonResponse(500, [
                 'success' => false,
                 'error' => 'Failed to deactivate account',
             ]);
-            exit;
         }
 
-        $_SESSION = [];
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
-        }
-        session_destroy();
+        clearAuthSession();
 
-        echo json_encode([
+        $this->jsonResponse(200, [
             'success' => true,
             'message' => 'Account deactivated successfully.',
             'redirect' => ROOT . '/login?deactivated=1',
         ]);
-        exit;
-    }
-
-    /**
-     * List saved cards for buyer profile payment methods.
-     */
-    public function listCards()
-    {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            exit;
-        }
-
-        $buyerId = (int)$_SESSION['USER']->id;
-        echo json_encode([
-            'success' => true,
-            'cards' => $this->paymentMethodsModel->getCards($buyerId),
-        ]);
-        exit;
-    }
-
-    /**
-     * Add a saved card for future payment gateway integration.
-     */
-    public function addCard()
-    {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
-
-        $buyerId = (int)$_SESSION['USER']->id;
-        $payload = [
-            'card_holder_name' => trim((string)($_POST['card_holder_name'] ?? '')),
-            'card_brand' => trim((string)($_POST['card_brand'] ?? '')),
-            'card_last_four' => trim((string)($_POST['card_last_four'] ?? $_POST['card_last4'] ?? '')),
-            'expiry_month' => trim((string)($_POST['expiry_month'] ?? '')),
-            'expiry_year' => trim((string)($_POST['expiry_year'] ?? '')),
-            'is_default' => !empty($_POST['is_default']),
-        ];
-
-        $result = $this->paymentMethodsModel->addCard($buyerId, $payload);
-        if (empty($result['success'])) {
-            if (!empty($result['errors'])) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Validation failed',
-                    'errors' => $result['errors'],
-                ]);
-                exit;
-            }
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to save card',
-            ]);
-            exit;
-        }
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Card saved successfully',
-            'cards' => $result['cards'] ?? [],
-        ]);
-        exit;
-    }
-
-    /**
-     * Set default card.
-     */
-    public function setDefaultCard()
-    {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
-
-        $buyerId = (int)$_SESSION['USER']->id;
-        $cardId = (int)($_POST['card_id'] ?? 0);
-        if ($cardId <= 0) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'error' => 'Invalid card id']);
-            exit;
-        }
-
-        $result = $this->paymentMethodsModel->setDefaultCard($buyerId, $cardId);
-        if (empty($result['success'])) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to set default card',
-            ]);
-            exit;
-        }
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Default card updated',
-            'cards' => $result['cards'] ?? [],
-        ]);
-        exit;
-    }
-
-    /**
-     * Remove saved card.
-     */
-    public function removeCard()
-    {
-        if (ob_get_level()) ob_clean();
-        header('Content-Type: application/json');
-
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-            exit;
-        }
-
-        $buyerId = (int)$_SESSION['USER']->id;
-        $cardId = (int)($_POST['card_id'] ?? 0);
-        if ($cardId <= 0) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'error' => 'Invalid card id']);
-            exit;
-        }
-
-        $result = $this->paymentMethodsModel->removeCard($buyerId, $cardId);
-        if (empty($result['success'])) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'error' => $result['error'] ?? 'Failed to remove card',
-            ]);
-            exit;
-        }
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Saved card removed',
-            'cards' => $result['cards'] ?? [],
-        ]);
-        exit;
     }
 }

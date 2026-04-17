@@ -52,16 +52,19 @@ class VehicleModel
     public function setActiveVehicle($vehicle_id, $user_id)
     {
         $query = "UPDATE $this->table SET status = 'inactive' WHERE transporter_id = :transporter_id";
-        $this->query($query, ['transporter_id' => $user_id]);
+        $deactivateResult = $this->write($query, ['transporter_id' => $user_id]);
+        if ($deactivateResult === false) {
+            return false;
+        }
 
         $query = "UPDATE $this->table SET status = 'active' WHERE id = :id AND transporter_id = :transporter_id";
-        return $this->query($query, ['id' => $vehicle_id, 'transporter_id' => $user_id]);
+        return $this->write($query, ['id' => $vehicle_id, 'transporter_id' => $user_id]) !== false;
     }
 
     public function deactivateAllVehicles($user_id)
     {
         $query = "UPDATE $this->table SET status = 'inactive' WHERE transporter_id = :transporter_id";
-        return $this->query($query, ['transporter_id' => $user_id]);
+        return $this->write($query, ['transporter_id' => $user_id]) !== false;
     }
 
     public function validate($data)

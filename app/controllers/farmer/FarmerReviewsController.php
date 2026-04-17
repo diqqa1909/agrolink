@@ -13,29 +13,30 @@ class FarmerReviewsController
 
     public function index()
     {
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             redirect('login');
             return;
         }
 
-        $farmerId = $_SESSION['USER']->id;
+        $farmerId = authUserId();
         $reviews = $this->reviewModel->getReviewsByFarmer($farmerId);
 
         $data = [
             'pageTitle' => 'My Reviews',
             'activePage' => 'reviews',
+            'pageStyles' => ['reviews.css'],
             'reviews' => $reviews,
             'contentView' => '../app/views/farmer/reviews.view.php'
         ];
 
-        $this->view('farmer/farmerMain', $data);
+        $this->view('farmer/farmerSidebar', $data);
     }
 
     public function reply()
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'farmer') {
+        if (!hasRole('farmer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -57,7 +58,7 @@ class FarmerReviewsController
         }
 
         $review = $this->reviewModel->getReviewById($reviewId);
-        if (!$review || (int)$review->farmer_id !== (int)$_SESSION['USER']->id) {
+        if (!$review || (int)$review->farmer_id !== (int)authUserId()) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'You are not allowed to reply to this review']);
             exit;

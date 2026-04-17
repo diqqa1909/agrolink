@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - AgroLink</title>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style1.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -100,9 +101,9 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('registered') === '1') {
                 const msg = 'Registration successful!';
-                        document.addEventListener('DOMContentLoaded', function() {
-                            showFloatingAlert(msg, 'error');
-                        });
+                document.addEventListener('DOMContentLoaded', function() {
+                    showFloatingAlert(msg, 'error');
+                });
                 if (typeof showNotification === 'function') {
                     /* showNotification(msg, 'success'); */
                 } else {
@@ -119,7 +120,8 @@
                     url.searchParams.delete('registered');
                     window.history.replaceState({}, document.title, url.toString());
                 } catch (e) {
-                    /* no-op */ }
+                    /* no-op */
+                }
             }
         })();
     </script>

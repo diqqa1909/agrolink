@@ -5,14 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
 </head>
 
 <body>
     <?php
-    $username = $_SESSION['USER']->name ?? 'Admin';
-    $role = $_SESSION['USER']->role ?? 'admin';
-    include '../app/views/components/dashboardNavBar.view.php';
+    $isHomePage = false;
+    include '../app/views/shared/topnavbar.view.php';
     ?>
 
     <!-- Dashboard Layout -->
@@ -2103,7 +2102,7 @@
             }
         }
     </script>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
 </body>
 
 </html>

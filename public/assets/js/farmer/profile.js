@@ -20,6 +20,20 @@
         });
     }
 
+    function updateGlobalUserName(name) {
+        const normalized = String(name || '').trim();
+        if (!normalized) return;
+
+        window.USER_NAME = normalized;
+        if (document.body) {
+            document.body.setAttribute('data-user-name', normalized);
+        }
+
+        if (typeof window.updateNavbarUserName === 'function') {
+            window.updateNavbarUserName(normalized);
+        }
+    }
+
     function formatDateTime(value) {
         if (!value) return '-';
         const date = new Date(value);
@@ -218,6 +232,9 @@
         if (!accountNumber) {
             errors.payoutAccountNumber = 'Account number is required';
         }
+        if (!branchName) {
+            errors.payoutBranchName = 'Branch name is required';
+        }
 
         if (accountName && !/^[A-Za-z][A-Za-z\s.'-]{1,79}$/.test(accountName)) {
             errors.payoutAccountName = 'Enter a valid account holder name';
@@ -299,16 +316,12 @@
         const displayEmail = document.getElementById('profileDisplayEmail');
         const memberSince = document.getElementById('memberSinceValue');
         const lastUpdated = document.getElementById('lastUpdatedValue');
-        const accountStatus = document.getElementById('accountStatusValue');
 
         if (displayName) displayName.textContent = name || 'Farmer';
         if (displayEmail) displayEmail.textContent = email || '';
         if (memberSince) memberSince.textContent = formatDate(profile.created_at);
         if (lastUpdated) lastUpdated.textContent = formatDateTime(profile.updated_at);
-        if (accountStatus) {
-            const status = String(profile.status || 'active').toLowerCase();
-            accountStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        }
+        updateGlobalUserName(name || '');
 
         setProfilePhoto(photoUrl || null);
     }
@@ -747,25 +760,32 @@
             });
     }
 
+    function populatePayoutDetails(account) {
+        const map = {
+            payoutAccountName: account?.account_holder_name || '',
+            payoutBankName: account?.bank_name || '',
+            payoutAccountNumber: account?.account_number || '',
+            payoutBranchName: account?.branch_name || ''
+        };
+
+        Object.keys(map).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = map[id];
+        });
+    }
+
     function loadPayoutDetails() {
         fetch(`${APP_ROOT}/farmerprofile/getPayoutAccount`, {
+            method: 'GET',
             credentials: 'include',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            cache: 'no-cache'
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
             .then(parseJsonResponse)
             .then(res => {
-                const account = res && res.success ? (res.account || null) : null;
-                const map = {
-                    payoutAccountName: account?.account_holder_name || '',
-                    payoutBankName: account?.bank_name || '',
-                    payoutAccountNumber: account?.account_number || '',
-                    payoutBranchName: account?.branch_name || ''
-                };
-                Object.keys(map).forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = map[id];
-                });
+                if (!res.success) {
+                    return;
+                }
+                populatePayoutDetails(res.account || null);
             })
             .catch(err => {
                 console.error('Failed to load payout details:', err);
@@ -814,6 +834,13 @@
         if (payoutAccountNumber) payoutAccountNumber.value = data.accountNumber;
         if (payoutBranchName) payoutBranchName.value = data.branchName;
 
+        const submitBtn = event.currentTarget?.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+        }
+
         fetch(`${APP_ROOT}/farmerprofile/savePayoutAccount`, {
             method: 'POST',
             credentials: 'include',
@@ -830,45 +857,56 @@
         })
             .then(parseJsonResponse)
             .then(res => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+
                 if (res.success) {
+                    populatePayoutDetails(res.account || null);
                     profileNotify(res.message || 'Bank details saved', 'success');
                     closeModal('payoutDetailsModal');
                     return;
                 }
 
                 if (res.errors && typeof res.errors === 'object') {
-                    const fieldMap = {
+                    const payoutServerFieldMap = {
                         account_holder_name: 'payoutAccountName',
                         bank_name: 'payoutBankName',
                         account_number: 'payoutAccountNumber',
                         branch_name: 'payoutBranchName'
                     };
-                    applyErrorsFromMap(res.errors, fieldMap);
-                    const firstFieldId = fieldMap[Object.keys(res.errors)[0]];
-                    const firstField = firstFieldId ? document.getElementById(firstFieldId) : null;
+                    applyErrorsFromMap(res.errors, payoutServerFieldMap);
+                    const firstKey = Object.keys(res.errors)[0];
+                    const firstField = payoutServerFieldMap[firstKey] ? document.getElementById(payoutServerFieldMap[firstKey]) : null;
                     if (firstField) firstField.focus();
                     return;
                 }
 
-                profileNotify(res.error || 'Failed to save bank details', 'error');
+                profileNotify(res.error || 'Failed to save payout account', 'error');
             })
             .catch(err => {
-                profileNotify('Error saving bank details', 'error');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+                profileNotify('Error saving payout details', 'error');
                 console.error('Payout save error:', err);
             });
     }
 
     function openPayoutDetailsModal() {
-        loadPayoutDetails();
         openModal('payoutDetailsModal');
+        loadPayoutDetails();
     }
 
     function confirmDeactivateAccount() {
-        const confirmBtn = document.getElementById('confirmDeactivateBtn');
-        const originalText = confirmBtn ? confirmBtn.textContent : '';
-        if (confirmBtn) {
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Submitting...';
+        const deactivateBtn = document.getElementById('confirmDeactivateBtn');
+        const originalText = deactivateBtn ? deactivateBtn.textContent : '';
+
+        if (deactivateBtn) {
+            deactivateBtn.disabled = true;
+            deactivateBtn.textContent = 'Processing...';
         }
 
         fetch(`${APP_ROOT}/farmerprofile/requestDeactivation`, {
@@ -878,36 +916,37 @@
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: new URLSearchParams({})
+            body: new URLSearchParams()
         })
             .then(parseJsonResponse)
             .then(res => {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.textContent = originalText;
+                if (deactivateBtn) {
+                    deactivateBtn.disabled = false;
+                    deactivateBtn.textContent = originalText;
                 }
 
                 if (res.success) {
-                    profileNotify(res.message || 'Account deactivated successfully.', 'warning');
-                    window.location.href = res.redirect || `${APP_ROOT}/login?deactivated=1`;
+                    profileNotify(res.message || 'Account deactivated successfully.', 'success');
+                    if (res.redirect) {
+                        window.location.href = res.redirect;
+                    }
                     return;
                 }
 
                 profileNotify(res.error || 'Failed to deactivate account', 'error');
             })
             .catch(err => {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.textContent = originalText;
+                if (deactivateBtn) {
+                    deactivateBtn.disabled = false;
+                    deactivateBtn.textContent = originalText;
                 }
-                profileNotify('Error submitting deactivation request', 'error');
+                profileNotify('Error requesting deactivation', 'error');
                 console.error('Deactivation error:', err);
             });
     }
 
     function initializeProfileFunctionality() {
         loadProfileData();
-        loadPayoutDetails();
 
         const phoneInput = document.getElementById('profilePhone');
         if (phoneInput) {
@@ -992,7 +1031,7 @@
             });
         });
 
-        document.querySelectorAll('.modal.profile-modal').forEach(modal => {
+        document.querySelectorAll('.modal.farmer-profile-modal').forEach(modal => {
             modal.addEventListener('click', function (e) {
                 if (e.target === modal) modal.classList.remove('show');
             });

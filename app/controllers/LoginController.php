@@ -4,6 +4,10 @@ class LoginController
     use Controller;
     public function index($a = '', $b = '', $c = '')
     {
+        if (redirectIfLoggedIn()) {
+            return;
+        }
+
         $data = [];
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
             // Check if POST data exists
@@ -23,7 +27,8 @@ class LoginController
                         $user->errors['email'] = "Your account is deactivated. Please contact admin for reactivation.";
                         $data['errors'] = $user->errors;
                     } elseif (password_verify((string)$_POST['password'], (string)$row->password)) {
-                        $_SESSION['USER'] = $row;
+                        session_regenerate_id(true);
+                        setAuthSession($row);
 
                         //REDIRECT BASED ON USER ROLE
                         $this->redirectBasedOnRole($row->role);
@@ -41,26 +46,6 @@ class LoginController
 
     private function redirectBasedOnRole($role)
     {
-        switch ($role) {
-            case 'buyer':
-                redirect('buyerDashboard');
-                break;
-
-            case 'farmer':
-                redirect('farmerDashboard');
-                break;
-
-            case 'transporter':
-                redirect('transporterDashboard');
-                break;
-
-            case 'admin':
-                redirect('adminDashboard');
-                break;
-
-            default:
-                redirect('home');
-                break;
-        }
+        redirect(authDashboardPath((string)$role));
     }
 }

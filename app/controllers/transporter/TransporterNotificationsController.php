@@ -13,12 +13,12 @@ class TransporterNotificationsController
 
     private function isAuthorizedTransporter()
     {
-        return isset($_SESSION['USER']) && (($_SESSION['USER']->role ?? '') === 'transporter');
+        return hasRole('transporter');
     }
 
     private function getTransporterId()
     {
-        return (int)($_SESSION['USER']->id ?? 0);
+        return (int)(authUserId() ?? 0);
     }
 
     public function index()
@@ -39,7 +39,7 @@ class TransporterNotificationsController
             'pageScript' => 'transporterNotifications.js',
         ];
 
-        $this->view('transporter/transporterMain', $data);
+        $this->view('transporter/transporterSidebar', $data);
     }
 
     public function list()

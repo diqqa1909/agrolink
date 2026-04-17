@@ -1,13 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../../simple_shipping_calculator.php';
-
 class CheckoutController
 {
     use Controller;
 
     protected $cartModel;
-    protected $buyerProfileModel;
+    protected $buyerModel;
     protected $orderModel;
     protected $productModel;
     protected $farmerModel;
@@ -16,30 +14,19 @@ class CheckoutController
     public function __construct()
     {
         $this->cartModel = new CartModel();
-        $this->buyerProfileModel = new BuyerProfileModel();
+        $this->buyerModel = new BuyerModel();
         $this->orderModel = new OrderModel();
         $this->productModel = new ProductsModel();
         $this->farmerModel = new FarmerModel();
-        
+
         // Initialize shipping calculator
         try {
             $pdo = new PDO("mysql:host=" . DBHOST . ";dbname=" . DBNAME, DBUSER, DBPASS);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->shippingCalculator = new SimpleShippingCalculator($pdo);
         } catch (PDOException $e) {
-            error_log("Shipping calculator initialization error: " . $e->getMessage());
+            $this->debugLog('Shipping calculator initialization error: ' . $e->getMessage());
             $this->shippingCalculator = null;
-        }
-    }
-
-    private function logCheckoutDebug($message)
-    {
-        $projectRoot = dirname(__DIR__, 3);
-        $logFile = $projectRoot . '/public/debug_log.txt';
-        $line = date('Y-m-d H:i:s') . ' - ' . $message;
-
-        if (@file_put_contents($logFile, $line, FILE_APPEND) === false) {
-            error_log('CheckoutController debug log write failed: ' . $logFile);
         }
     }
 
@@ -49,12 +36,12 @@ class CheckoutController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Check if this is a "Buy Now" checkout (single product)
         $isBuyNow = isset($_GET['buy_now']) && $_GET['buy_now'] == '1';
@@ -62,7 +49,7 @@ class CheckoutController
             $_SESSION['buy_now_product_id'] = (int)$_GET['product_id'];
         }
         $isBuyNow = isset($_SESSION['buy_now_product_id']);
-        
+
         // Get cart items with product details including available quantity
         $cartItems = $this->cartModel->getCartByUserId($user_id);
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
@@ -87,11 +74,11 @@ class CheckoutController
         // If Buy Now mode, filter to show only that product
         if ($isBuyNow && isset($_SESSION['buy_now_product_id'])) {
             $buyNowProductId = $_SESSION['buy_now_product_id'];
-            $cartItems = array_filter($cartItems, function($item) use ($buyNowProductId) {
+            $cartItems = array_filter($cartItems, function ($item) use ($buyNowProductId) {
                 return $item->product_id == $buyNowProductId;
             });
             $cartItems = array_values($cartItems); // Re-index array
-            
+
             // Recalculate totals for Buy Now item only
             $cartTotal = 0;
             $cartItemCount = 0;
@@ -109,24 +96,28 @@ class CheckoutController
         }
 
         // Get buyer profile to check if delivery details exist
-        $buyerProfile = $this->buyerProfileModel->getProfileByUserId($user_id);
-        $hasDeliveryDetails = $this->buyerProfileModel->hasDeliveryDetails($user_id);
+        $buyerProfile = $this->buyerModel->getProfileByUserId($user_id);
+        $hasDeliveryDetails = $this->buyerModel->hasDeliveryDetails($user_id);
 
-        // Calculate shipping cost using shipping calculator
-        $deliveryFee = 150.00; // Default fallback
+        // Calculate shipping cost using shipping calculator.
+        // No hardcoded fallback fee is allowed.
+        $deliveryFee = 0.00;
         $shippingCalculation = null;
-        
-        if ($hasDeliveryDetails && $this->shippingCalculator && !empty($cartItems)) {
-            // Try to calculate shipping cost
-            $shippingCalculation = $this->calculateShippingForCart($cartItems, $buyerProfile);
-            if ($shippingCalculation && $shippingCalculation['success']) {
-                $deliveryFee = $shippingCalculation['calculation']['total_shipping_cost_lkr'];
+        $shippingError = null;
+
+        if ($hasDeliveryDetails && !empty($cartItems)) {
+            if (!$this->shippingCalculator) {
+                $shippingError = 'Shipping service is currently unavailable. Please try again.';
             } else {
-                // Log error for debugging
-                error_log("Shipping calculation failed: " . ($shippingCalculation['error'] ?? 'Unknown error'));
+                $shippingCalculation = $this->calculateShippingForCart($cartItems, $buyerProfile);
+                if ($shippingCalculation && !empty($shippingCalculation['success'])) {
+                    $deliveryFee = (float)$shippingCalculation['calculation']['total_shipping_cost_lkr'];
+                } else {
+                    $shippingError = (string)($shippingCalculation['error'] ?? 'Shipping calculation failed. Please verify your delivery location.');
+                }
             }
         }
-        
+
         $orderTotal = $cartTotal + $deliveryFee;
 
         $data = [
@@ -137,14 +128,18 @@ class CheckoutController
             'orderTotal' => $orderTotal,
             'buyerProfile' => $buyerProfile,
             'hasDeliveryDetails' => $hasDeliveryDetails,
+            'districtOptions' => $this->getDistrictNames(),
             'isBuyNow' => $isBuyNow,
             'shippingCalculation' => $shippingCalculation,
+            'shippingError' => $shippingError,
             'pageTitle' => 'Checkout',
             'activePage' => 'checkout',
-            'contentView' => 'buyer/checkout.view.php'
+            'contentView' => 'buyer/checkout.view.php',
+            'pageStyles' => 'checkout.css',
+            'pageScript' => 'checkout.js'
         ];
 
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -154,15 +149,26 @@ class CheckoutController
     private function calculateShippingForCart($cartItems, $buyerProfile)
     {
         if (!$this->shippingCalculator || empty($cartItems)) {
-            return null;
+            return [
+                'success' => false,
+                'error' => 'Shipping calculator is unavailable',
+            ];
         }
 
         // Get buyer's district and town IDs
-        $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
-        $buyerTownId = $this->getTownIdByName($buyerProfile->city ?? '', $buyerDistrictId);
-        
+        $buyerDistrictId = $this->findDistrictIdByName($buyerProfile->district ?? '');
         if (!$buyerDistrictId) {
-            return null;
+            return [
+                'success' => false,
+                'error' => 'Invalid or missing buyer district',
+            ];
+        }
+        $buyerTownId = $this->getTownIdByName($buyerProfile->city ?? '', $buyerDistrictId);
+        if (!$buyerTownId) {
+            return [
+                'success' => false,
+                'error' => 'Invalid or missing buyer town',
+            ];
         }
 
         // Group cart items by farmer
@@ -170,84 +176,135 @@ class CheckoutController
         foreach ($cartItems as $item) {
             $product = $this->productModel->getById($item->product_id);
             if (!$product) {
-                continue;
+                return [
+                    'success' => false,
+                    'error' => 'Product not found in cart',
+                ];
             }
-            
-            $farmerId = $product->farmer_id;
+
+            $farmerId = (int)($product->farmer_id ?? 0);
+            if ($farmerId <= 0) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid farmer mapping for one or more cart items',
+                ];
+            }
+
+            $itemWeight = $this->calculateItemWeightKg($item, $product);
+            if ($itemWeight <= 0) {
+                return [
+                    'success' => false,
+                    'error' => 'Missing crop volume factor for product: ' . ($item->product_name ?? 'Unknown item'),
+                ];
+            }
+
             if (!isset($itemsByFarmer[$farmerId])) {
                 $itemsByFarmer[$farmerId] = [
                     'items' => [],
-                    'total_weight' => 0,
-                    'product' => $product
+                    'total_weight_kg' => 0.0,
+                    'first_product' => $product,
                 ];
             }
-            
-            $itemsByFarmer[$farmerId]['items'][] = $item;
-            $itemsByFarmer[$farmerId]['total_weight'] += $item->quantity; // Assuming quantity is in kg
+
+            $itemsByFarmer[$farmerId]['items'][] = [
+                'cart_item' => $item,
+                'product' => $product,
+                'item_weight_kg' => $itemWeight,
+            ];
+            $itemsByFarmer[$farmerId]['total_weight_kg'] += $itemWeight;
         }
 
         if (empty($itemsByFarmer)) {
-            return null;
+            return [
+                'success' => false,
+                'error' => 'No valid items available for shipping calculation',
+            ];
         }
 
         // Calculate shipping for each farmer and sum them up
-        $totalShippingCost = 0;
+        $totalShippingCost = 0.0;
         $allCalculations = [];
         $selectedVehicles = [];
 
         foreach ($itemsByFarmer as $farmerId => $farmerData) {
-            $product = $farmerData['product'];
-            $totalWeight = $farmerData['total_weight'];
-            $firstItem = $farmerData['items'][0];
-            $cropName = $firstItem->product_name;
+            $product = $farmerData['first_product'];
+            $totalWeight = (float)$farmerData['total_weight_kg'];
 
             // Get farmer's district/town (Try new ID fields first)
-            $farmerDistrictId = $product->district_id ?? null;
-            $farmerTownId = $product->town_id ?? null;
+            $farmerDistrictId = !empty($product->district_id) ? (int)$product->district_id : null;
+            $farmerTownId = !empty($product->town_id) ? (int)$product->town_id : null;
 
             if (!$farmerDistrictId) {
-                // Get farmer's district from farmer profile
                 $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
-                
-                // Get farmer's district and town (legacy fallback)
-                $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? 'Colombo') : ($product->location ?? 'Colombo');
-                $farmerDistrictId = $this->getDistrictIdByName($farmerDistrictName);
+                $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? '') : ($product->location ?? '');
+                $farmerDistrictId = $this->findDistrictIdByName($farmerDistrictName);
+            }
+
+            if (!$farmerDistrictId) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid farmer district for shipping',
+                ];
+            }
+
+            if (!$farmerTownId) {
                 $farmerTownId = $this->getTownIdByName($product->location ?? '', $farmerDistrictId);
             }
 
+            if (!$farmerTownId) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid farmer town for shipping',
+                ];
+            }
+
             if ($totalWeight <= 0) {
-                continue;
+                return [
+                    'success' => false,
+                    'error' => 'Invalid shipping weight for one or more farmer groups',
+                ];
             }
 
             $params = [
                 'pickup_district_id' => $farmerDistrictId,
-                'pickup_town_id' => $farmerTownId ?: $farmerDistrictId, // Fallback to district center
+                'pickup_town_id' => $farmerTownId,
                 'delivery_district_id' => $buyerDistrictId,
-                'delivery_town_id' => $buyerTownId ?: $buyerDistrictId, // Fallback to district center
-                'crop_name' => $cropName,
-                'weight_kg' => $totalWeight
+                'delivery_town_id' => $buyerTownId,
+                'crop_name' => 'mixed',
+                'weight_kg' => round($totalWeight, 2),
+                'weight_already_adjusted' => true,
             ];
 
             $calculation = $this->shippingCalculator->calculateShippingCost($params);
-            
+
             if ($calculation && $calculation['success']) {
                 $totalShippingCost += $calculation['calculation']['total_shipping_cost_lkr'];
                 $allCalculations[] = $calculation['calculation'];
                 $selectedVehicles[] = $calculation['calculation']['selected_vehicle'];
+            } else {
+                return [
+                    'success' => false,
+                    'error' => (string)($calculation['error'] ?? 'Shipping calculation failed for one or more farmer groups'),
+                ];
             }
         }
 
         if ($totalShippingCost <= 0) {
-            return null;
+            return [
+                'success' => false,
+                'error' => 'Unable to determine shipping cost',
+            ];
         }
+
+        $farmerCount = count($itemsByFarmer);
 
         // Return combined result
         return [
             'success' => true,
             'calculation' => [
                 'total_shipping_cost_lkr' => round($totalShippingCost, 2),
-                'multiple_farmers' => count($itemsByFarmer) > 1,
-                'farmer_count' => count($itemsByFarmer),
+                'multiple_farmers' => $farmerCount > 1,
+                'farmer_count' => $farmerCount,
                 'calculations' => $allCalculations,
                 'selected_vehicles' => $selectedVehicles
             ]
@@ -255,19 +312,74 @@ class CheckoutController
     }
 
     /**
+     * Resolve district ID by name without fallback.
+     */
+    private function findDistrictIdByName($districtName)
+    {
+        $normalizedName = trim((string)$districtName);
+        if ($normalizedName === '') {
+            return null;
+        }
+
+        $dbModel = new CartModel();
+        $sql = "SELECT id FROM districts WHERE district_name = :name LIMIT 1";
+        $result = $dbModel->query($sql, ['name' => $normalizedName]);
+
+        if ($result && is_array($result) && !empty($result)) {
+            return (int)$result[0]->id;
+        }
+
+        return null;
+    }
+
+    /**
      * Get district ID by name
      */
     private function getDistrictIdByName($districtName)
     {
-        $dbModel = new CartModel(); // Use existing model to access Database trait
-        $sql = "SELECT id FROM districts WHERE district_name = :name LIMIT 1";
-        $result = $dbModel->query($sql, ['name' => $districtName]);
+        return $this->findDistrictIdByName($districtName);
+    }
+
+    /**
+     * Get district names for checkout dropdown.
+     */
+    private function getDistrictNames()
+    {
+        $dbModel = new CartModel();
+        $sql = "SELECT district_name FROM districts ORDER BY district_name ASC";
+        $result = $dbModel->query($sql);
+
         if ($result && is_array($result) && !empty($result)) {
-            return $result[0]->id;
+            return array_map(static function ($row) {
+                return (string)$row->district_name;
+            }, $result);
         }
-        // Default to Colombo if not found
-        $result = $dbModel->query($sql, ['name' => 'Colombo']);
-        return ($result && is_array($result) && !empty($result)) ? $result[0]->id : 1;
+
+        return [
+            'Ampara',
+            'Anuradhapura',
+            'Badulla',
+            'Batticaloa',
+            'Colombo',
+            'Galle',
+            'Gampaha',
+            'Jaffna',
+            'Kalutara',
+            'Kandy',
+            'Kegalle',
+            'Kilinochchi',
+            'Kurunegala',
+            'Mannar',
+            'Matale',
+            'Matara',
+            'Mullaitivu',
+            'Nuwara Eliya',
+            'Polonnaruwa',
+            'Puttalam',
+            'Ratnapura',
+            'Trincomalee',
+            'Vavuniya',
+        ];
     }
 
     /**
@@ -275,12 +387,29 @@ class CheckoutController
      */
     private function getTownIdByName($townName, $districtId)
     {
-        if (empty($townName)) {
+        $districtId = (int)$districtId;
+        if ($districtId <= 0) {
             return null;
         }
+
+        $normalizedTownName = trim((string)$townName);
+        if ($normalizedTownName === '') {
+            return null;
+        }
+
+        // Product locations can be stored as "Town, District"; keep town-only for lookup.
+        if (strpos($normalizedTownName, ',') !== false) {
+            $parts = explode(',', $normalizedTownName, 2);
+            $normalizedTownName = trim((string)$parts[0]);
+        }
+
+        if ($normalizedTownName === '') {
+            return null;
+        }
+
         $dbModel = new CartModel(); // Use existing model to access Database trait
         $sql = "SELECT id FROM towns WHERE town_name LIKE :name AND district_id = :district_id LIMIT 1";
-        $result = $dbModel->query($sql, ['name' => '%' . $townName . '%', 'district_id' => $districtId]);
+        $result = $dbModel->query($sql, ['name' => '%' . $normalizedTownName . '%', 'district_id' => $districtId]);
         if ($result && is_array($result) && !empty($result)) {
             return $result[0]->id;
         }
@@ -293,8 +422,8 @@ class CheckoutController
     public function saveDeliveryDetails()
     {
         header('Content-Type: application/json');
-        
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -306,7 +435,7 @@ class CheckoutController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         $data = [
             'phone' => trim($_POST['phone'] ?? ''),
@@ -318,29 +447,33 @@ class CheckoutController
         ];
 
         // Validate required fields
-        if (empty($data['phone']) || empty($data['city']) || empty($data['street_name'])) {
+        if (empty($data['phone']) || empty($data['city']) || empty($data['street_name']) || empty($data['district'])) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Phone, city, and street address are required']);
+            echo json_encode(['success' => false, 'message' => 'Phone, city, district, and street address are required']);
+            exit;
+        }
+
+        if (!$this->findDistrictIdByName($data['district'])) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Please select a valid district']);
             exit;
         }
 
         try {
             // Check if profile exists
-            $existingProfile = $this->buyerProfileModel->getProfileByUserId($user_id);
-            
+            $existingProfile = $this->buyerModel->getProfileByUserId($user_id);
+
             if ($existingProfile && is_object($existingProfile)) {
                 // Update existing profile
-                $result = $this->buyerProfileModel->updateProfile($user_id, $data);
+                $result = $this->buyerModel->updateProfile($user_id, $data);
             } else {
                 // Create new profile
-                $result = $this->buyerProfileModel->createProfile($user_id, $data);
+                $result = $this->buyerModel->createProfile($user_id, $data);
             }
 
-            // Check if result is valid (not 1 which means error in Database trait)
-            // write() returns insert ID (int > 0) or true on success, 1 on failure
-            if ($result && $result !== 1) {
+            if ($result !== false) {
                 // Verify the save by fetching the profile
-                $savedProfile = $this->buyerProfileModel->getProfileByUserId($user_id);
+                $savedProfile = $this->buyerModel->getProfileByUserId($user_id);
                 if ($savedProfile && is_object($savedProfile)) {
                     echo json_encode([
                         'success' => true,
@@ -368,15 +501,7 @@ class CheckoutController
     {
         header('Content-Type: application/json');
 
-        // DEBUG: Log debugging info
-        $this->logCheckoutDebug("placeOrder Called\n");
-        $this->logCheckoutDebug("Session ID: " . session_id() . "\n");
-        $this->logCheckoutDebug("Session Data: " . print_r($_SESSION, true) . "\n");
-        $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $this->logCheckoutDebug("Headers: " . print_r($headers, true) . "\n");
-        
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
-            $this->logCheckoutDebug("Auth Failed: USER not set or role not buyer\n");
+        if (!hasRole('buyer')) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit;
@@ -388,7 +513,7 @@ class CheckoutController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
@@ -412,30 +537,38 @@ class CheckoutController
         }
 
         // Get buyer profile
-        $buyerProfile = $this->buyerProfileModel->getProfileByUserId($user_id);
-        if (!$buyerProfile || !$this->buyerProfileModel->hasDeliveryDetails($user_id)) {
+        $buyerProfile = $this->buyerModel->getProfileByUserId($user_id);
+        if (!$buyerProfile || !$this->buyerModel->hasDeliveryDetails($user_id)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Please complete your delivery details first']);
+            exit;
+        }
+
+        $deliveryDistrictId = $this->findDistrictIdByName($buyerProfile->district ?? '');
+        $deliveryTownId = $this->getTownIdByName($buyerProfile->city ?? '', $deliveryDistrictId);
+        if (!$deliveryDistrictId || !$deliveryTownId) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Invalid delivery location. Please update your district and city.']);
             exit;
         }
 
         // --- STEP 1: VALIDATE STOCK FOR ALL ITEMS ---
         $errors = [];
         $itemsByFarmer = []; // Group items by farmer for later
-        
+
         foreach ($cartItems as $item) {
             $product = $this->productModel->getById($item->product_id);
             if (!$product) {
                 $errors[] = "Product not found: {$item->product_name}";
                 continue;
             }
-            
+
             $availableQuantity = $product->quantity ?? 0;
-            
+
             // Check for valid quantity
             if ($item->quantity <= 0) {
-                 $errors[] = "Item '{$item->product_name}' is out of stock. Please remove it from cart.";
-                 continue;
+                $errors[] = "Item '{$item->product_name}' is out of stock. Please remove it from cart.";
+                continue;
             }
 
             if ($item->quantity > $availableQuantity) {
@@ -443,20 +576,20 @@ class CheckoutController
             }
 
             // Group by farmer
-            $farmerId = $this->getFarmerIdByProductId($item->product_id);
-            
-            // DEBUG: Log farmer ID retrieval
-            $this->logCheckoutDebug("Product {$item->product_id} ({$item->product_name}) - Farmer ID: " . ($farmerId ?? 'NULL') . "\n");
-            
+            $farmerId = (int)($product->farmer_id ?? 0);
+
             if (!$farmerId) {
                 $errors[] = "Could not find farmer for product: {$item->product_name}";
                 continue;
             }
-            
+
             if (!isset($itemsByFarmer[$farmerId])) {
                 $itemsByFarmer[$farmerId] = [];
             }
-            $itemsByFarmer[$farmerId][] = $item;
+            $itemsByFarmer[$farmerId][] = [
+                'item' => $item,
+                'product' => $product,
+            ];
         }
 
         if (!empty($errors)) {
@@ -468,131 +601,161 @@ class CheckoutController
             exit;
         }
 
-        // Common details
-        $paymentMethod = $_POST['payment_method'] ?? 'cash_on_delivery';
-        $deliveryDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
-        $deliveryTownId = $this->getTownIdByName($buyerProfile->city ?? '', $deliveryDistrictId);
+        if (empty($itemsByFarmer)) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'message' => 'No valid farmer items found for order placement.',
+            ]);
+            exit;
+        }
+
         $orderIds = [];
-        $overallTotal = 0;
+        $overallTotal = 0.0;
 
-        // --- STEP 2: LOOP AND CREATE SPLIT ORDERS ---
-        foreach ($itemsByFarmer as $farmerId => $farmerItems) {
-            // Calculate shipping for this specific group of items
-            $shippingCalculation = $this->calculateShippingForCart($farmerItems, $buyerProfile);
-            $shippingCost = 150.00; // Default fallback for this sub-order
-            
-            if ($shippingCalculation && $shippingCalculation['success']) {
-                $shippingCost = $shippingCalculation['calculation']['total_shipping_cost_lkr'];
-            } else {
-                error_log("Shipping calculation failed for farmer {$farmerId}: " . ($shippingCalculation['error'] ?? 'Unknown error'));
-            }
+        if (!$this->orderModel->beginTransaction()) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Unable to start order transaction. Please try again.']);
+            exit;
+        }
 
-            // Calculate subtotal for this group
-            $cartTotal = 0;
-            foreach ($farmerItems as $item) {
-                $cartTotal += $item->product_price * $item->quantity;
-            }
-            
-            $orderTotal = $cartTotal + $shippingCost;
-            $overallTotal += $orderTotal;
-
-            $orderData = [
-                'buyer_id' => $user_id,
-                'total_amount' => $cartTotal,
-                'shipping_cost' => $shippingCost,
-                'order_total' => $orderTotal,
-                'payment_method' => $paymentMethod,
-                'delivery_address' => ($buyerProfile->apartment_code ?? '') . ', ' . ($buyerProfile->street_name ?? ''),
-                'delivery_city' => $buyerProfile->city ?? '',
-                'delivery_district_id' => $deliveryDistrictId,
-                'delivery_town_id' => $deliveryTownId,
-                'delivery_phone' => $buyerProfile->phone ?? '',
-                'status' => 'pending'
-            ];
-
-            $orderId = $this->orderModel->createOrder($orderData);
-
-            if (!$orderId || $orderId === false || $orderId === 1) {
-                error_log("Failed to create sub-order for farmer {$farmerId}");
-                // Continue to try other orders? Or fail all? 
-                // For now, we continue but this is messy partial failure state.
-                continue;
-            }
-            
-            $orderIds[] = $orderId;
-
-            // --- STEP 3: ADD ITEMS & UPDATE STOCK FOR THIS SUB-ORDER ---
-            $totalWeight = 0;
-            foreach ($farmerItems as $item) {
-                // Calculate weight for this item (assuming weight per unit)
-                // You can modify this logic based on your product weight structure
-                $product = $this->productModel->getById($item->product_id);
-                $itemWeight = 0;
-                
-                // Try to get weight from crop_volume_factors table
-                if ($product && !empty($product->name)) {
-                    $weightData = $this->getProductWeight($product->name);
-                    $itemWeight = $weightData * $item->quantity;
+        try {
+            // --- STEP 2: LOOP AND CREATE SPLIT ORDERS ---
+            foreach ($itemsByFarmer as $farmerId => $farmerEntries) {
+                $farmerItems = [];
+                foreach ($farmerEntries as $entry) {
+                    $farmerItems[] = $entry['item'];
                 }
-                
-                // If no weight found, use default 1kg per unit
-                if ($itemWeight == 0) {
-                    $itemWeight = $item->quantity * 1.0; // Default 1kg per unit
-                }
-                
-                $totalWeight += $itemWeight;
 
-                $itemData = [
-                    'order_id' => $orderId,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product_name,
-                    'product_price' => $item->product_price,
-                    'quantity' => $item->quantity,
-                    'item_weight_kg' => $itemWeight,
-                    'farmer_id' => $farmerId 
+                // Calculate shipping for this specific group of items.
+                $shippingCalculation = $this->calculateShippingForCart($farmerItems, $buyerProfile);
+                if (!$shippingCalculation || empty($shippingCalculation['success'])) {
+                    $shippingError = (string)($shippingCalculation['error'] ?? 'Shipping calculation failed');
+                    throw new InvalidArgumentException('Shipping calculation failed for farmer #' . $farmerId . ': ' . $shippingError);
+                }
+
+                $shippingCost = (float)$shippingCalculation['calculation']['total_shipping_cost_lkr'];
+                if ($shippingCost <= 0) {
+                    throw new InvalidArgumentException('Shipping calculation returned an invalid fee for farmer #' . $farmerId);
+                }
+
+                // Calculate subtotal for this group.
+                $cartTotal = 0.0;
+                foreach ($farmerEntries as $entry) {
+                    $item = $entry['item'];
+                    $cartTotal += (float)$item->product_price * (float)$item->quantity;
+                }
+
+                $orderTotal = $cartTotal + $shippingCost;
+                $overallTotal += $orderTotal;
+
+                $orderData = [
+                    'buyer_id' => $user_id,
+                    'total_amount' => $cartTotal,
+                    'shipping_cost' => $shippingCost,
+                    'order_total' => $orderTotal,
+                    'payment_status' => 'pending',
+                    'delivery_address' => ($buyerProfile->apartment_code ?? '') . ', ' . ($buyerProfile->street_name ?? ''),
+                    'delivery_city' => $buyerProfile->city ?? '',
+                    'delivery_district_id' => $deliveryDistrictId,
+                    'delivery_town_id' => $deliveryTownId,
+                    'delivery_phone' => $buyerProfile->phone ?? '',
+                    'status' => 'pending_payment'
                 ];
 
-                // DEBUG: Log item data before insertion
-                $this->logCheckoutDebug("Inserting order item: " . json_encode($itemData) . "\n");
-                
-                $addResult = $this->orderModel->addOrderItem($itemData);
-                
-                // DEBUG: Log insertion result
-                $this->logCheckoutDebug("Add order item result: " . ($addResult ? 'SUCCESS' : 'FAILED') . "\n");
-                
-                if (!$addResult) {
-                    error_log("Failed to add item {$item->product_name} to order {$orderId}");
-                    $this->logCheckoutDebug("ERROR: Failed to add item {$item->product_name} to order {$orderId}\n");
+                $orderId = $this->orderModel->createOrder($orderData);
+
+                if ($orderId === false || (int)$orderId <= 0) {
+                    throw new RuntimeException('Failed to create sub-order for farmer #' . $farmerId);
                 }
 
-                if (!$this->orderModel->updateProductQuantity($item->product_id, $item->quantity)) {
-                    error_log("Failed to update quantity for {$item->product_name}");
+                $orderId = (int)$orderId;
+                $orderIds[] = $orderId;
+
+                // --- STEP 3: ADD ITEMS & UPDATE STOCK FOR THIS SUB-ORDER ---
+                $totalWeight = 0.0;
+                foreach ($farmerEntries as $entry) {
+                    $item = $entry['item'];
+                    $product = $entry['product'];
+
+                    $itemWeight = $this->calculateItemWeightKg($item, $product);
+                    if ($itemWeight <= 0) {
+                        throw new InvalidArgumentException('Missing crop volume factor for product: ' . $item->product_name);
+                    }
+
+                    $totalWeight += $itemWeight;
+
+                    $itemData = [
+                        'order_id' => $orderId,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'product_price' => $item->product_price,
+                        'quantity' => $item->quantity,
+                        'item_weight_kg' => $itemWeight,
+                        'farmer_id' => $farmerId
+                    ];
+
+                    $addResult = $this->orderModel->addOrderItem($itemData);
+
+                    if (!$addResult) {
+                        throw new RuntimeException('Failed to add item ' . $item->product_name . ' to order #' . $orderId);
+                    }
+
+                    if ($this->orderModel->updateProductQuantity($item->product_id, $item->quantity) === false) {
+                        throw new RuntimeException('Failed to update stock for ' . $item->product_name);
+                    }
+                }
+
+                $totalWeight = round($totalWeight, 2);
+
+                if ($this->orderModel->updateOrderWeight($orderId, $totalWeight) === false) {
+                    throw new RuntimeException('Failed to update total order weight for order #' . $orderId);
+                }
+
+                // --- STEP 4: CREATE DELIVERY REQUEST FOR THIS ORDER ---
+                if (!$this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile)) {
+                    throw new RuntimeException('Failed to create delivery request for order #' . $orderId);
                 }
             }
 
-            // Update order total weight (commented out - column doesn't exist in orders table)
-            // Weight is already stored in each order_item via item_weight_kg
-            // $this->orderModel->updateOrderWeight($orderId, $totalWeight);
+            if (empty($orderIds)) {
+                throw new RuntimeException('No valid orders were created.');
+            }
 
-            // --- STEP 4: CREATE DELIVERY REQUEST FOR THIS ORDER ---
-            $this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile);
+            if ($this->cartModel->clearCart($user_id) === false) {
+                throw new RuntimeException('Failed to clear cart after order creation.');
+            }
+
+            $this->clearBuyNow();
+
+            if (!$this->orderModel->commit()) {
+                throw new RuntimeException('Failed to commit order transaction.');
+            }
+        } catch (Throwable $e) {
+            if ($this->orderModel->inTransaction()) {
+                $this->orderModel->rollBack();
+            }
+
+            $this->debugLog('Checkout placeOrder failed: ' . $e->getMessage());
+
+            $statusCode = $e instanceof InvalidArgumentException ? 422 : 500;
+            http_response_code($statusCode);
+            echo json_encode([
+                'success' => false,
+                'message' => $statusCode === 422 ? $e->getMessage() : 'Failed to place order. Please try again.',
+            ]);
+            exit;
         }
 
-        if (empty($orderIds)) {
-             http_response_code(500);
-             echo json_encode(['success' => false, 'message' => 'Failed to process valid orders']);
-             exit;
-        }
-
-        // Clear cart (only if at least one order succeeded)
-        $this->cartModel->clearCart($user_id);
-        $this->clearBuyNow();
+        $primaryOrderId = (int)$orderIds[0];
+        $orderIdsQuery = implode(',', array_map('intval', $orderIds));
 
         echo json_encode([
             'success' => true,
-            'message' => 'Orders placed successfully!',
+            'message' => 'Order created. Redirecting to SecurePay...',
             'order_ids' => $orderIds,
-            'order_total' => $overallTotal
+            'order_total' => $overallTotal,
+            'redirect' => ROOT . '/payment/checkout?order_id=' . $primaryOrderId . '&order_ids=' . urlencode($orderIdsQuery)
         ]);
         exit;
     }
@@ -614,19 +777,50 @@ class CheckoutController
     }
 
     /**
-     * Get product weight from crop_volume_factors table
+     * Calculate effective item weight using crop volume factor.
+     */
+    private function calculateItemWeightKg($item, $product = null)
+    {
+        $quantity = (float)($item->quantity ?? 0);
+        if ($quantity <= 0) {
+            return 0.0;
+        }
+
+        $cropName = '';
+        if ($product && !empty($product->name)) {
+            $cropName = (string)$product->name;
+        } elseif (!empty($item->product_name)) {
+            $cropName = (string)$item->product_name;
+        }
+
+        $volumeFactor = $this->getProductWeight($cropName);
+        if ($volumeFactor === null || $volumeFactor <= 0) {
+            return 0.0;
+        }
+
+        return round($quantity * $volumeFactor, 2);
+    }
+
+    /**
+     * Get crop volume factor from crop_volume_factors table.
+     * Returns null when no active mapping exists.
      */
     private function getProductWeight($cropName)
     {
+        if (trim((string)$cropName) === '') {
+            return null;
+        }
+
         $dbModel = new CartModel(); // Use existing model to access Database trait
         $sql = "SELECT volume_factor FROM crop_volume_factors WHERE LOWER(crop_name) = LOWER(:crop_name) LIMIT 1";
         $result = $dbModel->query($sql, ['crop_name' => $cropName]);
-        
+
         if ($result && is_array($result) && !empty($result)) {
-            return (float)$result[0]->volume_factor;
+            $factor = (float)$result[0]->volume_factor;
+            return $factor > 0 ? $factor : null;
         }
-        
-        return 1.0; // Default 1kg per unit
+
+        return null;
     }
 
     /**
@@ -647,12 +841,12 @@ class CheckoutController
                          LEFT JOIN farmer_profiles fp ON u.id = fp.user_id 
                          WHERE u.id = :id LIMIT 1";
             $farmerResult = $dbModel->query($farmerSql, ['id' => $farmerId]);
-            
+
             if (!$farmerResult || empty($farmerResult)) {
-                error_log("Failed to get farmer details for farmer_id: {$farmerId}");
+                $this->debugLog("Failed to get farmer details for farmer_id: {$farmerId}");
                 return false;
             }
-            
+
             $farmer = $farmerResult[0];
 
             // Determine required vehicle type based on weight
@@ -664,9 +858,19 @@ class CheckoutController
             $vehicleTypeResult = $dbModel->query($vehicleTypeSql, ['weight' => $totalWeight]);
             $requiredVehicleTypeId = $vehicleTypeResult && !empty($vehicleTypeResult) ? $vehicleTypeResult[0]->id : null;
 
+            if (!$requiredVehicleTypeId) {
+                $this->debugLog("No eligible vehicle type found for order {$orderId} and weight {$totalWeight}kg");
+                return false;
+            }
+
             // Get district IDs
-            $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? 'Colombo');
-            $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? 'Colombo');
+            $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? '');
+            $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? '');
+
+            if (!$buyerDistrictId || !$farmerDistrictId) {
+                $this->debugLog("Invalid district mapping while creating delivery request for order {$orderId}");
+                return false;
+            }
 
             // Calculate distance (if available)
             $distanceSql = "SELECT distance_km FROM district_distances 
@@ -678,9 +882,9 @@ class CheckoutController
             $distance = $distanceResult && !empty($distanceResult) ? $distanceResult[0]->distance_km : null;
 
             // Prepare buyer full address
-            $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' . 
-                                    ($buyerProfile->street_name ?? '') . ', ' . 
-                                    ($buyerProfile->city ?? ''));
+            $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' .
+                ($buyerProfile->street_name ?? '') . ', ' .
+                ($buyerProfile->city ?? ''));
 
             // Insert delivery request
             $insertSql = "INSERT INTO delivery_requests (
@@ -715,16 +919,17 @@ class CheckoutController
 
             $result = $dbModel->write($insertSql, $params);
 
-            if ($result !== false) {
-                error_log("Delivery request created successfully for order {$orderId}");
-                return true;
-            } else {
-                error_log("Failed to create delivery request for order {$orderId}");
-                return false;
-            }
+            return $result !== false;
         } catch (Exception $e) {
-            error_log("Error creating delivery request: " . $e->getMessage());
+            $this->debugLog('Error creating delivery request: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    private function debugLog($message)
+    {
+        if (defined('DEBUG') && DEBUG) {
+            error_log((string)$message);
         }
     }
 }

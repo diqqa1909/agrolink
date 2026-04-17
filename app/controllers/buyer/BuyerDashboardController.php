@@ -19,12 +19,12 @@ class BuyerDashboardController
         $data = [];
 
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
 
         // Load Products model
@@ -36,6 +36,21 @@ class BuyerDashboardController
 
         // Fetch orders for the buyer
         $orders = $this->orderModel->getOrdersByBuyer($user_id);
+        if (!is_array($orders)) {
+            $orders = [];
+        }
+
+        // Keep dashboard "recent orders" consistent by sorting latest first.
+        usort($orders, function ($a, $b) {
+            $aTs = strtotime((string)($a->created_at ?? '')) ?: 0;
+            $bTs = strtotime((string)($b->created_at ?? '')) ?: 0;
+
+            if ($aTs === $bTs) {
+                return ((int)($b->id ?? 0)) <=> ((int)($a->id ?? 0));
+            }
+
+            return $bTs <=> $aTs;
+        });
 
         // Calculate statistics
         $totalOrders = count($orders);
@@ -43,11 +58,12 @@ class BuyerDashboardController
         $totalSpent = 0;
 
         foreach ($orders as $order) {
-            if ($order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
+            if ($order->status === 'pending_payment' || $order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
                 $pendingOrders++;
             }
-            // Include all active orders in total spent
-            if ($order->status !== 'cancelled' && $order->status !== 'rejected') {
+            // Count only successfully paid orders toward spend.
+            $paymentStatus = strtolower((string)($order->payment_status ?? 'pending'));
+            if ($paymentStatus === 'paid' && $order->status !== 'cancelled' && $order->status !== 'rejected') {
                 $totalSpent += floatval($order->order_total);
             }
         }
@@ -67,7 +83,7 @@ class BuyerDashboardController
         $data = [
             'pageTitle' => 'Dashboard',
             'activePage' => 'dashboard',
-            'username' => $_SESSION['USER']->name,
+            'username' => authUserName(),
             'cartItemCount' => $cartItemCount,
             'products' => $products ?: [],
             'wishlistItems' => $wishlistItems ?: [],
@@ -77,11 +93,12 @@ class BuyerDashboardController
             'pendingOrders' => $pendingOrders,
             'totalSpent' => $totalSpent,
             'wishlistCount' => count($wishlistItems),
+            'pageStyles' => 'dashboard.css',
             'pageScript' => 'buyerDashboard.js?v=' . time(),
             'contentView' => 'buyer/buyerDashboard.view.php'
         ];
 
         // Load the view through main layout
-        $this->view('components/buyerLayout', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 }
