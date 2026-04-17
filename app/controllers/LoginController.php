@@ -4,13 +4,12 @@ class LoginController
     use Controller;
     public function index($a = '', $b = '', $c = '')
     {
+        if (redirectIfLoggedIn()) {
+            return;
+        }
+
         $data = [];
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
-            // DEBUG: Check what's being received
-            error_log("POST Data: " . print_r($_POST, true));
-            error_log("Email empty? " . (empty($_POST['email']) ? 'YES' : 'NO'));
-            error_log("Password empty? " . (empty($_POST['password']) ? 'YES' : 'NO'));
-
             // Check if POST data exists
             if (empty($_POST['email']) || empty($_POST['password'])) {
                 $user = new UserModel;
@@ -23,16 +22,23 @@ class LoginController
                 $row = $user->first($arr);
 
                 if ($row) {
-                    if ($row->password === $_POST['password']) {
-                        $_SESSION['USER'] = $row;
+                    $status = strtolower((string)($row->status ?? 'active'));
+                    if ($status !== 'active') {
+                        $user->errors['email'] = "Your account is deactivated. Please contact admin for reactivation.";
+                        $data['errors'] = $user->errors;
+                    } elseif (password_verify((string)$_POST['password'], (string)$row->password)) {
+                        session_regenerate_id(true);
+                        setAuthSession($row);
 
                         //REDIRECT BASED ON USER ROLE
                         $this->redirectBasedOnRole($row->role);
                         return;
                     }
                 }
-                $user->errors['email'] = "Wrong Email and Password";
-                $data['errors'] = $user->errors;
+                if (empty($data['errors'])) {
+                    $user->errors['email'] = "Wrong Email and Password";
+                    $data['errors'] = $user->errors;
+                }
             }
         }
         $this->view('login', $data);
@@ -40,26 +46,6 @@ class LoginController
 
     private function redirectBasedOnRole($role)
     {
-        switch ($role) {
-            case 'buyer':
-                redirect('buyerDashboard');
-                break;
-
-            case 'farmer':
-                redirect('farmerDashboard');
-                break;
-
-            case 'transporter':
-                redirect('transporterDashboard');
-                break;
-
-            case 'admin':
-                redirect('adminDashboard');
-                break;
-
-            default:
-                redirect('home');
-                break;
-        }
+        redirect(authDashboardPath((string)$role));
     }
 }

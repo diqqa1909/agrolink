@@ -1,6 +1,8 @@
 <?php
 trait Controller
 {
+    use Database;
+    
     public function view($name, $data = [])
     {
 
@@ -11,6 +13,13 @@ trait Controller
         $filename = "../app/views/" . $name . ".view.php";
         if (file_exists($filename)) {
             require $filename;
+            return;
+        }
+
+        // Try components subdirectory
+        $componentsView = "../app/views/components/" . basename($name) . ".view.php";
+        if (file_exists($componentsView)) {
+            require $componentsView;
             return;
         }
 

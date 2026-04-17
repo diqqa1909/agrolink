@@ -5,10 +5,12 @@ class CartController
     use Controller;
 
     protected $cartModel;
+    protected $productModel;
 
     public function __construct()
     {
         $this->cartModel = new CartModel();
+        $this->productModel = new ProductsModel();
     }
 
     /**
@@ -17,25 +19,46 @@ class CartController
     public function index()
     {
         // Check if user is logged in and is a buyer
-        if (!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'buyer') {
+        if (!hasRole('buyer')) {
             redirect('login');
             return;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
 
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
+        
+        // Enrich cart items with product quantity information
+        foreach ($cartItems as $item) {
+            $product = $this->productModel->getById($item->product_id);
+            if ($product) {
+                $item->available_quantity = $product->quantity ?? 0;
+                // Ensure cart quantity doesn't exceed available quantity
+                if ($item->quantity > $item->available_quantity) {
+                    // Update cart quantity to max available
+                    $this->cartModel->updateQuantity($user_id, $item->product_id, $item->available_quantity);
+                    $item->quantity = $item->available_quantity;
+                }
+            } else {
+                $item->available_quantity = 0;
+            }
+        }
+        
         $cartItemCount = $this->cartModel->getCartItemCount($user_id);
         $cartTotal = $this->cartModel->getCartTotal($user_id);
 
         $data = [
             'cartItems' => $cartItems ?: [],
             'cartItemCount' => $cartItemCount,
-            'cartTotal' => $cartTotal
+            'cartTotal' => $cartTotal,
+            'pageTitle' => 'Shopping Cart',
+            'activePage' => 'cart',
+            'pageStyles' => 'cart.css',
+            'contentView' => 'buyer/cart.view.php'
         ];
 
-        $this->view('cart', $data);
+        $this->view('buyer/buyerSidebar', $data);
     }
 
     /**
@@ -52,14 +75,16 @@ class CartController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
+        $user_id = authUserId();
         $data = [
             'user_id' => $user_id,
             'product_id' => $_POST['product_id'] ?? null,
             'product_name' => trim($_POST['product_name'] ?? ''),
             'product_price' => (float)($_POST['product_price'] ?? 0),
             'quantity' => (int)($_POST['quantity'] ?? 1),
-            'product_image' => trim($_POST['product_image'] ?? '🌱')
+            'product_image' => trim($_POST['product_image'] ?? '🌱'),
+            'farmer_name' => '',
+            'farmer_location' => ''
         ];
 
         if (!$data['product_id']) {
@@ -69,12 +94,33 @@ class CartController
         }
 
         try {
+            // Check product availability before adding/updating
+            $product = $this->productModel->getById($data['product_id']);
+            if (!$product) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Product not found']);
+                exit;
+            }
+            
+            $availableQuantity = $product->quantity ?? 0;
+            $data['farmer_name'] = trim((string)($product->farmer_name ?? ''));
+            $data['farmer_location'] = trim((string)($product->location ?? ''));
+            
             // Check if product already exists in cart
             $existingItem = $this->cartModel->getCartItem($user_id, $data['product_id']);
 
             if ($existingItem) {
-                // Update quantity
+                // Update quantity - check if total doesn't exceed available
                 $newQuantity = $existingItem->quantity + $data['quantity'];
+                if ($newQuantity > $availableQuantity) {
+                    http_response_code(422);
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => "Only {$availableQuantity} kg available. Cannot add more."
+                    ]);
+                    exit;
+                }
+                
                 $updated = $this->cartModel->updateQuantity($user_id, $data['product_id'], $newQuantity);
 
                 if ($updated) {
@@ -89,6 +135,16 @@ class CartController
                     echo json_encode(['success' => false, 'message' => 'Failed to update cart']);
                 }
             } else {
+                // Add new item - check quantity doesn't exceed available
+                if ($data['quantity'] > $availableQuantity) {
+                    http_response_code(422);
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => "Only {$availableQuantity} kg available. Please select a lower quantity."
+                    ]);
+                    exit;
+                }
+                
                 // Add new item
                 $added = $this->cartModel->addToCart($data);
 
@@ -125,17 +181,47 @@ class CartController
             exit;
         }
 
-        $user_id = $_SESSION['USER']->id;
-        $product_id = $id ?? ($_POST['product_id'] ?? null);
-        $quantity = (int)($_POST['quantity'] ?? 0);
+        $user_id = authUserId();
+        
+        // Handle both JSON and form-encoded data
+        $data = [];
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (strpos($contentType, 'application/json') !== false) {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        } else {
+            $data = $_POST;
+        }
+        
+        $product_id = $id ?? ($data['product_id'] ?? null);
+        $quantity = (int)($data['quantity'] ?? 0);
 
-        if (!$product_id || $quantity < 0) {
+        if (!$product_id || $quantity < 1) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Invalid data']);
             exit;
         }
 
         try {
+            // Check product availability before updating
+            $product = $this->productModel->getById($product_id);
+            if (!$product) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Product not found']);
+                exit;
+            }
+            
+            $availableQuantity = $product->quantity ?? 0;
+            
+            // Validate quantity doesn't exceed available stock
+            if ($quantity > $availableQuantity) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "Only {$availableQuantity} kg available. Cannot select more than available stock."
+                ]);
+                exit;
+            }
+            
             $updated = $this->cartModel->updateQuantity($user_id, $product_id, $quantity);
 
             if ($updated) {
@@ -164,8 +250,18 @@ class CartController
         header('Content-Type: application/json');
         if (!$this->requireBuyer()) exit;
 
-        $user_id = $_SESSION['USER']->id;
-        $product_id = $id ?? ($_POST['product_id'] ?? null);
+        $user_id = authUserId();
+        
+        // Handle both JSON and form-encoded data
+        $data = [];
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (strpos($contentType, 'application/json') !== false) {
+            $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        } else {
+            $data = $_POST;
+        }
+        
+        $product_id = $id ?? ($data['product_id'] ?? null);
 
         if (!$product_id) {
             http_response_code(400);
@@ -203,7 +299,7 @@ class CartController
         if (!$this->requireBuyer()) exit;
 
         try {
-            $user_id = $_SESSION['USER']->id;
+            $user_id = authUserId();
             $cleared = $this->cartModel->clearCart($user_id);
 
             if ($cleared) {
@@ -232,7 +328,7 @@ class CartController
         if (!$this->requireBuyer()) exit;
 
         try {
-            $user_id = $_SESSION['USER']->id;
+            $user_id = authUserId();
             $cartItemCount = $this->cartModel->getCartItemCount($user_id);
             $cartTotal = $this->cartModel->getCartTotal($user_id);
 
@@ -251,12 +347,12 @@ class CartController
     // Helper
     private function requireBuyer()
     {
-        if (!isset($_SESSION['USER'])) {
+        if (!isLoggedIn()) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return false;
         }
-        if (($_SESSION['USER']->role ?? '') !== 'buyer') {
+        if (!hasRole('buyer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Forbidden']);
             return false;

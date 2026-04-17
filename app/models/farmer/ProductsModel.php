@@ -10,8 +10,13 @@ class ProductsModel
     {
         try {
             $sql = "INSERT INTO {$this->table}
-                    (farmer_id, name, price, quantity, description, image, location, category, listing_date)
-                    VALUES (:farmer_id, :name, :price, :quantity, :description, :image, :location, :category, :listing_date)";
+                    (farmer_id, name, product_master_id, price, quantity, description, image, location, category, listing_date, district_id, town_id)
+                    VALUES (:farmer_id, :name, :product_master_id, :price, :quantity, :description, :image, :location, :category, :listing_date, :district_id, :town_id)";
+
+            // Ensure district_id, town_id, and product_master_id are set, default to null if not
+            if (!isset($data['district_id'])) $data['district_id'] = null;
+            if (!isset($data['town_id'])) $data['town_id'] = null;
+            if (!isset($data['product_master_id'])) $data['product_master_id'] = null;
 
             $result = $this->write($sql, $data);
 
@@ -32,7 +37,7 @@ class ProductsModel
     public function updateByFarmer(int $id, int $farmerId, array $data)
     {
         // Allow dynamic updates for provided fields
-        $allowed = ['name', 'price', 'quantity', 'description', 'location', 'category', 'listing_date', 'image'];
+        $allowed = ['name', 'product_master_id', 'price', 'quantity', 'description', 'location', 'category', 'listing_date', 'image', 'district_id', 'town_id'];
         $set = [];
         $params = ['id' => $id, 'farmer_id' => $farmerId];
         foreach ($allowed as $field) {
@@ -125,9 +130,10 @@ class ProductsModel
             $params['max_price'] = $conditions['max_price'];
         }
 
-        $sql = "SELECT p.*, u.name as farmer_name, u.email as farmer_email 
-                FROM {$this->table} p 
-                LEFT JOIN users u ON p.farmer_id = u.id 
+        $sql = "SELECT p.*, u.name as farmer_name, u.email as farmer_email, fp.district as farmer_district
+            FROM {$this->table} p
+            LEFT JOIN users u ON p.farmer_id = u.id
+            LEFT JOIN farmer_profiles fp ON fp.user_id = p.farmer_id
                 WHERE {$where}
                 ORDER BY p.created_at DESC";
 

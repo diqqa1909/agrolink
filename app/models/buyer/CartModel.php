@@ -40,9 +40,9 @@ class CartModel
      */
     public function addToCart($data)
     {
-        $sql = "INSERT INTO {$this->table} 
-                (user_id, product_id, product_name, product_price, quantity, product_image) 
-                VALUES (:user_id, :product_id, :product_name, :product_price, :quantity, :product_image)";
+        $sql = "INSERT INTO {$this->table}
+                (user_id, product_id, product_name, product_price, quantity, farmer_name, farmer_location, product_image)
+                VALUES (:user_id, :product_id, :product_name, :product_price, :quantity, :farmer_name, :farmer_location, :product_image)";
 
         $result = $this->write($sql, $data);
 
@@ -95,8 +95,7 @@ class CartModel
 
         $result = $this->write($sql, ['user_id' => $user_id]);
 
-        // Return true even if cart was already empty
-        return true;
+        return $result !== false;
     }
 
     /**

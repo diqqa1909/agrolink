@@ -1,8 +1,16 @@
 // AgroLink - Common Utilities & Shared Functions
 
-// Global state
-let cart = JSON.parse(localStorage.getItem('agrolink_cart')) || [];
-let currentUser = JSON.parse(localStorage.getItem('agrolink_user')) || null;
+// Initialize global variables from body data attributes
+(function() {
+    const body = document.body;
+    const data = body ? body.dataset : {};
+
+    // Preserve values seeded by inline scripts and only fall back to body data/local defaults.
+    window.APP_ROOT = (data.appRoot || window.APP_ROOT || '').trim();
+    window.USER_NAME = (data.userName || window.USER_NAME || '').trim();
+    window.USER_EMAIL = (data.userEmail || window.USER_EMAIL || '').trim();
+    window.USER_ROLE = (data.userRole || window.USER_ROLE || '').trim();
+})();
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeCommon() {
     initNavigation();
     initModals();
-    updateCartUI();
     updateUserState();
 }
 
@@ -106,48 +113,48 @@ function closeModal(modalId) {
     }
 }
 
-// Cart functions
-function addToCart(productId) {
-    const product = getProductById(productId);
-    if (!product) return;
-    
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({
-            id: productId,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            farmer: product.farmer,
-            quantity: 1
-        });
-    }
-    
-    localStorage.setItem('agrolink_cart', JSON.stringify(cart));
-    updateCartUI();
-    showNotification('Product added to cart', 'success');
-}
-
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('agrolink_cart', JSON.stringify(cart));
-    updateCartUI();
-    showNotification('Product removed from cart', 'success');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    fetch(`${window.APP_ROOT}/cart/remove/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the page to update cart
+            window.location.reload();
+        } else {
+            showNotification(data.message || 'Failed to remove item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to remove item', 'error');
+    })
+    .finally(() => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    });
 }
 
 function updateCartQuantity(productId, change) {
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
+    const quantityElement = document.querySelector(`[data-product-id="${productId}"] .quantity-display`);
+    const newQuantity = Math.max(1, parseInt(quantityElement.textContent) + change);
+
     fetch(`${window.APP_ROOT}/cart/update/${productId}`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: `quantity=${Math.max(1, parseInt(document.querySelector(`[data-product-id="${productId}"] .quantity-display`).textContent) + change)}`
+        body: JSON.stringify({ product_id: productId, quantity: newQuantity })
     })
     .then(response => response.json())
     .then(data => {
@@ -165,23 +172,6 @@ function updateCartQuantity(productId, change) {
     .finally(() => {
         if (loadingOverlay) loadingOverlay.style.display = 'none';
     });
-}
-
-function updateCartUI() {
-    const cartCount = document.querySelector('.cart-count');
-    const cartTotal = document.querySelector('.cart-total');
-    
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    if (cartCount) {
-        cartCount.textContent = totalItems;
-        cartCount.style.display = totalItems > 0 ? 'inline' : 'none';
-    }
-    
-    if (cartTotal) {
-        cartTotal.textContent = `Rs. ${totalPrice.toFixed(2)}`;
-    }
 }
 
 // Form validation
@@ -244,6 +234,12 @@ function clearError(field) {
 
 // User state management
 function updateUserState() {
+    // New PHP session-based navbar is rendered on the server.
+    // Do not mutate its DOM with legacy localStorage auth behavior.
+    if (document.querySelector('.nav-user-toggle') || document.getElementById('userDropdown')) {
+        return;
+    }
+
     const user = getCurrentUser();
     const userInfo = document.querySelector('.user-info');
     const loginLinks = document.querySelectorAll('.login-link');
@@ -267,52 +263,23 @@ function updateUserState() {
 }
 
 function getCurrentUser() {
-    return JSON.parse(localStorage.getItem('agrolink_user'));
-}
+    const body = document.body;
+    const data = body ? body.dataset : {};
 
-function requireAuth(allowedRoles = []) {
-    const user = getCurrentUser();
-    
-    if (!user) {
-        showNotification('Please login to access this page', 'error');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
-        return false;
-    }
-    
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-        showNotification('Access denied', 'error');
-        setTimeout(() => {
-            redirectToDashboard(user.role);
-        }, 1500);
-        return false;
-    }
-    
-    return true;
-}
+    const serverName = String(window.USER_NAME || data.userName || '').trim();
+    const serverEmail = String(window.USER_EMAIL || data.userEmail || '').trim();
+    const serverRole = String(window.USER_ROLE || data.userRole || '').trim();
 
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('agrolink_user');
-        localStorage.removeItem('agrolink_cart');
-        showNotification('Logged out successfully', 'success');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
+    if (serverName !== '' || serverEmail !== '' || serverRole !== '') {
+        return {
+            name: serverName,
+            email: serverEmail,
+            role: serverRole,
+            source: 'session'
+        };
     }
-}
 
-function redirectToDashboard(role) {
-    const dashboardUrls = {
-        farmer: 'dashboard_farmer.html',
-        buyer: 'dashboard_buyer.html',
-        transporter: 'dashboard_transporter.html',
-        admin: 'dashboard_admin.html'
-    };
-    
-    const url = dashboardUrls[role] || 'index.html';
-    window.location.href = url;
+    return null;
 }
 
 // Utility functions
@@ -392,47 +359,6 @@ function sortTable(table, column) {
     table.querySelector(`th[data-sort="${column}"]`).classList.add(`sorted-${newDirection}`);
 }
 
-// Mock data functions (replace with actual API calls)
-function getProductById(id) {
-    const products = getMockProducts();
-    return products.find(p => p.id === id);
-}
-
-function getMockProducts() {
-    return [
-        {
-            id: '1',
-            name: 'Fresh Tomatoes',
-            price: 120,
-            image: null,
-            farmer: 'Ranjith Fernando',
-            location: 'Matale',
-            category: 'vegetables',
-            description: 'Fresh organic tomatoes from Matale region'
-        },
-        {
-            id: '2',
-            name: 'Green Beans',
-            price: 180,
-            image: null,
-            farmer: 'Kumari Silva',
-            location: 'Kandy',
-            category: 'vegetables',
-            description: 'Premium quality green beans'
-        },
-        {
-            id: '3',
-            name: 'Red Rice',
-            price: 95,
-            image: null,
-            farmer: 'Sunil Perera',
-            location: 'Anuradhapura',
-            category: 'grains',
-            description: 'Traditional red rice variety'
-        }
-    ];
-}
-
 // Floating alert system
 function showFloatingAlert(message, type = 'error', duration = 5000) {
     const alertContainer = document.getElementById('floatingAlerts');
@@ -482,15 +408,12 @@ document.addEventListener('click', function(e) {
 });
 
 // Export functions for global access
-window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateCartQuantity = updateCartQuantity;
 window.openModal = openModal;
 window.closeModal = closeModal;
-window.logout = logout;
 window.showNotification = showNotification;
 window.validateField = validateField;
 window.clearError = clearError;
 window.getCurrentUser = getCurrentUser;
-window.requireAuth = requireAuth;
 window.sortTable = sortTable;
