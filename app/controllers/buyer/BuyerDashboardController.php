@@ -16,6 +16,7 @@ class BuyerDashboardController
 
     public function index()
     {
+        $this->checkVerificationStatus();
         $data = [];
 
         // Check if user is logged in and is a buyer
