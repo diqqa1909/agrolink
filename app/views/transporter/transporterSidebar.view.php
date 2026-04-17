@@ -5,7 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Transporter Dashboard' ?> - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/notifications.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/profile.css">
+    <?php
+    $resolvedPageStyles = $pageStyles ?? [];
+    if (is_string($resolvedPageStyles) && $resolvedPageStyles !== '') {
+        $resolvedPageStyles = [$resolvedPageStyles];
+    }
+    if (is_array($resolvedPageStyles)) {
+        foreach ($resolvedPageStyles as $styleFile) {
+            $styleFile = trim((string)$styleFile);
+            if ($styleFile === '') {
+                continue;
+            }
+    ?>
+            <link rel="stylesheet" href="<?= ROOT ?>/assets/css/transporter/<?= htmlspecialchars($styleFile) ?>">
+    <?php
+        }
+    }
+    ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,7 +49,7 @@
     }
 
     $isHomePage = false;
-    include '../app/views/shared/navbar.view.php';
+    include '../app/views/shared/topnavbar.view.php';
     ?>
 
     <div class="dashboard">
@@ -50,7 +69,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'vehicles' ? 'active' : '' ?>" data-section="vehicle">
+                    <a href="<?= ROOT ?>/transportervehicles" class="menu-link <?= ($activePage ?? '') === 'vehicles' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8h-1V6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v2H8V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v2H1v2h2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10h2V8zM4 6h2v2H4V6zm10 0h2v2h-2V6zM4 18v-6h14v6H4z"></path>
@@ -60,7 +79,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>" data-section="available-deliveries">
+                    <a href="<?= ROOT ?>/transporterrequests" class="menu-link <?= ($activePage ?? '') === 'requests' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -71,7 +90,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=mydeliveries" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>" data-section="mydeliveries" onclick="if (window.TransporterDashboard && typeof window.TransporterDashboard.showSection === 'function') { window.TransporterDashboard.showSection('mydeliveries'); return false; }">
+                    <a href="<?= ROOT ?>/transporterdeliveries" class="menu-link <?= ($activePage ?? '') === 'deliveries' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -82,7 +101,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard?section=earnings" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>" data-section="earnings" onclick="if (window.TransporterDashboard && typeof window.TransporterDashboard.showSection === 'function') { window.TransporterDashboard.showSection('earnings'); return false; }">
+                    <a href="<?= ROOT ?>/transporterearnings" class="menu-link <?= ($activePage ?? '') === 'earnings' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="1"></circle>
@@ -93,7 +112,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= ROOT ?>/transporterdashboard" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>" data-section="feedback">
+                    <a href="<?= ROOT ?>/transporterreviews" class="menu-link <?= ($activePage ?? '') === 'reviews' ? 'active' : '' ?>">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -170,10 +189,33 @@
         })();
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <?php if (isset($pageScript)): ?>
-        <script src="<?= ROOT ?>/assets/js/transporter/<?= $pageScript ?>"></script>
-    <?php endif; ?>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <?php
+    $resolvedPageScripts = [];
+    if (isset($pageScript) && trim((string)$pageScript) !== '') {
+        $resolvedPageScripts[] = trim((string)$pageScript);
+    }
+
+    $extraPageScripts = $pageScripts ?? [];
+    if (is_string($extraPageScripts) && trim($extraPageScripts) !== '') {
+        $extraPageScripts = [trim($extraPageScripts)];
+    }
+
+    if (is_array($extraPageScripts)) {
+        foreach ($extraPageScripts as $scriptFile) {
+            $scriptFile = trim((string)$scriptFile);
+            if ($scriptFile === '') {
+                continue;
+            }
+            $resolvedPageScripts[] = $scriptFile;
+        }
+    }
+
+    $resolvedPageScripts = array_values(array_unique($resolvedPageScripts));
+    foreach ($resolvedPageScripts as $scriptFile):
+    ?>
+        <script src="<?= ROOT ?>/assets/js/transporter/<?= htmlspecialchars($scriptFile) ?>"></script>
+    <?php endforeach; ?>
+    <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
 </body>
 
 </html>

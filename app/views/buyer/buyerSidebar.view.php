@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Buyer Dashboard' ?> - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/notifications.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/profile.css">
     <?php
     $resolvedPageStyles = $pageStyles ?? [];
     if (is_string($resolvedPageStyles) && $resolvedPageStyles !== '') {
@@ -58,7 +60,7 @@
         $notificationUnreadCount = 0;
     }
     $isHomePage = false;
-    include '../app/views/shared/navbar.view.php';
+    include '../app/views/shared/topnavbar.view.php';
     ?>
 
     <div class="dashboard">
@@ -221,7 +223,7 @@
     </div>
 
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
     <?php if (isset($pageScript)): ?>
         <script src="<?= ROOT ?>/assets/js/buyer/<?= $pageScript ?>"></script>
     <?php endif; ?>

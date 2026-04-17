@@ -100,48 +100,8 @@ $lastUpdatedValue = !empty($profileObj->updated_at) ? date('M d, Y h:i A', strto
                 </div>
 
                 <div class="form-group">
-                    <label for="profileApartmentCode">Apartment / Building Code</label>
-                    <input type="text" id="profileApartmentCode" name="apartment_code" class="form-control" value="<?= esc($profileObj->apartment_code ?? '') ?>" maxlength="50">
-                </div>
-
-                <div class="form-group">
-                    <label for="profileStreetName">Street Name *</label>
-                    <input type="text" id="profileStreetName" name="street_name" class="form-control" value="<?= esc($profileObj->street_name ?? '') ?>" maxlength="150" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="profileCity">City *</label>
-                    <input type="text" id="profileCity" name="city" class="form-control" value="<?= esc($profileObj->city ?? '') ?>" maxlength="100" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="profilePostalCode">Postal Code *</label>
-                    <input type="text" id="profilePostalCode" name="postal_code" class="form-control" value="<?= esc($profileObj->postal_code ?? '') ?>" maxlength="5" inputmode="numeric" pattern="[0-9]{5}" required>
-                </div>
-
-                <div class="form-group">
                     <label for="profileCompanyName">Company Name</label>
                     <input type="text" id="profileCompanyName" name="company_name" class="form-control" value="<?= esc($profileObj->company_name ?? '') ?>" maxlength="255">
-                </div>
-
-                <div class="form-group">
-                    <label for="profileLicenseNumber">License Number *</label>
-                    <input type="text" id="profileLicenseNumber" name="license_number" class="form-control" value="<?= esc($profileObj->license_number ?? '') ?>" maxlength="100" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="profileVehicleType">Primary Vehicle Type *</label>
-                    <select id="profileVehicleType" name="vehicle_type" class="form-control" required>
-                        <option value="">Select Vehicle Type</option>
-                        <?php if (!empty($vehicleTypes)): ?>
-                            <?php foreach ($vehicleTypes as $vType):
-                                $slug = strtolower(str_replace(' ', '', (string)$vType->vehicle_name));
-                                $selected = (($profileObj->vehicle_type ?? '') === $slug) ? 'selected' : '';
-                            ?>
-                                <option value="<?= esc($slug) ?>" <?= $selected ?>><?= esc($vType->vehicle_name) ?></option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
                 </div>
 
                 <div class="form-group">
@@ -169,7 +129,7 @@ $lastUpdatedValue = !empty($profileObj->updated_at) ? date('M d, Y h:i A', strto
         </div>
     </div>
 
-    <div class="content-card profile-shortcut-card" data-open-modal="accountSettingsModal">
+    <div class="content-card profile-shortcut-card account-settings-shortcut-card" data-open-modal="accountSettingsModal">
         <div class="profile-shortcut-head">
             <h3>Account Settings</h3>
         </div>
@@ -203,12 +163,14 @@ $lastUpdatedValue = !empty($profileObj->updated_at) ? date('M d, Y h:i A', strto
         </div>
     </div>
 
-    <div class="content-card profile-danger-card">
+    <div class="content-card profile-danger-card deactivate-section-card">
         <div class="profile-section-head danger">
-            <h3>Danger Zone</h3>
+            <h3>Deactivate Account</h3>
         </div>
-        <p>Deactivate your transporter account. Active deliveries must be completed before deactivation.</p>
-        <button type="button" class="btn btn-danger" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        <div class="deactivate-section-body">
+            <p class="deactivate-section-note">Disable this transporter account if you want to stop new delivery assignments. Contact admin to reactivate it.</p>
+            <button type="button" class="btn btn-danger deactivate-section-btn" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        </div>
     </div>
 
     <input type="file" id="profilePhotoFileInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
@@ -333,22 +295,27 @@ $lastUpdatedValue = !empty($profileObj->updated_at) ? date('M d, Y h:i A', strto
     </div>
 </div>
 
-<div id="deactivateAccountModal" class="modal profile-modal">
-    <div class="modal-content profile-modal-content">
-        <div class="modal-header profile-modal-header danger">
+<div id="deactivateAccountModal" class="modal profile-modal deactivate-modal">
+    <div class="modal-content profile-modal-content deactivate-modal-content">
+        <div class="modal-header profile-modal-header danger deactivate-modal-header">
             <h3>Deactivate Transporter Account</h3>
             <button type="button" class="modal-close" data-close-modal="deactivateAccountModal" aria-label="Close">×</button>
         </div>
-        <div class="modal-body">
-            <p class="deactivate-warning-text">
-                Your transporter account will become unavailable for new delivery assignments.
-                Complete active deliveries before deactivation.
-            </p>
-            <div class="form-group">
-                <label for="deactivateReason">Reason (optional)</label>
-                <textarea id="deactivateReason" class="form-control" rows="2" maxlength="500" placeholder="Tell us why you are deactivating"></textarea>
+        <div class="modal-body deactivate-modal-body">
+            <div class="deactivate-warning-box">
+                <span class="deactivate-warning-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3 22 21H2L12 3Z"></path>
+                        <path d="M12 9v5"></path>
+                        <path d="M12 17.5h.01"></path>
+                    </svg>
+                </span>
+                <p class="deactivate-warning-text">
+                    Your transporter account will become unavailable for new delivery assignments.
+                    Complete active deliveries before deactivation.
+                </p>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer deactivate-modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="deactivateAccountModal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeactivateBtn">Confirm Deactivation</button>
             </div>

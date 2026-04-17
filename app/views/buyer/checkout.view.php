@@ -41,9 +41,13 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="state" class="form-label">State or Province or Region</label>
-                                <input type="text" id="state" name="state" class="form-control"
-                                    placeholder="State/Province">
+                                <label for="state" class="form-label">District <span class="required">*</span></label>
+                                <select id="state" name="state" class="form-control" required>
+                                    <option value="" selected disabled>Select district</option>
+                                    <?php foreach (($districtOptions ?? []) as $district): ?>
+                                        <option value="<?= htmlspecialchars($district) ?>"><?= htmlspecialchars($district) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="zipCode" class="form-label">Zip Code</label>
@@ -114,7 +118,6 @@
                         <div class="seller-info">
                             <span class="seller-name"><?= htmlspecialchars($farmerName) ?></span>
                             <span class="seller-feedback">99.6% positive feedback</span>
-                            <a href="#" class="seller-note-link">Add note for seller</a>
                         </div>
 
                         <?php foreach ($farmerItems as $item): ?>
@@ -244,28 +247,17 @@
                     Confirm and pay
                 </button>
 
-                <!-- Payment Method Section (shown after clicking Confirm and pay) -->
+                <!-- SecurePay section (shown after clicking Confirm and pay) -->
                 <div id="paymentMethodSection" class="checkout-payment-method-section checkout-hidden">
-                    <h4 class="checkout-payment-method-title">Select a payment method</h4>
-                    <div class="payment-options">
-                        <div class="payment-option">
-                            <input type="radio" id="payment-cash" name="payment_method" value="cash_on_delivery" checked>
-                            <label for="payment-cash" class="payment-label">
-                                <span class="payment-icon">💵</span>
-                                <span>Cash on Delivery</span>
-                            </label>
-                        </div>
-                        <div class="payment-option">
-                            <input type="radio" id="payment-bank" name="payment_method" value="bank_transfer">
-                            <label for="payment-bank" class="payment-label">
-                                <span class="payment-icon">🏦</span>
-                                <span>Bank Transfer</span>
-                            </label>
-                        </div>
-                    </div>
+                    <div class="checkout-gateway-brand">SecurePay</div>
+                    <p class="checkout-gateway-note">Secure checkout powered by SecurePay.</p>
                     <button id="finalConfirmBtn" class="btn btn-primary btn-large btn-complete-order" onclick="finalConfirmOrder()">
-                        Complete Order
+                        Proceed to SecurePay
                     </button>
+                    <div id="checkoutGatewaySpinner" class="checkout-gateway-spinner checkout-hidden" aria-live="polite">
+                        <span class="checkout-gateway-spinner-dot" aria-hidden="true"></span>
+                        <span>Redirecting to bank...</span>
+                    </div>
                 </div>
 
                 <p class="payment-message<?= !$hasDeliveryDetails ? '' : ' checkout-hidden' ?>">

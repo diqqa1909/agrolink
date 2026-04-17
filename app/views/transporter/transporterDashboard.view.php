@@ -48,13 +48,13 @@
                     </div>
                 </div>
                 <div>
-                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="toggleAvailability()">
+                    <button class="btn btn-primary btn-block btn-stack" onclick="toggleAvailability()">
                         <span id="availabilityBtn">Go Offline</span>
                     </button>
-                    <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; padding: 14px;" onclick="updateLocation()">
+                    <button class="btn btn-secondary btn-block btn-stack" onclick="updateLocation()">
                         Update Location
                     </button>
-                    <button class="btn btn-outline" style="width: 100%; padding: 14px;" onclick="TransporterDashboard.showSection('available-deliveries')">
+                    <button class="btn btn-outline btn-block" onclick="TransporterDashboard.showSection('available-deliveries')">
                         Find Deliveries
                     </button>
                 </div>
@@ -97,39 +97,11 @@
         </div>
         <div class="card-content">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <button class="btn btn-primary" onclick="TransporterDashboard.showSection('available-deliveries')" style="margin: 0;">Find Deliveries</button>
-                <button class="btn btn-secondary" onclick="TransporterDashboard.showSection('mydeliveries')" style="margin: 0;">My Deliveries</button>
-                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('schedule')" style="margin: 0;">View Schedule</button>
-                <button class="btn btn-outline" onclick="TransporterDashboard.showSection('vehicle')" style="margin: 0;">Vehicle Info</button>
+                <button class="btn btn-primary btn-no-margin" onclick="TransporterDashboard.showSection('available-deliveries')">Find Deliveries</button>
+                <button class="btn btn-secondary btn-no-margin" onclick="TransporterDashboard.showSection('mydeliveries')">My Deliveries</button>
+                <button class="btn btn-outline btn-no-margin" onclick="TransporterDashboard.showSection('schedule')">View Schedule</button>
+                <button class="btn btn-outline btn-no-margin" onclick="TransporterDashboard.showSection('vehicle')">Vehicle Info</button>
             </div>
-        </div>
-    </div>
-</div>
-
-<div id="feedback-section" class="content-section" style="display: none;">
-    <div class="content-header">
-        <h1 class="content-title">Reviews & Complaints</h1>
-        <p class="content-subtitle">Delivery feedback from buyers based on completed trips</p>
-    </div>
-
-    <div class="dashboard-stats" style="margin-bottom: 24px;">
-        <div class="stat-card">
-            <div class="stat-number" id="feedbackAvgRating">0.0</div>
-            <div class="stat-label">Average Rating</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="feedbackComplaintCount">0</div>
-            <div class="stat-label">Complaints</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="feedbackTotalCount">0</div>
-            <div class="stat-label">Total Feedback</div>
-        </div>
-    </div>
-
-    <div class="transporter-feedback-list" id="feedbackUnifiedList">
-        <div class="transporter-feedback-loading">
-            Loading feedback...
         </div>
     </div>
 </div>
@@ -148,44 +120,44 @@
                     <div class="transporter-filter-group">
                         <label for="locationFilter">Pickup</label>
                         <select id="locationFilter" class="form-control transporter-filter-control">
-                        <option value="">All Locations</option>
-                        <option value="colombo">Colombo</option>
-                        <option value="kandy">Kandy</option>
-                        <option value="galle">Galle</option>
-                        <option value="matale">Matale</option>
-                        <option value="anuradhapura">Anuradhapura</option>
-                    </select>
+                            <option value="">All Locations</option>
+                            <option value="colombo">Colombo</option>
+                            <option value="kandy">Kandy</option>
+                            <option value="galle">Galle</option>
+                            <option value="matale">Matale</option>
+                            <option value="anuradhapura">Anuradhapura</option>
+                        </select>
                     </div>
                     <div class="transporter-filter-group">
                         <label for="distanceFilter">Max Distance</label>
                         <select id="distanceFilter" class="form-control transporter-filter-control">
-                        <option value="">Any Distance</option>
-                        <option value="10">Within 10km</option>
-                        <option value="25">Within 25km</option>
-                        <option value="50">Within 50km</option>
-                        <option value="100">Within 100km</option>
-                    </select>
+                            <option value="">Any Distance</option>
+                            <option value="10">Within 10km</option>
+                            <option value="25">Within 25km</option>
+                            <option value="50">Within 50km</option>
+                            <option value="100">Within 100km</option>
+                        </select>
                     </div>
                     <div class="transporter-filter-group">
                         <label for="weightFilter">Max Weight</label>
                         <select id="weightFilter" class="form-control transporter-filter-control">
-                        <option value="">Any Weight</option>
-                        <option value="10">Up to 10kg</option>
-                        <option value="25">Up to 25kg</option>
-                        <option value="50">Up to 50kg</option>
-                        <option value="100">Up to 100kg</option>
-                    </select>
+                            <option value="">Any Weight</option>
+                            <option value="10">Up to 10kg</option>
+                            <option value="25">Up to 25kg</option>
+                            <option value="50">Up to 50kg</option>
+                            <option value="100">Up to 100kg</option>
+                        </select>
                     </div>
                     <div class="transporter-filter-group">
                         <label for="paymentFilter">Min Payment</label>
                         <select id="paymentFilter" class="form-control transporter-filter-control">
-                        <option value="">Any Payment</option>
-                        <option value="500">Rs. 500+</option>
-                        <option value="1000">Rs. 1000+</option>
-                        <option value="1500">Rs. 1500+</option>
-                        <option value="2000">Rs. 2000+</option>
-                    </select>
-                </div>
+                            <option value="">Any Payment</option>
+                            <option value="500">Rs. 500+</option>
+                            <option value="1000">Rs. 1000+</option>
+                            <option value="1500">Rs. 1500+</option>
+                            <option value="2000">Rs. 2000+</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -264,115 +236,6 @@
         </div>
     </div>
 </div>
-
-
-<div id="earnings-section" class="content-section" style="display: none;">
-    <div class="content-header">
-        <h1 class="content-title">Earnings Overview</h1>
-        <p class="content-subtitle">Live payout context from your completed transporter deliveries</p>
-    </div>
-
-    <div class="dashboard-stats" style="margin-bottom: 28px;">
-        <div class="stat-card">
-            <div class="stat-number" id="todayEarnings">Rs. 0</div>
-            <div class="stat-label">Today (Delivered)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="weekEarnings">Rs. 0</div>
-            <div class="stat-label">This Week (7 Days)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="monthEarningsDetail">Rs. 0</div>
-            <div class="stat-label">This Month (Calendar)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="totalEarningsDetail">Rs. 0</div>
-            <div class="stat-label">Lifetime Earnings</div>
-        </div>
-    </div>
-
-    <div class="grid grid-2" style="margin-top: 18px; gap: 20px;">
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Current Period Breakdown</h3>
-            </div>
-            <div class="card-content" style="padding: 22px;">
-                <div class="transporter-earnings-breakdown">
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Today</span>
-                        <strong id="todayBreakdownValue">Rs. 0.00</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Last 7 Days</span>
-                        <strong id="weekBreakdownValue">Rs. 0.00</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>This Month</span>
-                        <strong id="monthBreakdownValue">Rs. 0.00</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Lifetime</span>
-                        <strong id="lifetimeBreakdownValue">Rs. 0.00</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-total">
-                        <span>Estimated Payout This Month</span>
-                        <strong id="estimatedPayoutValue">Rs. 0.00</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Delivery Earnings Context</h3>
-            </div>
-            <div class="card-content" style="padding: 22px;">
-                <div class="transporter-earnings-breakdown">
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Completed Deliveries</span>
-                        <strong id="earningsCompletedDeliveries">0</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Active Deliveries</span>
-                        <strong id="earningsActiveDeliveries">0</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-row">
-                        <span>Average Per Completed Delivery</span>
-                        <strong id="avgPerDeliveryValue">Rs. 0.00</strong>
-                    </div>
-                    <div class="transporter-earnings-breakdown-note" id="earningsContextNote">
-                        Based on completed deliveries currently recorded on your transporter account.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="content-card" style="margin-top: 32px;">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="card-title">Payment History</h3>
-            <button class="btn btn-secondary btn-sm" onclick="TransporterDashboard.exportPaymentHistory()">Export CSV</button>
-        </div>
-        <div style="padding: 28px;">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Order ID</th>
-                            <th>Route</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentHistoryBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div id="vehicle-section" class="content-section" style="display: none;">
     <div class="content-header" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom: 32px;">
         <h1 class="content-title" style="margin:0;">Vehicle Management</h1>
@@ -531,7 +394,7 @@
                         <select id="vehicleType" name="type" class="form-control" required>
                             <option value="">Select Type</option>
                             <?php if (!empty($vehicleTypes)): ?>
-                                <?php foreach ($vehicleTypes as $vType): 
+                                <?php foreach ($vehicleTypes as $vType):
                                     $slug = strtolower(str_replace(' ', '', $vType->vehicle_name));
                                 ?>
                                     <option value="<?= htmlspecialchars($slug) ?>"><?= htmlspecialchars($vType->vehicle_name) ?> (<?= $vType->min_weight_kg ?>-<?= $vType->max_weight_kg ?>kg)</option>
@@ -569,4 +432,3 @@
         </div>
     </div>
 </div>
-

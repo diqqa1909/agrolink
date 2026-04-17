@@ -105,7 +105,7 @@
                         <?= htmlspecialchars($product->farmer_name ?? 'Unknown Farmer') ?>
                     </p>
                     <p class="product-description buyer-products-location-line">
-                        Farmer location: <?= htmlspecialchars($product->farmer_district ?? $product->location ?? 'Unknown Location') ?>
+                        Location: <?= htmlspecialchars($product->farmer_district ?? $product->location ?? 'Unknown Location') ?>
                     </p>
                     <p class="product-description">
                         <?= htmlspecialchars($product->description ?? 'Fresh produce from local farm') ?>

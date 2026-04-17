@@ -1,12 +1,32 @@
 <?php
 $districts = [
-    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Jaffna',
-    'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara',
-    'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+    'Ampara',
+    'Anuradhapura',
+    'Badulla',
+    'Batticaloa',
+    'Colombo',
+    'Galle',
+    'Gampaha',
+    'Jaffna',
+    'Kalutara',
+    'Kandy',
+    'Kegalle',
+    'Kilinochchi',
+    'Kurunegala',
+    'Mannar',
+    'Matale',
+    'Matara',
+    'Mullaitivu',
+    'Nuwara Eliya',
+    'Polonnaruwa',
+    'Puttalam',
+    'Ratnapura',
+    'Trincomalee',
+    'Vavuniya'
 ];
 ?>
 
-<div class="content-section farmer-profile-modern">
+<div class="content-section profile-modern farmer-profile-modern">
     <div class="content-header">
         <h1 class="content-title">Profile</h1>
         <p class="content-subtitle">Manage your profile details and account settings.</p>
@@ -93,7 +113,7 @@ $districts = [
         </div>
     </div>
 
-    <div class="content-card profile-shortcut-card" data-open-modal="accountSettingsModal">
+    <div class="content-card profile-shortcut-card account-settings-shortcut-card" data-open-modal="accountSettingsModal">
         <div class="profile-shortcut-head">
             <h3>Account Settings</h3>
         </div>
@@ -131,12 +151,14 @@ $districts = [
         </div>
     </div>
 
-    <div class="content-card profile-danger-card">
+    <div class="content-card profile-danger-card deactivate-section-card">
         <div class="profile-section-head danger">
-            <h3>Danger Zone</h3>
+            <h3>Deactivate Account</h3>
         </div>
-        <p>Deactivate your farmer account. Products become unavailable until admin reactivation.</p>
-        <button type="button" class="btn btn-danger" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        <div class="deactivate-section-body">
+            <p class="deactivate-section-note">Disable this farmer account when you no longer want it active. Contact admin to reactivate it later.</p>
+            <button type="button" class="btn btn-danger deactivate-section-btn" data-open-modal="deactivateAccountModal">Deactivate Account</button>
+        </div>
     </div>
 </div>
 
@@ -260,18 +282,27 @@ $districts = [
     </div>
 </div>
 
-<div id="deactivateAccountModal" class="modal farmer-profile-modal">
-    <div class="modal-content farmer-profile-modal-content">
-        <div class="modal-header farmer-profile-modal-header danger">
+<div id="deactivateAccountModal" class="modal farmer-profile-modal deactivate-modal">
+    <div class="modal-content farmer-profile-modal-content deactivate-modal-content">
+        <div class="modal-header farmer-profile-modal-header danger deactivate-modal-header">
             <h3>Deactivate Farmer Account</h3>
             <button type="button" class="modal-close" data-close-modal="deactivateAccountModal" aria-label="Close">×</button>
         </div>
-        <div class="modal-body">
-            <p class="deactivate-warning-text">
-                Your farmer account and products will become unavailable to buyers.
-                To reactivate the account, you must contact admin.
-            </p>
-            <div class="modal-footer">
+        <div class="modal-body deactivate-modal-body">
+            <div class="deactivate-warning-box">
+                <span class="deactivate-warning-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3 22 21H2L12 3Z"></path>
+                        <path d="M12 9v5"></path>
+                        <path d="M12 17.5h.01"></path>
+                    </svg>
+                </span>
+                <p class="deactivate-warning-text">
+                    Your farmer account and products will become unavailable to buyers.
+                    To reactivate the account, you must contact admin.
+                </p>
+            </div>
+            <div class="modal-footer deactivate-modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="deactivateAccountModal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeactivateBtn">Confirm Deactivation</button>
             </div>

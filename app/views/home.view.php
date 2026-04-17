@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroLink - Farm to Market</title>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style1.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
 </head>
 
 <body>
     <?php
     $isHomePage = true;
-    require 'shared/navbar.view.php';
+    require 'shared/topnavbar.view.php';
     ?>
 
     <!-- Hero Section -->
@@ -295,7 +296,7 @@
     </script>
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
     <script src="<?= ROOT ?>/assets/js/home.js"></script>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
     <script>
         // Contact form handling
         document.getElementById('contactForm').addEventListener('submit', function(e) {

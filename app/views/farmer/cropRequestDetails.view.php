@@ -35,17 +35,13 @@
         <div class="crop-request-status-wrap">
             <?php
             // Default to 'active' if status is empty or null
-            $status = !empty($request->status) ? $request->status : 'active';
-            
-            $statusStyles = [
-                'active' => ['bg' => '#fff3cd', 'text' => '#856404'],
-                'accepted' => ['bg' => 'rgba(101, 181, 124, 0.2)', 'text' => '#499d57'],
-                'declined' => ['bg' => 'rgba(244, 67, 54, 0.15)', 'text' => '#d32f2f'],
-                'completed' => ['bg' => '#e0e0e0', 'text' => '#666']
-            ];
-            $currentStatus = $statusStyles[$status] ?? $statusStyles['active'];
+            $status = !empty($request->status) ? strtolower((string)$request->status) : 'active';
+            $allowedStatuses = ['active', 'accepted', 'declined', 'completed'];
+            if (!in_array($status, $allowedStatuses, true)) {
+                $status = 'active';
+            }
             ?>
-            <span class="crop-request-detail-status" style="background: <?= $currentStatus['bg'] ?>; color: <?= $currentStatus['text'] ?>;">
+            <span class="crop-request-detail-status crop-request-status crop-request-status--<?= htmlspecialchars($status) ?>">
                 Status: <?= ucfirst($status) ?>
             </span>
         </div>

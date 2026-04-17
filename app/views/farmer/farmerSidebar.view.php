@@ -5,7 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmer Dashboard - AgroLink</title>
-    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style2.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/notifications.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/shared/profile.css">
+    <?php
+    $resolvedPageStyles = $pageStyles ?? [];
+    if (is_string($resolvedPageStyles) && $resolvedPageStyles !== '') {
+        $resolvedPageStyles = [$resolvedPageStyles];
+    }
+    if (is_array($resolvedPageStyles)) {
+        foreach ($resolvedPageStyles as $styleFile) {
+            $styleFile = trim((string)$styleFile);
+            if ($styleFile === '') {
+                continue;
+            }
+    ?>
+            <link rel="stylesheet" href="<?= ROOT ?>/assets/css/farmer/<?= htmlspecialchars($styleFile) ?>">
+    <?php
+        }
+    }
+    ?>
 </head>
 
 <body data-app-root="<?= ROOT ?>" data-user-name="<?= htmlspecialchars(authUserName()) ?>" data-user-email="<?= htmlspecialchars(authUserEmail()) ?>">
@@ -24,7 +43,7 @@
         $notificationUnreadCount = 0;
     }
     $isHomePage = false;
-    include '../app/views/shared/navbar.view.php';
+    include '../app/views/shared/topnavbar.view.php';
     ?>
 
     <div class="dashboard">
@@ -143,7 +162,7 @@
     </div>
 
     <script src="<?= ROOT ?>/assets/js/main.js"></script>
-    <script src="<?= ROOT ?>/assets/js/dashboardNavBar.js"></script>
+    <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
     <?php if (isset($pageScript)): ?>
         <script src="<?= ROOT ?>/assets/js/farmer/<?= $pageScript ?>"></script>
     <?php endif; ?>

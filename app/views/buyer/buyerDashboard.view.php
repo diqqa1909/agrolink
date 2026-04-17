@@ -9,23 +9,23 @@
     <div class="dashboard-stats buyer-dashboard-stats">
         <div class="stat-card buyer-dashboard-stat-card">
             <!-- <div class="stat-icon primary">📦</div>-->
-            <div class="stat-number buyer-dashboard-stat-number"><?= $totalOrders ?? 0 ?></div>
             <div class="stat-label">Total Orders</div>
+            <div class="stat-number buyer-dashboard-stat-number"><?= $totalOrders ?? 0 ?></div>
         </div>
         <div class="stat-card buyer-dashboard-stat-card">
             <!-- <div class="stat-icon warning">⏳</div>-->
-            <div class="stat-number buyer-dashboard-stat-number"><?= $pendingOrders ?? 0 ?></div>
             <div class="stat-label">Pending Orders</div>
+            <div class="stat-number buyer-dashboard-stat-number"><?= $pendingOrders ?? 0 ?></div>
         </div>
         <div class="stat-card buyer-dashboard-stat-card">
             <!--<div class="stat-icon success">💰</div>-->
-            <div class="stat-number buyer-dashboard-stat-number">Rs. <?= number_format($totalSpent ?? 0, 2) ?></div>
             <div class="stat-label">Total Spent</div>
+            <div class="stat-number buyer-dashboard-stat-number">Rs. <?= number_format($totalSpent ?? 0, 2) ?></div>
         </div>
         <div class="stat-card buyer-dashboard-stat-card">
             <!-- <div class="stat-icon info">❤️</div>-->
-            <div class="stat-number buyer-dashboard-stat-number"><?= $wishlistCount ?? 0 ?></div>
             <div class="stat-label">Wishlist Items</div>
+            <div class="stat-number buyer-dashboard-stat-number"><?= $wishlistCount ?? 0 ?></div>
         </div>
     </div>
 
@@ -71,7 +71,7 @@
                                     <td><?= $order->item_count ?? count($items) ?></td>
                                     <td><strong>Rs. <?= number_format($order->order_total, 2) ?></strong></td>
                                     <td><?= $orderDate ?></td>
-                                    <td><span class="order-status <?= $statusClass ?>"><?= strtoupper($order->status) ?></span></td>
+                                    <td><span class="order-status <?= $statusClass ?>"><?= strtoupper(str_replace('_', ' ', (string)$order->status)) ?></span></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
