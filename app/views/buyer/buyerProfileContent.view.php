@@ -106,13 +106,15 @@ $profileStats = is_array($profileStats ?? null) ? $profileStats : [];
                 </div>
 
                 <div class="form-group">
-                    <label for="profileCity">City *</label>
-                    <input type="text" id="profileCity" name="city" class="form-control" value="<?= esc($profile->city ?? '') ?>" maxlength="50" autocomplete="address-level2" required>
+                    <label for="profileCity">Nearest City *</label>
+                    <select id="profileCity" name="city" class="form-control" data-selected-city="<?= esc($profile->city ?? '') ?>" required>
+                        <option value="">Select nearest city</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="profilePostalCode">Postal Code *</label>
-                    <input type="text" id="profilePostalCode" name="postal_code" class="form-control" value="<?= esc($profile->postal_code ?? '') ?>" maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="postal-code" required>
+                    <label for="profilePostalCode">Postal Code</label>
+                    <input type="text" id="profilePostalCode" name="postal_code" class="form-control" value="<?= esc($profile->postal_code ?? '') ?>" maxlength="5" inputmode="numeric" pattern="[0-9]{5}" autocomplete="postal-code" placeholder="Optional">
                 </div>
 
                 <div class="form-group form-group-wide buyer-address-details-field">

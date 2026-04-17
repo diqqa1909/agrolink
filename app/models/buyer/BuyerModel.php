@@ -250,10 +250,8 @@ class BuyerModel
             $errors['city'] = 'City is too long (max 50 characters)';
         }
 
-        if ($postalCode === '') {
-            $errors['postal_code'] = 'Postal code is required';
-        } elseif (!preg_match('/^\d{5}$/', $postalCode)) {
-            $errors['postal_code'] = 'Postal code must be 5 digits';
+        if ($postalCode !== '' && !preg_match('/^\d{5}$/', $postalCode)) {
+            $errors['postal_code'] = 'Postal code must be 5 digits if provided';
         }
 
         if ($additionalAddress !== '' && strlen($additionalAddress) > 100) {
