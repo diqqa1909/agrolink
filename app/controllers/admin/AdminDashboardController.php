@@ -138,12 +138,12 @@ class AdminDashboardController
                     'success' => false,
                     'message' => 'Failed to create user in database',
                 ]);
+                } catch (Exception $e) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Server error: ' . $e->getMessage(),
+                    ]);
             }
-        } catch (Exception $e) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Server error: ' . $e->getMessage(),
-            ]);
         }
         exit;
     }
@@ -159,14 +159,12 @@ class AdminDashboardController
         $users = $user->findAll();
         echo json_encode([
             'success' => true,
-            'userCount' => $userCount,
+            'userCount' => count($users),
             'message' => 'User count retrieved successfully'
         ]);
         exit;
     }
 
-    public function register()
-    {
     public function register()
     {
         header('Content-Type: application/json');
@@ -200,7 +198,6 @@ class AdminDashboardController
                     'userId' => $userId,
                 ]);
             } else {
-            } else {
                 echo json_encode([
                     'success' => false,
                     'message' => 'Registration failed',
@@ -214,9 +211,9 @@ class AdminDashboardController
             ]);
         }
         exit;
-    }
+    }}
 
-    public function getUser($id)
+    /* public function getUser($id)
     {
         header('Content-Type: application/json');
         if (!$this->requireAdminJson()) {
@@ -247,7 +244,7 @@ class AdminDashboardController
             ]);    
         }
         exit;
-    } */
+    }  */
 
     public function getUser($id)
     {
@@ -265,7 +262,6 @@ class AdminDashboardController
                     'data' => $user
                 ]);
             } else {
-            } else {
                 echo json_encode([
                     'success' => false,
                     'message' => 'User not found',
@@ -280,8 +276,6 @@ class AdminDashboardController
         exit;
     }
 
-    public function updateUser()
-    {
     public function updateUser()
     {
         header('Content-Type: application/json');
@@ -345,7 +339,7 @@ class AdminDashboardController
             ]);
         }
         exit;
-    }
+    }}
 
     public function getVerifications()
     {
