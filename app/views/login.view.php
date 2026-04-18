@@ -85,7 +85,9 @@
                 </div>
 
                 <div class="text-center" style="margin-top: 0.5rem;">
-                    <a href="#forgot" class="text-muted">Forgot your password?</a>
+                    <a href="mailto:support@agrolink.lk?subject=AgroLink%20Password%20Reset%20Request" class="text-muted">
+                        Forgot your password? Contact support@agrolink.lk
+                    </a>
                 </div>
             </div>
         </div>
@@ -102,7 +104,7 @@
             if (params.get('registered') === '1') {
                 const msg = 'Registration successful!';
                 document.addEventListener('DOMContentLoaded', function() {
-                    showFloatingAlert(msg, 'error');
+                    showFloatingAlert(msg, 'success');
                 });
                 if (typeof showNotification === 'function') {
                     /* showNotification(msg, 'success'); */

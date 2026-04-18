@@ -12,15 +12,15 @@
             <div class="stat-label">Available Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="activeDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->active_deliveries : 0; ?></div>
+            <div class="stat-number" id="activeDeliveries"><?php echo isset($earningsSummary) ? (int)($earningsSummary->active_deliveries ?? 0) : 0; ?></div>
             <div class="stat-label">Active Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="monthlyEarnings">Rs. <?php echo isset($earningsSummary) ? number_format($earningsSummary->month_earnings, 2) : '0.00'; ?></div>
+            <div class="stat-number" id="monthlyEarnings">Rs. <?php echo isset($earningsSummary) ? number_format((float)($earningsSummary->month_earnings ?? 0), 2) : '0.00'; ?></div>
             <div class="stat-label">This Month</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="completedDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->completed_deliveries : 0; ?></div>
+            <div class="stat-number" id="completedDeliveries"><?php echo isset($earningsSummary) ? (int)($earningsSummary->completed_deliveries ?? 0) : 0; ?></div>
             <div class="stat-label">Completed</div>
         </div>
     </div>

@@ -310,7 +310,6 @@
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Status</th>
-                                <th>Documents</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -447,7 +446,6 @@
                                 <th>Category</th>
                                 <th>Price</th>
                                 <th>Stock</th>
-                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -495,28 +493,24 @@
                     <div class="stats-grid-4">
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">✅</div>
                                 <h4>Completed</h4>
                                 <div class="stat-number" id="completedPayments">0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">⏳</div>
                                 <h4>Pending</h4>
                                 <div class="stat-number" id="pendingPayments">0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">❌</div>
                                 <h4>Failed</h4>
                                 <div class="stat-number" id="failedPayments">0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">↩️</div>
                                 <h4>Refunded</h4>
                                 <div class="stat-number" id="refundedPayments">0</div>
                             </div>
@@ -529,28 +523,24 @@
                     <div class="stats-grid-4">
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">💵</div>
                                 <h4>Cash on Delivery</h4>
                                 <div class="stat-number" id="codRevenue">Rs. 0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">🏦</div>
                                 <h4>Bank Transfer</h4>
                                 <div class="stat-number" id="bankRevenue">Rs. 0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">💳</div>
                                 <h4>Card Payment</h4>
                                 <div class="stat-number" id="cardRevenue">Rs. 0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <div class="stat-icon">📱</div>
                                 <h4>Mobile Payment</h4>
                                 <div class="stat-number" id="mobileRevenue">Rs. 0</div>
                             </div>
@@ -669,7 +659,7 @@
                 </div>
 
                 <!-- Dispute Priority Summary -->
-                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
+                <!-- <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
                     <div class="stats-grid-3">
                         <div class="stat-card card text-center" style="border-left: 4px solid #e74c3c;">
                             <div class="stat-content">
@@ -693,10 +683,10 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Dispute Categories -->
-                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
+                <!-- <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
                     <div class="stats-grid-4">
                         <div class="stat-card card text-center">
                             <div class="stat-content">
@@ -727,7 +717,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Filters -->
                 <div class="filters" style="margin-top: var(--spacing-xl);">
@@ -968,6 +958,77 @@
                 <div class="settings-header">
                     <h1>System Settings</h1>
                     <p>Manage platform configuration and system preferences</p>
+                </div>
+
+                <div class="content-card" style="margin-top: var(--spacing-xl);">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3 class="card-title">Platform Settings</h3>
+                        <button type="button" class="btn btn-secondary" id="resetPlatformSettingsBtn">Reset</button>
+                    </div>
+                    <div class="card-content" style="padding: 24px;">
+                        <form id="platformSettingsForm">
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label for="supportEmail">Support Email</label>
+                                    <input type="email" id="supportEmail" name="support_email" class="form-control"
+                                        placeholder="support@agrolink.lk">
+                                    <small class="form-text">Shown in user-facing help messages.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reviewSlaDays">Verification SLA (days)</label>
+                                    <input type="number" id="reviewSlaDays" name="verification_sla_days"
+                                        class="form-control" min="0" step="1" placeholder="2">
+                                    <small class="form-text">Target time for verifying farmer/transporter accounts.</small>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label for="platformCommission">Platform Commission (%)</label>
+                                    <input type="number" id="platformCommission" name="platform_commission"
+                                        class="form-control" min="0" max="100" step="0.1" placeholder="0">
+                                    <small class="form-text">Used for reporting (does not change past orders).</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="autoCancelHours">Auto-cancel unpaid orders (hours)</label>
+                                    <input type="number" id="autoCancelHours" name="auto_cancel_unpaid_hours"
+                                        class="form-control" min="0" step="1" placeholder="24">
+                                    <small class="form-text">0 disables auto-cancel.</small>
+                                </div>
+                            </div>
+
+                            <div class="content-card"
+                                style="margin-top: var(--spacing-lg); border: 1px solid var(--light-gray);">
+                                <div class="card-header" style="background: transparent;">
+                                    <h3 class="card-title">Maintenance</h3>
+                                </div>
+                                <div class="card-content" style="padding: 18px;">
+                                    <div class="grid grid-2" style="align-items:end;">
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                                                <input type="checkbox" id="maintenanceMode" name="maintenance_mode">
+                                                <span style="font-weight:600;">Maintenance Mode</span>
+                                            </label>
+                                            <small class="form-text">Use this as an admin reminder and optionally notify users.</small>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:0;">
+                                            <button type="button" class="btn btn-primary" id="sendMaintenanceNoticeBtn"
+                                                style="width:100%;">Send Maintenance Notice</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap: 12px; margin-top: var(--spacing-lg);">
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                                <button type="button" class="btn btn-secondary" id="openNotificationModalBtn">Send Notification</button>
+                            </div>
+                        </form>
+
+                        <div style="margin-top: 12px; font-size: 12px; color: var(--dark-gray);">
+                            Note: settings are currently stored per-browser for this admin account (local). Connect them to a DB table when ready.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1573,13 +1634,13 @@
                 <td>${formatDate(order.order_date)}</td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.order_id})">View</button>
-                    <button class="btn btn-sm btn-secondary" onclick="updateOrderStatus(${order.order_id})">Update Status</button>
-                </td>
-            </tr>
-        `;
-            });
-            tbody.innerHTML = html;
-        }
+                    </td>
+                    </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+            /* <button class="btn btn-sm btn-secondary" onclick="updateOrderStatus(${order.order_id})">Update Status</button> */
 
         // Format date for display
         function formatDate(dateString) {
@@ -1822,11 +1883,118 @@
                     }
                 });
             }
+
+            const settingsStorageKey = 'agrolink_admin_platform_settings_v1';
+
+            function readSettingsFromStorage() {
+                try {
+                    const raw = localStorage.getItem(settingsStorageKey);
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function writeSettingsToStorage(settings) {
+                try {
+                    localStorage.setItem(settingsStorageKey, JSON.stringify(settings));
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function applySettingsToForm(form, settings) {
+                if (!form) return;
+
+                const setValue = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.value = (typeof value === 'undefined' || value === null) ? '' : value;
+                };
+
+                setValue('supportEmail', settings?.support_email);
+                setValue('reviewSlaDays', settings?.verification_sla_days);
+                setValue('platformCommission', settings?.platform_commission);
+                setValue('autoCancelHours', settings?.auto_cancel_unpaid_hours);
+
+                const maintenance = document.getElementById('maintenanceMode');
+                if (maintenance) maintenance.checked = !!settings?.maintenance_mode;
+            }
+
+            function collectSettingsFromForm(form) {
+                const fd = new FormData(form);
+                return {
+                    support_email: (fd.get('support_email') || '').toString().trim(),
+                    verification_sla_days: parseInt(fd.get('verification_sla_days') || '0', 10) || 0,
+                    platform_commission: parseFloat(fd.get('platform_commission') || '0') || 0,
+                    auto_cancel_unpaid_hours: parseInt(fd.get('auto_cancel_unpaid_hours') || '0', 10) || 0,
+                    maintenance_mode: fd.get('maintenance_mode') === 'on',
+                };
+            }
+
             const platformSettingsForm = document.getElementById('platformSettingsForm');
             if (platformSettingsForm) {
+                const stored = readSettingsFromStorage();
+                if (stored) {
+                    applySettingsToForm(platformSettingsForm, stored);
+                }
+
                 platformSettingsForm.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    showNotification('Platform settings saved successfully!', 'success');
+                    const settings = collectSettingsFromForm(platformSettingsForm);
+                    const ok = writeSettingsToStorage(settings);
+                    showNotification(ok ? 'Platform settings saved successfully!' : 'Failed to save settings in this browser.', ok ? 'success' : 'error');
+                });
+            }
+
+            const resetBtn = document.getElementById('resetPlatformSettingsBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    try {
+                        localStorage.removeItem(settingsStorageKey);
+                    } catch (e) {}
+
+                    const form = document.getElementById('platformSettingsForm');
+                    if (form) form.reset();
+                    showNotification('Platform settings reset.', 'success');
+                });
+            }
+
+            const openNotificationBtn = document.getElementById('openNotificationModalBtn');
+            if (openNotificationBtn) {
+                openNotificationBtn.addEventListener('click', function () {
+                    if (typeof openModal === 'function') {
+                        openModal('sendNotificationModal');
+                    } else {
+                        const modal = document.getElementById('sendNotificationModal');
+                        if (modal) modal.style.display = 'block';
+                    }
+                });
+            }
+
+            const maintenanceNoticeBtn = document.getElementById('sendMaintenanceNoticeBtn');
+            if (maintenanceNoticeBtn) {
+                maintenanceNoticeBtn.addEventListener('click', function () {
+                    const titleEl = document.getElementById('notificationTitle');
+                    const messageEl = document.getElementById('notificationMessage');
+                    const recipientEl = document.getElementById('notificationRecipient');
+                    const typeEl = document.getElementById('notificationType');
+
+                    if (titleEl) titleEl.value = 'Scheduled maintenance';
+                    if (messageEl) messageEl.value = 'We will be performing maintenance shortly. Some features may be unavailable during this time.';
+                    if (recipientEl) recipientEl.value = 'all';
+                    if (typeEl) typeEl.value = 'maintenance';
+
+                    const selectedGroup = document.getElementById('notificationSelectedUsersGroup');
+                    if (selectedGroup) selectedGroup.style.display = 'none';
+
+                    if (typeof openModal === 'function') {
+                        openModal('sendNotificationModal');
+                    } else {
+                        const modal = document.getElementById('sendNotificationModal');
+                        if (modal) modal.style.display = 'block';
+                    }
                 });
             }
         }
@@ -1885,7 +2053,10 @@
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'none';
+            if (!modal) return;
+            modal.classList.remove('active', 'show');
+            modal.style.display = '';
+            document.body.style.overflow = 'auto';
         }
 
         // Verification functions
@@ -1927,19 +2098,19 @@
                         <td style="font-size:13px;">${escapeHtml(user.email)}</td>
                         <td><span class="badge badge-${user.role === 'farmer' ? 'success' : 'warning'}">${user.role}</span></td>
                         <td><span class="badge ${statusClass}" style="text-transform:capitalize;">${user.verification_status}</span></td>
-                        <td>${docsHtml}</td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="openDocReview(${user.user_id})">Review</button>
-                            ${user.verification_status === 'pending' ? `
-                                <button class="btn btn-sm btn-success" onclick="bulkApprove(${user.user_id})" style="margin-left:4px;">Approve</button>
-                                <button class="btn btn-sm btn-danger" onclick="bulkReject(${user.user_id})" style="margin-left:4px;">Reject</button>
-                            ` : ''}
+                        <button class="btn btn-sm btn-primary" onclick="openDocReview(${user.user_id})">Review</button>
+                        ${user.verification_status === 'pending' ? `
+                        <button class="btn btn-sm btn-danger" onclick="bulkReject(${user.user_id})" style="margin-left:4px;">Reject</button>
+                        ` : ''}
                         </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
+                        </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                }
+                /* <button class="btn btn-sm btn-success" onclick="bulkApprove(${user.user_id})" style="margin-left:4px;">Approve</button> */
+                /* <td>${docsHtml}</td> */
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -1998,9 +2169,9 @@
                 };
 
                 const statusIcon = {
-                    pending: '🕐',
-                    approved: '✅',
-                    rejected: '❌'
+                    pending: '',
+                    approved: '',
+                    rejected: ''
                 };
 
                 const html = docs.map(doc => {
@@ -2030,13 +2201,10 @@
             <div style="border:1px solid #e8e8e8;border-radius:10px;padding:16px;margin-bottom:16px;background:#fff;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
                     <div>
-                        <span style="font-weight:600;font-size:14px;">${statusIcon[doc.status] || '📄'} ${label}</span>
+                        <span style="font-weight:600;font-size:14px;">${label}</span>
                         <span style="margin-left:8px;">${statusBadge}</span>
                     </div>
-                    <div style="display:flex;gap:6px;">
-                        ${doc.status !== 'approved' ? `<button class="btn btn-sm btn-success" onclick="reviewDoc(${doc.id},'approve')">✓ Approve</button>` : ''}
-                        ${doc.status !== 'rejected' ? `<button class="btn btn-sm btn-danger" onclick="promptReject(${doc.id})">✗ Reject</button>` : ''}
-                    </div>
+                    
                 </div>
                 ${rejectionNote}
                 <div style="margin-top:12px;">
@@ -2051,8 +2219,8 @@
                 const overallStatus = user.verification_status;
                 const overallBtns = `
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:2px solid #eee;">
-            ${overallStatus !== 'approved' ? `<button class="btn btn-success" onclick="bulkApprove(${userId})">✅ Approve All & Verify Account</button>` : ''}
-            ${overallStatus !== 'rejected' ? `<button class="btn btn-danger" onclick="bulkReject(${userId})">❌ Reject Account</button>` : ''}
+            ${overallStatus !== 'approved' ? `<button class="btn btn-success" onclick="bulkApprove(${userId})">Verify Account</button>` : ''}
+            ${overallStatus !== 'rejected' ? `<button class="btn btn-danger" onclick="bulkReject(${userId})">Reject Account</button>` : ''}
         </div>`;
 
                 // Add status summary at the top
@@ -2062,7 +2230,7 @@
                 const rejectedDocs = docs.filter(d => d.status === 'rejected').length;
 
                 const summary = `
-        <div style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-around;text-align:center;">
+        <div style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-around;text-align:center;display:none;">
             <div>
                 <div style="font-size:20px;font-weight:bold;color:#27ae60;">${approvedDocs}</div>
                 <div style="font-size:12px;color:#666;">Approved</div>
@@ -2304,17 +2472,18 @@
                 <td><span class="badge badge-primary">${escapeHtml(product.category)}</span></td>
                 <td><strong>Rs. ${parseFloat(product.price).toLocaleString()}</strong></td>
                 <td><span class="badge ${stockClass}">${stockText}</span></td>
-                <td><span class="badge ${statusClass}">${statusText}</span></td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="viewProductDetails(${product.id})">View</button>
-                    <button class="btn btn-sm btn-secondary" onclick="updateProductStatus(${product.id}, '${product.status}')">Update Status</button>
-                    ${product.total_orders === 0 ? `<button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>` : ''}
+                    
                 </td>
             </tr>
         `;
             });
             tbody.innerHTML = html;
         }
+/* 
+<button class="btn btn-sm btn-secondary" onclick="updateProductStatus(${product.id}, '${product.status}')">Update Status</button>
+                    ${product.total_orders === 0 ? `<button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>` : ''} */
 
         // View product details
         async function viewProductDetails(productId) {
@@ -2614,7 +2783,6 @@
                     <th>Category</th>
                     <th>Price</th>
                     <th>Stock</th>
-                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             `;
@@ -2980,14 +3148,14 @@
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="viewPaymentDetails(${payment.payment_id})">View</button>
                     ${payment.payment_status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'shipped')">Mark Shipped</button>` : ''}
-                    ${payment.payment_status === 'shipped' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'delivered')">Mark Delivered</button>` : ''}
-                    ${payment.payment_status !== 'cancelled' && payment.payment_status !== 'delivered' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment(${payment.payment_id})">Cancel Order</button>` : ''}
-                </td>
-            </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-}
+                    </td>
+                    </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+            /* ${payment.payment_status === 'shipped' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'delivered')">Mark Delivered</button>` : ''}
+            ${payment.payment_status !== 'cancelled' && payment.payment_status !== 'delivered' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment(${payment.payment_id})">Cancel Order</button>` : ''} */
         // View payment details
         async function viewPaymentDetails(paymentId) {
             try {

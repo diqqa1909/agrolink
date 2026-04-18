@@ -104,6 +104,23 @@ class VerificationDocumentModel
         return $result !== false ? $result : [];
     }
 
+    public function getRejectedDocumentsByUser(int $userId): array
+    {
+        $query = "
+            SELECT
+                doc_type,
+                rejection_reason,
+                reviewed_at,
+                updated_at
+            FROM verification_documents
+            WHERE user_id = ? AND status = 'rejected'
+            ORDER BY COALESCE(reviewed_at, updated_at) DESC, id DESC
+        ";
+
+        $result = $this->query($query, [$userId]);
+        return $result !== false ? $result : [];
+    }
+
     public function updateStatus(int $id, string $status, ?string $reason = null, int $reviewedBy = 0): bool
     {
         $query = "

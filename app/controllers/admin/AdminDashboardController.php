@@ -504,16 +504,8 @@
 
                     if ($doc && !empty($doc)) {
                         $userId = $doc[0]->user_id;
-
-                        // Check if all documents are approved
-                        $checkAllQuery = "SELECT COUNT(*) as total, SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved FROM verification_documents WHERE user_id = ?";
-                        $stats = $this->query($checkAllQuery, [$userId]);
-
-                        if ($stats && !empty($stats) && $stats[0]->total == $stats[0]->approved) {
-                            // All documents approved - update user verification status
-                            $updateUserQuery = "UPDATE users SET verification_status = 'approved' WHERE id = ?";
-                            $this->write($updateUserQuery, [$userId]);
-                        }
+                        $db = $this->connect();
+                        $this->syncUserVerificationStatus((int)$userId, $db);
                     }
 
                     echo json_encode(['success' => true, 'message' => 'Document ' . $action . 'd successfully']);
