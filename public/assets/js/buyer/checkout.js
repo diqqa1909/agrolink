@@ -1,5 +1,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const deliveryForm = document.getElementById('deliveryForm');
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+
+    if (stateSelect && citySelect) {
+        stateSelect.addEventListener('change', function() {
+            const district = this.value;
+            citySelect.innerHTML = '<option value="" selected disabled>Loading...</option>';
+            citySelect.disabled = true;
+
+            if (!district) {
+                citySelect.innerHTML = '<option value="" selected disabled>Select nearest city</option>';
+                return;
+            }
+
+            fetch(`${window.APP_ROOT}/Checkout/getTownsByDistrictName?district=${encodeURIComponent(district)}`)
+                .then(response => response.json())
+                .then(data => {
+                    citySelect.innerHTML = '<option value="" selected disabled>Select nearest city</option>';
+                    citySelect.disabled = false;
+                    
+                    if (data.success && data.towns) {
+                        data.towns.forEach(town => {
+                            const option = document.createElement('option');
+                            option.value = town.town_name;
+                            option.textContent = town.town_name;
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        citySelect.innerHTML = '<option value="" selected disabled>No cities found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching towns:', error);
+                    citySelect.innerHTML = '<option value="" selected disabled>Error loading cities</option>';
+                    citySelect.disabled = false;
+                });
+        });
+    }
 
     if (deliveryForm) {
         deliveryForm.addEventListener('submit', function(e) {
@@ -144,7 +182,7 @@ function finalConfirmOrder() {
                 }
                 window.location.href = window.APP_ROOT + '/buyerorders';
             } else {
-                showNotification(data.message || 'Failed to place order', 'error');
+                alert(data.message || 'Failed to place order');
                 btn.disabled = false;
                 btn.textContent = originalText;
                 if (spinner) spinner.classList.add('checkout-hidden');
@@ -152,7 +190,7 @@ function finalConfirmOrder() {
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('An error occurred while placing order: ' + error.message, 'error');
+            alert('An error occurred while placing order: ' + error.message);
             btn.disabled = false;
             btn.textContent = originalText;
             if (spinner) spinner.classList.add('checkout-hidden');
