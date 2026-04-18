@@ -713,7 +713,11 @@ class CheckoutController
                 }
 
                 // --- STEP 4: CREATE DELIVERY REQUEST FOR THIS ORDER ---
-                if (!$this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile)) {
+                // We've already resolved deliveryDistrictId and farmerDistrictId successfully above
+                $farmerDistrictIdForDelivery = $farmerDistrictId ?? $deliveryDistrictId; // Fallback should not happen but just in case
+                $exactDistanceKm = $shippingCalculation['calculation']['calculations'][0]['total_distance_km'] ?? null;
+                
+                if (!$this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile, $deliveryDistrictId, $farmerDistrictIdForDelivery, $exactDistanceKm)) {
                     throw new RuntimeException('Failed to create delivery request for order #' . $orderId);
                 }
             }
@@ -742,7 +746,7 @@ class CheckoutController
             http_response_code($statusCode);
             echo json_encode([
                 'success' => false,
-                'message' => $statusCode === 422 ? $e->getMessage() : 'Failed to place order. Please try again.',
+                'message' => 'Failed to place order. Error: ' . $e->getMessage(),
             ]);
             exit;
         }
@@ -826,7 +830,7 @@ class CheckoutController
     /**
      * Create delivery request for transporters
      */
-    private function createDeliveryRequest($orderId, $buyerId, $farmerId, $totalWeight, $shippingFee, $buyerProfile)
+    private function createDeliveryRequest($orderId, $buyerId, $farmerId, $totalWeight, $shippingFee, $buyerProfile, $buyerDistrictIdInput = null, $farmerDistrictIdInput = null, $exactDistanceKm = null)
     {
         try {
             // Get buyer details
@@ -843,8 +847,7 @@ class CheckoutController
             $farmerResult = $dbModel->query($farmerSql, ['id' => $farmerId]);
 
             if (!$farmerResult || empty($farmerResult)) {
-                $this->debugLog("Failed to get farmer details for farmer_id: {$farmerId}");
-                return false;
+                throw new RuntimeException("Failed to get farmer details for farmer_id: {$farmerId}");
             }
 
             $farmer = $farmerResult[0];
@@ -859,27 +862,23 @@ class CheckoutController
             $requiredVehicleTypeId = $vehicleTypeResult && !empty($vehicleTypeResult) ? $vehicleTypeResult[0]->id : null;
 
             if (!$requiredVehicleTypeId) {
-                $this->debugLog("No eligible vehicle type found for order {$orderId} and weight {$totalWeight}kg");
-                return false;
+                throw new RuntimeException("No eligible vehicle type found for order {$orderId} and weight {$totalWeight}kg");
             }
 
-            // Get district IDs
-            $buyerDistrictId = $this->getDistrictIdByName($buyerProfile->district ?? '');
-            $farmerDistrictId = $this->getDistrictIdByName($farmer->district ?? '');
+            // Resolve Districts (Use passed IDs first, then fallback)
+            $buyerDistrictId = $buyerDistrictIdInput ?: $this->getDistrictIdByName($buyerProfile->district ?? '');
+            $farmerDistrictId = $farmerDistrictIdInput ?: $this->getDistrictIdByName($farmer->district ?? '');
 
-            if (!$buyerDistrictId || !$farmerDistrictId) {
-                $this->debugLog("Invalid district mapping while creating delivery request for order {$orderId}");
-                return false;
+            if (!$buyerDistrictId) {
+                throw new RuntimeException("Failed to get buyer district_id for district name: " . ($buyerProfile->district ?? ''));
             }
 
-            // Calculate distance (if available)
-            $distanceSql = "SELECT distance_km FROM district_distances 
-                           WHERE from_district_id = :from_id AND to_district_id = :to_id LIMIT 1";
-            $distanceResult = $dbModel->query($distanceSql, [
-                'from_id' => $farmerDistrictId,
-                'to_id' => $buyerDistrictId
-            ]);
-            $distance = $distanceResult && !empty($distanceResult) ? $distanceResult[0]->distance_km : null;
+            if (!$farmerDistrictId) {
+                throw new RuntimeException("Failed to get farmer district_id for district name: " . ($farmer->district ?? ''));
+            }
+
+            // Use passed exact distance if available, else null
+            $distance = $exactDistanceKm;
 
             // Prepare buyer full address
             $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' .
@@ -917,12 +916,24 @@ class CheckoutController
                 'required_vehicle_type_id' => $requiredVehicleTypeId
             ];
 
-            $result = $dbModel->write($insertSql, $params);
+            // Execute via raw PDO to catch explicit SQL exceptions instead of false
+            $dbConnection = (new CartModel())->query('SELECT 1'); // initialize connection statically
+            $con = $GLOBALS['__AGROLINK_DB_CONNECTION'];
 
-            return $result !== false;
+            if (!$con) {
+                throw new RuntimeException("Database connection not found in GLOBALS");
+            }
+
+            $stm = $con->prepare($insertSql);
+            if (!$stm->execute($params)) {
+                $errorInfo = $stm->errorInfo();
+                throw new RuntimeException("Delivery request insert failed: " . ($errorInfo[2] ?? 'Unknown PDO Error'));
+            }
+
+            return true;
         } catch (Exception $e) {
             $this->debugLog('Error creating delivery request: ' . $e->getMessage());
-            return false;
+            throw new RuntimeException('Delivery Request SQL Error: ' . $e->getMessage());
         }
     }
 

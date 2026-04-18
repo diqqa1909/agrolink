@@ -152,8 +152,7 @@ class BuyerModel
         return !empty($profile->phone)
             && !empty($profile->street_name)
             && !empty($profile->city)
-            && !empty($profile->district)
-            && !empty($profile->postal_code);
+            && !empty($profile->district);
     }
 
     /**

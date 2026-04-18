@@ -47,7 +47,7 @@ function setProfilePhoto(url) {
     if (!img) return;
 
     const hasPhoto = !!(url && url.length && url !== 'undefined');
-    
+
     if (hasPhoto) {
         img.style.display = 'block';
         if (defaultIcon) defaultIcon.style.display = 'none';
@@ -84,7 +84,7 @@ function loadNearestCities(district, selectedCity = '') {
         .then(data => {
             cityField.innerHTML = '<option value="">Select nearest city</option>';
             cityField.disabled = false;
-            
+
             if (data.success && data.towns) {
                 data.towns.forEach(town => {
                     const option = document.createElement('option');
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const profileDistrict = document.getElementById('profileDistrict');
     if (profileDistrict) {
-        profileDistrict.addEventListener('change', function() {
+        profileDistrict.addEventListener('change', function () {
             loadNearestCities(this.value);
         });
     }
