@@ -932,4 +932,23 @@ class CheckoutController
             error_log((string)$message);
         }
     }
+
+    /**
+     * Get towns by district name (AJAX)
+     */
+    public function getTownsByDistrictName()
+    {
+        header('Content-Type: application/json');
+        
+        $districtName = $_GET['district'] ?? '';
+        $districtId = $this->findDistrictIdByName($districtName);
+        
+        if (!$districtId || !$this->shippingCalculator) {
+            echo json_encode(['success' => false, 'towns' => []]);
+            return;
+        }
+        
+        $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
+        echo json_encode(['success' => true, 'towns' => $towns]);
+    }
 }

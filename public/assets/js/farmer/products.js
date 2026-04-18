@@ -518,9 +518,9 @@ function populateProductsTable(products) {
         const categoryNames = {
             'vegetables': 'Vegetables', 'fruits': 'Fruits', 'cereals': 'Cereals',
             'yams': 'Yams', 'legumes': 'Legumes', 'spices': 'Spices',
-            'leafy': 'Leafy', 'other': 'Other'
+            'leafy': 'Leafy'
         };
-        const categoryDisplay = categoryNames[p.category] || 'Other';
+        const categoryDisplay = categoryNames[p.category];
 
         row.innerHTML = `
             <td>

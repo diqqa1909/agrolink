@@ -238,7 +238,7 @@ class FarmerProfileController
                 $result = $this->farmerModel->updateProfile($userId, $profileData);
             }
 
-            if ($result) {
+            if ($result !== false) {
                 // Get updated profile
                 $profile = $this->farmerModel->getProfileByUserId($userId);
 

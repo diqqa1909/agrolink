@@ -117,6 +117,13 @@ class FarmerNotificationsModel
             }
         }
 
+        if (in_array('system', $types, true)) {
+            $types[] = 'maintenance';
+            $types[] = 'promotion';
+            $types[] = 'alert';
+        }
+
+        $types = array_values(array_unique($types));
         return $types;
     }
 

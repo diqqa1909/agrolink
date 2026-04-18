@@ -642,29 +642,29 @@
             <div id="disputes-section" class="content-section" style="display: none;">
                 <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
                     <div>
-                        <h1 class="content-title">Disputes Management</h1>
-                        <p class="content-subtitle">Manage and resolve customer disputes</p>
+                        <h1 class="content-title">Cancelled Orders - Disputes</h1>
+                        <p class="content-subtitle">Review cancelled orders and revise recorded payment totals</p>
                     </div>
                     <button class="btn btn-secondary" onclick="generateReport('disputes')">📄 Export Report</button>
                 </div>
 
-                <!-- Dispute Statistics -->
+                <!-- Cancelled order dispute statistics -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalDisputes">0</div>
-                        <div class="stat-label">Total Disputes</div>
+                        <div class="stat-number" id="totalCancelledOrders">0</div>
+                        <div class="stat-label">Cancelled Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="openDisputes">0</div>
-                        <div class="stat-label">Open Disputes</div>
+                        <div class="stat-number" id="unrevisedCancelledOrders">0</div>
+                        <div class="stat-label">Not Revised</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="resolvedDisputes">0</div>
-                        <div class="stat-label">Resolved</div>
+                        <div class="stat-number" id="revisedCancelledOrders">0</div>
+                        <div class="stat-label">Revised</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="averageResolutionTime">0</div>
-                        <div class="stat-label">Avg Resolution (hours)</div>
+                        <div class="stat-number" id="revisionLogCount">0</div>
+                        <div class="stat-label">Revisions Logged</div>
                     </div>
                 </div>
 
@@ -729,41 +729,30 @@
                     </div>
                 </div>
 
-                <!-- Dispute Filters -->
+                <!-- Filters -->
                 <div class="filters" style="margin-top: var(--spacing-xl);">
                     <div class="filters-row">
                         <div class="filter-group">
-                            <label for="disputeSearch">Search Disputes</label>
-                            <input type="text" id="disputeSearch" class="form-control"
-                                placeholder="Search by order ID, complainant, or respondent...">
+                            <label for="cancelledOrderSearch">Search Cancelled Orders</label>
+                            <input type="text" id="cancelledOrderSearch" class="form-control"
+                                placeholder="Search by order ID, buyer name, or email...">
                         </div>
                         <div class="filter-group">
-                            <label for="disputeStatusFilter">Status</label>
-                            <select id="disputeStatusFilter" class="form-control">
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="closed">Closed</option>
+                            <label for="revisionStatusFilter">Revision Status</label>
+                            <select id="revisionStatusFilter" class="form-control">
+                                <option value="">All</option>
+                                <option value="unrevised">Not Revised</option>
+                                <option value="revised">Revised</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label for="disputeTypeFilter">Type</label>
-                            <select id="disputeTypeFilter" class="form-control">
-                                <option value="">All Types</option>
-                                <option value="order_issue">Order Issue</option>
-                                <option value="payment_issue">Payment Issue</option>
-                                <option value="delivery_issue">Delivery Issue</option>
-                                <option value="product_quality">Product Quality</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="disputePriorityFilter">Priority</label>
-                            <select id="disputePriorityFilter" class="form-control">
-                                <option value="">All Priorities</option>
-                                <option value="high">High</option>
-                                <option value="medium">Medium</option>
-                                <option value="low">Low</option>
+                            <label for="cancelledOrderPaymentMethod">Payment Method</label>
+                            <select id="cancelledOrderPaymentMethod" class="form-control">
+                                <option value="">All</option>
+                                <option value="cash_on_delivery">Cash on Delivery</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="card">Card</option>
+                                <option value="mobile_payment">Mobile Payment</option>
                             </select>
                         </div>
                     </div>
@@ -775,25 +764,24 @@
                     </div>
                 </div>
 
-                <!-- Disputes Table -->
+                <!-- Cancelled orders table -->
                 <div class="table-container" style="margin-top: var(--spacing-xl);">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Dispute ID</th>
                                 <th>Order ID</th>
-                                <th>Complainant</th>
-                                <th>Respondent</th>
-                                <th>Type</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Created</th>
+                                <th>Buyer</th>
+                                <th>Payment Method</th>
+                                <th>Current Total</th>
+                                <th>Revised Total</th>
+                                <th>Revised By</th>
+                                <th>Cancelled / Updated</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="disputesTableBody">
+                        <tbody id="cancelledOrdersDisputesTableBody">
                             <tr>
-                                <td colspan="9" style="text-align:center;padding:2rem;">Loading disputes...</td>
+                                <td colspan="7" style="text-align:center;padding:2rem;">Loading cancelled orders...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1128,6 +1116,7 @@
                                 <option value="buyers">All Buyers</option>
                                 <option value="transporters">All Transporters</option>
                                 <option value="admins">All Admins</option>
+                                <option value="selected">Selected Users</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1137,9 +1126,25 @@
                                 <option value="system">System</option>
                                 <option value="maintenance">Maintenance</option>
                                 <option value="promotion">Promotion</option>
-                                <option value="alert">Alert</option>
+                            <option value="alert">Alert</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-group" id="notificationSelectedUsersGroup" style="display:none;">
+                        <label for="notificationSelectedUsers">Select Users *</label>
+                        <select id="notificationSelectedUsers" name="user_ids[]" class="form-control" multiple size="8">
+                            <?php foreach (($users ?? []) as $u): ?>
+                                <?php
+                                    $uid = (int)($u->id ?? 0);
+                                    if ($uid <= 0) continue;
+                                    $uname = trim((string)($u->name ?? 'User'));
+                                    $uemail = trim((string)($u->email ?? ''));
+                                    $urole = trim((string)($u->role ?? ''));
+                                ?>
+                                <option value="<?= $uid ?>"><?= htmlspecialchars($uname) ?><?= $uemail !== '' ? ' (' . htmlspecialchars($uemail) . ')' : '' ?><?= $urole !== '' ? ' - ' . htmlspecialchars($urole) : '' ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="form-text">Hold Ctrl (Windows) / Cmd (Mac) to select multiple users.</small>
                     </div>
                     <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
                         <button type="submit" class="btn btn-primary">Send Notification</button>
@@ -1278,6 +1283,8 @@
             });
             if (sectionName === 'analytics') {
                 loadAnalytics();
+            } else if (sectionName === 'notifications') {
+                loadNotificationStats();
             }
         }
 
@@ -1745,11 +1752,74 @@
         function setupForms() {
             const sendNotificationForm = document.getElementById('sendNotificationForm');
             if (sendNotificationForm) {
-                sendNotificationForm.addEventListener('submit', function (e) {
+                const recipientSelect = document.getElementById('notificationRecipient');
+                const selectedGroup = document.getElementById('notificationSelectedUsersGroup');
+                const selectedUsersSelect = document.getElementById('notificationSelectedUsers');
+
+                function toggleSelectedUsers() {
+                    const mode = (recipientSelect?.value || '').toLowerCase();
+                    if (mode === 'selected') {
+                        if (selectedGroup) selectedGroup.style.display = 'block';
+                        if (selectedUsersSelect) selectedUsersSelect.required = true;
+                    } else {
+                        if (selectedGroup) selectedGroup.style.display = 'none';
+                        if (selectedUsersSelect) {
+                            selectedUsersSelect.required = false;
+                            [...selectedUsersSelect.options].forEach(opt => opt.selected = false);
+                        }
+                    }
+                }
+
+                if (recipientSelect) {
+                    recipientSelect.addEventListener('change', toggleSelectedUsers);
+                    toggleSelectedUsers();
+                }
+
+                sendNotificationForm.addEventListener('submit', async function (e) {
                     e.preventDefault();
-                    showNotification('Notification sent successfully!', 'success');
-                    closeModal('sendNotificationModal');
-                    this.reset();
+
+                    try {
+                        const formData = new FormData(this);
+                        const response = await fetch('<?= ROOT ?>/adminDashboard/sendNotification', {
+                            method: 'POST',
+                            body: formData,
+                        });
+
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok || !result.success) {
+                            showNotification(result.message || 'Failed to send notification', 'error');
+                            return;
+                        }
+
+                        const meta = (typeof result.sent !== 'undefined')
+                            ? ` (sent: ${result.sent}, failed: ${result.failed || 0})`
+                            : '';
+                        showNotification((result.message || 'Notification sent') + meta, 'success');
+                        
+                        // Update notifications stats in the UI
+                        if (typeof result.sent !== 'undefined') {
+                            const totalEl = document.getElementById('totalNotifications');
+                            if (totalEl) {
+                                const currentTotal = parseInt(totalEl.textContent) || 0;
+                                totalEl.textContent = currentTotal + result.sent;
+                            }
+                            const deliveredEl = document.getElementById('deliveredNotifications');
+                            if (deliveredEl) {
+                                const currentDelivered = parseInt(deliveredEl.textContent) || 0;
+                                deliveredEl.textContent = currentDelivered + result.sent;
+                            }
+                            if (typeof loadNotificationStats === 'function') {
+                                loadNotificationStats();
+                            }
+                        }
+                        
+                        closeModal('sendNotificationModal');
+                        this.reset();
+                        toggleSelectedUsers();
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('Network error. Please try again.', 'error');
+                    }
                 });
             }
             const platformSettingsForm = document.getElementById('platformSettingsForm');
@@ -2854,70 +2924,70 @@
 
         // Display payments in the table
         function displayPayments(payments) {
-            const tbody = document.getElementById('paymentsTableBody');
+    const tbody = document.getElementById('paymentsTableBody');
 
-            if (!payments || payments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
-                return;
-            }
+    if (!payments || payments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
+        return;
+    }
 
-            let html = '';
-            payments.forEach(payment => {
-                // Status badge class
-                let statusClass = '';
-                let statusText = '';
-                switch (payment.payment_status) {
-                    case 'completed':
-                        statusClass = 'badge-success';
-                        statusText = 'Completed';
-                        break;
-                    case 'pending':
-                        statusClass = 'badge-warning';
-                        statusText = 'Pending';
-                        break;
-                    case 'failed':
-                        statusClass = 'badge-danger';
-                        statusText = 'Failed';
-                        break;
-                    case 'refunded':
-                        statusClass = 'badge-info';
-                        statusText = 'Refunded';
-                        break;
-                    default:
-                        statusClass = 'badge-secondary';
-                        statusText = payment.payment_status || 'N/A';
-                }
+    let html = '';
+    payments.forEach(payment => {
+        // Status badge class - using order status
+        let statusClass = '';
+        let statusText = '';
+        switch (payment.payment_status) {
+            case 'delivered':
+                statusClass = 'badge-success';
+                statusText = 'Delivered';
+                break;
+            case 'shipped':
+                statusClass = 'badge-info';
+                statusText = 'Shipped';
+                break;
+            case 'pending':
+                statusClass = 'badge-warning';
+                statusText = 'Pending';
+                break;
+            case 'cancelled':
+                statusClass = 'badge-danger';
+                statusText = 'Cancelled';
+                break;
+            default:
+                statusClass = 'badge-secondary';
+                statusText = payment.payment_status || 'N/A';
+        }
 
-                // Payment method display
-                let methodText = '';
-                switch (payment.payment_method) {
-                    case 'cash_on_delivery': methodText = 'Cash on Delivery'; break;
-                    case 'bank_transfer': methodText = 'Bank Transfer'; break;
-                    case 'card': methodText = 'Card Payment'; break;
-                    case 'mobile_payment': methodText = 'Mobile Payment'; break;
-                    default: methodText = payment.payment_method || 'N/A';
-                }
+        // Payment method display
+        let methodText = '';
+        switch (payment.payment_method) {
+            case 'cash_on_delivery': methodText = 'Cash on Delivery'; break;
+            case 'bank_transfer': methodText = 'Bank Transfer'; break;
+            case 'card': methodText = 'Card Payment'; break;
+            case 'mobile_payment': methodText = 'Mobile Payment'; break;
+            default: methodText = payment.payment_method || 'N/A';
+        }
 
-                html += `
+        html += `
             <tr>
-                <td><strong>#${payment.transaction_id || payment.payment_id}</strong></td>
-                <td>#${payment.order_number || payment.order_id}</td>
+                <td><strong>${payment.transaction_id || payment.payment_id}</strong></td>
+                <td>#${payment.order_id}</td>
                 <td>${escapeHtml(payment.buyer_name || 'N/A')}</td>
                 <td><strong>Rs. ${parseFloat(payment.amount).toLocaleString()}</strong></td>
                 <td>${methodText}</td>
                 <td><span class="badge ${statusClass}">${statusText}</span></td>
-                <td>${formatDate(payment.payment_date || payment.created_at)}</td>
+                <td>${formatDate(payment.payment_date)}</td>
                 <td>
                     <button class="btn btn-sm btn-primary" onclick="viewPaymentDetails(${payment.payment_id})">View</button>
-                    ${payment.payment_status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'completed')">Complete</button>` : ''}
-                    ${payment.payment_status === 'completed' ? `<button class="btn btn-sm btn-warning" onclick="refundPayment(${payment.payment_id})">Refund</button>` : ''}
+                    ${payment.payment_status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'shipped')">Mark Shipped</button>` : ''}
+                    ${payment.payment_status === 'shipped' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'delivered')">Mark Delivered</button>` : ''}
+                    ${payment.payment_status !== 'cancelled' && payment.payment_status !== 'delivered' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment(${payment.payment_id})">Cancel Order</button>` : ''}
                 </td>
             </tr>
         `;
-            });
-            tbody.innerHTML = html;
-        }
-
+    });
+    tbody.innerHTML = html;
+}
         // View payment details
         async function viewPaymentDetails(paymentId) {
             try {
@@ -3128,61 +3198,351 @@
 
         // Load disputes with filters
         async function loadDisputes() {
-            const tbody = document.getElementById('disputesTableBody');
+            const tbody = document.getElementById('cancelledOrdersDisputesTableBody');
 
             // Show loading state
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">Loading disputes...</td>' + '</tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading cancelled orders...</td>' + '</tr>';
 
             try {
                 // Get filter values
-                const search = document.getElementById('disputeSearch')?.value || '';
-                const status = document.getElementById('disputeStatusFilter')?.value || '';
-                const type = document.getElementById('disputeTypeFilter')?.value || '';
-                const priority = document.getElementById('disputePriorityFilter')?.value || '';
+                const search = document.getElementById('cancelledOrderSearch')?.value || '';
+                const revision_status = document.getElementById('revisionStatusFilter')?.value || '';
+                const payment_method = document.getElementById('cancelledOrderPaymentMethod')?.value || '';
 
-                const response = await fetch('<?= ROOT ?>/adminDashboard/getDisputes', {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getCancelledOrdersDisputes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         search: search,
-                        status: status,
-                        type: type,
-                        priority: priority
+                        revision_status: revision_status,
+                        payment_method: payment_method
                     })
                 });
 
                 const result = await response.json();
 
                 if (!result.success) {
-                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td>' + '</tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td>' + '</tr>`;
                     return;
                 }
 
                 // Update statistics
                 if (result.stats) {
-                    document.getElementById('totalDisputes').textContent = result.stats.total_disputes || 0;
-                    document.getElementById('openDisputes').textContent = result.stats.open_disputes || 0;
-                    document.getElementById('resolvedDisputes').textContent = result.stats.resolved_disputes || 0;
-                    document.getElementById('averageResolutionTime').textContent = result.stats.avg_resolution_hours || 0;
+                    const totalEl = document.getElementById('totalCancelledOrders');
+                    if (totalEl) totalEl.textContent = result.stats.total_cancelled || 0;
+                    const unrevisedEl = document.getElementById('unrevisedCancelledOrders');
+                    if (unrevisedEl) unrevisedEl.textContent = result.stats.unrevised || 0;
+                    const revisedEl = document.getElementById('revisedCancelledOrders');
+                    if (revisedEl) revisedEl.textContent = result.stats.revised || 0;
+                    const revLogEl = document.getElementById('revisionLogCount');
+                    if (revLogEl) revLogEl.textContent = result.stats.revised || 0;
 
-                    document.getElementById('highPriorityDisputes').textContent = result.stats.high_priority || 0;
-                    document.getElementById('mediumPriorityDisputes').textContent = result.stats.medium_priority || 0;
-                    document.getElementById('lowPriorityDisputes').textContent = result.stats.low_priority || 0;
-
-                    document.getElementById('orderIssues').textContent = result.stats.order_issues || 0;
-                    document.getElementById('paymentIssues').textContent = result.stats.payment_issues || 0;
-                    document.getElementById('deliveryIssues').textContent = result.stats.delivery_issues || 0;
-                    document.getElementById('qualityIssues').textContent = result.stats.quality_issues || 0;
+                    // Keep legacy counters safe if they still exist in the markup.
+                    const legacyIds = ['highPriorityDisputes', 'mediumPriorityDisputes', 'lowPriorityDisputes', 'orderIssues', 'paymentIssues', 'deliveryIssues', 'qualityIssues'];
+                    legacyIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = 0;
+                    });
                 }
 
                 allDisputes = result.data;
-                displayDisputes(allDisputes);
+                displayCancelledOrdersDisputes(allDisputes);
 
             } catch (error) {
                 console.error('Error loading disputes:', error);
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:red;">Failed to load disputes. Please try again.</td>' + '</tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load cancelled orders. Please try again.</td>' + '</tr>';
+            }
+        }
+
+        function formatMoney(value) {
+            const num = Number(value || 0);
+            return `Rs. ${num.toFixed(2)}`;
+        }
+
+        function paymentMethodLabel(method) {
+            const val = String(method || '').toLowerCase();
+            return val === 'card' ? 'Credit/Debit Card' :
+                   val === 'bank_transfer' ? 'Bank Transfer' :
+                   val === 'cod' ? 'Cash on Delivery' :
+                   val.charAt(0).toUpperCase() + val.slice(1);
+        }
+
+        async function loadNotificationStats() {
+            try {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getNotificationStats');
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    console.warn('Failed to load notification stats:', data.message || response.statusText);
+                    return;
+                }
+
+                const totalEl = document.getElementById('totalNotifications');
+                const deliveredEl = document.getElementById('deliveredNotifications');
+                const openRateEl = document.getElementById('openRate');
+                const clickRateEl = document.getElementById('clickRate');
+
+                if (totalEl) totalEl.textContent = data.total_sent ?? 0;
+                if (deliveredEl) deliveredEl.textContent = data.delivered ?? 0;
+                if (openRateEl) openRateEl.textContent = `${data.open_rate ?? 0}%`;
+                if (clickRateEl) clickRateEl.textContent = `${data.click_rate ?? 0}%`;
+            } catch (error) {
+                console.error('Error loading notification stats:', error);
+            }
+        }
+
+        // Display cancelled orders in the table
+        function displayCancelledOrdersDisputes(rows) {
+            const tbody = document.getElementById('cancelledOrdersDisputesTableBody');
+            if (!tbody) return;
+
+            if (!rows || rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No cancelled orders found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            rows.forEach(order => {
+                const hasRevision = !!order.revised_at;
+                const revisedTotal = hasRevision ? formatMoney(order.revised_total_amount) : '-';
+                const revisedBy = hasRevision ? escapeHtml(order.revised_by_name || 'Admin') : '-';
+                const updatedAt = formatDate(order.updated_at || order.created_at);
+                
+                // Status badge styling
+                let rowClass = '';
+                let statusBadge = '';
+                if (hasRevision) {
+                    rowClass = 'style="background-color:#f0fdf4;border-left:4px solid #22c55e;"';
+                    statusBadge = '<span style="display:inline-block;background:#22c55e;color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600;">✓ REVISED</span>';
+                }
+
+                html += `
+                    <tr ${rowClass}>
+                        <td><strong>#${escapeHtml(order.order_id)}</strong> ${statusBadge}</td>
+                        <td>${escapeHtml(order.buyer_name || 'Buyer')}<br><small>${escapeHtml(order.buyer_email || '')}</small></td>
+                        <td>${escapeHtml(paymentMethodLabel(order.payment_method))}</td>
+                        <td>${formatMoney(order.order_total)}</td>
+                        <td>${hasRevision ? `<strong>${revisedTotal}</strong>` : '<span style="color:#999;">-</span>'}</td>
+                        <td>${hasRevision ? `<small>${revisedBy}</small>` : '<span style="color:#999;">-</span>'}</td>
+                        <td>${updatedAt}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewCancelledOrderDisputeDetails(${Number(order.order_id)})">
+                                ${hasRevision ? 'View Revision' : 'Revise Payment'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // View cancelled order details and revise payment totals
+        async function viewCancelledOrderDisputeDetails(orderId) {
+            try {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getCancelledOrderDisputeDetails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: orderId })
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    alert(result.message || 'Failed to load order details');
+                    return;
+                }
+
+                const order = result.order || {};
+                const items = Array.isArray(result.items) ? result.items : [];
+                const revision = result.revision || null;
+
+                const itemsHtml = items.length
+                    ? `
+                        <h4 style="margin-top: 18px;">Order Items</h4>
+                        <div class="table-container" style="margin-top:10px;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Farmer</th>
+                                        <th>Unit Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${items.map(it => `
+                                        <tr>
+                                            <td>${escapeHtml(it.product_name || '')}</td>
+                                            <td>${escapeHtml(it.quantity || '')}</td>
+                                            <td>${escapeHtml(it.farmer_name || '')}</td>
+                                            <td>${formatMoney(it.product_price || 0)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `
+                    : '<p style="margin-top:18px;color:#888;">No order items found.</p>';
+
+                const revisionHtml = revision && revision.revised_at
+                    ? `
+                        <div style="margin-top:18px;padding:16px;border:2px solid #22c55e;border-radius:10px;background:#f0fdf4;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                                <span style="font-size:20px;">✓</span>
+                                <h4 style="margin:0;color:#22c55e;">Payment Revision Applied</h4>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+                                <div>
+                                    <p style="margin:0;font-size:11px;color:#666;text-transform:uppercase;">Original Total</p>
+                                    <p style="margin:4px 0 0;font-size:13px;font-weight:600;color:#999;text-decoration:line-through;">${formatMoney(revision.original_total_amount)}</p>
+                                </div>
+                                <div>
+                                    <p style="margin:0;font-size:11px;color:#666;text-transform:uppercase;">Revised Total</p>
+                                    <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#22c55e;">${formatMoney(revision.revised_total_amount)}</p>
+                                </div>
+                                <div>
+                                    <p style="margin:0;font-size:11px;color:#666;text-transform:uppercase;">Difference</p>
+                                    <p style="margin:4px 0 0;font-size:13px;font-weight:600;color:#f59e0b;">
+                                        ${formatMoney(Math.abs(revision.revised_total_amount - revision.original_total_amount))}
+                                        <small>(${revision.revised_total_amount < revision.original_total_amount ? '↓ Reduced' : '↑ Increased'})</small>
+                                    </p>
+                                </div>
+                            </div>
+                            <div style="border-top:1px solid #d1fae5;padding-top:12px;">
+                                <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;">Revised By:</p>
+                                <p style="margin:0;font-size:13px;font-weight:600;color:#059669;">${escapeHtml(revision.revised_by_name || 'Admin')}</p>
+                                <p style="margin:4px 0 0;font-size:11px;color:#666;">${formatDate(revision.revised_at)}</p>
+                                <p style="margin:8px 0 0;font-size:13px;color:#333;"><strong>Reason:</strong> ${escapeHtml(revision.reason || 'No reason provided')}</p>
+                            </div>
+                        </div>
+                    `
+                    : '';
+
+                const modalHtml = `
+                    <div id="cancelledOrderDisputeModal" class="modal" style="display:flex;">
+                        <div class="modal-content" style="max-width:860px;width:95%;max-height:80vh;overflow-y:auto;">
+                            <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid #eee;">
+                                <h3>Cancelled Order #${escapeHtml(order.id)}</h3>
+                                <button onclick="closeModal('cancelledOrderDisputeModal')" style="background:none;border:none;font-size:20px;cursor:pointer;">âœ•</button>
+                            </div>
+                            <div class="modal-body" style="padding:20px;">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                    <div>
+                                        <p><strong>Buyer:</strong> ${escapeHtml(order.buyer_name || '')} <small style="color:#666;">(${escapeHtml(order.buyer_email || '')})</small></p>
+                                        <p><strong>City:</strong> ${escapeHtml(order.delivery_city || '')}</p>
+                                        <p><strong>Payment Method:</strong> ${escapeHtml(paymentMethodLabel(order.payment_method))}</p>
+                                        <p><strong>Status:</strong> ${escapeHtml(order.status || '')}</p>
+                                    </div>
+                                    <div>
+                                        <p><strong>Product Total:</strong> ${formatMoney(order.total_amount)}</p>
+                                        <p><strong>Shipping Cost:</strong> ${formatMoney(order.shipping_cost)}</p>
+                                        <p><strong>Order Total:</strong> ${formatMoney(order.order_total)}</p>
+                                        <p><strong>Cancelled / Updated:</strong> ${formatDate(order.updated_at || order.created_at)}</p>
+                                    </div>
+                                </div>
+
+                                ${revisionHtml}
+
+                                ${revision && revision.revised_at ? `
+                                    <div style="margin-top:18px;padding:14px;border:1px solid #e5e7eb;border-radius:8px;background:#f3f4f6;">
+                                        <p style="margin:0;font-size:13px;color:#666;">
+                                            <span style="color:#6366f1;font-weight:600;">ℹ</span> This payment has already been revised. 
+                                            The amounts shown above reflect the current revised values.
+                                        </p>
+                                    </div>
+                                ` : `
+                                    <h4 style="margin-top:18px;">Revise Payment Totals</h4>
+                                    <div class="grid grid-2" style="margin-top:10px;">
+                                        <div class="form-group">
+                                            <label for="revTotalAmount">Revised Product Total</label>
+                                            <input type="number" step="0.01" min="0" id="revTotalAmount" class="form-control" value="${Number(order.total_amount || 0).toFixed(2)}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="revShippingCost">Revised Shipping Cost</label>
+                                            <input type="number" step="0.01" min="0" id="revShippingCost" class="form-control" value="${Number(order.shipping_cost || 0).toFixed(2)}">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="revReason">Reason *</label>
+                                        <textarea id="revReason" class="form-control" rows="3" placeholder="Explain why the payment totals are being revised..."></textarea>
+                                    </div>
+                                `}
+
+                                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+                                    ${revision && revision.revised_at ? `
+                                        <button class="btn btn-secondary" onclick="closeModal('cancelledOrderDisputeModal')">Close</button>
+                                    ` : `
+                                        <button class="btn btn-primary" onclick="applyPaymentRevision(${Number(order.id)})">Apply Revision</button>
+                                        <button class="btn btn-secondary" onclick="closeModal('cancelledOrderDisputeModal')">Cancel</button>
+                                    `}
+                                </div>
+
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const existingModal = document.getElementById('cancelledOrderDisputeModal');
+                if (existingModal) existingModal.remove();
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                document.body.style.overflow = 'hidden';
+
+            } catch (error) {
+                console.error('Error loading cancelled order details:', error);
+                alert('Failed to load order details');
+            }
+        }
+
+        async function applyPaymentRevision(orderId) {
+            const totalEl = document.getElementById('revTotalAmount');
+            const shipEl = document.getElementById('revShippingCost');
+            const reasonEl = document.getElementById('revReason');
+
+            const revised_total_amount = Number(totalEl?.value || 0);
+            const revised_shipping_cost = Number(shipEl?.value || 0);
+            const reason = String(reasonEl?.value || '').trim();
+
+            if (!reason) {
+                alert('Reason is required.');
+                return;
+            }
+
+            if (Number.isNaN(revised_total_amount) || Number.isNaN(revised_shipping_cost) || revised_total_amount < 0 || revised_shipping_cost < 0) {
+                alert('Please enter valid non-negative amounts.');
+                return;
+            }
+
+            if (!confirm('Apply this payment revision to the cancelled order?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/reviseCancelledOrderPayment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: orderId, revised_total_amount, revised_shipping_cost, reason })
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    alert(result.message || 'Failed to apply revision');
+                    return;
+                }
+
+                // Show success message
+                showNotification('✓ Payment revision applied successfully', 'success');
+                
+                // Reload the list after a short delay to show the updated status
+                setTimeout(() => {
+                    closeModal('cancelledOrderDisputeModal');
+                    loadDisputes();
+                }, 500);
+            } catch (error) {
+                console.error('Error applying payment revision:', error);
+                alert('Network error. Please try again.');
             }
         }
 
@@ -3673,12 +4033,8 @@
             }
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function () {
-            initAdminDashboard();
-            updateUserCount();
-            setInterval(updateUserCount, 30000);
-        });
+        // Note: DOMContentLoaded is already handled above (line ~1468)
+        // Removing duplicate initialization to prevent double event listeners
 
         // ============================================================
         // REPORT GENERATION SYSTEM

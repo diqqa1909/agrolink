@@ -33,12 +33,6 @@
                                 placeholder="Apartment, suite, etc. (optional)">
                         </div>
 
-                        <div class="form-group">
-                            <label for="city" class="form-label">City <span class="required">*</span></label>
-                            <input type="text" id="city" name="city" class="form-control"
-                                placeholder="Enter your city" required>
-                        </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="state" class="form-label">District <span class="required">*</span></label>
@@ -54,6 +48,13 @@
                                 <input type="text" id="zipCode" name="zipCode" class="form-control"
                                     placeholder="Postal code">
                             </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city" class="form-label">Nearest City <span class="required">*</span></label>
+                            <select id="city" name="city" class="form-control" required>
+                                <option value="" selected disabled>Select nearest city</option>
+                            </select>
                         </div>
 
                         <div class="form-group">

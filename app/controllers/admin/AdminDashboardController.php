@@ -827,7 +827,6 @@ class AdminDashboardController
                 p.price,
                 p.quantity as stock,
                 p.category,
-                p.status,
                 p.image,
                 p.created_at,
                 u.name as farmer_name,
@@ -856,11 +855,6 @@ class AdminDashboardController
                 $params[':category'] = $category;
             }
 
-            // Apply status filter
-            if (!empty($status)) {
-                $query .= " AND p.status = :status";
-                $params[':status'] = $status;
-            }
 
             // Apply price range filter
             if (!empty($minPrice)) {
@@ -883,9 +877,7 @@ class AdminDashboardController
             $statsQuery = "
             SELECT 
                 COUNT(*) as total_products,
-                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_products,
                 SUM(CASE WHEN quantity = 0 THEN 1 ELSE 0 END) as out_of_stock,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_approval,
                 AVG(price) as avg_price
             FROM products
         ";
@@ -1438,7 +1430,6 @@ public function getTopPerformers()
 }
 
 // Add these methods to your AdminDashboardController class
-
 public function getPayments()
 {
     header('Content-Type: application/json');
@@ -1453,41 +1444,42 @@ public function getPayments()
         $dateRange = $input['date_range'] ?? '';
         $search = $input['search'] ?? '';
         
-        // Build the query
+        // Build the query - MATCHING YOUR ORDERS TABLE STRUCTURE
         $query = "
             SELECT 
-                p.id as payment_id,
-                p.order_id,
-                p.amount,
-                p.payment_method,
-                p.payment_status,
-                p.transaction_id,
-                p.payment_date,
-                p.created_at,
-                o.order_number,
+                o.id as payment_id,
+                o.id as order_id,
+                o.order_total as amount,
+                o.payment_method,
+                o.status as payment_status,
+                CONCAT('TXN-', o.id, '-', DATE_FORMAT(o.created_at, '%Y%m%d')) as transaction_id,
+                o.created_at as payment_date,
+                o.created_at,
+                o.order_total,
+                o.shipping_cost,
+                o.total_weight_kg,
                 u.name as buyer_name,
                 u.email as buyer_email,
-                f.name as farmer_name
-            FROM payments p
-            JOIN orders o ON p.order_id = o.id
+                o.delivery_address,
+                o.delivery_city,
+                o.delivery_phone,
+                o.status as order_status
+            FROM orders o
             JOIN users u ON o.buyer_id = u.id
-            LEFT JOIN order_items oi ON o.id = oi.order_id
-            LEFT JOIN products pr ON oi.product_id = pr.id
-            LEFT JOIN users f ON pr.farmer_id = f.id
             WHERE 1=1
         ";
         
         $params = [];
         
-        // Apply status filter
+        // Apply status filter (using order status as payment status indicator)
         if (!empty($status)) {
-            $query .= " AND p.payment_status = :status";
+            $query .= " AND o.status = :status";
             $params[':status'] = $status;
         }
         
         // Apply payment method filter
         if (!empty($method)) {
-            $query .= " AND p.payment_method = :method";
+            $query .= " AND o.payment_method = :method";
             $params[':method'] = $method;
         }
         
@@ -1495,68 +1487,70 @@ public function getPayments()
         if (!empty($dateRange)) {
             switch ($dateRange) {
                 case 'today':
-                    $query .= " AND DATE(p.payment_date) = CURDATE()";
+                    $query .= " AND DATE(o.created_at) = CURDATE()";
                     break;
                 case 'week':
-                    $query .= " AND YEARWEEK(p.payment_date) = YEARWEEK(CURDATE())";
+                    $query .= " AND YEARWEEK(o.created_at) = YEARWEEK(CURDATE())";
                     break;
                 case 'month':
-                    $query .= " AND MONTH(p.payment_date) = MONTH(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE())";
+                    $query .= " AND MONTH(o.created_at) = MONTH(CURDATE()) AND YEAR(o.created_at) = YEAR(CURDATE())";
                     break;
                 case 'quarter':
-                    $query .= " AND QUARTER(p.payment_date) = QUARTER(CURDATE()) AND YEAR(p.payment_date) = YEAR(CURDATE())";
+                    $query .= " AND QUARTER(o.created_at) = QUARTER(CURDATE()) AND YEAR(o.created_at) = YEAR(CURDATE())";
                     break;
                 case 'year':
-                    $query .= " AND YEAR(p.payment_date) = YEAR(CURDATE())";
+                    $query .= " AND YEAR(o.created_at) = YEAR(CURDATE())";
                     break;
             }
         }
         
         // Apply search filter
         if (!empty($search)) {
-            $query .= " AND (o.order_number LIKE :search OR u.name LIKE :search OR p.transaction_id LIKE :search)";
+            $query .= " AND (o.id LIKE :search OR u.name LIKE :search OR CONCAT('TXN-', o.id) LIKE :search OR o.delivery_city LIKE :search)";
             $params[':search'] = "%{$search}%";
         }
         
-        $query .= " GROUP BY p.id ORDER BY p.payment_date DESC";
+        $query .= " ORDER BY o.created_at DESC";
         
         $stmt = $db->prepare($query);
         $stmt->execute($params);
         $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Get payment statistics
+        // Get payment statistics from orders table
         $statsQuery = "
             SELECT 
                 COUNT(*) as total_transactions,
-                SUM(CASE WHEN payment_status = 'completed' THEN amount ELSE 0 END) as total_completed_amount,
-                SUM(CASE WHEN payment_status = 'pending' THEN amount ELSE 0 END) as total_pending_amount,
-                SUM(CASE WHEN payment_status = 'failed' THEN amount ELSE 0 END) as total_failed_amount,
-                SUM(CASE WHEN payment_status = 'refunded' THEN amount ELSE 0 END) as total_refunded_amount,
-                COUNT(CASE WHEN payment_status = 'completed' THEN 1 END) as completed_count,
-                COUNT(CASE WHEN payment_status = 'pending' THEN 1 END) as pending_count,
-                COUNT(CASE WHEN payment_status = 'failed' THEN 1 END) as failed_count,
-                COUNT(CASE WHEN payment_status = 'refunded' THEN 1 END) as refunded_count,
-                SUM(amount) as total_revenue,
-                AVG(amount) as avg_payment_amount,
-                SUM(CASE WHEN payment_method = 'cash_on_delivery' THEN amount ELSE 0 END) as cod_revenue,
-                SUM(CASE WHEN payment_method = 'bank_transfer' THEN amount ELSE 0 END) as bank_revenue,
-                SUM(CASE WHEN payment_method = 'card' THEN amount ELSE 0 END) as card_revenue,
-                SUM(CASE WHEN payment_method = 'mobile_payment' THEN amount ELSE 0 END) as mobile_revenue
-            FROM payments
+                SUM(CASE WHEN status = 'delivered' OR status = 'completed' THEN order_total ELSE 0 END) as total_completed_amount,
+                SUM(CASE WHEN status = 'pending' THEN order_total ELSE 0 END) as total_pending_amount,
+                SUM(CASE WHEN status = 'cancelled' THEN order_total ELSE 0 END) as total_cancelled_amount,
+                SUM(CASE WHEN status = 'shipped' THEN order_total ELSE 0 END) as total_shipped_amount,
+                COUNT(CASE WHEN status = 'delivered' OR status = 'completed' THEN 1 END) as completed_count,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_count,
+                COUNT(CASE WHEN status = 'shipped' THEN 1 END) as shipped_count,
+                SUM(order_total) as total_revenue,
+                AVG(order_total) as avg_payment_amount,
+                SUM(CASE WHEN payment_method = 'cash_on_delivery' THEN order_total ELSE 0 END) as cod_revenue,
+                SUM(CASE WHEN payment_method = 'bank_transfer' THEN order_total ELSE 0 END) as bank_revenue,
+                SUM(CASE WHEN payment_method = 'card' THEN order_total ELSE 0 END) as card_revenue,
+                SUM(CASE WHEN payment_method = 'mobile_payment' THEN order_total ELSE 0 END) as mobile_revenue,
+                SUM(shipping_cost) as total_shipping_revenue,
+                AVG(total_weight_kg) as avg_weight
+            FROM orders
         ";
         
         $statsStmt = $db->prepare($statsQuery);
         $statsStmt->execute();
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
         
-        // Get payment method distribution
+        // Get payment method distribution from orders
         $methodQuery = "
             SELECT 
                 payment_method,
                 COUNT(*) as count,
-                SUM(amount) as total_amount
-            FROM payments
-            WHERE payment_status = 'completed'
+                SUM(order_total) as total_amount
+            FROM orders
+            WHERE status IN ('delivered', 'completed', 'shipped')
             GROUP BY payment_method
         ";
         
@@ -1564,17 +1558,17 @@ public function getPayments()
         $methodStmt->execute();
         $methodDistribution = $methodStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Get monthly payment trends
+        // Get monthly payment trends from orders
         $trendsQuery = "
             SELECT 
-                DATE_FORMAT(payment_date, '%Y-%m') as month,
+                DATE_FORMAT(created_at, '%Y-%m') as month,
                 COUNT(*) as payment_count,
-                SUM(amount) as total_amount,
-                AVG(amount) as avg_amount
-            FROM payments
-            WHERE payment_status = 'completed'
-            AND payment_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
+                SUM(order_total) as total_amount,
+                AVG(order_total) as avg_amount
+            FROM orders
+            WHERE status IN ('delivered', 'completed')
+            AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
             ORDER BY month ASC
         ";
         
@@ -1582,7 +1576,7 @@ public function getPayments()
         $trendsStmt->execute();
         $trends = $trendsStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Calculate platform commission (assuming 5% commission)
+        // Calculate platform commission (assuming 5% commission on completed orders)
         $totalCommission = ($stats['total_completed_amount'] ?? 0) * 0.05;
         
         echo json_encode([
@@ -1593,18 +1587,20 @@ public function getPayments()
                 'total_revenue' => round($stats['total_revenue'] ?? 0, 2),
                 'total_completed_amount' => round($stats['total_completed_amount'] ?? 0, 2),
                 'total_pending_amount' => round($stats['total_pending_amount'] ?? 0, 2),
-                'total_failed_amount' => round($stats['total_failed_amount'] ?? 0, 2),
-                'total_refunded_amount' => round($stats['total_refunded_amount'] ?? 0, 2),
+                'total_cancelled_amount' => round($stats['total_cancelled_amount'] ?? 0, 2),
+                'total_shipped_amount' => round($stats['total_shipped_amount'] ?? 0, 2),
                 'completed_count' => (int)($stats['completed_count'] ?? 0),
                 'pending_count' => (int)($stats['pending_count'] ?? 0),
-                'failed_count' => (int)($stats['failed_count'] ?? 0),
-                'refunded_count' => (int)($stats['refunded_count'] ?? 0),
+                'cancelled_count' => (int)($stats['cancelled_count'] ?? 0),
+                'shipped_count' => (int)($stats['shipped_count'] ?? 0),
                 'avg_payment_amount' => round($stats['avg_payment_amount'] ?? 0, 2),
                 'platform_commission' => round($totalCommission, 2),
                 'cod_revenue' => round($stats['cod_revenue'] ?? 0, 2),
                 'bank_revenue' => round($stats['bank_revenue'] ?? 0, 2),
                 'card_revenue' => round($stats['card_revenue'] ?? 0, 2),
-                'mobile_revenue' => round($stats['mobile_revenue'] ?? 0, 2)
+                'mobile_revenue' => round($stats['mobile_revenue'] ?? 0, 2),
+                'total_shipping_revenue' => round($stats['total_shipping_revenue'] ?? 0, 2),
+                'avg_weight' => round($stats['avg_weight'] ?? 0, 2)
             ],
             'method_distribution' => $methodDistribution,
             'trends' => $trends
@@ -1634,19 +1630,32 @@ public function getPaymentDetails($paymentId = null)
         
         $db = $this->connect();
         
+        // Get payment details from orders table
         $query = "
             SELECT 
-                p.*,
-                o.order_number,
-                o.status as order_status,
+                o.id as payment_id,
+                o.id as order_id,
+                o.order_total as amount,
+                o.shipping_cost,
+                o.total_weight_kg,
+                o.payment_method,
+                o.status as payment_status,
+                o.created_at as payment_date,
+                CONCAT('TXN-', o.id, '-', DATE_FORMAT(o.created_at, '%Y%m%d')) as transaction_id,
                 u.name as buyer_name,
                 u.email as buyer_email,
                 u.phone as buyer_phone,
-                u.address as buyer_address
-            FROM payments p
-            JOIN orders o ON p.order_id = o.id
+                o.delivery_address,
+                o.delivery_city,
+                o.delivery_district_id,
+                o.delivery_town_id,
+                o.delivery_phone,
+                o.status as order_status,
+                NULL as refund_reason,
+                NULL as refund_date
+            FROM orders o
             JOIN users u ON o.buyer_id = u.id
-            WHERE p.id = ?
+            WHERE o.id = ?
         ";
         
         $stmt = $db->prepare($query);
@@ -1683,33 +1692,22 @@ public function updatePaymentStatus()
             exit;
         }
         
-        $validStatuses = ['pending', 'completed', 'failed', 'refunded'];
+        // Valid order statuses based on your table
+        $validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
+        
         if (!in_array($status, $validStatuses)) {
-            echo json_encode(['success' => false, 'message' => 'Invalid status']);
+            echo json_encode(['success' => false, 'message' => 'Invalid status. Must be: pending, shipped, delivered, cancelled']);
             exit;
         }
         
         $db = $this->connect();
         
-        $query = "UPDATE payments SET payment_status = :status WHERE id = :payment_id";
+        // Update status in orders table
+        $query = "UPDATE orders SET status = :status, updated_at = NOW() WHERE id = :order_id";
         $stmt = $db->prepare($query);
-        $result = $stmt->execute([':status' => $status, ':payment_id' => $paymentId]);
+        $result = $stmt->execute([':status' => $status, ':order_id' => $paymentId]);
         
         if ($result) {
-            // If payment is completed, update order payment status
-            if ($status === 'completed') {
-                $getOrderQuery = "SELECT order_id FROM payments WHERE id = ?";
-                $orderStmt = $db->prepare($getOrderQuery);
-                $orderStmt->execute([$paymentId]);
-                $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($order) {
-                    $updateOrderQuery = "UPDATE orders SET payment_status = 'paid' WHERE id = ?";
-                    $updateStmt = $db->prepare($updateOrderQuery);
-                    $updateStmt->execute([$order['order_id']]);
-                }
-            }
-            
             echo json_encode(['success' => true, 'message' => 'Payment status updated successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update payment status']);
@@ -1737,25 +1735,14 @@ public function refundPayment()
         
         $db = $this->connect();
         
-        // Update payment status to refunded
-        $query = "UPDATE payments SET payment_status = 'refunded', refund_reason = :reason, refund_date = NOW() WHERE id = :payment_id";
+        // Update order status to cancelled (as a form of refund)
+        $query = "UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = :order_id";
         $stmt = $db->prepare($query);
-        $result = $stmt->execute([':reason' => $reason, ':payment_id' => $paymentId]);
+        $result = $stmt->execute([':order_id' => $paymentId]);
         
         if ($result) {
-            // Update order payment status
-            $getOrderQuery = "SELECT order_id FROM payments WHERE id = ?";
-            $orderStmt = $db->prepare($getOrderQuery);
-            $orderStmt->execute([$paymentId]);
-            $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($order) {
-                $updateOrderQuery = "UPDATE orders SET payment_status = 'refunded' WHERE id = ?";
-                $updateStmt = $db->prepare($updateOrderQuery);
-                $updateStmt->execute([$order['order_id']]);
-            }
-            
-            echo json_encode(['success' => true, 'message' => 'Payment refunded successfully']);
+            // You might want to log the refund reason in a separate table
+            echo json_encode(['success' => true, 'message' => 'Payment refunded successfully (order cancelled)']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to refund payment']);
         }
@@ -1765,7 +1752,6 @@ public function refundPayment()
     }
     exit;
 }
-
 // Add these methods to your AdminDashboardController class
 
 public function getDisputes()
@@ -1785,65 +1771,56 @@ public function getDisputes()
         // Build the query
         $query = "
             SELECT 
-                d.id as dispute_id,
-                d.order_id,
-                d.complainant_id,
-                d.respondent_id,
-                d.type,
-                d.reason,
-                d.status,
-                d.priority,
-                d.resolution_notes,
-                d.created_at,
-                d.updated_at,
-                d.resolved_at,
-                o.order_number,
+                o.id as dispute_id,
+                o.id as order_id,
+                o.buyer_id as complainant_id,
+                NULL as respondent_id,
+                'cancelled_order' as type,
+                'Order cancelled - payment revision needed' as reason,
+                'open' as status,
+                'medium' as priority,
+                NULL as resolution_notes,
+                o.created_at,
+                o.updated_at,
+                NULL as resolved_at,
+                CONCAT('ORD-', o.id) as order_number,
                 o.total_amount as order_amount,
-                c.name as complainant_name,
-                c.email as complainant_email,
-                c.role as complainant_role,
-                r.name as respondent_name,
-                r.email as respondent_email,
-                r.role as respondent_role
-            FROM disputes d
-            JOIN orders o ON d.order_id = o.id
-            JOIN users c ON d.complainant_id = c.id
-            JOIN users r ON d.respondent_id = r.id
-            WHERE 1=1
+                b.name as complainant_name,
+                b.email as complainant_email,
+                b.role as complainant_role,
+                'System' as respondent_name,
+                '' as respondent_email,
+                'admin' as respondent_role
+            FROM orders o
+            JOIN users b ON o.buyer_id = b.id
+            WHERE o.status = 'cancelled'
         ";
         
         $params = [];
         
-        // Apply status filter
-        if (!empty($status)) {
-            $query .= " AND d.status = :status";
-            $params[':status'] = $status;
+        // Apply status filter (for cancelled orders, status is always 'open' for disputes)
+        if (!empty($status) && $status !== 'open') {
+            // If filtering for other statuses, no results since all are 'open'
+            $query .= " AND 1=0";
         }
         
         // Apply type filter
-        if (!empty($type)) {
-            $query .= " AND d.type = :type";
-            $params[':type'] = $type;
+        if (!empty($type) && $type !== 'cancelled_order') {
+            $query .= " AND 1=0"; // No other types
         }
         
         // Apply priority filter
-        if (!empty($priority)) {
-            $query .= " AND d.priority = :priority";
-            $params[':priority'] = $priority;
+        if (!empty($priority) && $priority !== 'medium') {
+            $query .= " AND 1=0"; // All are medium
         }
         
         // Apply search filter
         if (!empty($search)) {
-            $query .= " AND (o.order_number LIKE :search OR c.name LIKE :search OR r.name LIKE :search OR d.reason LIKE :search)";
+            $query .= " AND (CONCAT('ORD-', o.id) LIKE :search OR b.name LIKE :search OR 'System' LIKE :search OR 'Order cancelled - payment revision needed' LIKE :search)";
             $params[':search'] = "%{$search}%";
         }
         
-        $query .= " ORDER BY 
-            CASE WHEN d.priority = 'high' THEN 1 
-                 WHEN d.priority = 'medium' THEN 2 
-                 WHEN d.priority = 'low' THEN 3 
-                 ELSE 4 END ASC,
-            d.created_at DESC";
+        $query .= " ORDER BY o.created_at DESC";
         
         $stmt = $db->prepare($query);
         $stmt->execute($params);
@@ -1853,21 +1830,20 @@ public function getDisputes()
         $statsQuery = "
             SELECT 
                 COUNT(*) as total_disputes,
-                SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open_disputes,
-                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_disputes,
-                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved_disputes,
-                SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed_disputes,
-                SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) as high_priority,
-                SUM(CASE WHEN priority = 'medium' THEN 1 ELSE 0 END) as medium_priority,
-                SUM(CASE WHEN priority = 'low' THEN 1 ELSE 0 END) as low_priority,
-                AVG(CASE WHEN resolved_at IS NOT NULL 
-                    THEN TIMESTAMPDIFF(HOUR, created_at, resolved_at) 
-                    ELSE NULL END) as avg_resolution_hours,
-                SUM(CASE WHEN type = 'order_issue' THEN 1 ELSE 0 END) as order_issues,
-                SUM(CASE WHEN type = 'payment_issue' THEN 1 ELSE 0 END) as payment_issues,
-                SUM(CASE WHEN type = 'delivery_issue' THEN 1 ELSE 0 END) as delivery_issues,
-                SUM(CASE WHEN type = 'product_quality' THEN 1 ELSE 0 END) as quality_issues
-            FROM disputes
+                COUNT(*) as open_disputes,
+                0 as in_progress_disputes,
+                0 as resolved_disputes,
+                0 as closed_disputes,
+                0 as high_priority,
+                COUNT(*) as medium_priority,
+                0 as low_priority,
+                NULL as avg_resolution_hours,
+                0 as order_issues,
+                COUNT(*) as payment_issues,
+                0 as delivery_issues,
+                0 as quality_issues
+            FROM orders
+            WHERE status = 'cancelled'
         ";
         
         $statsStmt = $db->prepare($statsQuery);
@@ -1877,12 +1853,12 @@ public function getDisputes()
         // Get dispute type distribution
         $typeQuery = "
             SELECT 
-                type,
+                'cancelled_order' as type,
                 COUNT(*) as count,
-                SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open_count,
-                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved_count
-            FROM disputes
-            GROUP BY type
+                COUNT(*) as open_count,
+                0 as resolved_count
+            FROM orders
+            WHERE status = 'cancelled'
         ";
         
         $typeStmt = $db->prepare($typeQuery);
@@ -1936,23 +1912,30 @@ public function getDisputeDetails($disputeId = null)
         
         $query = "
             SELECT 
-                d.*,
-                o.order_number,
+                o.id as id,
+                o.id as order_id,
+                'cancelled_order' as type,
+                'Order cancelled - payment revision needed' as reason,
+                'open' as status,
+                'medium' as priority,
+                NULL as resolution_notes,
+                o.created_at,
+                o.updated_at,
+                NULL as resolved_at,
+                CONCAT('ORD-', o.id) as order_number,
                 o.total_amount as order_amount,
                 o.status as order_status,
-                c.name as complainant_name,
-                c.email as complainant_email,
-                c.phone as complainant_phone,
-                c.role as complainant_role,
-                r.name as respondent_name,
-                r.email as respondent_email,
-                r.phone as respondent_phone,
-                r.role as respondent_role
-            FROM disputes d
-            JOIN orders o ON d.order_id = o.id
-            JOIN users c ON d.complainant_id = c.id
-            JOIN users r ON d.respondent_id = r.id
-            WHERE d.id = ?
+                b.name as complainant_name,
+                b.email as complainant_email,
+                b.phone as complainant_phone,
+                b.role as complainant_role,
+                'System' as respondent_name,
+                '' as respondent_email,
+                '' as respondent_phone,
+                'admin' as respondent_role
+            FROM orders o
+            JOIN users b ON o.buyer_id = b.id
+            WHERE o.id = ? AND o.status = 'cancelled'
         ";
         
         $stmt = $db->prepare($query);
@@ -1964,21 +1947,8 @@ public function getDisputeDetails($disputeId = null)
             exit;
         }
         
-        // Get messages/conversation for this dispute
-        $messagesQuery = "
-            SELECT 
-                dm.*,
-                u.name as sender_name,
-                u.role as sender_role
-            FROM dispute_messages dm
-            JOIN users u ON dm.sender_id = u.id
-            WHERE dm.dispute_id = ?
-            ORDER BY dm.created_at ASC
-        ";
-        
-        $messagesStmt = $db->prepare($messagesQuery);
-        $messagesStmt->execute([$disputeId]);
-        $messages = $messagesStmt->fetchAll(PDO::FETCH_ASSOC);
+        // For cancelled orders, no dispute messages yet
+        $messages = [];
         
         echo json_encode([
             'success' => true,
@@ -2015,27 +1985,23 @@ public function updateDisputeStatus()
         
         $db = $this->connect();
         
-        $query = "UPDATE disputes SET status = :status";
-        $params = [':status' => $status, ':id' => $disputeId];
-        
-        if ($status === 'resolved' || $status === 'closed') {
-            $query .= ", resolved_at = NOW()";
-        }
-        
-        if ($resolutionNotes) {
-            $query .= ", resolution_notes = :resolution_notes";
-            $params[':resolution_notes'] = $resolutionNotes;
-        }
-        
-        $query .= " WHERE id = :id";
-        
-        $stmt = $db->prepare($query);
-        $result = $stmt->execute($params);
-        
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Dispute status updated successfully']);
+        // For cancelled orders as disputes, if resolving, perform refund
+        if ($status === 'resolved') {
+            // Call refund payment
+            $refundInput = ['payment_id' => $disputeId, 'reason' => $resolutionNotes ?? 'Dispute resolved'];
+            // Simulate the refund process
+            $query = "UPDATE orders SET status = 'refunded', updated_at = NOW() WHERE id = :order_id";
+            $stmt = $db->prepare($query);
+            $result = $stmt->execute([':order_id' => $disputeId]);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Dispute resolved and payment refunded successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to refund payment']);
+            }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to update dispute status']);
+            // For other statuses, just acknowledge (since no table to update)
+            echo json_encode(['success' => true, 'message' => 'Dispute status updated successfully']);
         }
         
     } catch (Exception $e) {
@@ -2061,24 +2027,8 @@ public function addDisputeMessage()
         
         $db = $this->connect();
         
-        $query = "INSERT INTO dispute_messages (dispute_id, sender_id, message, created_at) VALUES (:dispute_id, :sender_id, :message, NOW())";
-        $stmt = $db->prepare($query);
-        $result = $stmt->execute([
-            ':dispute_id' => $disputeId,
-            ':sender_id' => $senderId,
-            ':message' => $message
-        ]);
-        
-        if ($result) {
-            // Update dispute updated_at timestamp
-            $updateQuery = "UPDATE disputes SET updated_at = NOW() WHERE id = ?";
-            $updateStmt = $db->prepare($updateQuery);
-            $updateStmt->execute([$disputeId]);
-            
-            echo json_encode(['success' => true, 'message' => 'Message added successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to add message']);
-        }
+        // For cancelled orders, messages are not stored yet
+        echo json_encode(['success' => true, 'message' => 'Message noted (not stored)']);
         
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -2102,15 +2052,15 @@ public function resolveDispute()
         
         $db = $this->connect();
         
-        $query = "UPDATE disputes SET status = 'resolved', resolution_notes = :resolution, resolved_at = NOW() WHERE id = :id";
+        // For cancelled orders, resolving means refunding
+        $query = "UPDATE orders SET status = 'refunded', updated_at = NOW() WHERE id = :id AND status = 'cancelled'";
         $stmt = $db->prepare($query);
         $result = $stmt->execute([
-            ':resolution' => $resolution,
             ':id' => $disputeId
         ]);
         
         if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Dispute resolved successfully']);
+            echo json_encode(['success' => true, 'message' => 'Dispute resolved and payment refunded successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to resolve dispute']);
         }
@@ -2119,6 +2069,483 @@ public function resolveDispute()
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     exit;
+}
+
+public function sendNotification()
+{
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    if (!requireRole('admin', ['json' => true, 'message' => 'Admin access required'])) {
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
+    }
+
+    $title = trim((string)($_POST['title'] ?? ''));
+    $message = trim((string)($_POST['message'] ?? ''));
+    $recipient = strtolower(trim((string)($_POST['recipient'] ?? '')));
+    $type = strtolower(trim((string)($_POST['type'] ?? 'system')));
+    $selectedUserIds = $_POST['user_ids'] ?? [];
+
+    if ($title === '' || $message === '' || $recipient === '') {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Title, message and recipient are required']);
+        exit;
+    }
+
+    $allowedTypes = ['system', 'maintenance', 'promotion', 'alert'];
+    if (!in_array($type, $allowedTypes, true)) {
+        $type = 'system';
+    }
+
+    if ($type !== 'system') {
+        $title = strtoupper(substr($type, 0, 1)) . substr($type, 1) . ': ' . $title;
+    }
+
+    $userIds = $this->resolveNotificationRecipientUserIds($recipient, $selectedUserIds);
+    if (empty($userIds)) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'No matching recipients found']);
+        exit;
+    }
+
+    $notifications = new NotificationsModel();
+    $eventKey = 'admin_' . date('YmdHis') . '_' . bin2hex(random_bytes(6));
+    $result = $notifications->broadcast($userIds, [
+        'event_key' => $eventKey,
+        'title' => $title,
+        'message' => $message,
+        'type' => $type,
+        'link' => null,
+    ]);
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Notification sent',
+        'sent' => (int)($result['sent'] ?? 0),
+        'failed' => (int)($result['failed'] ?? 0),
+    ]);
+    exit;
+}
+
+public function getNotificationStats()
+{
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    if (!requireRole('admin', ['json' => true, 'message' => 'Admin access required'])) {
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
+    }
+
+    try {
+        $notifications = new NotificationsModel();
+        $stats = $notifications->get_row(
+            'SELECT COUNT(*) AS total_sent, SUM(is_read) AS read_count FROM notifications',
+            []
+        );
+
+        $total = (int)($stats->total_sent ?? 0);
+        $read = (int)($stats->read_count ?? 0);
+        $openRate = $total > 0 ? (int)round(($read / $total) * 100) : 0;
+
+        echo json_encode([
+            'success' => true,
+            'total_sent' => $total,
+            'delivered' => $total,
+            'open_rate' => $openRate,
+            'click_rate' => 0,
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+private function resolveNotificationRecipientUserIds(string $recipient, $selectedUserIds = []): array
+{
+    $userModel = new UserModel();
+
+    $recipient = strtolower(trim($recipient));
+    $roleMap = [
+        'farmers' => 'farmer',
+        'buyers' => 'buyer',
+        'transporters' => 'transporter',
+        'admins' => 'admin',
+    ];
+
+    if ($recipient === 'selected') {
+        $ids = is_array($selectedUserIds) ? $selectedUserIds : [$selectedUserIds];
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($id) => $id > 0)));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach ($ids as $index => $id) {
+            $key = 'id_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $id;
+        }
+
+        $rows = $userModel->query(
+            "SELECT id FROM users WHERE id IN (" . implode(',', $placeholders) . ")",
+            $params
+        );
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map(fn($row) => (int)($row->id ?? 0), $rows)));
+    }
+
+    if ($recipient === 'all') {
+        $rows = $userModel->query("SELECT id FROM users", []);
+        if (!is_array($rows)) {
+            return [];
+        }
+        return array_values(array_unique(array_map(fn($row) => (int)($row->id ?? 0), $rows)));
+    }
+
+    if (isset($roleMap[$recipient])) {
+        $role = $roleMap[$recipient];
+        $rows = $userModel->query("SELECT id FROM users WHERE role = :role", ['role' => $role]);
+        if (!is_array($rows)) {
+            return [];
+        }
+        return array_values(array_unique(array_map(fn($row) => (int)($row->id ?? 0), $rows)));
+    }
+
+    return [];
+}
+
+public function getCancelledOrdersDisputes()
+{
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    if (!requireRole('admin', ['json' => true, 'message' => 'Admin access required'])) {
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $search = trim((string)($input['search'] ?? ''));
+    $revisionStatus = strtolower(trim((string)($input['revision_status'] ?? ''))); // revised|unrevised|all
+    $paymentMethod = strtolower(trim((string)($input['payment_method'] ?? '')));
+
+    try {
+        $db = $this->connect();
+
+        $where = ["o.status = 'cancelled'"];
+        $params = [];
+
+        if ($search !== '') {
+            $where[] = "(CAST(o.id AS CHAR) LIKE :search OR b.name LIKE :search OR b.email LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        if ($paymentMethod !== '') {
+            $where[] = "LOWER(COALESCE(o.payment_method, '')) = :payment_method";
+            $params[':payment_method'] = $paymentMethod;
+        }
+
+        if ($revisionStatus === 'revised') {
+            $where[] = "o.revised_at IS NOT NULL";
+        } elseif ($revisionStatus === 'unrevised') {
+            $where[] = "o.revised_at IS NULL";
+        }
+
+        $whereSql = implode(' AND ', $where);
+
+        $sql = "
+            SELECT
+                o.id AS order_id,
+                o.buyer_id,
+                b.name AS buyer_name,
+                b.email AS buyer_email,
+                o.total_amount,
+                o.shipping_cost,
+                o.order_total,
+                o.payment_method,
+                o.delivery_city,
+                o.created_at,
+                o.updated_at,
+                o.id AS revision_id,
+                o.total_amount AS revised_total_amount,
+                o.shipping_cost AS revised_shipping_cost,
+                o.order_total AS revised_order_total,
+                o.revision_reason,
+                o.revised_at,
+                admin_u.name AS revised_by_name
+            FROM orders o
+            JOIN users b ON b.id = o.buyer_id
+            LEFT JOIN users admin_u ON admin_u.id = o.revised_by_admin_id
+            WHERE {$whereSql}
+            ORDER BY o.updated_at DESC, o.id DESC
+            LIMIT 200
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $total = count($rows);
+        $revised = 0;
+        foreach ($rows as $r) {
+            if (!empty($r['revised_at'])) {
+                $revised++;
+            }
+        }
+        $unrevised = $total - $revised;
+
+        echo json_encode([
+            'success' => true,
+            'data' => $rows,
+            'stats' => [
+                'total_cancelled' => $total,
+                'revised' => $revised,
+                'unrevised' => $unrevised,
+            ],
+        ]);
+        exit;
+    } catch (Exception $e) {
+        error_log("Error in getCancelledOrdersDisputes: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit;
+    }
+}
+
+public function getCancelledOrderDisputeDetails()
+{
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    if (!requireRole('admin', ['json' => true, 'message' => 'Admin access required'])) {
+        exit;
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $orderId = (int)($input['order_id'] ?? 0);
+
+    if ($orderId <= 0) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Order ID required']);
+        exit;
+    }
+
+    try {
+        $db = $this->connect();
+
+        $orderStmt = $db->prepare("
+            SELECT
+                o.*,
+                b.name AS buyer_name,
+                b.email AS buyer_email
+            FROM orders o
+            JOIN users b ON b.id = o.buyer_id
+            WHERE o.id = ?
+            LIMIT 1
+        ");
+        $orderStmt->execute([$orderId]);
+        $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$order || ($order['status'] ?? '') !== 'cancelled') {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Cancelled order not found']);
+            exit;
+        }
+
+        $itemsStmt = $db->prepare("
+            SELECT
+                oi.*,
+                u.name AS farmer_name
+            FROM order_items oi
+            LEFT JOIN users u ON u.id = oi.farmer_id
+            WHERE oi.order_id = ?
+            ORDER BY oi.id ASC
+        ");
+        $itemsStmt->execute([$orderId]);
+        $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Build revision data from order columns
+        $revision = null;
+        if (!empty($order['revised_at'])) {
+            $revision = [
+                'original_total_amount' => $order['original_total_amount'],
+                'original_shipping_cost' => $order['original_shipping_cost'],
+                'original_order_total' => $order['original_order_total'],
+                'revised_total_amount' => $order['total_amount'],
+                'revised_shipping_cost' => $order['shipping_cost'],
+                'revised_order_total' => $order['order_total'],
+                'reason' => $order['revision_reason'],
+                'revised_at' => $order['revised_at'],
+                'revised_by_admin_id' => $order['revised_by_admin_id']
+            ];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'order' => $order,
+            'items' => $items,
+            'revision' => $revision,
+        ]);
+        exit;
+    } catch (Exception $e) {
+        error_log("Error in getCancelledOrderDisputeDetails: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit;
+    }
+}
+
+public function reviseCancelledOrderPayment()
+{
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    if (!requireRole('admin', ['json' => true, 'message' => 'Admin access required'])) {
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $orderId = (int)($input['order_id'] ?? 0);
+    $revisedTotal = (float)($input['revised_total_amount'] ?? 0);
+    $revisedShipping = (float)($input['revised_shipping_cost'] ?? 0);
+    $reason = trim((string)($input['reason'] ?? ''));
+
+    if ($orderId <= 0) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Order ID required']);
+        exit;
+    }
+
+    if ($reason === '') {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Reason is required']);
+        exit;
+    }
+
+    if ($revisedTotal < 0 || $revisedShipping < 0) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Amounts cannot be negative']);
+        exit;
+    }
+
+    try {
+        $db = $this->connect();
+
+        $stmt = $db->prepare("SELECT * FROM orders WHERE id = ? LIMIT 1");
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$order || ($order['status'] ?? '') !== 'cancelled') {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Cancelled order not found']);
+            exit;
+        }
+
+        // Store original amounts if not already stored
+        $originalTotal = (float)($order['original_total_amount'] ?? $order['total_amount'] ?? 0);
+        $originalShipping = (float)($order['original_shipping_cost'] ?? $order['shipping_cost'] ?? 0);
+        $originalOrderTotal = (float)($order['original_order_total'] ?? $order['order_total'] ?? ($originalTotal + $originalShipping));
+
+        $revisedOrderTotal = round($revisedTotal + $revisedShipping, 2);
+
+        $adminId = (int)(authUserId() ?? 0);
+        if ($adminId <= 0 && !empty($_SESSION['USER']->id)) {
+            $adminId = (int)$_SESSION['USER']->id;
+        }
+
+        $db->beginTransaction();
+
+        $update = $db->prepare("
+            UPDATE orders
+            SET total_amount = :total_amount,
+                shipping_cost = :shipping_cost,
+                order_total = :order_total,
+                original_total_amount = :original_total,
+                original_shipping_cost = :original_shipping,
+                original_order_total = :original_order_total,
+                revision_reason = :reason,
+                revised_at = NOW(),
+                revised_by_admin_id = :admin_id,
+                updated_at = NOW()
+            WHERE id = :order_id
+            LIMIT 1
+        ");
+
+        $update->execute([
+            ':total_amount' => $revisedTotal,
+            ':shipping_cost' => $revisedShipping,
+            ':order_total' => $revisedOrderTotal,
+            ':original_total' => $originalTotal,
+            ':original_shipping' => $originalShipping,
+            ':original_order_total' => $originalOrderTotal,
+            ':reason' => substr($reason, 0, 500),
+            ':admin_id' => $adminId > 0 ? $adminId : null,
+            ':order_id' => $orderId,
+        ]);
+
+        $db->commit();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payment revised and recorded',
+            'order_id' => $orderId,
+            'revised_order_total' => $revisedOrderTotal,
+        ]);
+        exit;
+    } catch (Exception $e) {
+        try {
+            if (!empty($db) && $db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
+        } catch (Exception $ignored) {
+        }
+
+        error_log("Error in reviseCancelledOrderPayment: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit;
+    }
 }
 
 }

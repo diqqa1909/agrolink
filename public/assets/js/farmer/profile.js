@@ -441,10 +441,7 @@
             name: document.getElementById('profileName')?.value?.trim() || '',
             email: document.getElementById('profileEmail')?.value?.trim() || '',
             phone: phoneCheck.value,
-            district_id: document.getElementById('profileDistrict')?.value?.trim() || '',
-            town_id: document.getElementById('profileTown')?.value?.trim() || '',
-            crops_selling: document.getElementById('profileCrops')?.value?.trim() || '',
-            full_address: document.getElementById('profileAddress')?.value?.trim() || ''
+            crops_selling: document.getElementById('profileCrops')?.value?.trim() || ''
         };
 
         const saveBtn = document.getElementById('saveProfileBtn');

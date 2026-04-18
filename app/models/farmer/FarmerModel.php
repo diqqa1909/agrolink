@@ -137,7 +137,7 @@ class FarmerModel
             $errors['phone'] = 'Phone number must be exactly 10 digits';
         }
 
-        // Validate district (if provided)
+        // Validate district (optional)
         $locationModel = new LocationModel();
         if (!empty($data['district_id'])) {
             $district = $locationModel->getDistrictById((int)$data['district_id']);
@@ -149,21 +149,15 @@ class FarmerModel
             if (!$district) {
                 $errors['district'] = 'Please select a valid district';
             }
-        } else {
-            $errors['district'] = 'District is required';
         }
 
         if (!empty($data['town_id'])) {
-            if (empty($data['district_id'])) {
-                $errors['city'] = 'Please select a district first';
-            } else {
-                $town = $locationModel->getTownById((int)$data['town_id']);
-                if (!$town || (int)$town->district_id !== (int)$data['district_id']) {
-                    $errors['city'] = 'Please select a valid town/city';
-                }
+            $town = $locationModel->getTownById((int)$data['town_id']);
+            if (!$town) {
+                $errors['city'] = 'Please select a valid town/city';
+            } elseif (!empty($data['district_id']) && (int)$town->district_id !== (int)$data['district_id']) {
+                $errors['city'] = 'Town/City does not belong to the selected district';
             }
-        } else {
-            $errors['city'] = 'Town/City is required';
         }
 
         // Validate crops selling (optional but if provided, must be valid)

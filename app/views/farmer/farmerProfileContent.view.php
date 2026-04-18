@@ -81,7 +81,7 @@ $districts = [
                     <input type="tel" id="profilePhone" name="phone" class="form-control" value="<?= esc($profile->phone ?? '') ?>" placeholder="07XXXXXXXX" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" required>
                 </div>
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="profileDistrict">District *</label>
                     <select id="profileDistrict" name="district" class="form-control" required>
                         <option value="">Select District</option>
@@ -91,17 +91,17 @@ $districts = [
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
+                </div> -->
 
                 <div class="form-group">
                     <label for="profileCrops">Crops You Sell *</label>
                     <input type="text" id="profileCrops" name="crops_selling" class="form-control" value="<?= esc($profile->crops_selling ?? '') ?>" placeholder="Tomatoes, Carrots, Potatoes" required>
                 </div>
 
-                <div class="form-group form-group-wide">
+                <!-- <div class="form-group form-group-wide">
                     <label for="profileAddress">Farm Address *</label>
                     <input type="text" id="profileAddress" name="full_address" class="form-control" value="<?= esc($profile->full_address ?? '') ?>" placeholder="Enter your farm address" required>
-                </div>
+                </div> -->
 
                 <input type="email" id="profileEmail" value="<?= esc(authUserEmail()) ?>" hidden>
             </form>

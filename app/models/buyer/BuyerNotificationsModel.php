@@ -116,6 +116,14 @@ class BuyerNotificationsModel
             }
         }
 
+        if (in_array('system', $types, true)) {
+            // Admin announcements are stored as system-like types.
+            $types[] = 'maintenance';
+            $types[] = 'promotion';
+            $types[] = 'alert';
+        }
+
+        $types = array_values(array_unique($types));
         return $types;
     }
 
