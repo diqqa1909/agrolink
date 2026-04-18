@@ -502,6 +502,35 @@ class FarmerModel
     }
 
     /**
+     * Get monthly earnings breakdown by product for current month.
+     */
+    public function getMonthlyEarningsByProduct($farmerId, $limit = 3)
+    {
+        $limit = max(1, (int)$limit);
+
+        $sql = "SELECT 
+                    oi.product_name,
+                    oi.product_id,
+                    MAX(p.image) as product_image,
+                    COUNT(DISTINCT oi.order_id) as order_count,
+                    SUM(oi.quantity) as total_quantity,
+                    SUM(oi.product_price * oi.quantity) as total_earnings
+                FROM order_items oi
+                INNER JOIN orders o ON oi.order_id = o.id
+                LEFT JOIN products p ON p.id = oi.product_id
+                WHERE oi.farmer_id = :farmer_id
+                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND MONTH(o.created_at) = MONTH(CURRENT_DATE())
+                AND YEAR(o.created_at) = YEAR(CURRENT_DATE())
+                GROUP BY oi.product_id, oi.product_name
+                ORDER BY total_earnings DESC
+                LIMIT {$limit}";
+
+        $result = $this->query($sql, ['farmer_id' => $farmerId]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
      * Get recent earnings transactions
      */
     public function getRecentEarnings($farmerId, $limit = 10)

@@ -39,7 +39,7 @@ class FarmerDashboardController
 
         $monthlyEarnings = (float)$farmerModel->getMonthlyEarnings($farmerId);
         $totalEarnings = (float)$farmerModel->getTotalEarnings($farmerId);
-        $topProducts = $farmerModel->getEarningsByProduct($farmerId);
+        $topProducts = $farmerModel->getMonthlyEarningsByProduct($farmerId, 3);
         $runningDeliveries = (int)($deliverySummary->accepted_deliveries ?? 0) + (int)($deliverySummary->in_transit_deliveries ?? 0);
 
         $newCropRequests = 0;
@@ -62,8 +62,8 @@ class FarmerDashboardController
             'totalEarnings' => $totalEarnings,
             'runningDeliveries' => $runningDeliveries,
             'newCropRequests' => $newCropRequests,
-            'recentOrders' => array_slice($farmerOrders, 0, 5),
-            'topProducts' => array_slice($topProducts, 0, 3),
+            'recentOrders' => array_slice($farmerOrders, 0, 4),
+            'topProducts' => $topProducts,
             'deliverySummary' => $deliverySummary,
         ];
 

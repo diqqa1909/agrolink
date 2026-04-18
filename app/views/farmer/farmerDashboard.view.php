@@ -82,11 +82,11 @@
 
     <div class="content-card farmer-dashboard-card">
         <div class="farmer-dashboard-card-header">
-            <h3>Top Products</h3>
+            <h3>Top Products (This Month)</h3>
         </div>
         <div class="farmer-dashboard-card-body">
             <?php if (empty($topProducts)): ?>
-                <div class="farmer-dashboard-empty">No product earnings data yet.</div>
+                <div class="farmer-dashboard-empty">No product earnings data for this month yet.</div>
             <?php else: ?>
                 <?php foreach ($topProducts as $product): ?>
                     <?php
