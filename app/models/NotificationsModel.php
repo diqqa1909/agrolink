@@ -5,6 +5,44 @@ class NotificationsModel
     use Database;
 
     protected $table = 'notifications';
+    private $systemAliases = ['system', 'maintenance', 'promotion', 'alert'];
+
+    private function normalizeManualItem(array $payload)
+    {
+        $title = trim((string)($payload['title'] ?? ''));
+        $message = trim((string)($payload['message'] ?? ''));
+        $type = strtolower(trim((string)($payload['type'] ?? 'system')));
+        $link = trim((string)($payload['link'] ?? ''));
+        $relatedId = isset($payload['related_id']) ? (int)$payload['related_id'] : null;
+        $createdAt = trim((string)($payload['created_at'] ?? ''));
+        $eventKey = trim((string)($payload['event_key'] ?? ''));
+
+        if ($title === '' || $message === '') {
+            return null;
+        }
+
+        if ($type === '') {
+            $type = 'system';
+        }
+
+        if ($createdAt === '' || !strtotime($createdAt)) {
+            $createdAt = date('Y-m-d H:i:s');
+        }
+
+        if ($eventKey === '') {
+            $eventKey = 'admin_' . date('YmdHis') . '_' . bin2hex(random_bytes(6));
+        }
+
+        return [
+            'event_key' => substr($eventKey, 0, 120),
+            'title' => substr($title, 0, 180),
+            'message' => $message,
+            'type' => substr($type, 0, 50),
+            'related_id' => $relatedId > 0 ? $relatedId : null,
+            'link' => $link !== '' ? substr($link, 0, 255) : null,
+            'created_at' => $createdAt,
+        ];
+    }
 
     private function normalizeGeneratedItem(array $item)
     {
@@ -115,11 +153,17 @@ class NotificationsModel
 
     private function formatRow($row)
     {
+        $type = (string)($row->type ?? 'system');
+        $category = $type;
+        if (in_array($type, $this->systemAliases, true)) {
+            $category = 'system';
+        }
+
         return [
             'id' => (int)($row->id ?? 0),
             'event_key' => (string)($row->event_key ?? ''),
-            'category' => (string)($row->type ?? 'system'),
-            'icon' => (string)($row->type ?? 'system'),
+            'category' => $category,
+            'icon' => $category,
             'title' => (string)($row->title ?? 'Notification'),
             'message' => (string)($row->message ?? ''),
             'is_read' => ((int)($row->is_read ?? 0)) === 1,
@@ -150,6 +194,15 @@ class NotificationsModel
 
         if ($normalizedFilter === 'unread') {
             $sql .= " AND is_read = 0";
+        } elseif ($normalizedFilter === 'system') {
+            // Treat admin "system-like" announcements as part of system filter.
+            $placeholders = [];
+            foreach ($this->systemAliases as $index => $alias) {
+                $key = 'system_alias_' . $index;
+                $placeholders[] = ':' . $key;
+                $params[$key] = $alias;
+            }
+            $sql .= " AND type IN (" . implode(', ', $placeholders) . ")";
         } elseif ($normalizedFilter !== '' && $normalizedFilter !== 'all') {
             $sql .= " AND type = :filter_type";
             $params['filter_type'] = $normalizedFilter;
@@ -237,5 +290,87 @@ class NotificationsModel
                 'user_id' => $userId,
             ]
         ) !== false;
+    }
+
+    public function createNotification($userId, array $payload)
+    {
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $normalized = $this->normalizeManualItem($payload);
+        if (!$normalized) {
+            return false;
+        }
+
+        $sql = "INSERT INTO {$this->table}
+                    (user_id, event_key, title, message, type, related_id, link, created_at, is_read, read_at)
+                VALUES
+                    (:user_id, :event_key, :title, :message, :type, :related_id, :link, :created_at, 0, NULL)";
+
+        return $this->write($sql, [
+            'user_id' => $userId,
+            'event_key' => $normalized['event_key'],
+            'title' => $normalized['title'],
+            'message' => $normalized['message'],
+            'type' => $normalized['type'],
+            'related_id' => $normalized['related_id'],
+            'link' => $normalized['link'],
+            'created_at' => $normalized['created_at'],
+        ]) !== false;
+    }
+
+    /**
+     * @param array<int, int|string> $userIds
+     * @return array{sent:int,failed:int}
+     */
+    public function broadcast(array $userIds, array $payload): array
+    {
+        $normalized = $this->normalizeManualItem($payload);
+        if (!$normalized) {
+            return ['sent' => 0, 'failed' => count($userIds)];
+        }
+
+        $sent = 0;
+        $failed = 0;
+
+        $this->beginTransaction();
+        foreach ($userIds as $rawUserId) {
+            $userId = (int)$rawUserId;
+            if ($userId <= 0) {
+                $failed++;
+                continue;
+            }
+
+            $ok = $this->write(
+                "INSERT INTO {$this->table}
+                    (user_id, event_key, title, message, type, related_id, link, created_at, is_read, read_at)
+                 VALUES
+                    (:user_id, :event_key, :title, :message, :type, :related_id, :link, :created_at, 0, NULL)",
+                [
+                    'user_id' => $userId,
+                    'event_key' => $normalized['event_key'],
+                    'title' => $normalized['title'],
+                    'message' => $normalized['message'],
+                    'type' => $normalized['type'],
+                    'related_id' => $normalized['related_id'],
+                    'link' => $normalized['link'],
+                    'created_at' => $normalized['created_at'],
+                ]
+            );
+
+            if ($ok === false) {
+                $failed++;
+            } else {
+                $sent++;
+            }
+        }
+
+        if ($this->inTransaction()) {
+            $this->commit();
+        }
+
+        return ['sent' => $sent, 'failed' => $failed];
     }
 }

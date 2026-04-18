@@ -2,50 +2,56 @@
 class LoginController
 {
     use Controller;
+
     public function index($a = '', $b = '', $c = '')
     {
-        if (redirectIfLoggedIn()) {
-            return;
-        }
-
         $data = [];
-        if ($_SERVER['REQUEST_METHOD'] == "POST") {
-            // Check if POST data exists
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
             if (empty($_POST['email']) || empty($_POST['password'])) {
-                $user = new UserModel;
-                $user->errors['email'] = "Please fill in all fields";
-                $data['errors'] = $user->errors;
+                $data['errors']['email'] = "Please fill in all fields";
             } else {
                 $user = new UserModel;
-                $arr['email'] = $_POST['email'];
+                $row  = $user->first(['email' => $_POST['email']]);
 
-                $row = $user->first($arr);
+                if ($row && password_verify((string) $_POST['password'], (string) $row->password)) {
+                    $_SESSION['USER']                = $row;
+                    $_SESSION['user_id']             = $row->id;              // ✅ was $user['id']
+                    $_SESSION['role']                = $row->role;            // ✅ was $user['role']
+                    $_SESSION['verification_status'] = $row->verification_status; // ✅ was $user['verification_status']
 
-                if ($row) {
-                    $status = strtolower((string)($row->status ?? 'active'));
-                    if ($status !== 'active') {
-                        $user->errors['email'] = "Your account is deactivated. Please contact admin for reactivation.";
-                        $data['errors'] = $user->errors;
-                    } elseif (password_verify((string)$_POST['password'], (string)$row->password)) {
-                        session_regenerate_id(true);
-                        setAuthSession($row);
-
-                        //REDIRECT BASED ON USER ROLE
-                        $this->redirectBasedOnRole($row->role);
-                        return;
-                    }
+                    $this->checkVerificationStatus();
+                    $this->redirectBasedOnRole($row->role);
+                    return;
                 }
-                if (empty($data['errors'])) {
-                    $user->errors['email'] = "Wrong Email and Password";
-                    $data['errors'] = $user->errors;
-                }
+
+                $data['errors']['email'] = "Wrong email or password";
             }
         }
+
         $this->view('login', $data);
     }
 
-    private function redirectBasedOnRole($role)
+    private function redirectBasedOnRole(string $role): void
     {
-        redirect(authDashboardPath((string)$role));
+        switch ($role) {
+            case 'buyer':
+                redirect('buyerDashboard');
+                break;
+            case 'farmer':
+                redirect('farmerDashboard');
+                break;
+            case 'transporter':
+                redirect('transporterDashboard');
+                break;
+            case 'admin':
+            case 'superadmin':
+                redirect('adminDashboard');
+                break;
+            default:
+                redirect('home');
+                break;
+        }
     }
 }

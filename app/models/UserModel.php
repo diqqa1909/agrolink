@@ -9,6 +9,7 @@ class UserModel
         'email',
         'password',
         'role',
+        'verification_status',
     ];
     protected $emailChangesTable = 'user_email_changes';
 
@@ -32,7 +33,7 @@ class UserModel
         if (empty($data['password']))
             $this->errors['password'] = "Password is required";
         else
-                if (strlen($data['password']) < 8)
+            if (strlen($data['password']) < 8)
             $this->errors['password'] = "Password must be at least 8 characters long";
 
         if (empty($this->errors))
@@ -72,7 +73,7 @@ class UserModel
 
     public function findById($id)
     {
-        $id = (int)$id;
+        $id = (int) $id;
         if ($id <= 0) {
             return null;
         }
@@ -82,8 +83,8 @@ class UserModel
 
     public function updatePassword($userId, $newPassword)
     {
-        $userId = (int)$userId;
-        $newPassword = (string)$newPassword;
+        $userId = (int) $userId;
+        $newPassword = (string) $newPassword;
 
         if ($userId <= 0 || $newPassword === '') {
             return false;
@@ -109,8 +110,8 @@ class UserModel
 
     public function changeEmailWithAudit($userId, $newEmail)
     {
-        $userId = (int)$userId;
-        $newEmail = strtolower(trim((string)$newEmail));
+        $userId = (int) $userId;
+        $newEmail = strtolower(trim((string) $newEmail));
 
         if ($userId <= 0 || $newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
             return false;
@@ -122,7 +123,7 @@ class UserModel
         }
 
         $existing = $this->findByEmail($newEmail);
-        if ($existing && (int)($existing->id ?? 0) !== $userId) {
+        if ($existing && (int) ($existing->id ?? 0) !== $userId) {
             return false;
         }
 
@@ -141,7 +142,7 @@ class UserModel
             return false;
         }
 
-        $oldEmail = (string)($currentUser->email ?? '');
+        $oldEmail = (string) ($currentUser->email ?? '');
         if ($oldEmail !== '' && strcasecmp($oldEmail, $newEmail) !== 0) {
             $this->recordEmailChange($userId, $oldEmail, $newEmail);
         }
@@ -151,12 +152,12 @@ class UserModel
 
     public function deactivateAccount($userId, $reason = '')
     {
-        $userId = (int)$userId;
+        $userId = (int) $userId;
         if ($userId <= 0) {
             return false;
         }
 
-        $reason = trim((string)$reason);
+        $reason = trim((string) $reason);
         if ($reason === '') {
             $reason = null;
         } else {
@@ -193,25 +194,27 @@ class UserModel
             ['table_name' => $this->emailChangesTable]
         );
 
-        $checked = (bool)$row;
+        $checked = (bool) $row;
         return $checked;
     }
 
     public function getEmailChangeCount($userId)
     {
-        if (!$this->ensureEmailChangesTable()) return 0;
+        if (!$this->ensureEmailChangesTable())
+            return 0;
 
         $row = $this->get_row(
             "SELECT COUNT(*) AS total FROM {$this->emailChangesTable} WHERE user_id = :user_id",
             ['user_id' => $userId]
         );
 
-        return (int)($row->total ?? 0);
+        return (int) ($row->total ?? 0);
     }
 
     public function recordEmailChange($userId, $oldEmail, $newEmail)
     {
-        if (!$this->ensureEmailChangesTable()) return false;
+        if (!$this->ensureEmailChangesTable())
+            return false;
 
         return $this->write(
             "INSERT INTO {$this->emailChangesTable} (user_id, old_email, new_email) VALUES (:user_id, :old_email, :new_email)",
@@ -256,6 +259,17 @@ class UserModel
         $data[$id_column] = $id;
 
         $result = $this->write($query, $data);
-        return $result === false ? false : (int)$result;
+        return $result === false ? false : (int) $result;
+    }
+
+    public function setVerificationStatus(int $userId, string $status): void
+    {
+        $this->write(
+            "UPDATE {$this->table} SET verification_status = :status WHERE id = :id",
+            [
+                'status' => $status,
+                'id' => $userId
+            ]
+        );
     }
 }

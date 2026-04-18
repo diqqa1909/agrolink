@@ -2,7 +2,7 @@
 trait Controller
 {
     use Database;
-    
+
     public function view($name, $data = [])
     {
 
@@ -36,5 +36,20 @@ trait Controller
         // Fallback to 404
         $filename = "../app/views/404.view.php";
         require $filename;
+    }
+
+    protected function checkVerificationStatus(): void
+    {
+        if (!isset($_SESSION['user_id'])) {
+            return; // Not logged in — let the auth guard handle it
+        }
+
+        $status = $_SESSION['verification_status'] ?? null;
+        $role = $_SESSION['role'] ?? null;
+
+        if (in_array($role, ['farmer', 'transporter'], true) && $status === 'pending') {
+            $this->view('pendingVerification'); // Show a holding page
+            exit;
+        }
     }
 }
