@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Apr 18, 2026 at 02:29 PM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Host: 127.0.0.1
+-- Generation Time: Apr 18, 2026 at 02:56 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -39,19 +39,19 @@ CREATE TABLE `buyer_profiles` (
   `additional_address_details` varchar(100) DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `alt_phone` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `buyer_profiles`
 --
 
-INSERT INTO `buyer_profiles` (`id`, `user_id`, `phone`, `apartment_code`, `street_name`, `city`, `district`, `postal_code`, `additional_address_details`, `profile_photo`, `created_at`, `updated_at`) VALUES
-(1, 11, '0771234567', '26', 'No 1 Main St', 'Wadduwa', 'Kalutara', '00100', '', 'profile_photo_11_1769005209_8874b3e1.jpg', '2025-12-25 16:04:09', '2026-04-17 11:57:57'),
-(5, 24, '0778103265', '', '26', 'Wadduwa', 'Kalutara', '12560', '', NULL, '2026-04-03 22:27:44', '2026-04-17 07:59:18'),
-(6, 11, '0771234567', '26', 'No 1 Main St', 'Wadduwa', 'Kalutara', '00100', '', NULL, '2026-04-07 05:32:02', '2026-04-17 11:57:57'),
-(7, 11, '0771234567', '26', 'No 1 Main St', 'Wadduwa', 'Kalutara', '00100', '', NULL, '2026-04-07 05:32:02', '2026-04-17 11:57:57'),
-(8, 42, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-18 11:14:12', '2026-04-18 11:14:12');
+INSERT INTO `buyer_profiles` (`id`, `user_id`, `phone`, `apartment_code`, `street_name`, `city`, `district`, `postal_code`, `additional_address_details`, `profile_photo`, `created_at`, `updated_at`, `alt_phone`) VALUES
+(1, 1, '0704243366', 'none', '45/6,lake rd', 'Katugastota', 'Kandy', '21000', '', NULL, '2026-04-16 14:04:02', '2026-04-18 06:48:00', '0472531544'),
+(2, 29, '0783215656', '', '56/9,kl rd', 'Peradeniya', 'Kandy', '12345', '', NULL, '2026-04-16 18:34:02', '2026-04-17 14:27:12', NULL),
+(3, 30, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-17 13:18:50', '2026-04-17 13:18:50', NULL),
+(4, 31, '0745689321', '', '56/8,anna rd', 'Jaffna Town', 'Jaffna', '', '', NULL, '2026-04-18 09:42:01', '2026-04-18 09:43:08', NULL);
 
 -- --------------------------------------------------------
 
@@ -78,9 +78,7 @@ CREATE TABLE `cart` (
 --
 
 INSERT INTO `cart` (`id`, `user_id`, `product_id`, `product_name`, `product_price`, `quantity`, `farmer_name`, `farmer_location`, `product_image`, `created_at`, `updated_at`) VALUES
-(293, 24, '50', 'Banana', 57.98, 1, 'Sewni Jayawardana', 'Nuwara Eliya', 'product_69d749ce69250.jpeg', '2026-04-17 08:17:27', '2026-04-17 08:17:27'),
-(300, 11, '50', 'Banana', 57.98, 1, 'Sewni Jayawardana', 'Boralesgamuwa, Colombo', 'product_69d749ce69250.jpeg', '2026-04-18 11:12:08', '2026-04-18 11:12:08'),
-(301, 42, '44', 'Orange', 45.00, 1, 'vonara', 'kalutara', 'product_698a15c4bdbf0.jpg', '2026-04-18 11:14:21', '2026-04-18 11:14:21');
+(49, 30, '5', 'Onion', 120.00, 1, 'Sewni', 'auto', 'product_69e359b4a1734.jpg', '2026-04-18 11:08:56', '2026-04-18 11:08:56');
 
 -- --------------------------------------------------------
 
@@ -99,16 +97,6 @@ CREATE TABLE `crop_requests` (
   `status` enum('active','accepted','declined','completed') DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `crop_requests`
---
-
-INSERT INTO `crop_requests` (`id`, `buyer_id`, `crop_name`, `quantity`, `target_price`, `delivery_date`, `location`, `status`, `created_at`) VALUES
-(9, 11, 'BeetRoot', 50.00, 35.00, '2026-01-20', 'Ragama, Western', 'completed', '2025-12-16 13:42:40'),
-(10, 11, 'papaya', 45.00, 55.00, '2026-01-14', 'Badulla, Uva', 'declined', '2025-12-16 14:27:44'),
-(11, 11, 'mango', 56.00, 23.00, '2026-01-13', 'colombo', 'accepted', '2025-12-17 04:38:21'),
-(13, 11, 'banana', 56.00, 20.00, '2026-04-05', 'colombo,western', 'declined', '2026-01-21 09:31:05');
 
 -- --------------------------------------------------------
 
@@ -213,13 +201,16 @@ CREATE TABLE `delivery_requests` (
 --
 
 INSERT INTO `delivery_requests` (`id`, `order_id`, `buyer_id`, `buyer_name`, `buyer_phone`, `buyer_address`, `buyer_city`, `buyer_district_id`, `farmer_id`, `farmer_name`, `farmer_phone`, `farmer_address`, `farmer_city`, `farmer_district_id`, `total_weight_kg`, `shipping_fee`, `distance_km`, `required_vehicle_type_id`, `status`, `transporter_id`, `accepted_at`, `created_at`, `updated_at`) VALUES
-(2, 39, 11, 'Yomal Chandima', '0702242499', '35/445, Lake Road, Matale', 'Matale', 5, 9, 'sewni', NULL, NULL, 'Matale', 5, 30.00, 480.00, 24.00, 2, 'delivered', 28, '2026-04-04 00:39:26', '2026-04-04 00:39:26', '2026-04-04 01:40:11'),
-(3, 40, 24, 'yomal', '0722222222', '', 'Matale', 5, 23, 'vonara', NULL, NULL, 'Matale', 5, 40.00, 620.00, 31.00, 2, 'in_transit', 28, '2026-04-04 00:39:26', '2026-04-04 00:39:26', '2026-04-04 00:39:26'),
-(4, 42, 11, 'Yomal Chandima', '0702242499', '35/445, Lake Road, Matale', 'Matale', 5, 23, 'vonara', '', '', '', 1, 15.00, 1023.75, 142.00, 1, 'pending', NULL, NULL, '2026-04-04 01:45:07', '2026-04-04 01:45:07'),
-(5, 43, 11, 'Yomal Chandima', '0702242499', '35/445, Lake Road, Matale', 'Matale', 5, 9, 'sewni', '', '', '', 1, 66.00, 522.90, 142.00, 2, 'in_transit', 28, '2026-04-04 05:16:05', '2026-04-04 01:45:39', '2026-04-04 19:07:09'),
-(8, 46, 24, 'yomal', '0778103265', ', 26, Wadduwa', 'Wadduwa', 3, 23, 'vonara', '0771234567', '', 'Kalutara', 3, 48.00, 1200.00, 0.00, 2, 'accepted', 28, '2026-04-17 04:48:57', '2026-04-16 09:17:52', '2026-04-17 04:48:57'),
-(11, 49, 11, 'Yomal Chandima', '0771234567', ', No 1 Main St, Colombo', 'Colombo', 1, 23, 'vonara', '0771234567', '', 'Kalutara', 3, 1.60, 974.40, 43.00, 1, 'delivered', 28, '2026-04-17 05:04:54', '2026-04-17 05:04:29', '2026-04-18 09:46:05'),
-(12, 50, 11, 'Yomal Chandima', '0771234567', '26, No 1 Main St, Wadduwa', 'Wadduwa', 3, 9, 'Sewni Jayawardana', '0711111111', 'Lake Rd, Kalutara', 'Kalutara', 3, 1.60, 238.00, 0.00, 1, 'accepted', 28, '2026-04-18 09:36:06', '2026-04-18 09:32:21', '2026-04-18 09:36:06');
+(1, 1, 29, 'Buyer one', '0783215656', ', 56/9,kl rd,matara, Peradeniya', 'Peradeniya', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 3, 1.40, 747.60, 158.00, 1, 'pending', NULL, NULL, '2026-04-17 14:21:05', '2026-04-17 14:21:05'),
+(2, 3, 1, 'Yomal', '0704243366', ', 45/6,lake rd, Katugastota', 'Katugastota', 4, 27, 'Farmer One', '0741235649', '3/56, pansal Rd, kegall', 'Kegalle', 4, 22.50, 834.23, 0.00, 2, 'pending', NULL, NULL, '2026-04-18 05:57:48', '2026-04-18 05:57:48'),
+(3, 4, 1, 'Yomal', '0704243366', ', 45/6,lake rd, Katugastota', 'Katugastota', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 4, 18.20, 825.30, 0.00, 1, 'pending', NULL, NULL, '2026-04-18 06:05:05', '2026-04-18 06:05:05'),
+(4, 5, 1, 'Yomal', '0704243366', 'none, 45/6,lake rd, Katugastota', 'Katugastota', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 4, 28.00, 1204.35, 0.00, 2, 'pending', NULL, NULL, '2026-04-18 08:10:01', '2026-04-18 08:10:01'),
+(5, 6, 29, 'Buyer one', '0783215656', ', 56/9,kl rd, Peradeniya', 'Peradeniya', 4, 27, 'Farmer One', '0741235649', '3/56, pansal Rd, kegall', 'Kegalle', 4, 22.50, 848.93, 0.00, 2, 'pending', NULL, NULL, '2026-04-18 08:20:06', '2026-04-18 08:20:06'),
+(6, 7, 1, 'Yomal', '0704243366', 'none, 45/6,lake rd, Katugastota', 'Katugastota', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 4, 21.00, 1182.30, 0.00, 2, 'pending', NULL, NULL, '2026-04-18 08:40:29', '2026-04-18 08:40:29'),
+(7, 8, 1, 'Yomal', '0704243366', 'none, 45/6,lake rd, Katugastota', 'Katugastota', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 4, 21.00, 1182.30, 0.00, 2, 'delivered', 3, '2026-04-18 08:47:53', '2026-04-18 08:45:46', '2026-04-18 08:48:30'),
+(8, 9, 31, 'Buyer Three', '0745689321', ', 56/8,anna rd, Jaffna Town', 'Jaffna Town', 10, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 10, 21.00, 3992.00, 0.00, 2, 'pending', NULL, NULL, '2026-04-18 09:52:10', '2026-04-18 09:52:10'),
+(9, 10, 29, 'Buyer one', '0783215656', ', 56/9,kl rd, Peradeniya', 'Peradeniya', 4, 27, 'Farmer One', '0741235649', '3/56, pansal Rd, kegall', 'Kegalle', 4, 25.50, 858.38, 63.00, 2, 'pending', NULL, NULL, '2026-04-18 10:10:14', '2026-04-18 10:10:14'),
+(10, 11, 1, 'Yomal', '0704243366', 'none, 45/6,lake rd, Katugastota', 'Katugastota', 4, 2, 'Sewni', '0772356148', '34/2,Gem rd,Rathnapura', 'Kalutara', 4, 30.00, 1195.95, 107.00, 2, 'pending', NULL, NULL, '2026-04-18 12:50:32', '2026-04-18 12:50:32');
 
 -- --------------------------------------------------------
 
@@ -936,13 +927,9 @@ CREATE TABLE `farmer_profiles` (
 --
 
 INSERT INTO `farmer_profiles` (`id`, `user_id`, `phone`, `district`, `crops_selling`, `full_address`, `profile_photo`, `created_at`, `updated_at`) VALUES
-(1, 9, '0711111111', 'Kalutara', '', 'Lake Rd, Kalutara', 'profile_photo_9_1775280040_a80dcc83.jpeg', '2026-01-08 06:06:28', '2026-04-16 06:24:26'),
-(3, 23, '0771234567', 'Kalutara', '', '', 'profile_photo_23_1775301617_d2f59ce8.jpeg', '2026-02-08 15:27:51', '2026-04-04 11:20:17'),
-(4, 45, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:00:26', '2026-04-18 12:00:26'),
-(5, 46, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:09:46', '2026-04-18 12:09:46'),
-(6, 47, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:17:50', '2026-04-18 12:17:50'),
-(7, 48, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:22:00', '2026-04-18 12:22:00'),
-(8, 49, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:24:26', '2026-04-18 12:24:26');
+(1, 2, '0772356148', 'Kalutara', 'leeks,carrots', '34/2,Gem rd,Rathnapura', NULL, '2026-04-16 15:05:03', '2026-04-16 15:06:17'),
+(2, 27, '0741235649', 'Kegalle', 'Oranges, Mango', '3/56, pansal Rd, kegall', NULL, '2026-04-16 15:11:09', '2026-04-16 15:12:28'),
+(3, 32, '0783215688', 'Kurunegala', 'Tomatos', '56/9,lk rd', NULL, '2026-04-18 12:46:04', '2026-04-18 12:49:37');
 
 -- --------------------------------------------------------
 
@@ -970,161 +957,100 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `event_key`, `title`, `message`, `type`, `is_read`, `related_id`, `link`, `created_at`, `read_at`, `updated_at`) VALUES
-(1, 11, 'new_product_49', 'New Product Listed', 'Banana by vonara | Rs. 100.00/kg', 'new_products', 1, 49, 'buyerproducts', '2026-04-04 05:13:09', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(2, 11, 'new_product_45', 'New Product Listed', 'Pumpkin by Sewni Jayawardana | Rs. 130.00/kg', 'new_products', 1, 45, 'buyerproducts', '2026-04-04 00:39:26', '2026-04-07 06:00:28', '2026-04-16 06:36:41'),
-(3, 11, 'new_product_47', 'New Product Listed', 'Pumpkin by vonara | Rs. 95.00/kg', 'new_products', 1, 47, 'buyerproducts', '2026-04-04 00:39:26', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(4, 11, 'new_product_44', 'New Product Listed', 'Orange by vonara | Rs. 45.00/kg', 'new_products', 1, 44, 'buyerproducts', '2026-02-09 17:13:40', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(6, 11, 'tracking_43_in_transit', 'Delivery Tracking Update', 'Order #ORD-43 | In Transit | Transporter: Kal Transporter', 'tracking', 1, 43, 'buyertracking?order_id=43', '2026-04-04 19:07:09', '2026-04-07 06:00:28', '2026-04-16 07:03:10'),
-(7, 11, 'tracking_42_pending', 'Delivery Tracking Update', 'Order #ORD-42 | Pending | Transporter: Pending Assignment', 'tracking', 1, 42, 'buyertracking?order_id=42', '2026-04-04 01:45:07', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(8, 11, 'tracking_39_delivered', 'Delivery Tracking Update', 'Order #ORD-39 | Delivered | Transporter: Kal Transporter', 'tracking', 1, 39, 'buyertracking?order_id=39', '2026-04-04 01:40:11', '2026-04-07 06:00:28', '2026-04-16 07:03:10'),
-(9, 11, 'tracking_41_shipped', 'Delivery Tracking Update', 'Order #ORD-41 | Shipped | Transporter: Pending Assignment', 'tracking', 1, 41, 'buyertracking?order_id=41', '2026-04-04 00:39:26', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(10, 11, 'review_reply_4', 'Review Reply Received', 'Farmer Sewni Jayawardana replied to your review for Pumpkin', 'review_replies', 1, 4, 'buyerreviews', '2026-04-04 01:08:15', '2026-04-07 06:00:28', '2026-04-16 06:36:41'),
-(11, 11, 'request_reply_13_declined', 'Request Declined', 'banana | 56 kg | Declined', 'request_replies', 1, 13, 'croprequest/show/13', '2026-01-21 09:31:05', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(12, 11, 'request_reply_11_accepted', 'Request Accepted', 'mango | 56 kg | Accepted', 'request_replies', 1, 11, 'croprequest/show/11', '2025-12-17 04:38:21', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(13, 11, 'request_reply_9_completed', 'Request Completed', 'BeetRoot | 50 kg | Completed', 'request_replies', 1, 9, 'croprequest/show/9', '2025-12-16 13:42:40', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(15, 11, 'order_update_43_shipped', 'Order Shipped', 'Order #ORD-43 | Shipped | Total: Rs. 4,422.90', 'order_updates', 1, 43, 'buyerorders', '2026-04-04 05:16:27', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(16, 11, 'order_update_42_pending', 'Order Placed', 'Order #ORD-42 | Pending | Total: Rs. 1,473.75', 'order_updates', 1, 42, 'buyerorders', '2026-04-04 05:16:44', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(17, 11, 'order_update_39_delivered', 'Order Delivered', 'Order #ORD-39 | Delivered | Total: Rs. 4,080.00', 'order_updates', 1, 39, 'buyerorders', '2026-04-04 01:40:11', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(18, 11, 'order_update_41_shipped', 'Order Shipped', 'Order #ORD-41 | Shipped | Total: Rs. 2,725.00', 'order_updates', 1, 41, 'buyerorders', '2026-04-04 05:27:56', '2026-04-07 06:00:28', '2026-04-07 06:00:28'),
-(19, 11, 'system_pending_feedback_11', 'Pending Feedback Reminder', 'You have 6 pending review item(s). Share feedback to help improve marketplace quality.', 'system', 1, NULL, 'buyerreviews', '2026-04-04 01:45:39', '2026-04-07 06:00:28', '2026-04-18 11:11:52'),
-(628, 9, 'order_43_shipped', 'Order Status Updated', 'Order #43 • Shipped • Your earning: Rs. 3,900.00', 'orders', 1, 43, 'farmerorders', '2026-04-04 05:16:27', '2026-04-09 06:42:14', '2026-04-09 06:42:14'),
-(629, 9, 'order_39_delivered', 'Order Status Updated', 'Order #39 • Delivered • Your earning: Rs. 3,600.00', 'orders', 0, 39, 'farmerorders', '2026-04-04 01:40:11', NULL, '2026-04-09 06:38:32'),
-(630, 9, 'crop_13_declined', 'Crop Request Updated', 'Banana • 56 kg • Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-09 06:38:32'),
-(631, 9, 'crop_11_accepted', 'Crop Request Updated', 'Mango • 56 kg • Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-09 06:38:32'),
-(632, 9, 'crop_10_active', 'Crop Request Updated', 'Papaya • 45 kg • Active', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-09 06:38:32'),
-(633, 9, 'crop_9_completed', 'Crop Request Updated', 'BeetRoot • 50 kg • Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-09 06:38:32'),
-(634, 9, 'delivery_5_in_transit', 'Delivery Update', 'Delivery #5 for Order #43 • In Transit', 'deliveries', 0, 5, 'farmerdeliveries', '2026-04-04 19:07:09', NULL, '2026-04-09 06:38:32'),
-(635, 9, 'delivery_2_delivered', 'Delivery Update', 'Delivery #2 for Order #39 • Delivered', 'deliveries', 0, 2, 'farmerdeliveries', '2026-04-04 01:40:11', NULL, '2026-04-09 06:38:32'),
-(636, 9, 'review_4', 'New Review Received', 'Yomal Chandima gave 2-star review for Pumpkin', 'reviews', 0, 4, 'farmerreviews', '2026-04-04 00:39:26', NULL, '2026-04-09 06:38:32'),
-(637, 9, 'system_profile_missing_9', 'Complete Profile Details', 'Add farm address to keep order and delivery operations smooth.', 'system', 1, NULL, 'farmerprofile', '2026-04-09 03:08:32', '2026-04-13 04:49:26', '2026-04-13 04:49:26'),
-(638, 9, 'system_payout_missing_9', 'Add Payout Account', 'Set your payout account details to receive earnings without delay.', 'system', 0, NULL, 'farmerprofile', '2026-04-09 03:08:32', NULL, '2026-04-09 06:38:32'),
-(940, 9, 'crop_10_declined', 'Crop Request Updated', 'Papaya • 45 kg • Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-09 06:46:20'),
-(1167, 11, 'new_product_50', 'New Product Listed', 'Banana by Sewni Jayawardana | Rs. 57.98/kg', 'new_products', 1, 50, 'buyerproducts', '2026-04-09 06:40:14', '2026-04-09 07:43:57', '2026-04-16 06:36:41'),
-(1180, 11, 'request_reply_10_declined', 'Request Declined', 'papaya | 45 kg | Declined', 'request_replies', 1, 10, 'croprequest/show/10', '2025-12-16 14:27:44', '2026-04-09 07:43:57', '2026-04-09 07:43:57'),
-(2125, 23, 'order_42_pending', 'New Order Received', 'Order #42 • Pending • Your earning: Rs. 450.00', 'orders', 1, 42, 'farmerorders', '2026-04-04 05:16:44', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2126, 23, 'order_40_shipped', 'Order Status Updated', 'Order #40 • Shipped • Your earning: Rs. 3,800.00', 'orders', 1, 40, 'farmerorders', '2026-04-04 00:39:26', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2127, 23, 'order_41_shipped', 'Order Status Updated', 'Order #41 • Shipped • Your earning: Rs. 2,375.00', 'orders', 1, 41, 'farmerorders', '2026-04-04 05:27:56', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2128, 23, 'crop_13_declined', 'Crop Request Updated', 'Banana • 56 kg • Declined', 'crop_requests', 1, 13, 'farmercroprequests', '2026-01-21 09:31:05', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2129, 23, 'crop_11_accepted', 'Crop Request Updated', 'Mango • 56 kg • Accepted', 'crop_requests', 1, 11, 'farmercroprequests', '2025-12-17 04:38:21', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2130, 23, 'crop_10_declined', 'Crop Request Updated', 'Papaya • 45 kg • Declined', 'crop_requests', 1, 10, 'farmercroprequests', '2025-12-16 14:27:44', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2131, 23, 'crop_9_completed', 'Crop Request Updated', 'BeetRoot • 50 kg • Completed', 'crop_requests', 1, 9, 'farmercroprequests', '2025-12-16 13:42:40', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2132, 23, 'delivery_6_accepted', 'Delivery Accepted', 'Delivery #6 for Order #44 • Accepted', 'deliveries', 1, 6, 'farmerdeliveries', '2026-04-09 07:16:13', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2133, 23, 'delivery_4_pending', 'Delivery Update', 'Delivery #4 for Order #42 • Pending', 'deliveries', 1, 4, 'farmerdeliveries', '2026-04-04 01:45:07', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2134, 23, 'delivery_3_in_transit', 'Delivery Update', 'Delivery #3 for Order #40 • In Transit', 'deliveries', 1, 3, 'farmerdeliveries', '2026-04-04 00:39:26', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2135, 23, 'review_6', 'New Review Received', 'Yomal Chandima gave 4-star review for Pumpkin', 'reviews', 1, 6, 'farmerreviews', '2026-04-04 01:33:53', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2136, 23, 'review_5', 'New Review Received', 'yomal gave 4-star review for Pumpkin', 'reviews', 1, 5, 'farmerreviews', '2026-04-04 00:39:26', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2137, 23, 'system_profile_missing_23', 'Complete Profile Details', 'Add farm address to keep order and delivery operations smooth.', 'system', 1, NULL, 'farmerprofile', '2026-04-09 03:47:56', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(2138, 23, 'system_payout_missing_23', 'Add Payout Account', 'Set your payout account details to receive earnings without delay.', 'system', 1, NULL, 'farmerprofile', '2026-04-09 03:47:56', '2026-04-12 05:30:53', '2026-04-12 05:30:53'),
-(4287, 24, 'new_product_50', 'New Product Listed', 'Banana by Sewni Jayawardana | Rs. 57.98/kg', 'new_products', 0, 50, 'buyerproducts', '2026-04-09 06:40:14', NULL, '2026-04-16 08:49:48'),
-(4288, 24, 'new_product_49', 'New Product Listed', 'Banana by vonara | Rs. 100.00/kg', 'new_products', 0, 49, 'buyerproducts', '2026-04-04 05:13:09', NULL, '2026-04-12 05:28:15'),
-(4289, 24, 'new_product_45', 'New Product Listed', 'Pumpkin by Sewni Jayawardana | Rs. 130.00/kg', 'new_products', 0, 45, 'buyerproducts', '2026-04-04 00:39:26', NULL, '2026-04-16 08:49:48'),
-(4290, 24, 'new_product_47', 'New Product Listed', 'Pumpkin by vonara | Rs. 95.00/kg', 'new_products', 0, 47, 'buyerproducts', '2026-04-04 00:39:26', NULL, '2026-04-12 05:28:15'),
-(4291, 24, 'new_product_44', 'New Product Listed', 'Orange by vonara | Rs. 45.00/kg', 'new_products', 0, 44, 'buyerproducts', '2026-02-09 17:13:40', NULL, '2026-04-12 05:28:15'),
-(4292, 24, 'tracking_40_in_transit', 'Delivery Tracking Update', 'Order #ORD-40 | In Transit | Transporter: Kal Transporter', 'tracking', 0, 40, 'buyertracking?order_id=40', '2026-04-04 00:39:26', NULL, '2026-04-16 08:49:48'),
-(4293, 24, 'order_update_40_shipped', 'Order Shipped', 'Order #ORD-40 | Shipped | Total: Rs. 4,420.00', 'order_updates', 0, 40, 'buyerorders', '2026-04-04 00:39:26', NULL, '2026-04-12 05:28:15'),
-(4294, 24, 'system_profile_incomplete_24', 'Complete Delivery Profile', 'Please add city in your profile to avoid checkout and delivery issues.', 'system', 0, NULL, 'buyerprofile', '2026-04-03 22:27:44', NULL, '2026-04-16 09:00:27'),
-(4295, 24, 'system_pending_feedback_24', 'Pending Feedback Reminder', 'You have 1 pending review item(s). Share feedback to help improve marketplace quality.', 'system', 0, NULL, 'buyerreviews', '2026-04-04 00:39:26', NULL, '2026-04-17 20:30:19'),
-(5796, 23, 'delivery_6_in_transit', 'Delivery Update', 'Delivery #6 for Order #44 • In Transit', 'deliveries', 0, 6, 'farmerdeliveries', '2026-04-12 18:06:35', NULL, '2026-04-13 05:16:34'),
-(6058, 28, 'transporter_delivery_6_in_transit', 'Delivery In Transit', 'Order #44 | In Transit | Payment: Rs. 1,719.90', 'deliveries', 1, 6, 'transporterdashboard?section=mydeliveries', '2026-04-12 18:06:35', '2026-04-16 06:01:42', '2026-04-16 06:01:42'),
-(6059, 28, 'transporter_delivery_5_in_transit', 'Delivery In Transit', 'Order #43 | In Transit | Payment: Rs. 522.90', 'deliveries', 1, 5, 'transporterdashboard?section=mydeliveries', '2026-04-04 19:07:09', '2026-04-16 06:01:42', '2026-04-16 06:01:42'),
-(6060, 28, 'transporter_delivery_2_delivered', 'Delivery Completed', 'Order #39 | Delivered | Payment: Rs. 480.00', 'deliveries', 1, 2, 'transporterdashboard?section=mydeliveries', '2026-04-04 01:40:11', '2026-04-16 06:01:42', '2026-04-16 06:01:42'),
-(6061, 28, 'transporter_delivery_3_in_transit', 'Delivery In Transit', 'Order #40 | In Transit | Payment: Rs. 620.00', 'deliveries', 1, 3, 'transporterdashboard?section=mydeliveries', '2026-04-04 00:39:26', '2026-04-16 06:01:42', '2026-04-16 06:01:42'),
-(6062, 28, 'transporter_review_7', 'New Feedback Received', 'Yomal Chandima gave 5-star feedback for Pumpkin', 'reviews', 1, 7, 'transporterdashboard?section=feedback', '2026-04-04 02:08:05', '2026-04-16 06:01:42', '2026-04-16 07:04:29'),
-(6063, 28, 'transporter_system_profile_28', 'Complete Profile Details', 'Please add vehicle type to keep deliveries running smoothly.', 'system', 1, NULL, 'transporterprofile', '2026-04-13 01:50:29', '2026-04-16 06:05:28', '2026-04-16 06:47:54'),
-(6064, 28, 'transporter_system_payout_28', 'Add Payout Account', 'Set your payout account details to receive delivery earnings without delays.', 'system', 1, NULL, 'transporterprofile', '2026-04-13 01:50:29', '2026-04-16 06:01:42', '2026-04-16 06:01:42'),
-(15301, 24, 'tracking_46_pending', 'Delivery Tracking Update', 'Order #ORD-46 | Pending | Transporter: Pending Assignment', 'tracking', 0, 46, 'buyertracking?order_id=46', '2026-04-16 09:17:52', NULL, '2026-04-16 09:17:52'),
-(15303, 24, 'order_update_46_pending_payment', 'Order Status Updated', 'Order #ORD-46 | Pending Payment | Total: Rs. 4,200.00', 'order_updates', 0, 46, 'buyerorders', '2026-04-16 09:17:52', NULL, '2026-04-16 09:17:52'),
-(15323, 24, 'order_update_46_pending', 'Order Placed', 'Order #ORD-46 | Pending | Total: Rs. 4,200.00', 'order_updates', 0, 46, 'buyerorders', '2026-04-16 09:27:45', NULL, '2026-04-16 09:27:45'),
-(15734, 9, 'farmer_order_43_shipped', 'Order Status Updated', 'Order #43 | Shipped | Your earning: Rs. 3,900.00', 'orders', 0, 43, 'farmerorders', '2026-04-16 07:48:19', NULL, '2026-04-16 10:10:52'),
-(15735, 9, 'farmer_order_39_delivered', 'Order Status Updated', 'Order #39 | Delivered | Your earning: Rs. 3,600.00', 'orders', 0, 39, 'farmerorders', '2026-04-16 07:48:19', NULL, '2026-04-16 10:10:52'),
-(15736, 9, 'farmer_crop_13_declined', 'Crop Request Updated', 'Banana | 56 kg | Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-16 10:10:52'),
-(15737, 9, 'farmer_crop_11_accepted', 'Crop Request Updated', 'Mango | 56 kg | Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-16 10:10:52'),
-(15738, 9, 'farmer_crop_10_declined', 'Crop Request Updated', 'Papaya | 45 kg | Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-16 10:10:52'),
-(15739, 9, 'farmer_crop_9_completed', 'Crop Request Updated', 'BeetRoot | 50 kg | Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-16 10:10:52'),
-(15740, 9, 'farmer_delivery_10_pending', 'Delivery Update', 'Delivery #10 for Order #48 | Pending', 'deliveries', 0, 10, 'farmerdeliveries', '2026-04-16 10:05:27', NULL, '2026-04-16 10:10:52'),
-(15741, 9, 'farmer_delivery_7_pending', 'Delivery Update', 'Delivery #7 for Order #45 | Pending', 'deliveries', 0, 7, 'farmerdeliveries', '2026-04-16 08:37:06', NULL, '2026-04-16 10:10:52'),
-(15742, 9, 'farmer_delivery_5_in_transit', 'Delivery Update', 'Delivery #5 for Order #43 | In Transit', 'deliveries', 0, 5, 'farmerdeliveries', '2026-04-04 19:07:09', NULL, '2026-04-16 10:10:52'),
-(15743, 9, 'farmer_delivery_2_delivered', 'Delivery Update', 'Delivery #2 for Order #39 | Delivered', 'deliveries', 0, 2, 'farmerdeliveries', '2026-04-04 01:40:11', NULL, '2026-04-16 10:10:52'),
-(15744, 9, 'farmer_review_4', 'New Review Received', 'Yomal Chandima gave 2-star review for Pumpkin', 'reviews', 0, 4, 'farmerreviews', '2026-04-04 00:39:26', NULL, '2026-04-16 10:10:52'),
-(15745, 9, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-15 06:40:52', NULL, '2026-04-16 10:10:52'),
-(15746, 9, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-13 06:40:52', NULL, '2026-04-16 10:10:52'),
-(17125, 23, 'farmer_order_46_pending', 'New Order Received', 'Order #46 | Pending | Your earning: Rs. 3,000.00', 'orders', 0, 46, 'farmerorders', '2026-04-16 09:27:45', NULL, '2026-04-16 11:06:33'),
-(17127, 23, 'farmer_order_42_pending', 'New Order Received', 'Order #42 | Pending | Your earning: Rs. 450.00', 'orders', 0, 42, 'farmerorders', '2026-04-04 05:16:44', NULL, '2026-04-16 11:06:33'),
-(17128, 23, 'farmer_order_40_shipped', 'Order Status Updated', 'Order #40 | Shipped | Your earning: Rs. 3,800.00', 'orders', 0, 40, 'farmerorders', '2026-04-16 07:48:19', NULL, '2026-04-16 11:06:33'),
-(17129, 23, 'farmer_order_41_shipped', 'Order Status Updated', 'Order #41 | Shipped | Your earning: Rs. 2,375.00', 'orders', 0, 41, 'farmerorders', '2026-04-16 07:48:19', NULL, '2026-04-16 11:06:33'),
-(17130, 23, 'farmer_crop_13_declined', 'Crop Request Updated', 'Banana | 56 kg | Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-16 11:06:33'),
-(17131, 23, 'farmer_crop_11_accepted', 'Crop Request Updated', 'Mango | 56 kg | Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-16 11:06:33'),
-(17132, 23, 'farmer_crop_10_declined', 'Crop Request Updated', 'Papaya | 45 kg | Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-16 11:06:33'),
-(17133, 23, 'farmer_crop_9_completed', 'Crop Request Updated', 'BeetRoot | 50 kg | Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-16 11:06:33'),
-(17134, 23, 'farmer_delivery_9_pending', 'Delivery Update', 'Delivery #9 for Order #47 | Pending', 'deliveries', 0, 9, 'farmerdeliveries', '2026-04-16 09:42:05', NULL, '2026-04-16 11:06:33'),
-(17135, 23, 'farmer_delivery_8_pending', 'Delivery Update', 'Delivery #8 for Order #46 | Pending', 'deliveries', 0, 8, 'farmerdeliveries', '2026-04-16 09:17:52', NULL, '2026-04-16 11:06:33'),
-(17136, 23, 'farmer_delivery_6_in_transit', 'Delivery Update', 'Delivery #6 for Order #44 | In Transit', 'deliveries', 0, 6, 'farmerdeliveries', '2026-04-12 18:06:35', NULL, '2026-04-16 11:06:33'),
-(17137, 23, 'farmer_delivery_4_pending', 'Delivery Update', 'Delivery #4 for Order #42 | Pending', 'deliveries', 0, 4, 'farmerdeliveries', '2026-04-04 01:45:07', NULL, '2026-04-16 11:06:33'),
-(17138, 23, 'farmer_delivery_3_in_transit', 'Delivery Update', 'Delivery #3 for Order #40 | In Transit', 'deliveries', 0, 3, 'farmerdeliveries', '2026-04-04 00:39:26', NULL, '2026-04-16 11:06:33'),
-(17139, 23, 'farmer_review_6', 'New Review Received', 'Yomal Chandima gave 4-star review for Pumpkin', 'reviews', 0, 6, 'farmerreviews', '2026-04-04 01:33:53', NULL, '2026-04-16 11:06:33'),
-(17140, 23, 'farmer_review_5', 'New Review Received', 'yomal gave 4-star review for Pumpkin', 'reviews', 0, 5, 'farmerreviews', '2026-04-04 00:39:26', NULL, '2026-04-16 11:06:33'),
-(17141, 23, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-15 07:36:33', NULL, '2026-04-16 11:06:33'),
-(17142, 23, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-13 07:36:33', NULL, '2026-04-16 11:06:33'),
-(22591, 28, 'transporter_delivery_8_accepted', 'Delivery Assigned', 'Order #46 | Accepted | Payment: Rs. 1,200.00', 'deliveries', 0, 8, 'transporterdashboard?section=mydeliveries', '2026-04-17 04:48:57', NULL, '2026-04-17 05:04:27'),
-(22626, 11, 'tracking_49_pending', 'Delivery Tracking Update', 'Order #ORD-49 | Pending | Transporter: Pending Assignment', 'tracking', 0, 49, 'buyertracking?order_id=49', '2026-04-17 05:04:29', NULL, '2026-04-17 05:04:40'),
-(22639, 11, 'order_update_49_pending_payment', 'Order Status Updated', 'Order #ORD-49 | Pending Payment | Total: Rs. 1,074.40', 'order_updates', 0, 49, 'buyerorders', '2026-04-17 05:04:29', NULL, '2026-04-17 05:04:40'),
-(22673, 28, 'transporter_delivery_11_accepted', 'Delivery Assigned', 'Order #49 | Accepted | Payment: Rs. 974.40', 'deliveries', 0, 11, 'transporterdashboard?section=mydeliveries', '2026-04-17 05:04:54', NULL, '2026-04-17 05:39:26'),
-(22750, 23, 'farmer_order_49_processing', 'Order Status Updated', 'Order #49 | Processing | Your earning: Rs. 100.00', 'orders', 0, 49, 'farmerorders', '2026-04-17 05:04:54', NULL, '2026-04-17 05:39:54'),
-(22752, 23, 'farmer_order_46_processing', 'Order Status Updated', 'Order #46 | Processing | Your earning: Rs. 3,000.00', 'orders', 0, 46, 'farmerorders', '2026-04-17 04:48:57', NULL, '2026-04-17 05:39:54'),
-(22761, 23, 'farmer_delivery_11_accepted', 'Delivery Accepted', 'Delivery #11 for Order #49 | Accepted', 'deliveries', 0, 11, 'farmerdeliveries', '2026-04-17 05:04:54', NULL, '2026-04-17 05:39:54'),
-(22763, 23, 'farmer_delivery_8_accepted', 'Delivery Accepted', 'Delivery #8 for Order #46 | Accepted', 'deliveries', 0, 8, 'farmerdeliveries', '2026-04-17 04:48:57', NULL, '2026-04-17 05:39:54'),
-(23028, 11, 'tracking_49_accepted', 'Delivery Tracking Update', 'Order #ORD-49 | Accepted | Transporter: Kal Transporter', 'tracking', 0, 49, 'buyertracking?order_id=49', '2026-04-17 05:04:54', NULL, '2026-04-17 05:40:18'),
-(23041, 11, 'order_update_49_processing', 'Order Processing', 'Order #ORD-49 | Processing | Total: Rs. 1,074.40', 'order_updates', 0, 49, 'buyerorders', '2026-04-17 05:04:54', NULL, '2026-04-17 05:40:18'),
-(25850, 24, 'tracking_46_accepted', 'Delivery Tracking Update', 'Order #ORD-46 | Accepted | Transporter: Kal Transporter', 'tracking', 0, 46, 'buyertracking?order_id=46', '2026-04-17 04:48:57', NULL, '2026-04-17 07:49:01'),
-(25852, 24, 'order_update_46_processing', 'Order Processing', 'Order #ORD-46 | Processing | Total: Rs. 4,200.00', 'order_updates', 0, 46, 'buyerorders', '2026-04-17 04:48:57', NULL, '2026-04-17 07:49:01'),
-(27139, 28, 'transporter_system_vehicles_28', 'Add Your First Vehicle', 'Add at least one vehicle to start accepting delivery requests.', 'system', 0, NULL, 'transporterdashboard?section=vehicle', '2026-04-17 15:02:38', NULL, '2026-04-17 18:32:38'),
-(28489, 28, 'transporter_delivery_11_in_transit', 'Delivery In Transit', 'Order #49 | In Transit | Payment: Rs. 974.40', 'deliveries', 0, 11, 'transporterdashboard?section=mydeliveries', '2026-04-18 09:28:05', NULL, '2026-04-18 09:28:13'),
-(28524, 11, 'tracking_49_in_transit', 'Delivery Tracking Update', 'Order #ORD-49 | In Transit | Transporter: Kal Transporter', 'tracking', 0, 49, 'buyertracking?order_id=49', '2026-04-18 09:28:05', NULL, '2026-04-18 09:28:30'),
-(28534, 11, 'order_update_49_shipped', 'Order Shipped', 'Order #ORD-49 | Shipped | Total: Rs. 1,074.40', 'order_updates', 0, 49, 'buyerorders', '2026-04-18 09:28:05', NULL, '2026-04-18 09:28:30'),
-(28582, 23, 'farmer_order_49_shipped', 'Order Status Updated', 'Order #49 | Shipped | Your earning: Rs. 100.00', 'orders', 0, 49, 'farmerorders', '2026-04-18 09:28:05', NULL, '2026-04-18 09:29:03'),
-(28591, 23, 'farmer_delivery_11_in_transit', 'Delivery Update', 'Delivery #11 for Order #49 | In Transit', 'deliveries', 0, 11, 'farmerdeliveries', '2026-04-18 09:28:05', NULL, '2026-04-18 09:29:03'),
-(28617, 23, 'farmer_order_46_shipped', 'Order Status Updated', 'Order #46 | Shipped | Your earning: Rs. 3,000.00', 'orders', 0, 46, 'farmerorders', '2026-04-18 09:29:10', NULL, '2026-04-18 09:29:12'),
-(28699, 23, 'farmer_order_42_confirmed', 'Order Status Updated', 'Order #42 | Confirmed | Your earning: Rs. 450.00', 'orders', 0, 42, 'farmerorders', '2026-04-18 09:31:22', NULL, '2026-04-18 09:31:23'),
-(28761, 11, 'order_update_42_confirmed', 'Order Confirmed', 'Order #ORD-42 | Confirmed | Total: Rs. 1,473.75', 'order_updates', 0, 42, 'buyerorders', '2026-04-18 09:31:22', NULL, '2026-04-18 09:32:11'),
-(28833, 11, 'tracking_50_pending', 'Delivery Tracking Update', 'Order #ORD-50 | Pending | Transporter: Pending Assignment', 'tracking', 0, 50, 'buyertracking?order_id=50', '2026-04-18 09:32:21', NULL, '2026-04-18 09:32:21'),
-(28844, 11, 'order_update_50_pending_payment', 'Order Status Updated', 'Order #ORD-50 | Pending Payment | Total: Rs. 295.98', 'order_updates', 0, 50, 'buyerorders', '2026-04-18 09:32:21', NULL, '2026-04-18 09:32:21'),
-(28867, 11, 'order_update_50_pending', 'Order Placed', 'Order #ORD-50 | Pending | Total: Rs. 295.98', 'order_updates', 0, 50, 'buyerorders', '2026-04-18 09:33:09', NULL, '2026-04-18 09:33:09'),
-(29063, 9, 'farmer_order_50_pending', 'New Order Received', 'Order #50 | Pending | Your earning: Rs. 57.98', 'orders', 0, 50, 'farmerorders', '2026-04-18 09:33:09', NULL, '2026-04-18 09:35:38'),
-(29070, 9, 'farmer_delivery_12_pending', 'Delivery Update', 'Delivery #12 for Order #50 | Pending', 'deliveries', 0, 12, 'farmerdeliveries', '2026-04-18 09:32:21', NULL, '2026-04-18 09:35:38'),
-(29089, 9, 'farmer_order_50_confirmed', 'Order Status Updated', 'Order #50 | Confirmed | Your earning: Rs. 57.98', 'orders', 0, 50, 'farmerorders', '2026-04-18 09:35:51', NULL, '2026-04-18 09:35:52'),
-(29114, 28, 'transporter_delivery_12_accepted', 'Delivery Assigned', 'Order #50 | Accepted | Payment: Rs. 238.00', 'deliveries', 0, 12, 'transporterdashboard?section=mydeliveries', '2026-04-18 09:36:06', NULL, '2026-04-18 09:36:08'),
-(29326, 28, 'transporter_delivery_11_delivered', 'Delivery Completed', 'Order #49 | Delivered | Payment: Rs. 974.40', 'deliveries', 0, 11, 'transporterdashboard?section=mydeliveries', '2026-04-18 09:46:05', NULL, '2026-04-18 09:46:07'),
-(29353, 41, 'farmer_crop_13_declined', 'Crop Request Updated', 'Banana | 56 kg | Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-18 10:19:45'),
-(29354, 41, 'farmer_crop_11_accepted', 'Crop Request Updated', 'Mango | 56 kg | Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-18 10:19:45'),
-(29355, 41, 'farmer_crop_10_declined', 'Crop Request Updated', 'Papaya | 45 kg | Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-18 10:19:45'),
-(29356, 41, 'farmer_crop_9_completed', 'Crop Request Updated', 'BeetRoot | 50 kg | Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-18 10:19:45'),
-(29357, 41, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 06:49:45', NULL, '2026-04-18 10:19:45'),
-(29358, 41, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 06:49:45', NULL, '2026-04-18 10:19:45'),
-(29359, 9, 'farmer_order_50_processing', 'Order Status Updated', 'Order #50 | Processing | Your earning: Rs. 57.98', 'orders', 0, 50, 'farmerorders', '2026-04-18 09:36:06', NULL, '2026-04-18 10:19:58'),
-(29366, 9, 'farmer_delivery_12_accepted', 'Delivery Accepted', 'Delivery #12 for Order #50 | Accepted', 'deliveries', 0, 12, 'farmerdeliveries', '2026-04-18 09:36:06', NULL, '2026-04-18 10:19:58'),
-(29533, 11, 'tracking_50_accepted', 'Delivery Tracking Update', 'Order #ORD-50 | Accepted | Transporter: Kal Transporter', 'tracking', 0, 50, 'buyertracking?order_id=50', '2026-04-18 09:36:06', NULL, '2026-04-18 11:11:52'),
-(29534, 11, 'tracking_49_delivered', 'Delivery Tracking Update', 'Order #ORD-49 | Delivered | Transporter: Kal Transporter', 'tracking', 0, 49, 'buyertracking?order_id=49', '2026-04-18 09:46:05', NULL, '2026-04-18 11:11:52'),
-(29544, 11, 'order_update_50_processing', 'Order Processing', 'Order #ORD-50 | Processing | Total: Rs. 295.98', 'order_updates', 0, 50, 'buyerorders', '2026-04-18 09:36:06', NULL, '2026-04-18 11:11:52'),
-(29545, 11, 'order_update_49_delivered', 'Order Delivered', 'Order #ORD-49 | Delivered | Total: Rs. 1,074.40', 'order_updates', 0, 49, 'buyerorders', '2026-04-18 09:46:05', NULL, '2026-04-18 11:11:52'),
-(29689, 42, 'new_product_50', 'New Product Listed', 'Banana by Sewni Jayawardana | Rs. 57.98/kg', 'new_products', 0, 50, 'buyerproducts', '2026-04-09 06:40:14', NULL, '2026-04-18 11:14:09'),
-(29690, 42, 'new_product_49', 'New Product Listed', 'Banana by vonara | Rs. 100.00/kg', 'new_products', 0, 49, 'buyerproducts', '2026-04-04 05:13:09', NULL, '2026-04-18 11:14:09'),
-(29691, 42, 'new_product_45', 'New Product Listed', 'Pumpkin by Sewni Jayawardana | Rs. 130.00/kg', 'new_products', 0, 45, 'buyerproducts', '2026-04-04 00:39:26', NULL, '2026-04-18 11:14:09'),
-(29692, 42, 'new_product_47', 'New Product Listed', 'Pumpkin by vonara | Rs. 95.00/kg', 'new_products', 0, 47, 'buyerproducts', '2026-04-04 00:39:26', NULL, '2026-04-18 11:14:09'),
-(29693, 42, 'new_product_44', 'New Product Listed', 'Orange by vonara | Rs. 45.00/kg', 'new_products', 0, 44, 'buyerproducts', '2026-02-09 17:13:40', NULL, '2026-04-18 11:14:09'),
-(29694, 42, 'system_profile_incomplete_42', 'Complete Delivery Profile', 'Please add phone, street address, ... in your profile to avoid checkout and delivery issues.', 'system', 0, NULL, 'buyerprofile', '2026-04-18 07:44:09', NULL, '2026-04-18 11:14:09'),
-(29695, 42, 'system_no_orders_42', 'No Orders Yet', 'Place your first order to start receiving delivery and order update notifications.', 'system', 0, NULL, 'buyerproducts', '2026-04-18 07:44:09', NULL, '2026-04-18 11:14:09'),
-(29794, 43, 'farmer_crop_13_declined', 'Crop Request Updated', 'Banana | 56 kg | Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-18 11:51:33'),
-(29795, 43, 'farmer_crop_11_accepted', 'Crop Request Updated', 'Mango | 56 kg | Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-18 11:51:33'),
-(29796, 43, 'farmer_crop_10_declined', 'Crop Request Updated', 'Papaya | 45 kg | Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-18 11:51:33'),
-(29797, 43, 'farmer_crop_9_completed', 'Crop Request Updated', 'BeetRoot | 50 kg | Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-18 11:51:33'),
-(29798, 43, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 08:21:33', NULL, '2026-04-18 11:51:33'),
-(29799, 43, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 08:21:33', NULL, '2026-04-18 11:51:33'),
-(29800, 44, 'farmer_crop_13_declined', 'Crop Request Updated', 'Banana | 56 kg | Declined', 'crop_requests', 0, 13, 'farmercroprequests', '2026-01-21 09:31:05', NULL, '2026-04-18 11:56:03'),
-(29801, 44, 'farmer_crop_11_accepted', 'Crop Request Updated', 'Mango | 56 kg | Accepted', 'crop_requests', 0, 11, 'farmercroprequests', '2025-12-17 04:38:21', NULL, '2026-04-18 11:56:03'),
-(29802, 44, 'farmer_crop_10_declined', 'Crop Request Updated', 'Papaya | 45 kg | Declined', 'crop_requests', 0, 10, 'farmercroprequests', '2025-12-16 14:27:44', NULL, '2026-04-18 11:56:03'),
-(29803, 44, 'farmer_crop_9_completed', 'Crop Request Updated', 'BeetRoot | 50 kg | Completed', 'crop_requests', 0, 9, 'farmercroprequests', '2025-12-16 13:42:40', NULL, '2026-04-18 11:56:03'),
-(29804, 44, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 08:26:03', NULL, '2026-04-18 11:56:03'),
-(29805, 44, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 08:26:03', NULL, '2026-04-18 11:56:03');
+(1, 29, 'new_product_3', 'New Product Listed', 'Orange by Farmer One | Rs. 100.00/kg', 'new_products', 0, 3, 'buyerproducts', '2026-04-16 15:13:18', NULL, '2026-04-18 08:19:47'),
+(2, 1, 'new_product_3', 'New Product Listed', 'Orange by Farmer One | Rs. 100.00/kg', 'new_products', 0, 3, 'buyerproducts', '2026-04-16 15:13:18', NULL, '2026-04-18 08:14:58'),
+(3, 1, 'new_product_2', 'New Product Listed', 'Leeks by Sewni | Rs. 150.00/kg', 'new_products', 0, 2, 'buyerproducts', '2026-04-16 15:04:57', NULL, '2026-04-18 08:14:58'),
+(4, 1, 'tracking_5_pending', 'Delivery Tracking Update', 'Order #ORD-5 | Pending | Transporter: Pending Assignment', 'tracking', 0, 5, 'buyertracking?order_id=5', '2026-04-18 08:10:01', NULL, '2026-04-18 08:14:58'),
+(5, 1, 'tracking_3_pending', 'Delivery Tracking Update', 'Order #ORD-3 | Pending | Transporter: Pending Assignment', 'tracking', 0, 3, 'buyertracking?order_id=3', '2026-04-18 05:57:48', NULL, '2026-04-18 08:14:58'),
+(6, 1, 'order_update_5_pending', 'Order Placed', 'Order #ORD-5 | Pending | Total: Rs. 4,204.35', 'order_updates', 1, 5, 'buyerorders', '2026-04-18 08:13:14', '2026-04-18 08:15:49', '2026-04-18 08:15:49'),
+(7, 1, 'order_update_4_cancelled', 'Order Cancelled', 'Order #ORD-4 | Cancelled | Total: Rs. 2,775.30', 'order_updates', 0, 4, 'buyerorders', '2026-04-18 08:01:44', NULL, '2026-04-18 08:14:58'),
+(8, 1, 'order_update_3_pending_payment', 'Order Status Updated', 'Order #ORD-3 | Pending Payment | Total: Rs. 2,334.23', 'order_updates', 0, 3, 'buyerorders', '2026-04-18 05:57:48', NULL, '2026-04-18 08:14:58'),
+(121, 27, 'farmer_order_3_pending_payment', 'New Order Received', 'Order #3 | Pending Payment | Your earning: Rs. 1,500.00', 'orders', 0, 3, 'farmerorders', '2026-04-18 05:57:48', NULL, '2026-04-18 08:16:21'),
+(122, 27, 'farmer_delivery_2_pending', 'Delivery Update', 'Delivery #2 for Order #3 | Pending', 'deliveries', 1, 2, 'farmerdeliveries', '2026-04-18 05:57:48', '2026-04-18 08:16:27', '2026-04-18 08:16:27'),
+(123, 27, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 04:46:21', NULL, '2026-04-18 08:16:21'),
+(124, 27, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 04:46:21', NULL, '2026-04-18 08:16:21'),
+(153, 2, 'farmer_order_5_pending', 'New Order Received', 'Order #5 | Pending | Your earning: Rs. 3,000.00', 'orders', 0, 5, 'farmerorders', '2026-04-18 08:13:14', NULL, '2026-04-18 08:16:45'),
+(154, 2, 'farmer_order_4_cancelled', 'Order Status Updated', 'Order #4 | Cancelled | Your earning: Rs. 1,950.00', 'orders', 0, 4, 'farmerorders', '2026-04-18 08:01:44', NULL, '2026-04-18 08:16:45'),
+(155, 2, 'farmer_order_1_cancelled', 'Order Status Updated', 'Order #1 | Cancelled | Your earning: Rs. 150.00', 'orders', 0, 1, 'farmerorders', '2026-04-18 08:03:26', NULL, '2026-04-18 08:16:45'),
+(156, 2, 'farmer_delivery_4_pending', 'Delivery Update', 'Delivery #4 for Order #5 | Pending', 'deliveries', 0, 4, 'farmerdeliveries', '2026-04-18 08:10:01', NULL, '2026-04-18 08:16:45'),
+(157, 2, 'farmer_delivery_3_pending', 'Delivery Update', 'Delivery #3 for Order #4 | Pending', 'deliveries', 0, 3, 'farmerdeliveries', '2026-04-18 06:05:05', NULL, '2026-04-18 08:16:45'),
+(158, 2, 'farmer_delivery_1_pending', 'Delivery Update', 'Delivery #1 for Order #1 | Pending', 'deliveries', 0, 1, 'farmerdeliveries', '2026-04-17 14:21:05', NULL, '2026-04-18 08:16:45'),
+(159, 2, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 04:46:45', NULL, '2026-04-18 08:16:45'),
+(160, 2, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 04:46:45', NULL, '2026-04-18 08:16:45'),
+(209, 2, 'farmer_order_5_confirmed', 'Order Status Updated', 'Order #5 | Confirmed | Your earning: Rs. 3,000.00', 'orders', 0, 5, 'farmerorders', '2026-04-18 08:17:00', NULL, '2026-04-18 08:17:03'),
+(217, 2, 'farmer_order_5_processing', 'Order Status Updated', 'Order #5 | Processing | Your earning: Rs. 3,000.00', 'orders', 0, 5, 'farmerorders', '2026-04-18 08:17:06', NULL, '2026-04-18 08:17:07'),
+(225, 2, 'farmer_order_5_shipped', 'Order Status Updated', 'Order #5 | Shipped | Your earning: Rs. 3,000.00', 'orders', 0, 5, 'farmerorders', '2026-04-18 08:17:11', NULL, '2026-04-18 08:17:12'),
+(237, 1, 'order_update_5_shipped', 'Order Shipped', 'Order #ORD-5 | Shipped | Total: Rs. 4,204.35', 'order_updates', 1, 5, 'buyerorders', '2026-04-18 08:17:11', '2026-04-18 08:17:41', '2026-04-18 08:17:41'),
+(240, 1, 'system_pending_feedback_1', 'Pending Feedback Reminder', 'You have 2 pending review item(s). Share feedback to help improve marketplace quality.', 'system', 0, NULL, 'buyerreviews', '2026-04-18 08:10:01', NULL, '2026-04-18 08:54:22'),
+(281, 3, 'transporter_system_profile_3', 'Complete Profile Details', 'Please add phone number, district to keep deliveries running smoothly.', 'system', 0, NULL, 'transporterprofile', '2026-04-18 04:47:53', NULL, '2026-04-18 08:17:53'),
+(282, 3, 'transporter_system_payout_3', 'Add Payout Account', 'Set your payout account details to receive delivery earnings without delays.', 'system', 1, NULL, 'transporterprofile', '2026-04-18 04:47:53', '2026-04-18 08:18:55', '2026-04-18 08:18:55'),
+(323, 28, 'transporter_system_profile_28', 'Complete Profile Details', 'Please add phone number, district to keep deliveries running smoothly.', 'system', 0, NULL, 'transporterprofile', '2026-04-18 04:49:18', NULL, '2026-04-18 08:19:18'),
+(324, 28, 'transporter_system_payout_28', 'Add Payout Account', 'Set your payout account details to receive delivery earnings without delays.', 'system', 0, NULL, 'transporterprofile', '2026-04-18 04:49:18', NULL, '2026-04-18 08:19:18'),
+(336, 29, 'new_product_2', 'New Product Listed', 'Leeks by Sewni | Rs. 150.00/kg', 'new_products', 0, 2, 'buyerproducts', '2026-04-16 15:04:57', NULL, '2026-04-18 08:19:47'),
+(337, 29, 'order_update_1_cancelled', 'Order Cancelled', 'Order #ORD-1 | Cancelled | Total: Rs. 897.60', 'order_updates', 0, 1, 'buyerorders', '2026-04-18 08:03:26', NULL, '2026-04-18 08:19:47'),
+(352, 29, 'tracking_6_pending', 'Delivery Tracking Update', 'Order #ORD-6 | Pending | Transporter: Pending Assignment', 'tracking', 0, 6, 'buyertracking?order_id=6', '2026-04-18 08:20:06', NULL, '2026-04-18 08:20:06'),
+(353, 29, 'order_update_6_pending_payment', 'Order Status Updated', 'Order #ORD-6 | Pending Payment | Total: Rs. 2,348.93', 'order_updates', 0, 6, 'buyerorders', '2026-04-18 08:20:06', NULL, '2026-04-18 08:20:06'),
+(393, 29, 'order_update_6_pending', 'Order Placed', 'Order #ORD-6 | Pending | Total: Rs. 2,348.93', 'order_updates', 0, 6, 'buyerorders', '2026-04-18 08:33:44', NULL, '2026-04-18 08:33:44'),
+(416, 27, 'farmer_order_6_pending', 'New Order Received', 'Order #6 | Pending | Your earning: Rs. 1,500.00', 'orders', 0, 6, 'farmerorders', '2026-04-18 08:33:44', NULL, '2026-04-18 08:35:46'),
+(418, 27, 'farmer_delivery_5_pending', 'Delivery Update', 'Delivery #5 for Order #6 | Pending', 'deliveries', 0, 5, 'farmerdeliveries', '2026-04-18 08:20:06', NULL, '2026-04-18 08:35:46'),
+(458, 27, 'farmer_order_6_confirmed', 'Order Status Updated', 'Order #6 | Confirmed | Your earning: Rs. 1,500.00', 'orders', 0, 6, 'farmerorders', '2026-04-18 08:36:20', NULL, '2026-04-18 08:36:22'),
+(464, 27, 'farmer_order_6_processing', 'Order Status Updated', 'Order #6 | Processing | Your earning: Rs. 1,500.00', 'orders', 0, 6, 'farmerorders', '2026-04-18 08:36:25', NULL, '2026-04-18 08:36:26'),
+(470, 27, 'farmer_order_6_shipped', 'Order Status Updated', 'Order #6 | Shipped | Your earning: Rs. 1,500.00', 'orders', 0, 6, 'farmerorders', '2026-04-18 08:36:28', NULL, '2026-04-18 08:36:30'),
+(576, 1, 'tracking_7_pending', 'Delivery Tracking Update', 'Order #ORD-7 | Pending | Transporter: Pending Assignment', 'tracking', 0, 7, 'buyertracking?order_id=7', '2026-04-18 08:40:29', NULL, '2026-04-18 08:40:29'),
+(579, 1, 'order_update_7_pending_payment', 'Order Status Updated', 'Order #ORD-7 | Pending Payment | Total: Rs. 3,432.30', 'order_updates', 0, 7, 'buyerorders', '2026-04-18 08:40:29', NULL, '2026-04-18 08:40:29'),
+(669, 1, 'order_update_7_pending', 'Order Placed', 'Order #ORD-7 | Pending | Total: Rs. 3,432.30', 'order_updates', 0, 7, 'buyerorders', '2026-04-18 08:44:40', NULL, '2026-04-18 08:44:41'),
+(716, 1, 'tracking_8_pending', 'Delivery Tracking Update', 'Order #ORD-8 | Pending | Transporter: Pending Assignment', 'tracking', 1, 8, 'buyertracking?order_id=8', '2026-04-18 08:45:46', '2026-04-18 08:46:37', '2026-04-18 08:46:37'),
+(720, 1, 'order_update_8_pending_payment', 'Order Status Updated', 'Order #ORD-8 | Pending Payment | Total: Rs. 3,432.30', 'order_updates', 1, 8, 'buyerorders', '2026-04-18 08:45:46', '2026-04-18 08:46:44', '2026-04-18 08:46:44'),
+(732, 1, 'order_update_8_pending', 'Order Placed', 'Order #ORD-8 | Pending | Total: Rs. 3,432.30', 'order_updates', 0, 8, 'buyerorders', '2026-04-18 08:46:16', NULL, '2026-04-18 08:46:16'),
+(862, 3, 'transporter_delivery_7_accepted', 'Delivery Assigned', 'Order #8 | Accepted | Payment: Rs. 1,182.30', 'deliveries', 1, 7, 'transporterdashboard?section=mydeliveries', '2026-04-18 08:47:53', '2026-04-18 08:48:14', '2026-04-18 08:48:14'),
+(889, 3, 'transporter_delivery_7_delivered', 'Delivery Completed', 'Order #8 | Delivered | Payment: Rs. 1,182.30', 'deliveries', 0, 7, 'transporterdashboard?section=mydeliveries', '2026-04-18 08:48:30', NULL, '2026-04-18 08:48:35'),
+(900, 1, 'tracking_8_delivered', 'Delivery Tracking Update', 'Order #ORD-8 | Delivered | Transporter: Kalmith', 'tracking', 0, 8, 'buyertracking?order_id=8', '2026-04-18 08:48:30', NULL, '2026-04-18 08:49:25'),
+(904, 1, 'order_update_8_delivered', 'Order Delivered', 'Order #ORD-8 | Delivered | Total: Rs. 3,432.30', 'order_updates', 0, 8, 'buyerorders', '2026-04-18 08:48:30', NULL, '2026-04-18 08:49:25'),
+(946, 2, 'farmer_order_8_delivered', 'Order Status Updated', 'Order #8 | Delivered | Your earning: Rs. 2,250.00', 'orders', 0, 8, 'farmerorders', '2026-04-18 08:48:30', NULL, '2026-04-18 08:49:48'),
+(947, 2, 'farmer_order_7_pending', 'New Order Received', 'Order #7 | Pending | Your earning: Rs. 2,250.00', 'orders', 0, 7, 'farmerorders', '2026-04-18 08:44:40', NULL, '2026-04-18 08:49:48'),
+(951, 2, 'farmer_delivery_7_delivered', 'Delivery Update', 'Delivery #7 for Order #8 | Delivered', 'deliveries', 0, 7, 'farmerdeliveries', '2026-04-18 08:48:30', NULL, '2026-04-18 08:49:48'),
+(952, 2, 'farmer_delivery_6_pending', 'Delivery Update', 'Delivery #6 for Order #7 | Pending', 'deliveries', 0, 6, 'farmerdeliveries', '2026-04-18 08:40:29', NULL, '2026-04-18 08:49:48'),
+(983, 2, 'farmer_order_7_confirmed', 'Order Status Updated', 'Order #7 | Confirmed | Your earning: Rs. 2,250.00', 'orders', 0, 7, 'farmerorders', '2026-04-18 08:50:11', NULL, '2026-04-18 08:50:14'),
+(995, 2, 'farmer_order_7_processing', 'Order Status Updated', 'Order #7 | Processing | Your earning: Rs. 2,250.00', 'orders', 0, 7, 'farmerorders', '2026-04-18 08:50:16', NULL, '2026-04-18 08:50:18'),
+(1007, 2, 'farmer_order_7_shipped', 'Order Status Updated', 'Order #7 | Shipped | Your earning: Rs. 2,250.00', 'orders', 0, 7, 'farmerorders', '2026-04-18 08:50:20', NULL, '2026-04-18 08:50:21'),
+(1031, 1, 'order_update_7_shipped', 'Order Shipped', 'Order #ORD-7 | Shipped | Total: Rs. 3,432.30', 'order_updates', 0, 7, 'buyerorders', '2026-04-18 08:50:20', NULL, '2026-04-18 08:50:43'),
+(1480, 31, 'new_product_3', 'New Product Listed', 'Orange by Farmer One | Rs. 100.00/kg', 'new_products', 0, 3, 'buyerproducts', '2026-04-16 15:13:18', NULL, '2026-04-18 09:42:08'),
+(1481, 31, 'new_product_2', 'New Product Listed', 'Leeks by Sewni | Rs. 150.00/kg', 'new_products', 0, 2, 'buyerproducts', '2026-04-16 15:04:57', NULL, '2026-04-18 09:42:08'),
+(1482, 31, 'system_profile_incomplete_31', 'Complete Delivery Profile', 'Please add phone, street address, ... in your profile to avoid checkout and delivery issues.', 'system', 0, NULL, 'buyerprofile', '2026-04-18 09:42:01', NULL, '2026-04-18 09:42:08'),
+(1483, 31, 'system_no_orders_31', 'No Orders Yet', 'Place your first order to start receiving delivery and order update notifications.', 'system', 0, NULL, 'buyerproducts', '2026-04-18 06:12:08', NULL, '2026-04-18 09:42:08'),
+(1568, 31, 'tracking_9_pending', 'Delivery Tracking Update', 'Order #ORD-9 | Pending | Transporter: Pending Assignment', 'tracking', 0, 9, 'buyertracking?order_id=9', '2026-04-18 09:52:10', NULL, '2026-04-18 09:52:10'),
+(1569, 31, 'order_update_9_pending_payment', 'Order Status Updated', 'Order #ORD-9 | Pending Payment | Total: Rs. 6,242.00', 'order_updates', 0, 9, 'buyerorders', '2026-04-18 09:52:10', NULL, '2026-04-18 09:52:10'),
+(1581, 31, 'order_update_9_pending', 'Order Placed', 'Order #ORD-9 | Pending | Total: Rs. 6,242.00', 'order_updates', 0, 9, 'buyerorders', '2026-04-18 09:53:06', NULL, '2026-04-18 09:53:06'),
+(1592, 2, 'farmer_order_9_pending', 'New Order Received', 'Order #9 | Pending | Your earning: Rs. 2,250.00', 'orders', 0, 9, 'farmerorders', '2026-04-18 09:53:06', NULL, '2026-04-18 09:54:07'),
+(1598, 2, 'farmer_delivery_8_pending', 'Delivery Update', 'Delivery #8 for Order #9 | Pending', 'deliveries', 0, 8, 'farmerdeliveries', '2026-04-18 09:52:10', NULL, '2026-04-18 09:54:07'),
+(1604, 2, 'farmer_review_5', 'New Review Received', 'Yomal gave 3-star review for Leeks', 'reviews', 0, 5, 'farmerreviews', '2026-04-18 08:54:21', NULL, '2026-04-18 09:54:07'),
+(1605, 2, 'farmer_review_4', 'New Review Received', 'Yomal gave 4-star review for Leeks', 'reviews', 0, 4, 'farmerreviews', '2026-04-18 08:53:22', NULL, '2026-04-18 09:54:07'),
+(1660, 30, 'new_product_3', 'New Product Listed', 'Orange by Farmer One | Rs. 100.00/kg', 'new_products', 0, 3, 'buyerproducts', '2026-04-16 15:13:18', NULL, '2026-04-18 10:07:13'),
+(1661, 30, 'new_product_2', 'New Product Listed', 'Leeks by Sewni | Rs. 150.00/kg', 'new_products', 0, 2, 'buyerproducts', '2026-04-16 15:04:57', NULL, '2026-04-18 10:07:13'),
+(1662, 30, 'system_profile_incomplete_30', 'Complete Delivery Profile', 'Please add phone, street address, ... in your profile to avoid checkout and delivery issues.', 'system', 0, NULL, 'buyerprofile', '2026-04-17 13:18:50', NULL, '2026-04-18 10:07:13'),
+(1663, 30, 'system_no_orders_30', 'No Orders Yet', 'Place your first order to start receiving delivery and order update notifications.', 'system', 0, NULL, 'buyerproducts', '2026-04-18 06:37:13', NULL, '2026-04-18 10:07:13'),
+(1686, 29, 'new_product_4', 'New Product Listed', 'Mango by Farmer One | Rs. 79.97/kg', 'new_products', 0, 4, 'buyerproducts', '2026-04-18 10:09:02', NULL, '2026-04-18 10:09:13'),
+(1690, 29, 'order_update_6_shipped', 'Order Shipped', 'Order #ORD-6 | Shipped | Total: Rs. 2,348.93', 'order_updates', 0, 6, 'buyerorders', '2026-04-18 08:36:28', NULL, '2026-04-18 10:09:13'),
+(1692, 29, 'system_pending_feedback_29', 'Pending Feedback Reminder', 'You have 1 pending review item(s). Share feedback to help improve marketplace quality.', 'system', 0, NULL, 'buyerreviews', '2026-04-18 08:20:06', NULL, '2026-04-18 10:09:13'),
+(1794, 29, 'tracking_10_pending', 'Delivery Tracking Update', 'Order #ORD-10 | Pending | Transporter: Pending Assignment', 'tracking', 0, 10, 'buyertracking?order_id=10', '2026-04-18 10:10:14', NULL, '2026-04-18 10:10:14'),
+(1796, 29, 'order_update_10_pending_payment', 'Order Status Updated', 'Order #ORD-10 | Pending Payment | Total: Rs. 2,217.87', 'order_updates', 0, 10, 'buyerorders', '2026-04-18 10:10:14', NULL, '2026-04-18 10:10:14'),
+(1859, 29, 'order_update_10_pending', 'Order Placed', 'Order #ORD-10 | Pending | Total: Rs. 2,217.87', 'order_updates', 0, 10, 'buyerorders', '2026-04-18 10:12:14', NULL, '2026-04-18 10:12:14'),
+(1928, 27, 'farmer_order_10_pending', 'New Order Received', 'Order #10 | Pending | Your earning: Rs. 1,359.49', 'orders', 0, 10, 'farmerorders', '2026-04-18 10:12:14', NULL, '2026-04-18 10:15:27'),
+(1931, 27, 'farmer_delivery_9_pending', 'Delivery Update', 'Delivery #9 for Order #10 | Pending', 'deliveries', 0, 9, 'farmerdeliveries', '2026-04-18 10:10:14', NULL, '2026-04-18 10:15:27'),
+(2008, 1, 'new_product_5', 'New Product Listed', 'Onion by Sewni | Rs. 120.00/kg', 'new_products', 0, 5, 'buyerproducts', '2026-04-18 10:15:16', NULL, '2026-04-18 10:16:24'),
+(2009, 1, 'new_product_4', 'New Product Listed', 'Mango by Farmer One | Rs. 79.97/kg', 'new_products', 0, 4, 'buyerproducts', '2026-04-18 10:09:02', NULL, '2026-04-18 10:16:24'),
+(2446, 30, 'new_product_6', 'New Product Listed', 'Orange by Sewni | Rs. 110.00/kg', 'new_products', 0, 6, 'buyerproducts', '2026-04-18 10:31:10', NULL, '2026-04-18 10:49:43'),
+(2447, 30, 'new_product_5', 'New Product Listed', 'Onion by Sewni | Rs. 120.00/kg', 'new_products', 0, 5, 'buyerproducts', '2026-04-18 10:15:16', NULL, '2026-04-18 10:49:43'),
+(2448, 30, 'new_product_4', 'New Product Listed', 'Mango by Farmer One | Rs. 79.97/kg', 'new_products', 0, 4, 'buyerproducts', '2026-04-18 10:09:02', NULL, '2026-04-18 10:49:43'),
+(2551, 1, 'new_product_6', 'New Product Listed', 'Orange by Sewni | Rs. 110.00/kg', 'new_products', 0, 6, 'buyerproducts', '2026-04-18 10:31:10', NULL, '2026-04-18 11:09:18'),
+(2731, 32, 'farmer_system_profile', 'Keep Profile Updated', 'Ensure profile and payout details are up to date to avoid payout delays.', 'system', 0, NULL, 'farmerprofile', '2026-04-17 09:18:09', NULL, '2026-04-18 12:48:09'),
+(2732, 32, 'farmer_system_shipping', 'System Update', 'Delivery status and earnings views were improved for better tracking.', 'system', 0, NULL, 'farmerdashboard', '2026-04-15 09:18:09', NULL, '2026-04-18 12:48:09'),
+(2839, 1, 'tracking_11_pending', 'Delivery Tracking Update', 'Order #ORD-11 | Pending | Transporter: Pending Assignment', 'tracking', 0, 11, 'buyertracking?order_id=11', '2026-04-18 12:50:32', NULL, '2026-04-18 12:50:32'),
+(2844, 1, 'order_update_11_pending_payment', 'Order Status Updated', 'Order #ORD-11 | Pending Payment | Total: Rs. 3,395.95', 'order_updates', 0, 11, 'buyerorders', '2026-04-18 12:50:32', NULL, '2026-04-18 12:50:32'),
+(2861, 1, 'order_update_11_pending', 'Order Placed', 'Order #ORD-11 | Pending | Total: Rs. 3,395.95', 'order_updates', 0, 11, 'buyerorders', '2026-04-18 12:51:06', NULL, '2026-04-18 12:51:06'),
+(2941, 2, 'farmer_order_11_pending', 'New Order Received', 'Order #11 | Pending | Your earning: Rs. 2,200.00', 'orders', 0, 11, 'farmerorders', '2026-04-18 12:51:06', NULL, '2026-04-18 12:52:49'),
+(2948, 2, 'farmer_delivery_10_pending', 'Delivery Update', 'Delivery #10 for Order #11 | Pending', 'deliveries', 0, 10, 'farmerdeliveries', '2026-04-18 12:50:32', NULL, '2026-04-18 12:52:49'),
+(3108, 1, 'order_update_11_cancelled', 'Order Cancelled', 'Order #ORD-11 | Cancelled | Total: Rs. 3,395.95', 'order_updates', 0, 11, 'buyerorders', '2026-04-18 12:53:40', NULL, '2026-04-18 12:53:42');
 
 -- --------------------------------------------------------
 
@@ -1139,14 +1065,6 @@ CREATE TABLE `notification_settings` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `notification_settings`
---
-
-INSERT INTO `notification_settings` (`id`, `user_id`, `settings_json`, `created_at`, `updated_at`) VALUES
-(1, 11, '{\"new_products\":true,\"tracking\":true,\"review_replies\":true,\"request_replies\":false,\"order_updates\":true,\"system\":true,\"email_notifications\":false}', '2026-04-16 05:26:24', '2026-04-16 06:20:41'),
-(3, 28, '{\"deliveries\":true,\"reviews\":true,\"system\":true,\"email_notifications\":false}', '2026-04-16 06:01:42', '2026-04-16 06:20:42');
 
 -- --------------------------------------------------------
 
@@ -1177,14 +1095,16 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `shipping_cost`, `order_total`, `payment_status`, `total_weight_kg`, `delivery_address`, `delivery_city`, `delivery_district_id`, `delivery_town_id`, `delivery_phone`, `status`, `created_at`, `updated_at`) VALUES
-(39, 11, 3600.00, 480.00, 4080.00, 'paid', 30.00, 'No 12, Matale Road', 'Matale', 5, 18, '0711111111', 'delivered', '2026-04-04 00:39:26', '2026-04-16 07:48:19'),
-(40, 24, 3800.00, 620.00, 4420.00, 'paid', 40.00, 'No 05, Market Street', 'Matale', 5, 18, '0722222222', 'shipped', '2026-04-04 00:39:26', '2026-04-16 07:48:19'),
-(41, 11, 2375.00, 350.00, 2725.00, 'paid', 25.00, 'No 12, Matale Road', 'Matale', 5, 18, '0711111111', 'shipped', '2026-04-04 00:39:26', '2026-04-16 07:48:19'),
-(42, 11, 450.00, 1023.75, 1473.75, 'pending', 0.00, '35/445, Lake Road', 'Matale', 5, 18, '0702242499', 'confirmed', '2026-04-04 01:45:07', '2026-04-18 09:31:22'),
-(43, 11, 3900.00, 522.90, 4422.90, 'paid', 0.00, '35/445, Lake Road', 'Matale', 5, 18, '0702242499', 'shipped', '2026-04-04 01:45:39', '2026-04-16 07:48:19'),
-(46, 24, 3000.00, 1200.00, 4200.00, 'paid', 0.00, '26', 'Wadduwa', 3, NULL, '0778103265', 'shipped', '2026-04-16 09:17:52', '2026-04-18 09:29:10'),
-(49, 11, 100.00, 974.40, 1074.40, 'paid', 1.60, 'No 1 Main St', 'Colombo', 1, 1, '0771234567', 'delivered', '2026-04-17 05:04:29', '2026-04-18 09:46:05'),
-(50, 11, 57.98, 238.00, 295.98, 'paid', 1.60, '26, No 1 Main St', 'Wadduwa', 3, 34, '0771234567', 'processing', '2026-04-18 09:32:21', '2026-04-18 09:36:06');
+(1, 29, 150.00, 747.60, 897.60, 'paid', 1.40, ', 56/9,kl rd,matara', 'Peradeniya', 4, 75, '0783215656', 'cancelled', '2026-04-17 14:21:05', '2026-04-18 08:03:26'),
+(3, 1, 1500.00, 834.23, 2334.23, 'pending', 22.50, ', 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'pending_payment', '2026-04-18 05:57:48', '2026-04-18 05:57:48'),
+(4, 1, 1950.00, 825.30, 2775.30, 'pending', 18.20, ', 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'cancelled', '2026-04-18 06:05:05', '2026-04-18 08:01:44'),
+(5, 1, 3000.00, 1204.35, 4204.35, 'paid', 28.00, 'none, 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'shipped', '2026-04-18 08:10:01', '2026-04-18 08:17:11'),
+(6, 29, 1500.00, 848.93, 2348.93, 'paid', 22.50, ', 56/9,kl rd', 'Peradeniya', 4, 75, '0783215656', 'shipped', '2026-04-18 08:20:06', '2026-04-18 08:36:28'),
+(7, 1, 2250.00, 1182.30, 3432.30, 'paid', 21.00, 'none, 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'shipped', '2026-04-18 08:40:29', '2026-04-18 08:50:20'),
+(8, 1, 2250.00, 1182.30, 3432.30, 'paid', 21.00, 'none, 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'delivered', '2026-04-18 08:45:46', '2026-04-18 08:48:30'),
+(9, 31, 2250.00, 3992.00, 6242.00, 'paid', 21.00, ', 56/8,anna rd', 'Jaffna Town', 10, 130, '0745689321', 'pending', '2026-04-18 09:52:10', '2026-04-18 09:53:06'),
+(10, 29, 1359.49, 858.38, 2217.87, 'paid', 25.50, ', 56/9,kl rd', 'Peradeniya', 4, 75, '0783215656', 'pending', '2026-04-18 10:10:14', '2026-04-18 10:12:14'),
+(11, 1, 2200.00, 1195.95, 3395.95, 'paid', 30.00, 'none, 45/6,lake rd', 'Katugastota', 4, 76, '0704243366', 'cancelled', '2026-04-18 12:50:32', '2026-04-18 12:53:40');
 
 -- --------------------------------------------------------
 
@@ -1209,14 +1129,16 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `product_price`, `quantity`, `item_weight_kg`, `farmer_id`, `created_at`) VALUES
-(32, 39, 45, 'Pumpkin', 120.00, 30, 30.00, 9, '2026-04-04 00:39:26'),
-(33, 40, 47, 'Carrot', 95.00, 40, 40.00, 23, '2026-04-04 00:39:26'),
-(34, 41, 47, 'Carrot', 95.00, 25, 25.00, 23, '2026-04-04 00:39:26'),
-(35, 42, 44, 'Orange', 45.00, 10, 15.00, 23, '2026-04-04 01:45:07'),
-(36, 43, 45, 'Pumpkin', 130.00, 30, 66.00, 9, '2026-04-04 01:45:39'),
-(39, 46, 49, 'Banana', 100.00, 30, 48.00, 23, '2026-04-16 09:17:52'),
-(42, 49, 49, 'Banana', 100.00, 1, 1.60, 23, '2026-04-17 05:04:29'),
-(43, 50, 50, 'Banana', 57.98, 1, 1.60, 9, '2026-04-18 09:32:21');
+(1, 1, 2, 'Leeks', 150.00, 1, 1.40, 2, '2026-04-17 14:21:05'),
+(13, 3, 3, 'Orange', 100.00, 15, 22.50, 27, '2026-04-18 05:57:48'),
+(14, 4, 2, 'Leeks', 150.00, 13, 18.20, 2, '2026-04-18 06:05:05'),
+(15, 5, 2, 'Leeks', 150.00, 20, 28.00, 2, '2026-04-18 08:10:01'),
+(16, 6, 3, 'Orange', 100.00, 15, 22.50, 27, '2026-04-18 08:20:06'),
+(17, 7, 2, 'Leeks', 150.00, 15, 21.00, 2, '2026-04-18 08:40:29'),
+(18, 8, 2, 'Leeks', 150.00, 15, 21.00, 2, '2026-04-18 08:45:46'),
+(19, 9, 2, 'Leeks', 150.00, 15, 21.00, 2, '2026-04-18 09:52:10'),
+(20, 10, 4, 'Mango', 79.97, 17, 25.50, 27, '2026-04-18 10:10:14'),
+(21, 11, 6, 'Orange', 110.00, 20, 30.00, 2, '2026-04-18 12:50:32');
 
 -- --------------------------------------------------------
 
@@ -1231,19 +1153,12 @@ CREATE TABLE `payout_accounts` (
   `bank_name` varchar(120) NOT NULL,
   `branch_name` varchar(120) DEFAULT NULL,
   `account_number` varchar(30) NOT NULL,
+  `account_type` varchar(40) DEFAULT NULL,
   `is_default` tinyint(1) NOT NULL DEFAULT 0,
   `is_verified` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `payout_accounts`
---
-
-INSERT INTO `payout_accounts` (`id`, `user_id`, `account_holder_name`, `bank_name`, `branch_name`, `account_number`, `is_default`, `is_verified`, `created_at`, `updated_at`) VALUES
-(1, 9, 'Farmer Test', 'Bank Two', 'wadduwa', '22334455', 1, 0, '2026-04-16 06:01:42', '2026-04-16 06:23:47'),
-(2, 28, 'Transporter Test', 'Bank One', 'Main', '12345678', 1, 0, '2026-04-16 06:01:43', '2026-04-16 06:20:42');
 
 -- --------------------------------------------------------
 
@@ -1300,12 +1215,11 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `farmer_id`, `name`, `product_master_id`, `price`, `quantity`, `description`, `district_id`, `town_id`, `image`, `location`, `category`, `listing_date`, `created_at`, `updated_at`) VALUES
-(43, 9, 'Brinjal', 9, 55.00, 0, '', 7, 26, 'product_698a14de26752.jpg', 'Ambalangoda, Galle', 'Vegetables', '2026-02-09', '2026-02-09 17:09:50', '2026-04-03 23:33:42'),
-(44, 23, 'Orange', 33, 45.00, 26, '', 1, 2, 'product_698a15c4bdbf0.jpg', 'kalutara', 'Fruits', '2026-02-09', '2026-02-09 17:13:40', '2026-04-04 01:45:07'),
-(45, 9, 'Pumpkin', NULL, 130.00, 20, '', 3, NULL, 'product_69d0a4643ddc0.jpeg', 'Kalutara', 'Vegetables', '2026-04-17', '2026-04-04 00:39:26', '2026-04-17 08:29:22'),
-(47, 23, 'Pumpkin', NULL, 95.00, 55, '', 5, 18, 'product_69d09db5836c6.jpeg', 'Matale Town, Matale', 'Vegetables', '2026-04-04', '2026-04-04 00:39:26', '2026-04-16 10:56:13'),
-(49, 23, 'Banana', 24, 100.00, 33, '', 7, 28, 'product_69d09de5dd62d.jpeg', 'Bentota, Galle', 'Fruits', '2026-04-04', '2026-04-04 05:13:09', '2026-04-17 05:04:29'),
-(50, 9, 'Banana', 24, 57.98, 57, '', 1, 11, 'product_69d749ce69250.jpeg', 'Boralesgamuwa, Colombo', 'Fruits', '2026-04-19', '2026-04-09 06:40:14', '2026-04-18 10:41:09');
+(2, 2, 'Leeks', 15, 150.00, 15, '', 24, NULL, 'product_69e0fa99d4fa1.jpg', 'Ratnapura', 'Vegetables', '2026-04-16', '2026-04-16 15:04:57', '2026-04-18 09:52:10'),
+(3, 27, 'Orange', 33, 100.00, 20, '', 25, 234, 'product_69e0fc8e080ce.jpg', 'Galigamuwa, Kegalle', 'Fruits', '2026-04-19', '2026-04-16 15:13:18', '2026-04-18 08:20:06'),
+(4, 27, 'Mango', 26, 79.97, 281, '', 25, 234, 'product_69e3583e31407.jpg', 'auto', 'Fruits', '2026-04-18', '2026-04-18 10:09:02', '2026-04-18 10:10:14'),
+(5, 2, 'Onion', 5, 120.00, 450, '', 6, 96, 'product_69e359b4a1734.jpg', 'auto', 'Vegetables', '2026-04-18', '2026-04-18 10:15:16', '2026-04-18 10:15:16'),
+(6, 2, 'Orange', 33, 110.00, 100, '', 21, 200, 'product_69e35d6e2238c.jpg', 'auto', 'Fruits', '2026-04-18', '2026-04-18 10:31:10', '2026-04-18 12:53:40');
 
 -- --------------------------------------------------------
 
@@ -1333,10 +1247,8 @@ CREATE TABLE `reviews` (
 --
 
 INSERT INTO `reviews` (`id`, `order_id`, `product_id`, `buyer_id`, `farmer_id`, `rating`, `comment`, `reply`, `replied_at`, `status`, `created_at`, `updated_at`) VALUES
-(4, 39, 45, 11, 9, 2, 'Some produce arrived bruised. Need better packing.', 'sorry for the inconvenience', '2026-04-04 01:08:15', 'active', '2026-04-04 00:39:26', '2026-04-04 01:08:15'),
-(5, 40, 47, 24, 23, 4, 'Good quality and fair pricing. Delivery in progress.', NULL, NULL, 'active', '2026-04-04 00:39:26', '2026-04-04 00:39:26'),
-(6, 41, 47, 11, 23, 4, 'delivery is late', NULL, NULL, 'active', '2026-04-04 01:33:53', '2026-04-04 01:33:53'),
-(7, 39, 45, 11, 28, 5, 'quick', NULL, NULL, 'active', '2026-04-04 02:08:05', '2026-04-04 02:08:05');
+(4, 8, 2, 1, 2, 4, 'good', NULL, NULL, 'active', '2026-04-18 08:53:22', '2026-04-18 08:53:22'),
+(5, 7, 2, 1, 2, 3, 'll', NULL, NULL, 'active', '2026-04-18 08:54:21', '2026-04-18 08:54:21');
 
 -- --------------------------------------------------------
 
@@ -1360,207 +1272,207 @@ CREATE TABLE `towns` (
 --
 
 INSERT INTO `towns` (`id`, `town_name`, `district_id`, `extra_distance_km`, `postal_code`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Colombo Fort', 1, 0, '00100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(2, 'Dehiwala', 1, 8, '10350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(3, 'Maharagama', 1, 14, '10280', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(4, 'Kotte', 1, 7, '10100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(5, 'Homagama', 1, 22, '10200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(6, 'Kaduwela', 1, 18, '10640', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(7, 'Moratuwa', 1, 19, '10400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(8, 'Nugegoda', 1, 10, '10250', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(9, 'Battaramulla', 1, 12, '10120', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(10, 'Mount Lavinia', 1, 11, '10370', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(11, 'Boralesgamuwa', 1, 16, '10290', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(12, 'Kolonnawa', 1, 13, '10600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(13, 'Piliyandala', 1, 20, '10300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(14, 'Kesbewa', 1, 17, '10550', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(15, 'Gampaha', 2, 0, '11000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(16, 'Negombo', 2, 12, '11500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(17, 'Ja-Ela', 2, 16, '11350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(18, 'Kadawatha', 2, 10, '11850', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(19, 'Ragama', 2, 6, '11010', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(20, 'Wattala', 2, 14, '11300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(21, 'Minuwangoda', 2, 20, '11550', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(22, 'Kiribathgoda', 2, 8, '11600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(23, 'Divulapitiya', 2, 32, '11250', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(24, 'Kelaniya', 2, 9, '11600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(25, 'Katunayake', 2, 18, '11450', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(26, 'Veyangoda', 2, 25, '11100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(27, 'Kalutara', 3, 0, '12000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(28, 'Panadura', 3, 10, '12500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(29, 'Horana', 3, 28, '12400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(30, 'Beruwala', 3, 18, '12070', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(31, 'Aluthgama', 3, 22, '12080', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(32, 'Matugama', 3, 15, '12100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(33, 'Bandaragama', 3, 20, '12530', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(34, 'Wadduwa', 3, 12, '12560', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(35, 'Ingiriya', 3, 32, '12440', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(36, 'Bulathsinhala', 3, 35, '12300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(37, 'Kandy Town', 4, 0, '20000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(38, 'Peradeniya', 4, 8, '20400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(39, 'Katugastota', 4, 6, '20800', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(40, 'Gampola', 4, 27, '20500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(41, 'Nawalapitiya', 4, 42, '20650', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(42, 'Teldeniya', 4, 20, '20900', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(43, 'Kundasale', 4, 10, '20168', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(44, 'Akurana', 4, 14, '20850', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(45, 'Kadugannawa', 4, 18, '20300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(46, 'Pilimatalawa', 4, 12, '20450', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(47, 'Wattegama', 4, 24, '20270', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(48, 'Deltota', 4, 30, '20660', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(49, 'Matale Town', 5, 0, '21000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(50, 'Dambulla', 5, 28, '21100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(51, 'Galewela', 5, 20, '21200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(52, 'Ukuwela', 5, 12, '21300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(53, 'Naula', 5, 28, '21600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(54, 'Rattota', 5, 18, '21400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(55, 'Pallepola', 5, 15, '21700', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(56, 'Yatawatta', 5, 25, '21500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(57, 'Laggala', 5, 35, '21800', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(58, 'Nuwara Eliya', 6, 0, '22200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(59, 'Hatton', 6, 32, '22000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(60, 'Nanu Oya', 6, 8, '22150', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(61, 'Talawakelle', 6, 24, '22100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(62, 'Ginigathena', 6, 28, '22270', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(63, 'Walapane', 6, 35, '22226', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(64, 'Kotmale', 6, 18, '22030', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(65, 'Bogawantalawa', 6, 40, '22010', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(66, 'Haputale', 6, 45, '22070', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(67, 'Galle Fort', 7, 0, '80000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(68, 'Hikkaduwa', 7, 19, '80240', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(69, 'Ambalangoda', 7, 28, '80300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(70, 'Elpitiya', 7, 24, '80400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(71, 'Bentota', 7, 35, '80500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(72, 'Baddegama', 7, 18, '80200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(73, 'Balapitiya', 7, 32, '80550', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(74, 'Karapitiya', 7, 5, '80100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(75, 'Habaraduwa', 7, 10, '80630', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(76, 'Ahangama', 7, 14, '80650', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(77, 'Matara', 8, 0, '81000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(78, 'Weligama', 8, 20, '81700', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(79, 'Mirissa', 8, 25, '81740', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(80, 'Akuressa', 8, 28, '81400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(81, 'Dikwella', 8, 32, '81200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(82, 'Hakmana', 8, 35, '81300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(83, 'Deniyaya', 8, 45, '81500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(84, 'Devinuwara', 8, 15, '82100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(85, 'Kamburupitiya', 8, 22, '81100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(86, 'Hambantota', 9, 0, '82000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(87, 'Tangalle', 9, 35, '82200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(88, 'Tissamaharama', 9, 28, '82600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(89, 'Ambalantota', 9, 18, '82100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(90, 'Beliatta', 9, 22, '82400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(91, 'Suriyawewa', 9, 15, '82020', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(92, 'Weeraketiya', 9, 25, '82500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(93, 'Jaffna Town', 10, 0, '40000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(94, 'Nallur', 10, 4, '40001', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(95, 'Chavakachcheri', 10, 18, '40300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(96, 'Point Pedro', 10, 22, '40600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(97, 'Karainagar', 10, 14, '40500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(98, 'Kayts', 10, 16, '40700', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(99, 'Chankanai', 10, 12, '40150', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(100, 'Kopay', 10, 8, '40240', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(101, 'Tellipalai', 10, 10, '40300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(102, 'Kilinochchi', 11, 0, '44000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(103, 'Pallai', 11, 12, '44100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(104, 'Poonakary', 11, 20, '44200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(105, 'Karachchi', 11, 15, '44300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(106, 'Mannar', 12, 0, '41000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(107, 'Nanattan', 12, 15, '41200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(108, 'Madhu', 12, 25, '41300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(109, 'Murunkan', 12, 35, '41500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(110, 'Vavuniya', 13, 0, '43000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(111, 'Nedunkeni', 13, 18, '43200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(112, 'Vengalacheddikulam', 13, 25, '43300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(113, 'Omanthai', 13, 12, '43100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(114, 'Mullaitivu', 14, 0, '42000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(115, 'Puthukkudiyiruppu', 14, 20, '42100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(116, 'Oddusuddan', 14, 25, '42200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(117, 'Mankulam', 14, 30, '42300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(118, 'Batticaloa', 15, 0, '30000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(119, 'Kattankudy', 15, 8, '30100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(120, 'Eravur', 15, 12, '30350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(121, 'Kaluwanchikudy', 15, 15, '30200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(122, 'Vakarai', 15, 35, '30450', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(123, 'Chenkalady', 15, 10, '30350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(124, 'Ampara', 16, 0, '32000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(125, 'Kalmunai', 16, 28, '32300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(126, 'Sainthamaruthu', 16, 30, '32280', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(127, 'Akkaraipattu', 16, 22, '32400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(128, 'Pottuvil', 16, 55, '32500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(129, 'Sammanthurai', 16, 32, '32200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(130, 'Uhana', 16, 25, '32100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(131, 'Trincomalee', 17, 0, '31000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(132, 'Kinniya', 17, 14, '31100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(133, 'Mutur', 17, 28, '31200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(134, 'Kantale', 17, 35, '31300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(135, 'Gomarankadawala', 17, 42, '31400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(136, 'Seruwila', 17, 45, '31260', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(137, 'Kurunegala', 18, 0, '60000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(138, 'Kuliyapitiya', 18, 28, '60200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(139, 'Polgahawela', 18, 16, '60300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(140, 'Mawathagama', 18, 22, '60060', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(141, 'Narammala', 18, 14, '60100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(142, 'Wariyapola', 18, 24, '60400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(143, 'Giriulla', 18, 30, '60140', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(144, 'Pannala', 18, 18, '61120', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(145, 'Alawwa', 18, 20, '60280', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(146, 'Bingiriya', 18, 35, '60450', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(147, 'Puttalam', 19, 0, '61300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(148, 'Chilaw', 19, 35, '61000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(149, 'Wennappuwa', 19, 28, '61170', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(150, 'Dankotuwa', 19, 40, '61130', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(151, 'Marawila', 19, 45, '61210', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(152, 'Nattandiya', 19, 32, '61190', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(153, 'Anamaduwa', 19, 25, '61500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(154, 'Anuradhapura', 20, 0, '50000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(155, 'Kekirawa', 20, 28, '50100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(156, 'Medawachchiya', 20, 48, '50500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(157, 'Tambuttegama', 20, 22, '50240', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(158, 'Eppawala', 20, 18, '50150', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(159, 'Galenbindunuwewa', 20, 35, '50350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(160, 'Mihintale', 20, 12, '50300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(161, 'Talawa', 20, 25, '50230', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(162, 'Nochchiyagama', 20, 40, '50550', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(163, 'Polonnaruwa', 21, 0, '51000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(164, 'Hingurakgoda', 21, 20, '51400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(165, 'Medirigiriya', 21, 28, '51500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(166, 'Dimbulagala', 21, 35, '51050', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(167, 'Aralaganwila', 21, 25, '51130', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(168, 'Welikanda', 21, 40, '51070', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(169, 'Badulla', 22, 0, '90000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(170, 'Bandarawela', 22, 18, '90100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(171, 'Haputale', 22, 28, '90160', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(172, 'Welimada', 22, 32, '90200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(173, 'Mahiyanganaya', 22, 45, '90700', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(174, 'Hali-Ela', 22, 22, '90060', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(175, 'Ella', 22, 25, '90090', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(176, 'Passara', 22, 24, '90500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(177, 'Diyatalawa', 22, 30, '90150', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(178, 'Monaragala', 23, 0, '91000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(179, 'Wellawaya', 23, 35, '91200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(180, 'Bibile', 23, 28, '91500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(181, 'Buttala', 23, 40, '91100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(182, 'Kataragama', 23, 55, '91400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(183, 'Medagama', 23, 25, '91300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(184, 'Ratnapura', 24, 0, '70000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(185, 'Embilipitiya', 24, 48, '70200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(186, 'Balangoda', 24, 38, '70100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(187, 'Pelmadulla', 24, 18, '70300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(188, 'Eheliyagoda', 24, 22, '70600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(189, 'Kuruwita', 24, 12, '70500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(190, 'Kalawana', 24, 42, '70450', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(191, 'Nivithigala', 24, 28, '70400', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(192, 'Kahawatta', 24, 35, '70150', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(193, 'Kegalle', 25, 0, '71000', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(194, 'Mawanella', 25, 20, '71500', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(195, 'Warakapola', 25, 15, '71600', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(196, 'Rambukkana', 25, 28, '71100', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(197, 'Galigamuwa', 25, 12, '71350', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(198, 'Dehiowita', 25, 35, '10650', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(199, 'Ruwanwella', 25, 25, '71300', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(200, 'Yatiyantota', 25, 30, '71700', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01'),
-(201, 'Deraniyagala', 25, 40, '71200', 1, '2026-04-17 17:21:01', '2026-04-17 17:21:01');
+(38, 'Colombo Fort', 1, 0, '00100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(39, 'Dehiwala', 1, 8, '10350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(40, 'Maharagama', 1, 14, '10280', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(41, 'Kotte', 1, 7, '10100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(42, 'Homagama', 1, 22, '10200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(43, 'Kaduwela', 1, 18, '10640', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(44, 'Moratuwa', 1, 19, '10400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(45, 'Nugegoda', 1, 10, '10250', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(46, 'Battaramulla', 1, 12, '10120', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(47, 'Mount Lavinia', 1, 11, '10370', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(48, 'Boralesgamuwa', 1, 16, '10290', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(49, 'Kolonnawa', 1, 13, '10600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(50, 'Piliyandala', 1, 20, '10300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(51, 'Kesbewa', 1, 17, '10550', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(52, 'Gampaha', 2, 0, '11000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(53, 'Negombo', 2, 12, '11500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(54, 'Ja-Ela', 2, 16, '11350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(55, 'Kadawatha', 2, 10, '11850', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(56, 'Ragama', 2, 6, '11010', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(57, 'Wattala', 2, 14, '11300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(58, 'Minuwangoda', 2, 20, '11550', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(59, 'Kiribathgoda', 2, 8, '11600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(60, 'Divulapitiya', 2, 32, '11250', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(61, 'Kelaniya', 2, 9, '11600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(62, 'Katunayake', 2, 18, '11450', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(63, 'Veyangoda', 2, 25, '11100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(64, 'Kalutara', 3, 0, '12000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(65, 'Panadura', 3, 10, '12500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(66, 'Horana', 3, 28, '12400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(67, 'Beruwala', 3, 18, '12070', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(68, 'Aluthgama', 3, 22, '12080', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(69, 'Matugama', 3, 15, '12100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(70, 'Bandaragama', 3, 20, '12530', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(71, 'Wadduwa', 3, 12, '12560', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(72, 'Ingiriya', 3, 32, '12440', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(73, 'Bulathsinhala', 3, 35, '12300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(74, 'Kandy Town', 4, 0, '20000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(75, 'Peradeniya', 4, 8, '20400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(76, 'Katugastota', 4, 6, '20800', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(77, 'Gampola', 4, 27, '20500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(78, 'Nawalapitiya', 4, 42, '20650', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(79, 'Teldeniya', 4, 20, '20900', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(80, 'Kundasale', 4, 10, '20168', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(81, 'Akurana', 4, 14, '20850', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(82, 'Kadugannawa', 4, 18, '20300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(83, 'Pilimatalawa', 4, 12, '20450', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(84, 'Wattegama', 4, 24, '20270', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(85, 'Deltota', 4, 30, '20660', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(86, 'Matale Town', 5, 0, '21000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(87, 'Dambulla', 5, 28, '21100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(88, 'Galewela', 5, 20, '21200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(89, 'Ukuwela', 5, 12, '21300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(90, 'Naula', 5, 28, '21600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(91, 'Rattota', 5, 18, '21400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(92, 'Pallepola', 5, 15, '21700', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(93, 'Yatawatta', 5, 25, '21500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(94, 'Laggala', 5, 35, '21800', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(95, 'Nuwara Eliya', 6, 0, '22200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(96, 'Hatton', 6, 32, '22000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(97, 'Nanu Oya', 6, 8, '22150', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(98, 'Talawakelle', 6, 24, '22100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(99, 'Ginigathena', 6, 28, '22270', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(100, 'Walapane', 6, 35, '22226', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(101, 'Kotmale', 6, 18, '22030', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(102, 'Bogawantalawa', 6, 40, '22010', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(103, 'Haputale', 6, 45, '22070', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(104, 'Galle Fort', 7, 0, '80000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(105, 'Hikkaduwa', 7, 19, '80240', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(106, 'Ambalangoda', 7, 28, '80300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(107, 'Elpitiya', 7, 24, '80400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(108, 'Bentota', 7, 35, '80500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(109, 'Baddegama', 7, 18, '80200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(110, 'Balapitiya', 7, 32, '80550', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(111, 'Karapitiya', 7, 5, '80100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(112, 'Habaraduwa', 7, 10, '80630', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(113, 'Ahangama', 7, 14, '80650', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(114, 'Matara', 8, 0, '81000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(115, 'Weligama', 8, 20, '81700', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(116, 'Mirissa', 8, 25, '81740', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(117, 'Akuressa', 8, 28, '81400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(118, 'Dikwella', 8, 32, '81200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(119, 'Hakmana', 8, 35, '81300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(120, 'Deniyaya', 8, 45, '81500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(121, 'Devinuwara', 8, 15, '82100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(122, 'Kamburupitiya', 8, 22, '81100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(123, 'Hambantota', 9, 0, '82000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(124, 'Tangalle', 9, 35, '82200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(125, 'Tissamaharama', 9, 28, '82600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(126, 'Ambalantota', 9, 18, '82100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(127, 'Beliatta', 9, 22, '82400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(128, 'Suriyawewa', 9, 15, '82020', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(129, 'Weeraketiya', 9, 25, '82500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(130, 'Jaffna Town', 10, 0, '40000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(131, 'Nallur', 10, 4, '40001', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(132, 'Chavakachcheri', 10, 18, '40300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(133, 'Point Pedro', 10, 22, '40600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(134, 'Karainagar', 10, 14, '40500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(135, 'Kayts', 10, 16, '40700', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(136, 'Chankanai', 10, 12, '40150', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(137, 'Kopay', 10, 8, '40240', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(138, 'Tellipalai', 10, 10, '40300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(139, 'Kilinochchi', 11, 0, '44000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(140, 'Pallai', 11, 12, '44100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(141, 'Poonakary', 11, 20, '44200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(142, 'Karachchi', 11, 15, '44300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(143, 'Mannar', 12, 0, '41000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(144, 'Nanattan', 12, 15, '41200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(145, 'Madhu', 12, 25, '41300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(146, 'Murunkan', 12, 35, '41500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(147, 'Vavuniya', 13, 0, '43000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(148, 'Nedunkeni', 13, 18, '43200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(149, 'Vengalacheddikulam', 13, 25, '43300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(150, 'Omanthai', 13, 12, '43100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(151, 'Mullaitivu', 14, 0, '42000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(152, 'Puthukkudiyiruppu', 14, 20, '42100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(153, 'Oddusuddan', 14, 25, '42200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(154, 'Mankulam', 14, 30, '42300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(155, 'Batticaloa', 15, 0, '30000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(156, 'Kattankudy', 15, 8, '30100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(157, 'Eravur', 15, 12, '30350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(158, 'Kaluwanchikudy', 15, 15, '30200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(159, 'Vakarai', 15, 35, '30450', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(160, 'Chenkalady', 15, 10, '30350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(161, 'Ampara', 16, 0, '32000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(162, 'Kalmunai', 16, 28, '32300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(163, 'Sainthamaruthu', 16, 30, '32280', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(164, 'Akkaraipattu', 16, 22, '32400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(165, 'Pottuvil', 16, 55, '32500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(166, 'Sammanthurai', 16, 32, '32200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(167, 'Uhana', 16, 25, '32100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(168, 'Trincomalee', 17, 0, '31000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(169, 'Kinniya', 17, 14, '31100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(170, 'Mutur', 17, 28, '31200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(171, 'Kantale', 17, 35, '31300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(172, 'Gomarankadawala', 17, 42, '31400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(173, 'Seruwila', 17, 45, '31260', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(174, 'Kurunegala', 18, 0, '60000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(175, 'Kuliyapitiya', 18, 28, '60200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(176, 'Polgahawela', 18, 16, '60300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(177, 'Mawathagama', 18, 22, '60060', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(178, 'Narammala', 18, 14, '60100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(179, 'Wariyapola', 18, 24, '60400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(180, 'Giriulla', 18, 30, '60140', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(181, 'Pannala', 18, 18, '61120', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(182, 'Alawwa', 18, 20, '60280', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(183, 'Bingiriya', 18, 35, '60450', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(184, 'Puttalam', 19, 0, '61300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(185, 'Chilaw', 19, 35, '61000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(186, 'Wennappuwa', 19, 28, '61170', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(187, 'Dankotuwa', 19, 40, '61130', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(188, 'Marawila', 19, 45, '61210', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(189, 'Nattandiya', 19, 32, '61190', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(190, 'Anamaduwa', 19, 25, '61500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(191, 'Anuradhapura', 20, 0, '50000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(192, 'Kekirawa', 20, 28, '50100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(193, 'Medawachchiya', 20, 48, '50500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(194, 'Tambuttegama', 20, 22, '50240', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(195, 'Eppawala', 20, 18, '50150', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(196, 'Galenbindunuwewa', 20, 35, '50350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(197, 'Mihintale', 20, 12, '50300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(198, 'Talawa', 20, 25, '50230', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(199, 'Nochchiyagama', 20, 40, '50550', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(200, 'Polonnaruwa', 21, 0, '51000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(201, 'Hingurakgoda', 21, 20, '51400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(202, 'Medirigiriya', 21, 28, '51500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(203, 'Dimbulagala', 21, 35, '51050', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(204, 'Aralaganwila', 21, 25, '51130', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(205, 'Welikanda', 21, 40, '51070', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(206, 'Badulla', 22, 0, '90000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(207, 'Bandarawela', 22, 18, '90100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(208, 'Haputale', 22, 28, '90160', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(209, 'Welimada', 22, 32, '90200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(210, 'Mahiyanganaya', 22, 45, '90700', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(211, 'Hali-Ela', 22, 22, '90060', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(212, 'Ella', 22, 25, '90090', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(213, 'Passara', 22, 24, '90500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(214, 'Diyatalawa', 22, 30, '90150', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(215, 'Monaragala', 23, 0, '91000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(216, 'Wellawaya', 23, 35, '91200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(217, 'Bibile', 23, 28, '91500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(218, 'Buttala', 23, 40, '91100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(219, 'Kataragama', 23, 55, '91400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(220, 'Medagama', 23, 25, '91300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(221, 'Ratnapura', 24, 0, '70000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(222, 'Embilipitiya', 24, 48, '70200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(223, 'Balangoda', 24, 38, '70100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(224, 'Pelmadulla', 24, 18, '70300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(225, 'Eheliyagoda', 24, 22, '70600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(226, 'Kuruwita', 24, 12, '70500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(227, 'Kalawana', 24, 42, '70450', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(228, 'Nivithigala', 24, 28, '70400', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(229, 'Kahawatta', 24, 35, '70150', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(230, 'Kegalle', 25, 0, '71000', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(231, 'Mawanella', 25, 20, '71500', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(232, 'Warakapola', 25, 15, '71600', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(233, 'Rambukkana', 25, 28, '71100', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(234, 'Galigamuwa', 25, 12, '71350', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(235, 'Dehiowita', 25, 35, '10650', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(236, 'Ruwanwella', 25, 25, '71300', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(237, 'Yatiyantota', 25, 30, '71700', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34'),
+(238, 'Deraniyagala', 25, 40, '71200', 1, '2026-04-17 13:41:34', '2026-04-17 13:41:34');
 
 -- --------------------------------------------------------
 
@@ -1586,8 +1498,8 @@ CREATE TABLE `transporter_profiles` (
 --
 
 INSERT INTO `transporter_profiles` (`id`, `user_id`, `company_name`, `phone`, `district`, `full_address`, `availability`, `profile_photo`, `created_at`, `updated_at`) VALUES
-(1, 28, 'Kal Logistics', '0712345678', 'Colombo', 'Lane 1, Colombo', 'available', 'transporter_28_1775272131.jpg', '2026-04-04 00:39:26', '2026-04-16 06:59:40'),
-(2, 37, NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-17 17:49:36', '2026-04-17 17:49:36');
+(1, 3, NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-17 14:25:27', '2026-04-17 14:25:27'),
+(2, 28, NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-18 12:52:17', '2026-04-18 12:52:17');
 
 -- --------------------------------------------------------
 
@@ -1615,22 +1527,16 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `password_updated_at`, `role`, `status`, `verification_status`, `deactivated_at`, `deactivation_reason`, `created_at`, `updated_at`) VALUES
-(9, 'Sewni Jayawardana', 'sewni@gmail.com', '$2y$10$vOVaCfjVErIC6HDXHMgU/.4WpAOkGFgqZzvKFThJmCCFaYFc3Ci6q', NULL, 'farmer', 'active', 'not_required', NULL, NULL, '2025-10-19 12:14:27', '2026-04-16 06:24:26'),
-(11, 'Yomal Chandima', 'yc@gmail.com', '$2y$10$bW5DPIMcWTGdDlsgPJqMJuoJ1h/aPVAdEgOXR1B4qg7EM.h9hz5gy', '2026-04-16 08:49:33', 'buyer', 'active', 'not_required', NULL, NULL, '2025-10-19 12:14:27', '2026-04-16 08:49:33'),
-(23, 'vonara', 'vonara@gmail.com', '$2y$10$0/Mii.R0Py9STVvQgLiUuOGFJaUeTLfGdA.357NaODBXIZDKlZHXK', NULL, 'farmer', 'active', 'not_required', '2026-04-12 05:25:05', NULL, '2025-10-22 07:22:02', '2026-04-12 05:25:28'),
-(24, 'yomal', 'yomal@gmail.com', '$2y$12$KUfcAhaRLk/cOU6bAguaEOFM7Abq/V3hh5u4G2x.j3WI5Y1NB38wa', '2026-04-17 07:51:32', 'buyer', 'active', 'not_required', NULL, NULL, '2025-10-22 07:37:23', '2026-04-17 07:51:32'),
-(26, 'sdq', 'sdq@gmail.com', '$2y$10$mMLaXqS1sLuHpdtfns.od.MsK4JkQ8p2AhWAN8VN/ZcThN7LqUMqC', NULL, 'admin', 'active', 'not_required', NULL, NULL, '2025-10-22 08:33:43', '2026-04-04 12:27:05'),
-(28, 'Kal Transporter', 'kal@gmail.com', '$2y$10$lPCFj2M3K0Sgg4YgPtJJ3eVKFR9wkRPQV05ZbXSQnlMGdHEY8d4yS', NULL, 'transporter', 'active', 'not_required', NULL, NULL, '2025-10-22 08:38:58', '2026-04-16 06:47:54'),
-(40, 'Umaya', 'umaya@gmail.com', '$2y$10$Cx5oR5.fm77sJeLcP/ypOuyGpvPgYOpPVTQ0xhmNTie4dR/gLrTte', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-17 19:54:13', '2026-04-17 19:54:13'),
-(41, 'Sewni Jayawardana', 'sewnijayawardana@gmail.com', '$2y$10$FJ1.Bf1acCYNIXkK..tRfeDDMzxY78eVgPhUI0RE0e9LX8xX8bvQ.', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 09:53:05', '2026-04-18 09:53:05'),
-(42, 'b1', 'buyer@gmail.com', '$2y$10$pgRkXB.BdG./1wOyJzwJjuhb2diCTjrJ9NDCriWmVAymy4irWAtJy', NULL, 'buyer', 'active', 'not_required', NULL, NULL, '2026-04-18 11:13:01', '2026-04-18 11:13:51'),
-(43, 'sdq', 'sdq123@gmail.com', '$2y$10$/0TWKnTuOAWY9/LLqosUGugFHrmTLr8cCmirz/PmoiUbfkJDgh1V2', NULL, 'farmer', 'active', 'not_required', NULL, NULL, '2026-04-18 11:51:25', '2026-04-18 11:51:25'),
-(44, 'Sewni Jayawardana', 'sdq1@gmail.com', '$2y$10$9Kng7edqZYD4DTJYl/EQ2uuAchBFktEz1KHFWpnxA9S2W4kkV8POu', NULL, 'farmer', 'active', 'not_required', NULL, NULL, '2026-04-18 11:55:58', '2026-04-18 11:55:58'),
-(45, 'Sewni Jayawardana', 'sdq2@gmail.com', '$2y$10$quV4bIipbGrUROGm2fYiguvmyG/Xi69l.atjf9uwTWtoSWkJJ2iDG', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 12:00:26', '2026-04-18 12:00:26'),
-(46, 'Sewni Jayawardana', 'sdq3@gmail.com', '$2y$10$12BDAuwx0w0Dnq4vp7X4xeASlrWDIbJ93d6G9a2ZGD7.xNVBHkre.', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 12:09:46', '2026-04-18 12:09:46'),
-(47, 'Sewni Jayawardana', 'sdq321@gmail.com', '$2y$10$Um501rvwIaohP8UidBKipOOCuuAklTGz9XiECYrlgf4117J55I6zC', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 12:17:50', '2026-04-18 12:17:50'),
-(48, 'Sewni Jayawardana', 'sdq111@gmail.com', '$2y$10$dHt0fAgyDTva0mhcMd8NFOxEQlh4vpzfYi1igMMUfC15APR.4ViWS', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 12:22:00', '2026-04-18 12:22:01'),
-(49, 'Sewni Jayawardana', 's@gmail.com', '$2y$10$.oi.mC1xb290TRaVjGVamupOJnaaOizCblPqkD80XFNNFT3WDNpWe', NULL, 'farmer', 'active', 'pending', NULL, NULL, '2026-04-18 12:24:26', '2026-04-18 12:24:26');
+(1, 'Yomal', 'yomal@gmail.com', '$2y$10$K4JxcAsY85dWYZHLEgTbAOt2nhbibQVPq69ipaSa5qVDcEdObLEga', NULL, 'buyer', 'active', 'not_required', NULL, NULL, '2026-04-16 13:38:31', '2026-04-16 13:38:31'),
+(2, 'Sewni', 'sewni@gmail.com', '$2y$10$.zbsVoj/Zki7ZuUvwIvR7.QQfQgy7HMtTTG89RsjCewjhKBWyOcPy', NULL, 'farmer', 'active', 'not_required', NULL, NULL, '2026-04-16 13:39:17', '2026-04-16 13:39:17'),
+(3, 'Kalmith', 'kalmith@gmail.com', '$2y$10$Ep9ap6FrhtjCWT/iVOp2RuSC./.YItg5lxAM.f4uqWQip/cstJ4vK', NULL, 'transporter', 'active', 'not_required', NULL, NULL, '2026-04-16 13:40:34', '2026-04-16 13:40:34'),
+(26, 'sdq', 'sdq@gmail.com', '$2y$10$mMLaXqS1sLuHpdtfns.od.MsK4JkQ8p2AhWAN8VN/ZcThN7LqUMqC', NULL, 'admin', 'active', 'not_required', NULL, NULL, '2025-10-22 03:03:43', '2026-04-04 06:57:05'),
+(27, 'Farmer One', 'F1@gmail.com', '$2y$10$ORcWJdvemI1YYXnlYQWNgeYuS3zMhKpiBDGQqfjYL/yg9c9HwdqqS', NULL, 'farmer', 'active', 'not_required', NULL, NULL, '2026-04-16 15:10:58', '2026-04-16 15:12:28'),
+(28, 'T1', 'T1@gmail.com', '$2y$10$TezmpUCcBf5f1VSkabzHSeOblH6tXgLjrVi2YifuWKQ5uOuVytmLW', NULL, 'transporter', 'active', 'not_required', NULL, NULL, '2026-04-16 15:13:45', '2026-04-16 15:13:45'),
+(29, 'Buyer one', 'B1@gmail.com', '$2y$10$zq63ZmPi9UuvsND.lQJghedOyXRbZYWYqKe5uwSy5uGG3Tt7OQUdG', NULL, 'buyer', 'active', 'not_required', NULL, NULL, '2026-04-16 18:34:02', '2026-04-17 14:20:31'),
+(30, 'Buyer 2', 'B2@gmail.com', '$2y$10$fKwHCym4xDWHUjw2aB1eL.GVown8M6yJMxScg.AB3tDdr5tN.u9fG', NULL, 'buyer', 'active', 'not_required', NULL, NULL, '2026-04-17 13:18:50', '2026-04-17 13:18:50'),
+(31, 'Buyer Three', 'B3@gmail.com', '$2y$10$E/sNjkECqi8WNYALIm0f0O22a9tWGDLo68zH1nvvZtkwcJjD8GPCu', NULL, 'buyer', 'active', 'not_required', NULL, NULL, '2026-04-18 09:42:01', '2026-04-18 09:43:08'),
+(32, 'Farmer four', 'F4@gmail.com', '$2y$10$jeyxGalQ5Kk9AWjqH3apMOZ0Bva/0c0R91n6IHmXDLB0NOVli.dsm', NULL, 'farmer', 'active', 'approved', NULL, NULL, '2026-04-18 12:46:04', '2026-04-18 12:47:47');
 
 -- --------------------------------------------------------
 
@@ -1671,9 +1577,10 @@ CREATE TABLE `vehicles` (
 --
 
 INSERT INTO `vehicles` (`id`, `transporter_id`, `type`, `vehicle_type_id`, `registration`, `capacity`, `fuel_type`, `model`, `status`, `created_at`, `updated_at`) VALUES
-(10, 28, 'smallvan', 3, 'KH-7856', 300.00, 'diesel', 'Nissan Caravan', 'active', '2026-02-09 18:59:09', '2026-04-04 05:49:43'),
-(11, 28, 'bike', 1, 'BKA-7890', 20.00, 'electric', 'CT100', 'active', '2026-02-09 19:25:11', '2026-04-04 02:24:47'),
-(14, 28, 'threewheel', 2, 'AAU6767', 100.00, 'petrol', '', 'active', '2026-04-04 05:50:25', '2026-04-04 05:50:25');
+(1, 28, 'threewheel', 2, 'ABB-7890', 100.00, 'petrol', 'bajaj 404', 'active', '2026-04-16 15:14:55', '2026-04-16 15:14:55'),
+(2, 3, 'smallvan', 3, 'KH-7856', 300.00, 'petrol', 'Suzuki Every', 'active', '2026-04-16 15:16:21', '2026-04-16 15:16:21'),
+(3, 3, 'bike', 1, 'BKA-7890', 20.00, 'petrol', 'CT100', 'active', '2026-04-16 15:16:44', '2026-04-16 15:16:44'),
+(4, 3, 'threewheel', 2, 'ABA-9076', 100.00, 'petrol', 'bajaj 4stk', 'active', '2026-04-18 08:18:45', '2026-04-18 08:18:45');
 
 -- --------------------------------------------------------
 
@@ -1725,6 +1632,14 @@ CREATE TABLE `verification_documents` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `verification_documents`
+--
+
+INSERT INTO `verification_documents` (`id`, `user_id`, `doc_type`, `file_path`, `status`, `rejection_reason`, `reviewed_by`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(1, 32, 'nic', 'assets/uploads/verification/doc_32_nic_69e37d0cbcd8a9.81467618.jpg', 'approved', NULL, NULL, NULL, '2026-04-18 09:16:04', '2026-04-18 12:47:43'),
+(2, 32, 'bank_details', 'assets/uploads/verification/doc_32_bank_details_69e37d0cc23845.84793388.jpg', 'approved', NULL, NULL, NULL, '2026-04-18 09:16:04', '2026-04-18 12:47:47');
+
 -- --------------------------------------------------------
 
 --
@@ -1743,10 +1658,7 @@ CREATE TABLE `wishlist` (
 --
 
 INSERT INTO `wishlist` (`id`, `user_id`, `product_id`, `created_at`) VALUES
-(26, 11, 47, '2026-04-04 01:46:12'),
-(27, 11, 50, '2026-04-09 07:43:02'),
-(28, 24, 50, '2026-04-17 07:59:56'),
-(29, 24, 49, '2026-04-17 08:00:07');
+(1, 1, 2, '2026-04-16 15:17:54');
 
 --
 -- Indexes for dumped tables
@@ -1855,15 +1767,6 @@ ALTER TABLE `order_items`
   ADD KEY `idx_farmer` (`farmer_id`);
 
 --
--- Indexes for table `payout_accounts`
---
-ALTER TABLE `payout_accounts`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_payout_accounts_user` (`user_id`),
-  ADD KEY `idx_payout_accounts_default` (`user_id`,`is_default`),
-  ADD KEY `idx_payout_accounts_verified` (`is_verified`);
-
---
 -- Indexes for table `platform_config`
 --
 ALTER TABLE `platform_config`
@@ -1956,19 +1859,19 @@ ALTER TABLE `wishlist`
 -- AUTO_INCREMENT for table `buyer_profiles`
 --
 ALTER TABLE `buyer_profiles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=302;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `crop_requests`
 --
 ALTER TABLE `crop_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `crop_volume_factors`
@@ -1980,7 +1883,7 @@ ALTER TABLE `crop_volume_factors`
 -- AUTO_INCREMENT for table `delivery_requests`
 --
 ALTER TABLE `delivery_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `districts`
@@ -1998,37 +1901,25 @@ ALTER TABLE `district_distances`
 -- AUTO_INCREMENT for table `farmer_profiles`
 --
 ALTER TABLE `farmer_profiles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29806;
-
---
--- AUTO_INCREMENT for table `notification_settings`
---
-ALTER TABLE `notification_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3115;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
-
---
--- AUTO_INCREMENT for table `payout_accounts`
---
-ALTER TABLE `payout_accounts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `platform_config`
@@ -2040,19 +1931,19 @@ ALTER TABLE `platform_config`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `towns`
 --
 ALTER TABLE `towns`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=202;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=239;
 
 --
 -- AUTO_INCREMENT for table `transporter_profiles`
@@ -2064,19 +1955,13 @@ ALTER TABLE `transporter_profiles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
-
---
--- AUTO_INCREMENT for table `user_email_changes`
---
-ALTER TABLE `user_email_changes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
 --
 ALTER TABLE `vehicles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `vehicle_types`
@@ -2088,51 +1973,30 @@ ALTER TABLE `vehicle_types`
 -- AUTO_INCREMENT for table `verification_documents`
 --
 ALTER TABLE `verification_documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `wishlist`
 --
 ALTER TABLE `wishlist`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `delivery_requests`
+-- Constraints for table `district_distances`
 --
-ALTER TABLE `delivery_requests`
-  ADD CONSTRAINT `delivery_requests_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `delivery_requests_ibfk_2` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `delivery_requests_ibfk_3` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `delivery_requests_ibfk_4` FOREIGN KEY (`transporter_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `delivery_requests_ibfk_5` FOREIGN KEY (`required_vehicle_type_id`) REFERENCES `vehicle_types` (`id`);
+ALTER TABLE `district_distances`
+  ADD CONSTRAINT `district_distances_ibfk_1` FOREIGN KEY (`from_district_id`) REFERENCES `districts` (`id`),
+  ADD CONSTRAINT `district_distances_ibfk_2` FOREIGN KEY (`to_district_id`) REFERENCES `districts` (`id`);
 
 --
--- Constraints for table `notifications`
+-- Constraints for table `towns`
 --
-ALTER TABLE `notifications`
-  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `notification_settings`
---
-ALTER TABLE `notification_settings`
-  ADD CONSTRAINT `notification_settings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `payout_accounts`
---
-ALTER TABLE `payout_accounts`
-  ADD CONSTRAINT `payout_accounts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `user_email_changes`
---
-ALTER TABLE `user_email_changes`
-  ADD CONSTRAINT `user_email_changes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `towns`
+  ADD CONSTRAINT `towns_ibfk_1` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`);
 
 --
 -- Constraints for table `verification_documents`

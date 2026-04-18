@@ -639,7 +639,9 @@ class TransporterModel
                     SUM(CASE WHEN dr.status = 'delivered' AND DATE(dr.updated_at) = CURDATE() THEN dr.shipping_fee ELSE 0 END) as today_earnings,
                     SUM(CASE WHEN dr.status = 'delivered' AND YEARWEEK(dr.updated_at, 1) = YEARWEEK(CURDATE(), 1) THEN dr.shipping_fee ELSE 0 END) as week_earnings,
                     SUM(CASE WHEN dr.status = 'delivered' AND YEAR(dr.updated_at) = YEAR(CURDATE()) AND MONTH(dr.updated_at) = MONTH(CURDATE()) THEN dr.shipping_fee ELSE 0 END) as month_earnings,
-                    COUNT(CASE WHEN dr.status = 'accepted' THEN 1 END) as active_deliveries,
+                    COUNT(CASE WHEN dr.status IN ('accepted', 'in_transit') THEN 1 END) as active_deliveries,
+                    COUNT(CASE WHEN dr.status = 'accepted' THEN 1 END) as accepted_deliveries,
+                    COUNT(CASE WHEN dr.status = 'in_transit' THEN 1 END) as in_transit_deliveries,
                     COUNT(CASE WHEN dr.status = 'delivered' THEN 1 END) as completed_deliveries
                 FROM delivery_requests dr
                 WHERE dr.transporter_id = :transporter_id";
@@ -655,6 +657,8 @@ class TransporterModel
                 'week_earnings' => 0,
                 'month_earnings' => 0,
                 'active_deliveries' => 0,
+                'accepted_deliveries' => 0,
+                'in_transit_deliveries' => 0,
                 'completed_deliveries' => 0
             ];
         }
