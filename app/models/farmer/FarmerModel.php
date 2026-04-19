@@ -371,7 +371,7 @@ class FarmerModel
      */
     public function updateFarmerOrderStatus($orderId, $farmerId, $newStatus)
     {
-        $allowedStatuses = ['confirmed', 'processing', 'shipped'];
+        $allowedStatuses = ['ready_for_pickup'];
         if (!in_array($newStatus, $allowedStatuses, true)) {
             return false;
         }
@@ -390,9 +390,8 @@ class FarmerModel
         }
 
         $transitionMap = [
-            'pending' => 'confirmed',
-            'confirmed' => 'processing',
-            'processing' => 'shipped',
+            'processing' => 'ready_for_pickup',
+            'ready_for_pickup' => null,
             'shipped' => null,
             'delivered' => null,
             'cancelled' => null,
@@ -421,7 +420,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')";
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')";
 
         $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
         return $result ? $result->total : 0;
@@ -436,7 +435,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND MONTH(o.created_at) = MONTH(CURRENT_DATE())
                 AND YEAR(o.created_at) = YEAR(CURRENT_DATE())";
 
@@ -453,7 +452,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND YEARWEEK(o.created_at, 1) = YEARWEEK(CURRENT_DATE(), 1)";
 
         $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
@@ -469,7 +468,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND YEAR(o.created_at) = YEAR(CURRENT_DATE())";
 
         $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
@@ -492,7 +491,7 @@ class FarmerModel
                 INNER JOIN orders o ON oi.order_id = o.id
                 LEFT JOIN products p ON p.id = oi.product_id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 GROUP BY oi.product_id, oi.product_name
                 ORDER BY total_earnings DESC
                 LIMIT 10";
@@ -519,7 +518,7 @@ class FarmerModel
                 INNER JOIN orders o ON oi.order_id = o.id
                 LEFT JOIN products p ON p.id = oi.product_id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND MONTH(o.created_at) = MONTH(CURRENT_DATE())
                 AND YEAR(o.created_at) = YEAR(CURRENT_DATE())
                 GROUP BY oi.product_id, oi.product_name
@@ -551,7 +550,7 @@ class FarmerModel
                 INNER JOIN order_items oi ON o.id = oi.order_id
                 LEFT JOIN users u ON o.buyer_id = u.id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND COALESCE(o.updated_at, o.created_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
                 GROUP BY o.id, o.created_at, o.updated_at, o.status, o.payment_status, o.delivery_city, u.name
                 ORDER BY COALESCE(o.updated_at, o.created_at) DESC
@@ -573,7 +572,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND o.updated_at >= DATE_SUB(CURRENT_DATE(), INTERVAL {$days} DAY)
                 GROUP BY DATE(o.updated_at)
                 ORDER BY day_key ASC";
@@ -594,7 +593,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND o.updated_at >= DATE_SUB(CURRENT_DATE(), INTERVAL {$years} YEAR)
                 GROUP BY YEAR(o.updated_at)
                 ORDER BY year_key ASC";
@@ -612,7 +611,7 @@ class FarmerModel
                 FROM orders o
                 INNER JOIN order_items oi ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND YEARWEEK(o.updated_at, 1) = YEARWEEK(CURRENT_DATE(), 1)";
 
         $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
@@ -632,7 +631,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')";
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')";
 
         $result = $this->get_row($sql, ['farmer_id' => $farmerId]);
         return $result ?: (object)[
@@ -655,7 +654,7 @@ class FarmerModel
                 FROM order_items oi
                 INNER JOIN orders o ON oi.order_id = o.id
                 WHERE oi.farmer_id = :farmer_id 
-                AND o.status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('processing', 'ready_for_pickup', 'shipped', 'delivered')
                 AND o.created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
                 GROUP BY DATE_FORMAT(o.created_at, '%Y-%m'), DATE_FORMAT(o.created_at, '%b %Y')
                 ORDER BY month ASC";

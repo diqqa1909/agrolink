@@ -189,7 +189,7 @@ class OrderModel
                 LEFT JOIN delivery_requests dr ON dr.order_id = o.id
                 LEFT JOIN users u ON u.id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('pending_payment', 'processing', 'ready_for_pickup', 'shipped', 'delivered')
                 ORDER BY o.created_at DESC";
 
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
@@ -235,7 +235,7 @@ class OrderModel
         })));
 
         $allowedPaymentStatuses = ['pending', 'paid', 'failed'];
-        $allowedOrderStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+        $allowedOrderStatuses = ['pending_payment', 'processing', 'ready_for_pickup', 'shipped', 'delivered', 'cancelled'];
 
         if ($buyerId <= 0 || empty($cleanOrderIds)) {
             return false;
@@ -299,7 +299,7 @@ class OrderModel
                     AND r.buyer_id = :buyer_id
                     AND r.farmer_id = oi.farmer_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status = 'delivered'
                 AND r.id IS NULL
                 ORDER BY o.created_at DESC";
 
@@ -347,7 +347,7 @@ class OrderModel
                     AND r.buyer_id = :buyer_id
                     AND r.farmer_id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('shipped', 'delivered')
+                AND o.status = 'delivered'
                 AND dr.transporter_id IS NOT NULL
                 AND r.id IS NULL
                 ORDER BY o.created_at DESC";

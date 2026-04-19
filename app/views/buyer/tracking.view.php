@@ -13,7 +13,7 @@
                 <div class="buyer-tracking-empty-state">
                     <div class="buyer-tracking-empty-icon">🚚</div>
                     <h3 class="buyer-tracking-empty-title">No active deliveries</h3>
-                    <p class="buyer-tracking-empty-text">Your delivery statuses will appear here once an order is confirmed.</p>
+                    <p class="buyer-tracking-empty-text">Your delivery statuses will appear here once an order is placed.</p>
                     <a href="<?= ROOT ?>/buyerproducts" class="btn btn-primary">Browse Products</a>
                 </div>
             <?php else: ?>

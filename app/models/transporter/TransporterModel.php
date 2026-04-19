@@ -271,7 +271,7 @@ class TransporterModel
                 WHERE dr.status = 'pending'
                 AND dr.required_vehicle_type_id IS NOT NULL
                 AND dr.total_weight_kg > 0
-                AND o.status IN ('pending', 'confirmed')";
+                AND o.status IN ('processing', 'ready_for_pickup')";
 
         $params = [];
 
@@ -457,7 +457,7 @@ class TransporterModel
         }
 
         $orderStatus = strtolower((string)($request->order_status ?? ''));
-        if (!in_array($orderStatus, ['pending', 'confirmed'], true)) {
+        if (!in_array($orderStatus, ['processing', 'ready_for_pickup'], true)) {
             return ['success' => false, 'error' => 'Order is not ready for transporter assignment'];
         }
 
@@ -500,17 +500,8 @@ class TransporterModel
                 return ['success' => false, 'error' => 'This request is no longer available'];
             }
 
-            $updateOrderSql = "UPDATE orders
-                               SET status = 'processing',
-                                   updated_at = NOW()
-                               WHERE id = :order_id
-                               AND status IN ('pending', 'confirmed')";
-            $orderResult = $this->write($updateOrderSql, ['order_id' => (int)$request->order_id]);
-
-            if ($orderResult === false) {
-                $this->rollBack();
-                return ['success' => false, 'error' => 'Failed to update order state'];
-            }
+            // Order is already at 'processing' (or later 'ready_for_pickup' set by the farmer).
+            // Accepting a delivery must not regress that status, so no order update here.
 
             if (!$this->commit()) {
                 $this->rollBack();
@@ -550,9 +541,10 @@ class TransporterModel
             'status' => $status
         ]);
 
-        // Update order status accordingly
+        // Update order status accordingly — only when transporter progresses the shipment.
+        // 'accepted' must not override the farmer's 'ready_for_pickup' state.
         if ($result) {
-            $orderStatus = 'processing';
+            $orderStatus = null;
             if ($status === 'in_transit') {
                 $orderStatus = 'shipped';
             } elseif ($status === 'delivered') {
@@ -561,13 +553,15 @@ class TransporterModel
                 $orderStatus = 'cancelled';
             }
 
-            $request = $this->get_row("SELECT order_id FROM delivery_requests WHERE id = :id", ['id' => $requestId]);
-            if ($request) {
-                $updateOrderSql = "UPDATE orders SET status = :status WHERE id = :order_id";
-                $this->write($updateOrderSql, [
-                    'status' => $orderStatus,
-                    'order_id' => $request->order_id
-                ]);
+            if ($orderStatus !== null) {
+                $request = $this->get_row("SELECT order_id FROM delivery_requests WHERE id = :id", ['id' => $requestId]);
+                if ($request) {
+                    $updateOrderSql = "UPDATE orders SET status = :status WHERE id = :order_id";
+                    $this->write($updateOrderSql, [
+                        'status' => $orderStatus,
+                        'order_id' => $request->order_id
+                    ]);
+                }
             }
         }
 

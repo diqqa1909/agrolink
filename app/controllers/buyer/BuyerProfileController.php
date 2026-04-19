@@ -183,7 +183,7 @@ class BuyerProfileController
                     continue;
                 }
 
-                if ($deliveryStatus === '' && in_array($orderStatus, ['pending', 'confirmed', 'processing', 'shipped'], true)) {
+                if ($deliveryStatus === '' && in_array($orderStatus, ['processing', 'ready_for_pickup', 'shipped'], true)) {
                     $activeDeliveries++;
                 }
             }
@@ -610,7 +610,7 @@ class BuyerProfileController
 
         $userId = (int)authUserId();
 
-        $blockingStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped'];
+        $blockingStatuses = ['pending_payment', 'processing', 'ready_for_pickup', 'shipped'];
         $activeOrderCount = $this->orderModel->countBuyerOrdersByStatuses($userId, $blockingStatuses);
         if ($activeOrderCount > 0) {
             $this->jsonResponse(409, [

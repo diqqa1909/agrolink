@@ -58,7 +58,7 @@ class BuyerDashboardController
         $totalSpent = 0;
 
         foreach ($orders as $order) {
-            if ($order->status === 'pending_payment' || $order->status === 'pending' || $order->status === 'processing' || $order->status === 'confirmed' || $order->status === 'shipped') {
+            if (in_array($order->status, ['pending_payment', 'processing', 'ready_for_pickup', 'shipped'], true)) {
                 $pendingOrders++;
             }
             // Count only successfully paid orders toward spend.

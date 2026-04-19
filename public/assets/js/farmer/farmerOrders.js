@@ -227,7 +227,7 @@
      * Update farmer order status in required sequence.
      */
     function updateOrderStatus(orderId, status) {
-        const statusLabel = status.replace('_', ' ').toUpperCase();
+        const statusLabel = status.replace(/_/g, ' ').toUpperCase();
         if (!confirm(`Update this order to ${statusLabel}?`)) {
             return;
         }
