@@ -208,7 +208,7 @@ class NotificationsModel
             $params['filter_type'] = $normalizedFilter;
         }
 
-        $sql .= " ORDER BY created_at DESC, id DESC";
+        $sql .= " ORDER BY id DESC";
 
         $rows = $this->query($sql, $params);
         if (!is_array($rows) || empty($rows)) {

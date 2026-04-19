@@ -165,12 +165,12 @@
                 if (data.success) {
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to update cart');
+                    showNotification(data.message || 'Failed to update cart', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showNotification('An error occurred', 'error');
             });
         }
 
@@ -192,12 +192,12 @@
                 if (data.success) {
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to remove item');
+                    showNotification(data.message || 'Failed to remove item', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showNotification('An error occurred', 'error');
             });
         }
 
@@ -215,12 +215,12 @@
                 if (data.success) {
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to clear cart');
+                    showNotification(data.message || 'Failed to clear cart', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showNotification('An error occurred', 'error');
             });
         }
 

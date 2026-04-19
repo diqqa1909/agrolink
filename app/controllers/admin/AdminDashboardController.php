@@ -196,45 +196,43 @@
             }
 
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Invalid request method',
-                    ]);
-                    exit;
-                }
-
-                try {
-                    $userModel = new UserModel();
-                    $userData = [
-                        'name' => $_POST['name'] ?? '',
-                        'email' => $_POST['email'] ?? '',
-                        'role' => $_POST['role'] ?? '',
-                        'password' => $_POST['password'] ?? '',
-                    ];
-
-                    $userId = $userModel->insert($userData);
-                    if ($userId) {
-                        echo json_encode([
-                            'success' => true,
-                            'message' => 'Registration successful',
-                            'userId' => $userId,
-                        ]);
-                    } else {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Registration failed',
-                        ]);
-                    }
-                } catch (Exception $e) {
-                    error_log('User registration error: ' . $e->getMessage());
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'An unexpected error occurred!',
-                    ]);
-                }
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid request method',
+                ]);
                 exit;
             }
+
+            try {
+                $userModel = new UserModel();
+                $userData = [
+                    'name' => $_POST['name'] ?? '',
+                    'email' => $_POST['email'] ?? '',
+                    'role' => $_POST['role'] ?? '',
+                    'password' => $_POST['password'] ?? '',
+                ];
+
+                $userId = $userModel->insert($userData);
+                if ($userId) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Registration successful',
+                        'userId' => $userId,
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Registration failed',
+                    ]);
+                }
+            } catch (Exception $e) {
+                error_log('User registration error: ' . $e->getMessage());
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'An unexpected error occurred!',
+                ]);
+            }
+            exit;
         }
 
         /* public function getUser($id)
@@ -308,62 +306,58 @@
             }
 
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid request',
+                ]);
+                exit;
+            }
+
+            try {
+                $userId = $_POST['id'] ?? null;
+                $name = $_POST['name'] ?? '';
+                $email = $_POST['email'] ?? '';
+                $role = $_POST['role'] ?? '';
+                $password = $_POST['password'] ?? '';
+
+                if (!isset($_SESSION['USER'])) {
                     echo json_encode([
                         'success' => false,
-                        'message' => 'Invalid request',
+                        'message' => 'Unauthorized. Please login again.'
                     ]);
                     exit;
                 }
 
-                try {
-                    $userId = $_POST['id'] ?? null;
-                    $name = $_POST['name'] ?? '';
-                    $email = $_POST['email'] ?? '';
-                    $role = $_POST['role'] ?? '';
-                    $password = $_POST['password'] ?? '';
+                $userModel = new UserModel();
+                $updateData = [
+                    'name' => $name,
+                    'email' => $email,
+                    'role' => $role,
+                ];
 
-                    // Check if user is logged in
-                    if (!isset($_SESSION['USER'])) {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Unauthorized. Please login again.'
-                        ]);
-                        exit;
-                    }
+                if (!empty($password)) {
+                    $updateData['password'] = $password;
+                }
 
-                    $userModel = new UserModel();
-                    $updateData = [
-                        'name' => $name,
-                        'email' => $email,
-                        'role' => $role,
-                    ];
-
-                    // Only update password if a new one is provided
-                    if (!empty($password)) {
-                        $updateData['password'] = $password;
-                    }
-
-                    $result = $userId ? $userModel->update($userId, $updateData) : false;
-                    if ($result) {
-                        echo json_encode([
-                            'success' => true,
-                            'message' => 'User updated successfully',
-                        ]);
-                    } else {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Failed to update user',
-                        ]);
-                    }
-                } catch (Exception $e) {
+                $result = $userId ? $userModel->update($userId, $updateData) : false;
+                if ($result) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'User updated successfully',
+                    ]);
+                } else {
                     echo json_encode([
                         'success' => false,
-                        'message' => 'An error occurred while updating the user: ' . $e->getMessage(),
+                        'message' => 'Failed to update user',
                     ]);
                 }
-                exit;
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'An error occurred while updating the user: ' . $e->getMessage(),
+                ]);
             }
+            exit;
         }
 
         public function getVerifications()

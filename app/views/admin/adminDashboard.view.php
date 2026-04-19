@@ -1666,7 +1666,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load order details');
+                    showNotification('Failed to load order details', 'error');
                     return;
                 }
 
@@ -1744,7 +1744,7 @@
 
             } catch (error) {
                 console.error('Error loading order details:', error);
-                alert('Failed to load order details');
+                showNotification('Failed to load order details', 'error');
             }
         }
 
@@ -1756,7 +1756,7 @@
 
             const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'];
             if (!validStatuses.includes(newStatus.toLowerCase())) {
-                alert('Invalid status. Please use: pending, processing, shipped, delivered, completed, cancelled');
+                showNotification('Invalid status. Please use: pending, processing, shipped, delivered, completed, cancelled', 'warning');
                 return;
             }
 
@@ -1775,14 +1775,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Order status updated successfully!');
+                    showNotification('Order status updated successfully!', 'success');
                     loadOrders(); // Refresh the orders list
                 } else {
-                    alert('Failed to update order status: ' + result.message);
+                    showNotification('Failed to update order status: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error updating order status:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -2029,7 +2029,29 @@
         }
 
         function showNotification(message, type) {
-            alert(message);
+            if (typeof window.showNotification === 'function' && window.showNotification !== showNotification) {
+                window.showNotification(message, type || 'info');
+                return;
+            }
+            const validTypes = ['success', 'error', 'warning', 'info'];
+            const toastType = validTypes.includes(type) ? type : 'info';
+            let stack = document.getElementById('toastStack');
+            if (!stack) {
+                stack = document.createElement('div');
+                stack.id = 'toastStack';
+                stack.className = 'toast-stack';
+                document.body.appendChild(stack);
+            }
+            const el = document.createElement('div');
+            el.className = `notification ${toastType}`;
+            el.textContent = String(message || '').trim() || 'Notification';
+            stack.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('is-visible'));
+            setTimeout(() => {
+                el.classList.remove('is-visible');
+                el.classList.add('is-leaving');
+                setTimeout(() => el.parentNode && el.remove(), 260);
+            }, 3200);
         }
 
         function viewOrder(orderId) {
@@ -2319,7 +2341,7 @@
         async function bulkReject(userId) {
             const reason = prompt('Reason for rejecting this account (required):');
             if (!reason) {
-                alert('A reason is required to reject an account.');
+                showNotification('A reason is required to reject an account.', 'warning');
                 return;
             }
             const res = await fetch('<?= ROOT ?>/adminDashboard/setUserVerification', {
@@ -2499,7 +2521,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load product details');
+                    showNotification('Failed to load product details', 'error');
                     return;
                 }
 
@@ -2599,7 +2621,7 @@
 
             } catch (error) {
                 console.error('Error loading product details:', error);
-                alert('Failed to load product details');
+                showNotification('Failed to load product details', 'error');
             }
         }
 
@@ -2611,7 +2633,7 @@
             if (!newStatus) return;
 
             if (!statuses.includes(newStatus.toLowerCase())) {
-                alert(`Invalid status. Please use: ${statuses.join(', ')}`);
+                showNotification(`Invalid status. Please use: ${statuses.join(', ')}`, 'warning');
                 return;
             }
 
@@ -2630,14 +2652,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Product status updated successfully!');
+                    showNotification('Product status updated successfully!', 'success');
                     loadProducts(); // Refresh the products list
                 } else {
-                    alert('Failed to update product status: ' + result.message);
+                    showNotification('Failed to update product status: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error updating product status:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -2659,14 +2681,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Product deleted successfully!');
+                    showNotification('Product deleted successfully!', 'success');
                     loadProducts(); // Refresh the products list
                 } else {
-                    alert('Failed to delete product: ' + result.message);
+                    showNotification('Failed to delete product: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -3170,7 +3192,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load payment details');
+                    showNotification('Failed to load payment details', 'error');
                     return;
                 }
 
@@ -3238,7 +3260,7 @@
 
             } catch (error) {
                 console.error('Error loading payment details:', error);
-                alert('Failed to load payment details');
+                showNotification('Failed to load payment details', 'error');
             }
         }
 
@@ -3263,14 +3285,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Payment status updated successfully!');
+                    showNotification('Payment status updated successfully!', 'success');
                     loadPayments(); // Refresh the payments list
                 } else {
-                    alert('Failed to update payment status: ' + result.message);
+                    showNotification('Failed to update payment status: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error updating payment status:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -3298,14 +3320,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Payment refunded successfully!');
+                    showNotification('Payment refunded successfully!', 'success');
                     loadPayments(); // Refresh the payments list
                 } else {
-                    alert('Failed to refund payment: ' + result.message);
+                    showNotification('Failed to refund payment: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error refunding payment:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -3321,7 +3343,7 @@
         // Export payments to CSV
         function exportPayments() {
             if (!allPayments || allPayments.length === 0) {
-                alert('No data to export');
+                showNotification('No data to export', 'info');
                 return;
             }
 
@@ -3517,7 +3539,7 @@
 
                 const result = await response.json();
                 if (!result.success) {
-                    alert(result.message || 'Failed to load order details');
+                    showNotification(result.message || 'Failed to load order details', 'error');
                     return;
                 }
 
@@ -3660,7 +3682,7 @@
 
             } catch (error) {
                 console.error('Error loading cancelled order details:', error);
-                alert('Failed to load order details');
+                showNotification('Failed to load order details', 'error');
             }
         }
 
@@ -3674,12 +3696,12 @@
             const reason = String(reasonEl?.value || '').trim();
 
             if (!reason) {
-                alert('Reason is required.');
+                showNotification('Reason is required.', 'warning');
                 return;
             }
 
             if (Number.isNaN(revised_total_amount) || Number.isNaN(revised_shipping_cost) || revised_total_amount < 0 || revised_shipping_cost < 0) {
-                alert('Please enter valid non-negative amounts.');
+                showNotification('Please enter valid non-negative amounts.', 'warning');
                 return;
             }
 
@@ -3696,7 +3718,7 @@
 
                 const result = await response.json();
                 if (!result.success) {
-                    alert(result.message || 'Failed to apply revision');
+                    showNotification(result.message || 'Failed to apply revision', 'error');
                     return;
                 }
 
@@ -3710,7 +3732,7 @@
                 }, 500);
             } catch (error) {
                 console.error('Error applying payment revision:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -3815,7 +3837,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load dispute details');
+                    showNotification('Failed to load dispute details', 'error');
                     return;
                 }
 
@@ -3922,7 +3944,7 @@
 
             } catch (error) {
                 console.error('Error loading dispute details:', error);
-                alert('Failed to load dispute details');
+                showNotification('Failed to load dispute details', 'error');
             }
         }
 
@@ -3930,7 +3952,7 @@
         async function addDisputeMessage(disputeId) {
             const message = document.getElementById('disputeMessage')?.value;
             if (!message) {
-                alert('Please enter a message');
+                showNotification('Please enter a message', 'warning');
                 return;
             }
 
@@ -3953,11 +3975,11 @@
                     // Refresh the dispute details
                     viewDisputeDetails(disputeId);
                 } else {
-                    alert('Failed to send message: ' + result.message);
+                    showNotification('Failed to send message: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -3979,15 +4001,15 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Dispute status updated successfully!');
+                    showNotification('Dispute status updated successfully!', 'success');
                     closeModal('disputeDetailsModalInner');
                     loadDisputes(); // Refresh the disputes list
                 } else {
-                    alert('Failed to update dispute status: ' + result.message);
+                    showNotification('Failed to update dispute status: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error updating dispute status:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -4015,15 +4037,15 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Dispute resolved successfully!');
+                    showNotification('Dispute resolved successfully!', 'success');
                     closeModal('disputeDetailsModalInner');
                     loadDisputes(); // Refresh the disputes list
                 } else {
-                    alert('Failed to resolve dispute: ' + result.message);
+                    showNotification('Failed to resolve dispute: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('Error resolving dispute:', error);
-                alert('Network error. Please try again.');
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
@@ -4341,7 +4363,7 @@
             const selCols = Array.from(document.querySelectorAll('input[name="reportCol"]:checked')).map(c => c.value);
 
             if (selCols.length === 0) {
-                alert('Please select at least one column.');
+                showNotification('Please select at least one column.', 'warning');
                 return;
             }
 
@@ -4425,7 +4447,7 @@
 
         function exportCSV(data, cols, title) {
             if (!data || data.length === 0) {
-                alert('No data to export. Try loading this section first.');
+                showNotification('No data to export. Try loading this section first.', 'info');
                 return;
             }
 
@@ -4457,7 +4479,7 @@
 
         function printReport(data, cols, title, dateFrom, dateTo) {
             if (!data || data.length === 0) {
-                alert('No data to export. Try loading this section first.');
+                showNotification('No data to export. Try loading this section first.', 'info');
                 return;
             }
 

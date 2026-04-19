@@ -42,7 +42,7 @@
 
         if (!modal || !contentDiv) {
             console.error('Order details modal elements not found');
-            alert('Order details view is not available on this page.');
+            showNotification('Order details view is not available on this page.', 'error');
             return;
         }
         
@@ -247,15 +247,15 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message || 'Order status updated');
-                window.location.reload();
+                showNotification(data.message || 'Order status updated', 'success');
+                setTimeout(() => window.location.reload(), 700);
             } else {
-                alert(data.error || 'Failed to update status');
+                showNotification(data.error || 'Failed to update status', 'error');
             }
         })
         .catch(error => {
             console.error('Update order status error:', error);
-            alert('Failed to update order status');
+            showNotification('Failed to update order status', 'error');
         });
     }
 
