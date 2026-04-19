@@ -32,6 +32,7 @@
                 <a class="delivery-filter-link <?= $activeFilter === 'accepted' ? 'active' : '' ?>" href="<?= ROOT ?>/farmerdeliveries?status=accepted">Accepted</a>
                 <a class="delivery-filter-link <?= $activeFilter === 'in_transit' ? 'active' : '' ?>" href="<?= ROOT ?>/farmerdeliveries?status=in_transit">In Transit</a>
                 <a class="delivery-filter-link <?= $activeFilter === 'delivered' ? 'active' : '' ?>" href="<?= ROOT ?>/farmerdeliveries?status=delivered">Delivered</a>
+                <a class="delivery-filter-link <?= $activeFilter === 'cancelled' ? 'active' : '' ?>" href="<?= ROOT ?>/farmerdeliveries?status=cancelled">Cancelled</a>
                 <a class="delivery-filter-link <?= $activeFilter === 'all' ? 'active' : '' ?>" href="<?= ROOT ?>/farmerdeliveries?status=all">All</a>
             </div>
         </div>

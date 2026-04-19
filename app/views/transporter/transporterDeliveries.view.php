@@ -7,6 +7,7 @@
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="accepted" onclick="TransporterDeliveries.filterMyDeliveries('accepted')">Accepted</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="in-transit" onclick="TransporterDeliveries.filterMyDeliveries('in-transit')">In Transit</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="delivered" onclick="TransporterDeliveries.filterMyDeliveries('delivered')">Delivered</button>
+                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="cancelled" onclick="TransporterDeliveries.filterMyDeliveries('cancelled')">Cancelled</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="all" onclick="TransporterDeliveries.filterMyDeliveries('all')">All</button>
             </div>
         </div>

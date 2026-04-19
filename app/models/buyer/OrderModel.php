@@ -405,6 +405,85 @@ class OrderModel
         ]);
     }
 
+    public function hasDeliveryRequestByOrderInStatuses($orderId, array $statuses)
+    {
+        $orderId = (int)$orderId;
+        $statuses = array_values(array_unique(array_filter(array_map('strval', $statuses), function ($status) {
+            return trim($status) !== '';
+        })));
+
+        if ($orderId <= 0 || empty($statuses)) {
+            return false;
+        }
+
+        [$placeholders, $statusParams] = $this->buildStatusParams($statuses, 'dr_status_');
+        $params = array_merge(['order_id' => $orderId], $statusParams);
+
+        $sql = "SELECT id
+                FROM delivery_requests
+                WHERE order_id = :order_id
+                  AND status IN (" . implode(', ', $placeholders) . ")
+                LIMIT 1";
+
+        $row = $this->get_row($sql, $params);
+        return $row !== false;
+    }
+
+    public function cancelOrderAndPendingDeliveryRequests($orderId)
+    {
+        $orderId = (int)$orderId;
+        if ($orderId <= 0) {
+            return false;
+        }
+
+        if (!$this->beginTransaction()) {
+            return false;
+        }
+
+        try {
+            $orderUpdated = $this->write(
+                "UPDATE {$this->table}
+                 SET status = 'cancelled',
+                     updated_at = NOW()
+                 WHERE id = :order_id
+                   AND status IN ('pending_payment', 'processing', 'ready_for_pickup')",
+                ['order_id' => $orderId]
+            );
+
+            if ($orderUpdated === false) {
+                $this->rollBack();
+                return false;
+            }
+
+            $deliveryUpdated = $this->write(
+                "UPDATE delivery_requests
+                 SET status = 'cancelled',
+                     updated_at = NOW()
+                 WHERE order_id = :order_id
+                   AND status IN ('pending', 'accepted')",
+                ['order_id' => $orderId]
+            );
+
+            if ($deliveryUpdated === false) {
+                $this->rollBack();
+                return false;
+            }
+
+            if (!$this->commit()) {
+                $this->rollBack();
+                return false;
+            }
+
+            return true;
+        } catch (Throwable $e) {
+            if ($this->inTransaction()) {
+                $this->rollBack();
+            }
+            error_log('OrderModel::cancelOrderAndPendingDeliveryRequests error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     private function buildStatusParams(array $statuses, $prefix)
     {
         $placeholders = [];

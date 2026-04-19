@@ -80,14 +80,23 @@ class BuyerOrdersController
             return;
         }
 
-        // Check if order can be cancelled
-        if (!in_array($order->status, ['pending_payment', 'processing'])) {
+        // Check if order can be cancelled by order lifecycle.
+        if (!in_array($order->status, ['pending_payment', 'processing', 'ready_for_pickup'], true)) {
             echo json_encode(['success' => false, 'message' => 'This order cannot be cancelled in its current status']);
             return;
         }
 
-        // Attempt to cancel
-        if ($this->orderModel->updateOrderStatus($orderId, 'cancelled')) {
+        // Do not allow cancellation after delivery starts transit.
+        if ($this->orderModel->hasDeliveryRequestByOrderInStatuses((int)$orderId, ['in_transit'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'This order cannot be cancelled because delivery is already in transit'
+            ]);
+            return;
+        }
+
+        // Cancel order and related delivery requests in one transaction.
+        if ($this->orderModel->cancelOrderAndPendingDeliveryRequests((int)$orderId)) {
             // Restore stock
             $this->orderModel->restoreOrderStock($orderId);
             echo json_encode(['success' => true, 'message' => 'Order cancelled successfully']);
