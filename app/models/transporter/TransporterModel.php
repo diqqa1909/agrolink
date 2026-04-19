@@ -832,6 +832,8 @@ class TransporterModel
                     $buyerAddress = (string)($pair->delivery_address ?? 'Not provided');
                 }
 
+                $productPickupAddress = $this->getOrderFarmerPickupAddress($orderId, $farmerId);
+
                 $insertSql = "INSERT INTO delivery_requests (
                     order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
                     farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
@@ -855,7 +857,7 @@ class TransporterModel
                     'farmer_id' => $farmerId,
                     'farmer_name' => $farmer->name ?? 'Unknown',
                     'farmer_phone' => $farmer->phone ?? '',
-                    'farmer_address' => $farmer->full_address ?? '',
+                    'farmer_address' => $productPickupAddress !== '' ? $productPickupAddress : ($farmer->full_address ?? ''),
                     'farmer_city' => $farmer->district ?? '',
                     'farmer_district_id' => $farmerDistrictId,
                     'total_weight_kg' => round($totalWeight, 2),
@@ -899,6 +901,47 @@ class TransporterModel
         }
 
         return null;
+    }
+
+    private function orderItemsHavePickupAddressColumn(): bool
+    {
+        $result = $this->query("SHOW COLUMNS FROM order_items LIKE 'product_full_address'", []);
+        return is_array($result) && !empty($result);
+    }
+
+    private function getOrderFarmerPickupAddress(int $orderId, int $farmerId): string
+    {
+        if ($orderId <= 0 || $farmerId <= 0 || !$this->orderItemsHavePickupAddressColumn()) {
+            return '';
+        }
+
+        $rows = $this->query(
+            "SELECT DISTINCT TRIM(product_full_address) AS product_full_address
+             FROM order_items
+             WHERE order_id = :order_id
+               AND farmer_id = :farmer_id
+               AND product_full_address IS NOT NULL
+               AND TRIM(product_full_address) <> ''",
+            [
+                'order_id' => $orderId,
+                'farmer_id' => $farmerId,
+            ]
+        );
+
+        if (!is_array($rows) || empty($rows)) {
+            return '';
+        }
+
+        $addresses = [];
+        foreach ($rows as $row) {
+            $address = trim((string)($row->product_full_address ?? ''));
+            if ($address !== '') {
+                $addresses[] = $address;
+            }
+        }
+
+        $addresses = array_values(array_unique($addresses));
+        return implode(' | ', $addresses);
     }
 
     private function debugLog($message)

@@ -66,16 +66,23 @@
   grid-template-columns: 1.1fr 0.9fr;
   gap: 16px;
   margin-bottom: 16px;
+  align-items: stretch;
 }
 
 .farmer-dashboard-card {
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .farmer-dashboard-card-header {
   padding: 18px 20px 14px;
   border-bottom: 1px solid #eaecf0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .farmer-dashboard-card-header h3 {
@@ -87,6 +94,7 @@
 
 .farmer-dashboard-card-body {
   padding: 14px 20px 18px;
+  flex: 1;
 }
 
 .farmer-dashboard-empty {
@@ -139,6 +147,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  height: 100%;
+  grid-auto-rows: 1fr;
 }
 
 .farmer-delivery-quick-card {
@@ -146,6 +156,9 @@
   border-radius: 10px;
   padding: 12px;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .farmer-delivery-quick-value {
@@ -229,6 +242,7 @@
 
   .farmer-delivery-quick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
   }
 
   .farmer-top-product-item {

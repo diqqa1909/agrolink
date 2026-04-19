@@ -1069,12 +1069,14 @@ function viewOrderDetails(orderId) {
                 let itemsHtml = '';
                 items.forEach(item => {
                     const itemTotal = parseFloat(item.product_price) * parseInt(item.quantity);
+                    const pickupAddress = escapeHtml(item.product_full_address || '');
                     itemsHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
                         <div style="flex: 1;">
                             <div style="font-weight: 500;">${escapeHtml(item.product_name)}</div>
                             <div style="font-size: 0.85rem; color: #666;">${item.quantity} kg x Rs. ${parseFloat(item.product_price).toFixed(2)}</div>
                             ${item.farmer_name ? `<div style="font-size: 0.8rem; color: #888;">Farmer: ${escapeHtml(item.farmer_name)}</div>` : ''}
+                            ${pickupAddress ? `<div style="font-size: 0.8rem; color: #888;">Pickup: ${pickupAddress}</div>` : ''}
                         </div>
                         <div style="font-weight: 500;">Rs. ${itemTotal.toFixed(2)}</div>
                     </div>

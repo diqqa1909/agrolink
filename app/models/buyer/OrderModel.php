@@ -6,6 +6,18 @@ class OrderModel
 
     protected $table = 'orders';
     protected $orderItemsTable = 'order_items';
+    private $hasOrderItemPickupAddressColumn = null;
+
+    private function supportsOrderItemPickupAddress(): bool
+    {
+        if ($this->hasOrderItemPickupAddressColumn !== null) {
+            return $this->hasOrderItemPickupAddressColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM {$this->orderItemsTable} LIKE 'product_full_address'");
+        $this->hasOrderItemPickupAddressColumn = is_array($result) && !empty($result);
+        return $this->hasOrderItemPickupAddressColumn;
+    }
 
     /**
      * Create a new order
@@ -34,9 +46,17 @@ class OrderModel
      */
     public function addOrderItem($itemData)
     {
-        $sql = "INSERT INTO {$this->orderItemsTable} 
+        if ($this->supportsOrderItemPickupAddress()) {
+            $sql = "INSERT INTO {$this->orderItemsTable}
+                (order_id, product_id, product_name, product_price, quantity, item_weight_kg, farmer_id, product_full_address, created_at)
+                VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, :product_full_address, NOW())";
+            $itemData['product_full_address'] = trim((string)($itemData['product_full_address'] ?? ''));
+        } else {
+            $sql = "INSERT INTO {$this->orderItemsTable}
                 (order_id, product_id, product_name, product_price, quantity, item_weight_kg, farmer_id, created_at)
                 VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, NOW())";
+            unset($itemData['product_full_address']);
+        }
 
         $result = $this->write($sql, $itemData);
 

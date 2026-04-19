@@ -104,6 +104,7 @@
             const qty = parseInt(item.quantity, 10) || 0;
             const itemTotal = unitPrice * qty;
             total += itemTotal;
+            const pickupAddress = escapeHtml(item.product_full_address || '');
             
             itemsHtml += `
                 <div class="order-item">
@@ -112,6 +113,7 @@
                         <div class="item-meta">
                             <span>Price: LKR ${unitPrice.toFixed(2)}</span>
                             <span>Quantity: ${qty}</span>
+                            ${pickupAddress ? `<span>Pickup: ${pickupAddress}</span>` : ''}
                         </div>
                     </div>
                     <div class="item-total">
