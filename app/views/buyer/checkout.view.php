@@ -146,22 +146,19 @@
                                         <label>Quantity:</label>
                                         <?php
                                         $availableQty = $item->available_quantity ?? 0;
-                                        $maxQuantity = min($availableQty, 100); // Cap at 100 for UI, but respect available quantity
+                                        $maxQuantity = $availableQty;
                                         $currentQuantity = min($item->quantity, $maxQuantity);
 
                                         if ($maxQuantity <= 0):
                                         ?>
                                             <span class="checkout-out-of-stock">Out of Stock</span>
                                         <?php else: ?>
-                                            <select class="quantity-select" data-product-id="<?= $item->product_id ?>"
+                                            <input type="number" class="quantity-select" style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;" 
+                                                data-product-id="<?= $item->product_id ?>"
                                                 data-max-quantity="<?= $availableQty ?>"
+                                                value="<?= $currentQuantity ?>"
+                                                min="1" max="<?= $availableQty ?>"
                                                 onchange="updateCheckoutQuantity(<?= $item->product_id ?>, this.value, <?= $availableQty ?>)">
-                                                <?php for ($i = 1; $i <= $maxQuantity; $i++): ?>
-                                                    <option value="<?= $i ?>" <?= $currentQuantity == $i ? 'selected' : '' ?>>
-                                                        <?= $i ?> <?= $i == $maxQuantity && $maxQuantity == $availableQty ? '(Max)' : '' ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
                                             <span class="checkout-available-qty">
                                                 (<?= $availableQty ?> kg available)
                                             </span>
