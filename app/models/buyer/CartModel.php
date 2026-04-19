@@ -103,7 +103,7 @@ class CartModel
      */
     public function getCartItemCount($user_id)
     {
-        $sql = "SELECT COALESCE(SUM(quantity), 0) as total FROM {$this->table} WHERE user_id = :user_id";
+        $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE user_id = :user_id";
         $result = $this->query($sql, ['user_id' => $user_id]);
 
         if (is_array($result) && !empty($result) && isset($result[0]->total)) {

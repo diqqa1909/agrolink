@@ -749,7 +749,7 @@ class FarmerProfileController
 
         $userId = (int)authUserId();
 
-        $blockingStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+        $blockingStatuses = ['processing', 'ready_for_pickup', 'shipped'];
         $activeOrderCount = $this->orderModel->countFarmerOrdersByStatuses($userId, $blockingStatuses);
         if ($activeOrderCount > 0) {
             http_response_code(409);

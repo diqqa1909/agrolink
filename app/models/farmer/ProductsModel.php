@@ -5,23 +5,60 @@ class ProductsModel
     use Database;
 
     protected $table = 'products';
+    private $hasFullAddressColumn = null;
+
+    private function supportsFullAddress(): bool
+    {
+        if ($this->hasFullAddressColumn !== null) {
+            return $this->hasFullAddressColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM {$this->table} LIKE 'full_address'");
+        $this->hasFullAddressColumn = is_array($result) && !empty($result);
+        return $this->hasFullAddressColumn;
+    }
 
     public function create(array $data)
     {
         try {
-            $sql = "INSERT INTO {$this->table}
-                    (farmer_id, name, product_master_id, price, quantity, description, image, location, category, listing_date, district_id, town_id)
-                    VALUES (:farmer_id, :name, :product_master_id, :price, :quantity, :description, :image, :location, :category, :listing_date, :district_id, :town_id)";
+            $columns = [
+                'farmer_id',
+                'name',
+                'product_master_id',
+                'price',
+                'quantity',
+                'description',
+                'image',
+                'location',
+                'category',
+                'listing_date',
+                'district_id',
+                'town_id',
+            ];
+
+            if ($this->supportsFullAddress()) {
+                $columns[] = 'full_address';
+            }
+
+            $sql = "INSERT INTO {$this->table} (" . implode(', ', $columns) . ") VALUES (" . implode(', ', array_map(function ($col) {
+                return ':' . $col;
+            }, $columns)) . ")";
 
             // Ensure district_id, town_id, and product_master_id are set, default to null if not
             if (!isset($data['district_id'])) $data['district_id'] = null;
             if (!isset($data['town_id'])) $data['town_id'] = null;
             if (!isset($data['product_master_id'])) $data['product_master_id'] = null;
+            if (!isset($data['full_address'])) $data['full_address'] = null;
 
-            $result = $this->write($sql, $data);
+            $insertData = [];
+            foreach ($columns as $column) {
+                $insertData[$column] = $data[$column] ?? null;
+            }
+
+            $result = $this->write($sql, $insertData);
 
             if ($result === false) {
-                error_log("ProductsModel::create - Insert failed for data: " . print_r($data, true));
+                error_log("ProductsModel::create - Insert failed for data: " . print_r($insertData, true));
             } else {
                 error_log("ProductsModel::create - Insert successful, ID: " . $result);
             }
@@ -38,6 +75,9 @@ class ProductsModel
     {
         // Allow dynamic updates for provided fields
         $allowed = ['name', 'product_master_id', 'price', 'quantity', 'description', 'location', 'category', 'listing_date', 'image', 'district_id', 'town_id'];
+        if ($this->supportsFullAddress()) {
+            $allowed[] = 'full_address';
+        }
         $set = [];
         $params = ['id' => $id, 'farmer_id' => $farmerId];
         foreach ($allowed as $field) {
@@ -55,6 +95,21 @@ class ProductsModel
     {
         $sql = "DELETE FROM {$this->table} WHERE id=:id AND farmer_id=:farmer_id";
         return $this->write($sql, ['id' => $id, 'farmer_id' => $farmerId]);
+    }
+
+    public function countOngoingOrders(int $productId, int $farmerId): int
+    {
+        $sql = "SELECT COUNT(*) AS cnt
+                FROM order_items oi
+                INNER JOIN orders o ON o.id = oi.order_id
+                WHERE oi.product_id = :product_id
+                  AND oi.farmer_id = :farmer_id
+                  AND o.status NOT IN ('delivered', 'cancelled')";
+        $rows = $this->query($sql, ['product_id' => $productId, 'farmer_id' => $farmerId]);
+        if (!is_array($rows) || empty($rows)) {
+            return 0;
+        }
+        return (int)($rows[0]->cnt ?? 0);
     }
 
     public function getByFarmer(int $farmerId)

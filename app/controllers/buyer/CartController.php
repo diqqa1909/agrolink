@@ -26,6 +26,11 @@ class CartController
 
         $user_id = authUserId();
 
+        // Clear any orphaned Buy Now sessions when explicitly viewing the standard cart
+        if (isset($_SESSION['buy_now_product_id'])) {
+            unset($_SESSION['buy_now_product_id']);
+        }
+
         // Get cart items
         $cartItems = $this->cartModel->getCartByUserId($user_id);
         

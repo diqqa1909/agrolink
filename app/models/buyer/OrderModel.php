@@ -6,6 +6,18 @@ class OrderModel
 
     protected $table = 'orders';
     protected $orderItemsTable = 'order_items';
+    private $hasOrderItemPickupAddressColumn = null;
+
+    private function supportsOrderItemPickupAddress(): bool
+    {
+        if ($this->hasOrderItemPickupAddressColumn !== null) {
+            return $this->hasOrderItemPickupAddressColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM {$this->orderItemsTable} LIKE 'product_full_address'");
+        $this->hasOrderItemPickupAddressColumn = is_array($result) && !empty($result);
+        return $this->hasOrderItemPickupAddressColumn;
+    }
 
     /**
      * Create a new order
@@ -34,9 +46,17 @@ class OrderModel
      */
     public function addOrderItem($itemData)
     {
-        $sql = "INSERT INTO {$this->orderItemsTable} 
+        if ($this->supportsOrderItemPickupAddress()) {
+            $sql = "INSERT INTO {$this->orderItemsTable}
+                (order_id, product_id, product_name, product_price, quantity, item_weight_kg, farmer_id, product_full_address, created_at)
+                VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, :product_full_address, NOW())";
+            $itemData['product_full_address'] = trim((string)($itemData['product_full_address'] ?? ''));
+        } else {
+            $sql = "INSERT INTO {$this->orderItemsTable}
                 (order_id, product_id, product_name, product_price, quantity, item_weight_kg, farmer_id, created_at)
                 VALUES (:order_id, :product_id, :product_name, :product_price, :quantity, :item_weight_kg, :farmer_id, NOW())";
+            unset($itemData['product_full_address']);
+        }
 
         $result = $this->write($sql, $itemData);
 
@@ -169,7 +189,7 @@ class OrderModel
                 LEFT JOIN delivery_requests dr ON dr.order_id = o.id
                 LEFT JOIN users u ON u.id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status IN ('pending_payment', 'processing', 'ready_for_pickup', 'shipped', 'delivered')
                 ORDER BY o.created_at DESC";
 
         $result = $this->query($sql, ['buyer_id' => $buyerId]);
@@ -215,7 +235,7 @@ class OrderModel
         })));
 
         $allowedPaymentStatuses = ['pending', 'paid', 'failed'];
-        $allowedOrderStatuses = ['pending_payment', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+        $allowedOrderStatuses = ['pending_payment', 'processing', 'ready_for_pickup', 'shipped', 'delivered', 'cancelled'];
 
         if ($buyerId <= 0 || empty($cleanOrderIds)) {
             return false;
@@ -279,7 +299,7 @@ class OrderModel
                     AND r.buyer_id = :buyer_id
                     AND r.farmer_id = oi.farmer_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('confirmed', 'processing', 'shipped', 'delivered')
+                AND o.status = 'delivered'
                 AND r.id IS NULL
                 ORDER BY o.created_at DESC";
 
@@ -327,7 +347,7 @@ class OrderModel
                     AND r.buyer_id = :buyer_id
                     AND r.farmer_id = dr.transporter_id
                 WHERE o.buyer_id = :buyer_id
-                AND o.status IN ('shipped', 'delivered')
+                AND o.status = 'delivered'
                 AND dr.transporter_id IS NOT NULL
                 AND r.id IS NULL
                 ORDER BY o.created_at DESC";

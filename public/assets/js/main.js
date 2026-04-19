@@ -308,27 +308,47 @@ function debounce(func, wait) {
     };
 }
 
-function showNotification(message, type = 'info') {
+function showNotification(message, type = 'info', duration = 3200) {
     const safeMessage = String(message || '').trim();
-    const compactMessage = safeMessage.length > 100
-        ? `${safeMessage.slice(0, 97)}...`
+    const compactMessage = safeMessage.length > 140
+        ? `${safeMessage.slice(0, 137)}...`
         : safeMessage;
 
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(n => n.remove());
-    
+    const validTypes = ['success', 'error', 'warning', 'info'];
+    const toastType = validTypes.includes(type) ? type : 'info';
+
+    let stack = document.getElementById('toastStack');
+    if (!stack) {
+        stack = document.createElement('div');
+        stack.id = 'toastStack';
+        stack.className = 'toast-stack';
+        stack.setAttribute('role', 'region');
+        stack.setAttribute('aria-label', 'Notifications');
+        document.body.appendChild(stack);
+    }
+
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
+    notification.className = `notification ${toastType}`;
+    notification.setAttribute('role', toastType === 'error' ? 'alert' : 'status');
     notification.textContent = compactMessage || 'Notification';
-    
-    document.body.insertBefore(notification, document.body.firstChild);
-    
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 2200);
+
+    stack.appendChild(notification);
+    requestAnimationFrame(() => notification.classList.add('is-visible'));
+
+    const dismiss = () => {
+        if (!notification.parentNode) return;
+        notification.classList.remove('is-visible');
+        notification.classList.add('is-leaving');
+        setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+        }, 260);
+    };
+
+    notification.addEventListener('click', dismiss);
+    setTimeout(dismiss, Math.max(1500, Number(duration) || 3200));
 }
+
+window.showNotification = showNotification;
 
 // Table sorting function
 function sortTable(table, column) {

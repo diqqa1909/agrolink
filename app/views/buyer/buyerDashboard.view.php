@@ -14,8 +14,8 @@
         </div>
         <div class="stat-card buyer-dashboard-stat-card">
             <!-- <div class="stat-icon warning">⏳</div>-->
-            <div class="stat-label">Pending Orders</div>
-            <div class="stat-number buyer-dashboard-stat-number"><?= $pendingOrders ?? 0 ?></div>
+            <div class="stat-label">Ongoing Deliveries</div>
+            <div class="stat-number buyer-dashboard-stat-number"><?= $ongoingDeliveries ?? 0 ?></div>
         </div>
         <div class="stat-card buyer-dashboard-stat-card">
             <!--<div class="stat-icon success">💰</div>-->

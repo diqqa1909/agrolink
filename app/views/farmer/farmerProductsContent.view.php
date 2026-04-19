@@ -47,11 +47,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="productMaster">Product *</label>
+                    <label for="productMaster">Standard Crop (Optional)</label>
                     <select id="productMaster" name="product_master_id" class="form-control" disabled>
                         <option value="">Select Category First</option>
                     </select>
-                    <span class="form-hint">Optional: Choose from standard crops, or enter a custom product name below.</span>
+                    <span class="form-hint">Choose from the crop list to auto-fill the product name, or type your own name below.</span>
                 </div>
 
                 <div class="form-group">
@@ -59,29 +59,38 @@
                     <input type="text" id="productName" name="name" class="form-control" placeholder="e.g., Fresh Pumpkin" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="productPrice">Price per KG (Rs.) *</label>
-                    <input type="number" id="productPrice" name="price" class="form-control" step="0.01" min="0" required placeholder="120.00">
+                <div class="product-form-row">
+                    <div class="form-group">
+                        <label for="productPrice">Price per KG (Rs.) *</label>
+                        <input type="number" id="productPrice" name="price" class="form-control" step="0.01" min="0" required placeholder="120.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="productQuantity">Available Quantity (KG) *</label>
+                        <input type="number" id="productQuantity" name="quantity" class="form-control" min="1" required placeholder="100">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="productQuantity">Available Quantity (KG) *</label>
-                    <input type="number" id="productQuantity" name="quantity" class="form-control" min="1" required placeholder="100">
-                </div>
-
-                    <div class="mb-3">
+                <div class="product-form-row">
+                    <div class="form-group">
                         <label class="form-label">District</label>
                         <select class="form-control" id="productDistrict" name="district_id" required>
                             <option value="">Select District...</option>
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label class="form-label">Town</label>
                         <select class="form-control" id="productTown" name="town_id" required disabled>
                             <option value="">Select District First</option>
                         </select>
                     </div>
-                    <input type="hidden" id="productLocation" name="location" value="auto">
+                </div>
+                <input type="hidden" id="productLocation" name="location" value="auto">
+
+                <div class="form-group">
+                    <label for="productFullAddress">Product Full Address *</label>
+                    <textarea id="productFullAddress" name="full_address" class="form-control" rows="2" placeholder="e.g., No 12, Lake Road, Boralesgamuwa" required></textarea>
+                    <span class="form-hint">This pickup address will be used in delivery details.</span>
+                </div>
 
                 <div class="form-group">
                     <label for="listingDate">Available From *</label>
@@ -124,7 +133,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editProductMaster">Product (Optional)</label>
+                    <label for="editProductMaster">Standard Crop (Optional)</label>
                     <select id="editProductMaster" name="product_master_id" class="form-control" disabled>
                         <option value="">Select Category First</option>
                     </select>
@@ -136,31 +145,38 @@
                     <input type="text" id="editProductName" name="name" class="form-control" placeholder="e.g., Fresh Pumpkin" required>
                 </div>
 
-
-
-                <div class="form-group">
-                    <label for="editProductPrice">Price per KG (Rs.) *</label>
-                    <input type="number" id="editProductPrice" name="price" class="form-control" step="0.01" min="0" required>
+                <div class="product-form-row">
+                    <div class="form-group">
+                        <label for="editProductPrice">Price per KG (Rs.) *</label>
+                        <input type="number" id="editProductPrice" name="price" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductQuantity">Available Quantity (KG) *</label>
+                        <input type="number" id="editProductQuantity" name="quantity" class="form-control" min="1" required>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="editProductQuantity">Available Quantity (KG) *</label>
-                    <input type="number" id="editProductQuantity" name="quantity" class="form-control" min="1" required>
-                </div>
-
-                    <div class="mb-3">
+                <div class="product-form-row">
+                    <div class="form-group">
                         <label class="form-label">District</label>
                         <select class="form-control" id="editProductDistrict" name="district_id" required>
                             <option value="">Select District...</option>
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label class="form-label">Town</label>
                         <select class="form-control" id="editProductTown" name="town_id" required disabled>
                             <option value="">Select District First</option>
                         </select>
                     </div>
-                    <input type="hidden" id="editProductLocation" name="location" value="">
+                </div>
+                <input type="hidden" id="editProductLocation" name="location" value="">
+
+                <div class="form-group">
+                    <label for="editProductFullAddress">Product Full Address *</label>
+                    <textarea id="editProductFullAddress" name="full_address" class="form-control" rows="2" required></textarea>
+                    <span class="form-hint">Used as pickup address in delivery request and order delivery details.</span>
+                </div>
 
                 <div class="form-group">
                     <label for="editListingDate">Available From *</label>

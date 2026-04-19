@@ -29,6 +29,7 @@ class TransporterDashboardController
         $transporterModel = new TransporterModel();
         $earningsSummary = $transporterModel->getEarningsSummary(authUserId());
         $data['earningsSummary'] = $earningsSummary;
+        $data['profile'] = $transporterModel->getProfileByUserId(authUserId());
 
         // Get available delivery requests count
         $availableRequests = $transporterModel->getAvailableDeliveryRequests(authUserId());
@@ -82,6 +83,7 @@ class TransporterDashboardController
 
             if ($vehicleModel->validate($data)) {
                 error_log("Validation passed, calling create()");
+                $vehicleModel->deactivateAllVehicles(authUserId());
                 $result = $vehicleModel->create($data);
                 error_log("Create result: " . json_encode($result));
                 $response['success'] = true;
@@ -159,6 +161,9 @@ class TransporterDashboardController
             $data['id'] = $id;
 
             if ($vehicleModel->validate($data)) {
+                if (isset($data['status']) && $data['status'] === 'active') {
+                    $vehicleModel->deactivateAllVehicles(authUserId());
+                }
                 $vehicleModel->updateVehicle($id, $data);
                 $response['success'] = true;
                 $response['message'] = 'Vehicle updated successfully!';
@@ -253,9 +258,49 @@ class TransporterDashboardController
 
             // Toggle vehicle status between active and inactive
             $newStatus = ($vehicle->status === 'active') ? 'inactive' : 'active';
-            $vehicleModel->updateVehicle($id, ['status' => $newStatus]);
+            
+            if ($newStatus === 'active') {
+                $vehicleModel->setActiveVehicle($id, authUserId());
+            } else {
+                $vehicleModel->updateVehicle($id, ['status' => 'inactive']);
+            }
+            
             $response['success'] = true;
             $response['message'] = 'Vehicle status updated successfully!';
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+
+    public function toggleAvailability()
+    {
+        $response = ['success' => false, 'message' => 'Failed to toggle availability'];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasRole('transporter')) {
+            $transporterModel = new TransporterModel();
+            
+            $earnings = $transporterModel->getEarningsSummary(authUserId());
+            $activeDeliveries = ($earnings->in_transit_deliveries ?? 0) + ($earnings->accepted_deliveries ?? 0);
+            
+            $profile = $transporterModel->getProfileByUserId(authUserId());
+            $currentStatus = $profile->availability ?? 'available';
+            
+            $newStatus = ($currentStatus === 'available') ? 'not available' : 'available';
+            
+            if ($newStatus === 'not available' && $activeDeliveries > 0) {
+                $response['message'] = 'You must complete all your accepted orders before going offline.';
+                echo json_encode($response);
+                exit;
+            }
+            
+            $result = $transporterModel->updateProfile(authUserId(), ['availability' => $newStatus]);
+            
+            if ($result) {
+                $response['success'] = true;
+                $response['message'] = 'Status updated successfully';
+                $response['newStatus'] = $newStatus;
+            }
         }
 
         echo json_encode($response);
@@ -275,6 +320,14 @@ class TransporterDashboardController
         try {
             if (hasRole('transporter')) {
                 $transporterModel = new TransporterModel();
+                
+                $profile = $transporterModel->getProfileByUserId(authUserId());
+                if (($profile->availability ?? 'available') !== 'available') {
+                    $response['success'] = true;
+                    $response['requests'] = [];
+                    echo json_encode($response);
+                    exit;
+                }
 
                 $filters = [
                     'location' => trim((string)($_GET['location'] ?? '')),

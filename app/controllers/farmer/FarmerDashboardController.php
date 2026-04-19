@@ -30,16 +30,17 @@ class FarmerDashboardController
             }
         }
 
-        $pendingOrders = 0;
+        $activeOrders = 0;
         foreach ($farmerOrders as $order) {
-            if (strtolower((string)($order->status ?? '')) === 'pending') {
-                $pendingOrders++;
+            $status = strtolower((string)($order->status ?? ''));
+            if (!in_array($status, ['delivered', 'cancelled', 'pending_payment'], true)) {
+                $activeOrders++;
             }
         }
 
         $monthlyEarnings = (float)$farmerModel->getMonthlyEarnings($farmerId);
         $totalEarnings = (float)$farmerModel->getTotalEarnings($farmerId);
-        $topProducts = $farmerModel->getEarningsByProduct($farmerId);
+        $topProducts = $farmerModel->getMonthlyEarningsByProduct($farmerId, 3);
         $runningDeliveries = (int)($deliverySummary->accepted_deliveries ?? 0) + (int)($deliverySummary->in_transit_deliveries ?? 0);
 
         $newCropRequests = 0;
@@ -57,13 +58,13 @@ class FarmerDashboardController
             'contentView' => '../app/views/farmer/farmerDashboard.view.php',
             'pageScript' => 'farmerDashboard.js',
             'activeProducts' => $activeProducts,
-            'pendingOrders' => $pendingOrders,
+            'activeOrders' => $activeOrders,
             'monthlyEarnings' => $monthlyEarnings,
             'totalEarnings' => $totalEarnings,
             'runningDeliveries' => $runningDeliveries,
             'newCropRequests' => $newCropRequests,
-            'recentOrders' => array_slice($farmerOrders, 0, 5),
-            'topProducts' => array_slice($topProducts, 0, 3),
+            'recentOrders' => array_slice($farmerOrders, 0, 4),
+            'topProducts' => $topProducts,
             'deliverySummary' => $deliverySummary,
         ];
 

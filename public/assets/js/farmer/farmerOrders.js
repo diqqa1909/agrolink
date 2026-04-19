@@ -42,7 +42,7 @@
 
         if (!modal || !contentDiv) {
             console.error('Order details modal elements not found');
-            alert('Order details view is not available on this page.');
+            showNotification('Order details view is not available on this page.', 'error');
             return;
         }
         
@@ -104,6 +104,7 @@
             const qty = parseInt(item.quantity, 10) || 0;
             const itemTotal = unitPrice * qty;
             total += itemTotal;
+            const pickupAddress = escapeHtml(item.product_full_address || '');
             
             itemsHtml += `
                 <div class="order-item">
@@ -112,6 +113,7 @@
                         <div class="item-meta">
                             <span>Price: LKR ${unitPrice.toFixed(2)}</span>
                             <span>Quantity: ${qty}</span>
+                            ${pickupAddress ? `<span>Pickup: ${pickupAddress}</span>` : ''}
                         </div>
                     </div>
                     <div class="item-total">
@@ -225,7 +227,7 @@
      * Update farmer order status in required sequence.
      */
     function updateOrderStatus(orderId, status) {
-        const statusLabel = status.replace('_', ' ').toUpperCase();
+        const statusLabel = status.replace(/_/g, ' ').toUpperCase();
         if (!confirm(`Update this order to ${statusLabel}?`)) {
             return;
         }
@@ -245,15 +247,15 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message || 'Order status updated');
-                window.location.reload();
+                showNotification(data.message || 'Order status updated', 'success');
+                setTimeout(() => window.location.reload(), 700);
             } else {
-                alert(data.error || 'Failed to update status');
+                showNotification(data.error || 'Failed to update status', 'error');
             }
         })
         .catch(error => {
             console.error('Update order status error:', error);
-            alert('Failed to update order status');
+            showNotification('Failed to update order status', 'error');
         });
     }
 

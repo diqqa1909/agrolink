@@ -103,25 +103,35 @@
                 <h2 class="checkout-section-title">Review order</h2>
 
                 <?php
-                // Group items by farmer
-                $itemsByFarmer = [];
+                // Group items by location group
+                $itemsByGroup = [];
                 foreach ($cartItems as $item) {
-                    $farmerName = $item->farmer_name ?? 'Unknown Farmer';
-                    if (!isset($itemsByFarmer[$farmerName])) {
-                        $itemsByFarmer[$farmerName] = [];
+                    $groupKey = $item->group_key ?? 'unknown';
+                    if (!isset($itemsByGroup[$groupKey])) {
+                        $itemsByGroup[$groupKey] = [
+                            'farmer_name' => $item->farmer_name ?? 'Unknown Farmer',
+                            'pickup_location' => $item->pickup_location_name ?? 'Unknown Location',
+                            'items' => []
+                        ];
                     }
-                    $itemsByFarmer[$farmerName][] = $item;
+                    $itemsByGroup[$groupKey]['items'][] = $item;
                 }
                 ?>
 
-                <?php foreach ($itemsByFarmer as $farmerName => $farmerItems): ?>
+                <?php foreach ($itemsByGroup as $groupKey => $groupData): ?>
                     <div class="order-seller-block">
-                        <div class="seller-info">
-                            <span class="seller-name"><?= htmlspecialchars($farmerName) ?></span>
-                            <span class="seller-feedback">99.6% positive feedback</span>
+                        <div class="seller-info" style="display:flex; flex-direction:column; gap:5px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="seller-name"><?= htmlspecialchars($groupData['farmer_name']) ?></span>
+                          <!-- <span class="seller-feedback">99.6% positive feedback</span> -->
+                            </div>
+                            <div style="font-size:0.85rem; color:#666;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:text-bottom;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> 
+                                Ships from: <?= htmlspecialchars($groupData['pickup_location']) ?>
+                            </div>
                         </div>
 
-                        <?php foreach ($farmerItems as $item): ?>
+                        <?php foreach ($groupData['items'] as $item): ?>
                             <div class="order-item">
                                 <div class="order-item-image-small">
                                     <?php
@@ -146,22 +156,19 @@
                                         <label>Quantity:</label>
                                         <?php
                                         $availableQty = $item->available_quantity ?? 0;
-                                        $maxQuantity = min($availableQty, 100); // Cap at 100 for UI, but respect available quantity
+                                        $maxQuantity = $availableQty;
                                         $currentQuantity = min($item->quantity, $maxQuantity);
 
                                         if ($maxQuantity <= 0):
                                         ?>
                                             <span class="checkout-out-of-stock">Out of Stock</span>
                                         <?php else: ?>
-                                            <select class="quantity-select" data-product-id="<?= $item->product_id ?>"
+                                            <input type="number" class="quantity-select" style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;" 
+                                                data-product-id="<?= $item->product_id ?>"
                                                 data-max-quantity="<?= $availableQty ?>"
+                                                value="<?= $currentQuantity ?>"
+                                                min="1" max="<?= $availableQty ?>"
                                                 onchange="updateCheckoutQuantity(<?= $item->product_id ?>, this.value, <?= $availableQty ?>)">
-                                                <?php for ($i = 1; $i <= $maxQuantity; $i++): ?>
-                                                    <option value="<?= $i ?>" <?= $currentQuantity == $i ? 'selected' : '' ?>>
-                                                        <?= $i ?> <?= $i == $maxQuantity && $maxQuantity == $availableQty ? '(Max)' : '' ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
                                             <span class="checkout-available-qty">
                                                 (<?= $availableQty ?> kg available)
                                             </span>

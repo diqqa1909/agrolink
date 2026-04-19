@@ -60,16 +60,14 @@
                 <div class="action-buttons">
                     <button class="btn btn-sm btn-secondary" onclick="BuyerDashboard.viewOrderDetails(<?= $order->id ?>)">View Order Details</button>
                     <?php if ($statusClass === 'delivered' && !empty($items)): ?>
-                        <?php $firstReviewableItem = $items[0]; ?>
-                        <button class="btn btn-sm btn-outline"
-                            onclick="BuyerDashboard.openReviewModal(<?= $order->id ?>, <?= (int)$firstReviewableItem->product_id ?>, <?= (int)$firstReviewableItem->farmer_id ?>, '<?= addslashes(htmlspecialchars($firstReviewableItem->product_name)) ?>')">
+                        <a class="btn btn-sm btn-outline" href="<?= ROOT ?>/buyerreviews">
                             ★ Write Review
-                        </button>
+                        </a>
                     <?php endif; ?>
                     <?php if ($order->status === 'pending_payment'): ?>
                         <a class="btn btn-sm btn-primary" href="<?= ROOT ?>/payment/checkout?order_id=<?= (int)$order->id ?>&order_ids=<?= (int)$order->id ?>">Retry Payment</a>
                     <?php endif; ?>
-                    <?php if ($order->status === 'pending_payment' || $order->status === 'pending' || $order->status === 'confirmed'): ?>
+                    <?php if ($order->status === 'pending_payment' || $order->status === 'processing'): ?>
                         <button class="btn btn-sm btn-danger" onclick="BuyerDashboard.cancelOrder(<?= $order->id ?>)">Cancel Order</button>
                     <?php endif; ?>
                     <?php if ($order->status === 'shipped'): ?>

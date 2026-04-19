@@ -344,13 +344,12 @@ class BuyerNotificationsModel
         $notifications = [];
 
         $statusTitleMap = [
-            'pending' => 'Order Placed',
-            'confirmed' => 'Order Confirmed',
+            'pending_payment' => 'Payment Pending',
             'processing' => 'Order Processing',
+            'ready_for_pickup' => 'Ready for Pickup',
             'shipped' => 'Order Shipped',
             'delivered' => 'Order Delivered',
             'cancelled' => 'Order Cancelled',
-            'rejected' => 'Order Rejected',
         ];
 
         foreach (array_slice($orders, 0, 20) as $order) {

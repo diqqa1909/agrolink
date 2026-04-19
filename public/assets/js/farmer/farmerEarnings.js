@@ -33,7 +33,8 @@
         const el = document.getElementById('earningsChartData');
         if (!el) return { daily: [], monthly: [], yearly: [] };
         try {
-            const parsed = JSON.parse(el.textContent || '{}');
+            const payload = el.getAttribute('data-chart') || el.textContent || '{}';
+            const parsed = JSON.parse(payload);
             return {
                 daily: Array.isArray(parsed.daily) ? parsed.daily : [],
                 monthly: Array.isArray(parsed.monthly) ? parsed.monthly : [],
@@ -142,9 +143,16 @@
         window.open(url, '_blank');
     }
 
+    function bindDownloadButton() {
+        const button = document.getElementById('downloadEarningsReportBtn');
+        if (!button) return;
+        button.addEventListener('click', downloadReport);
+    }
+
     function initEarningsPage() {
         const chartData = readChartData();
         bindChartControls(chartData);
+        bindDownloadButton();
     }
 
     if (document.readyState === 'loading') {

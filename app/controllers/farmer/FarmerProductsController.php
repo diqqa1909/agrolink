@@ -99,12 +99,13 @@ class FarmerProductsController
 
             $errors = [];
 
-            $category = trim($_POST['category'] ?? '');
+            $category = strtolower(trim($_POST['category'] ?? ''));
             $name = trim($_POST['name'] ?? '');
             $productMasterId = !empty($_POST['product_master_id']) ? (int)$_POST['product_master_id'] : null;
             $price = trim($_POST['price'] ?? '');
             $quantity = trim($_POST['quantity'] ?? '');
             $location = trim($_POST['location'] ?? '');
+            $fullAddress = trim($_POST['full_address'] ?? '');
             $listing_date = trim($_POST['listing_date'] ?? '');
             $description = trim($_POST['description'] ?? '');
 
@@ -148,7 +149,7 @@ class FarmerProductsController
             } elseif (!is_numeric($quantity) || $quantity < 10) {
                 $errors['quantity'] = 'Minimum quantity is 10kg';
             }
-            if (empty($location)) {
+            if (empty($location) || $location === 'auto') {
                 // If using new dropdowns, construct location string.
                 // Some districts may have no towns; in that case district-only location is valid.
                 $districtId = $_POST['district_id'] ?? '';
@@ -187,6 +188,13 @@ class FarmerProductsController
                 if (empty($location)) {
                     $errors['location'] = 'Location is required';
                 }
+            }
+            if ($fullAddress === '') {
+                $errors['full_address'] = 'Product full address is required';
+            } elseif (strlen($fullAddress) < 5) {
+                $errors['full_address'] = 'Product full address is too short';
+            } elseif (strlen($fullAddress) > 200) {
+                $errors['full_address'] = 'Product full address is too long (max 500 characters)';
             }
             if (empty($listing_date)) {
                 $errors['listing_date'] = 'Listing date is required';
@@ -250,6 +258,7 @@ class FarmerProductsController
                 'price'             => (float)$price,
                 'quantity'          => (int)$quantity,
                 'location'          => $location,
+                'full_address'      => $fullAddress,
                 'listing_date'      => $listing_date,
                 'description'       => $description,
                 'image'             => $imageName,
@@ -344,8 +353,10 @@ class FarmerProductsController
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $stmt = $pdo->query(
-                "SELECT DISTINCT category FROM crop_volume_factors 
-                 WHERE category IS NOT NULL 
+                "SELECT DISTINCT LOWER(TRIM(category)) AS category
+                 FROM crop_volume_factors
+                 WHERE category IS NOT NULL
+                 AND TRIM(category) <> ''
                  ORDER BY category"
             );
             $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -373,9 +384,9 @@ class FarmerProductsController
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $stmt = $pdo->prepare(
-                "SELECT id, crop_name, volume_factor 
-                 FROM crop_volume_factors 
-                 WHERE category = ? 
+                "SELECT id, crop_name, volume_factor
+                 FROM crop_volume_factors
+                 WHERE LOWER(TRIM(category)) = LOWER(TRIM(?))
                  ORDER BY crop_name"
             );
             $stmt->execute([$category]);
@@ -436,10 +447,11 @@ class FarmerProductsController
         }
 
         $name = trim($_POST['name'] ?? '');
-        $category = trim($_POST['category'] ?? '');
+        $category = strtolower(trim($_POST['category'] ?? ''));
         $price = $_POST['price'] ?? '';
         $quantity = $_POST['quantity'] ?? '';
         $location = trim($_POST['location'] ?? '');
+        $fullAddress = trim($_POST['full_address'] ?? '');
         $districtId = $_POST['district_id'] ?? '';
         $townId = $_POST['town_id'] ?? '';
 
@@ -477,6 +489,13 @@ class FarmerProductsController
         if ($price === '' || !is_numeric($price) || $price < 0) $errors['price'] = 'Price is required';
         if ($quantity === '' || !is_numeric($quantity) || (int)$quantity < 0) $errors['quantity'] = 'Quantity is required';
         if ($location === '') $errors['location'] = 'Location is required';
+        if ($fullAddress === '') {
+            $errors['full_address'] = 'Product full address is required';
+        } elseif (strlen($fullAddress) < 5) {
+            $errors['full_address'] = 'Product full address is too short';
+        } elseif (strlen($fullAddress) > 200) {
+            $errors['full_address'] = 'Product full address is too long (max 500 characters)';
+        }
         if ($listing_date === '') {
             $errors['listing_date'] = 'Listing date is required';
         } else {
@@ -536,6 +555,7 @@ class FarmerProductsController
             'price'        => (float)$price,
             'quantity'     => (int)$quantity,
             'location'     => $location,
+            'full_address' => $fullAddress,
             'listing_date' => $listing_date,
             'district_id'  => !empty($districtId) ? (int)$districtId : null,
             'town_id'      => !empty($townId) ? (int)$townId : null
@@ -574,6 +594,15 @@ class FarmerProductsController
         if (!$product || (int)$product->farmer_id !== (int)authUserId()) {
             http_response_code(403);
             echo json_encode(['error' => 'Forbidden']);
+            return;
+        }
+
+        $ongoing = $this->productModel->countOngoingOrders($id, (int)authUserId());
+        if ($ongoing > 0) {
+            http_response_code(409);
+            echo json_encode([
+                'error' => 'Cannot delete this product while it has ' . $ongoing . ' ongoing order' . ($ongoing === 1 ? '' : 's') . '. Wait until they are delivered or cancelled.'
+            ]);
             return;
         }
 

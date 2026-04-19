@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const district = document.getElementById('state').value.trim();
 
             if (!phone || !city || !deliveryAddress || !district) {
-                alert('Please fill in all required fields');
+                showNotification('Please fill in all required fields', 'warning');
                 return;
             }
 
@@ -88,14 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.location.reload();
                         }, 500);
                     } else {
-                        alert(data.message || 'Failed to save delivery details');
+                        showNotification(data.message || 'Failed to save delivery details', 'error');
                         btn.disabled = false;
                         btn.textContent = originalText;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while saving delivery details: ' + error.message);
+                    showNotification('An error occurred while saving delivery details: ' + error.message, 'error');
                     btn.disabled = false;
                     btn.textContent = originalText;
                 });
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function updateCheckoutQuantity(productId, quantity, maxQuantity) {
     if (maxQuantity && quantity > maxQuantity) {
-        alert('Cannot select more than ' + maxQuantity + ' kg. Only ' + maxQuantity + ' kg available.');
+        showNotification('Cannot select more than ' + maxQuantity + ' kg. Only ' + maxQuantity + ' kg available.', 'warning');
         const select = document.querySelector(`select[data-product-id="${productId}"]`);
         if (select) {
             select.value = maxQuantity;
@@ -115,7 +115,7 @@ function updateCheckoutQuantity(productId, quantity, maxQuantity) {
     }
 
     if (quantity <= 0) {
-        alert('Quantity must be at least 1');
+        showNotification('Quantity must be at least 1', 'warning');
         return;
     }
 
@@ -133,12 +133,12 @@ function updateCheckoutQuantity(productId, quantity, maxQuantity) {
             if (data.success) {
                 window.location.reload();
             } else {
-                alert('Failed to update quantity: ' + (data.message || 'Unknown error'));
+                showNotification('Failed to update quantity: ' + (data.message || 'Unknown error'), 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating quantity');
+            showNotification('An error occurred while updating quantity', 'error');
         });
 }
 
@@ -182,7 +182,7 @@ function finalConfirmOrder() {
                 }
                 window.location.href = window.APP_ROOT + '/buyerorders';
             } else {
-                alert(data.message || 'Failed to place order');
+                showNotification(data.message || 'Failed to place order', 'error');
                 btn.disabled = false;
                 btn.textContent = originalText;
                 if (spinner) spinner.classList.add('checkout-hidden');
@@ -190,7 +190,7 @@ function finalConfirmOrder() {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while placing order: ' + error.message);
+            showNotification('An error occurred while placing order: ' + error.message, 'error');
             btn.disabled = false;
             btn.textContent = originalText;
             if (spinner) spinner.classList.add('checkout-hidden');

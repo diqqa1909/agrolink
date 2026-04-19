@@ -81,7 +81,7 @@ class BuyerOrdersController
         }
 
         // Check if order can be cancelled
-        if (!in_array($order->status, ['pending_payment', 'pending', 'confirmed'])) {
+        if (!in_array($order->status, ['pending_payment', 'processing'])) {
             echo json_encode(['success' => false, 'message' => 'This order cannot be cancelled in its current status']);
             return;
         }

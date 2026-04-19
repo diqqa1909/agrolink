@@ -4,8 +4,6 @@
     <div class="content-card delivery-filter-card">
         <div class="delivery-filter-row">
             <div class="delivery-filter-group" role="tablist" aria-label="Delivery filters">
-                <button type="button" class="delivery-filter-link transporter-delivery-filter-link active" data-status="running" onclick="TransporterDeliveries.filterMyDeliveries('running')">Running</button>
-                <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="pending" onclick="TransporterDeliveries.filterMyDeliveries('pending')">Pending</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="accepted" onclick="TransporterDeliveries.filterMyDeliveries('accepted')">Accepted</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="in-transit" onclick="TransporterDeliveries.filterMyDeliveries('in-transit')">In Transit</button>
                 <button type="button" class="delivery-filter-link transporter-delivery-filter-link" data-status="delivered" onclick="TransporterDeliveries.filterMyDeliveries('delivered')">Delivered</button>

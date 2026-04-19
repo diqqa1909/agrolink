@@ -158,13 +158,13 @@ $averageRating = $totalFeedback > 0 ? ($totalRating / $totalFeedback) : 0;
                     window.location.reload();
                     return;
                 }
-                alert(data.message || 'Failed to post reply');
+                showNotification(data.message || 'Failed to post reply', 'error');
                 btn.disabled = false;
                 btn.textContent = originalText;
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showNotification('An error occurred', 'error');
                 btn.disabled = false;
                 btn.textContent = originalText;
             });

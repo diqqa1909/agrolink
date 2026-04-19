@@ -43,12 +43,21 @@ class CheckoutController
 
         $user_id = authUserId();
 
-        // Check if this is a "Buy Now" checkout (single product)
-        $isBuyNow = isset($_GET['buy_now']) && $_GET['buy_now'] == '1';
-        if ($isBuyNow && isset($_GET['product_id'])) {
+        // Check if this is a "Buy Now" checkout (single product) or a normal cart checkout
+        $isCartGET = isset($_GET['cart']) && $_GET['cart'] == '1';
+        $isBuyNowGET = isset($_GET['buy_now']) && $_GET['buy_now'] == '1';
+
+        if ($isCartGET) {
+            if (isset($_SESSION['buy_now_product_id'])) {
+                unset($_SESSION['buy_now_product_id']);
+            }
+            $isBuyNow = false;
+        } elseif ($isBuyNowGET && isset($_GET['product_id'])) {
             $_SESSION['buy_now_product_id'] = (int)$_GET['product_id'];
+            $isBuyNow = true;
+        } else {
+            $isBuyNow = isset($_SESSION['buy_now_product_id']);
         }
-        $isBuyNow = isset($_SESSION['buy_now_product_id']);
 
         // Get cart items with product details including available quantity
         $cartItems = $this->cartModel->getCartByUserId($user_id);
@@ -66,8 +75,20 @@ class CheckoutController
                     $this->cartModel->updateQuantity($user_id, $item->product_id, $item->available_quantity);
                     $item->quantity = $item->available_quantity;
                 }
+
+                $locationData = $this->getFarmerProductLocation($product->farmer_id, $product);
+                $item->group_key = 'farmer_' . $product->farmer_id . '_dist_' . ($locationData['district_id'] ?: '0') . '_town_' . ($locationData['town_id'] ?: '0');
+                
+                // Set readable pickup location
+                if (!empty($product->location) && $product->location !== 'auto') {
+                    $item->pickup_location_name = $product->location;
+                } else {
+                    $item->pickup_location_name = $locationData['district_name'] ? ($locationData['district_name']) : 'Unknown Location';
+                }
             } else {
                 $item->available_quantity = 0;
+                $item->group_key = 'farmer_0_dist_0_town_0';
+                $item->pickup_location_name = 'Unknown Location';
             }
         }
 
@@ -171,8 +192,8 @@ class CheckoutController
             ];
         }
 
-        // Group cart items by farmer
-        $itemsByFarmer = [];
+        // Group cart items by farmer AND location
+        $itemsByGroup = [];
         foreach ($cartItems as $item) {
             $product = $this->productModel->getById($item->product_id);
             if (!$product) {
@@ -198,65 +219,61 @@ class CheckoutController
                 ];
             }
 
-            if (!isset($itemsByFarmer[$farmerId])) {
-                $itemsByFarmer[$farmerId] = [
-                    'items' => [],
-                    'total_weight_kg' => 0.0,
-                    'first_product' => $product,
-                ];
-            }
+            $locationData = $this->getFarmerProductLocation($farmerId, $product);
+            $districtId = $locationData['district_id'];
+            $townId = $locationData['town_id'];
 
-            $itemsByFarmer[$farmerId]['items'][] = [
-                'cart_item' => $item,
-                'product' => $product,
-                'item_weight_kg' => $itemWeight,
-            ];
-            $itemsByFarmer[$farmerId]['total_weight_kg'] += $itemWeight;
-        }
-
-        if (empty($itemsByFarmer)) {
-            return [
-                'success' => false,
-                'error' => 'No valid items available for shipping calculation',
-            ];
-        }
-
-        // Calculate shipping for each farmer and sum them up
-        $totalShippingCost = 0.0;
-        $allCalculations = [];
-        $selectedVehicles = [];
-
-        foreach ($itemsByFarmer as $farmerId => $farmerData) {
-            $product = $farmerData['first_product'];
-            $totalWeight = (float)$farmerData['total_weight_kg'];
-
-            // Get farmer's district/town (Try new ID fields first)
-            $farmerDistrictId = !empty($product->district_id) ? (int)$product->district_id : null;
-            $farmerTownId = !empty($product->town_id) ? (int)$product->town_id : null;
-
-            if (!$farmerDistrictId) {
-                $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
-                $farmerDistrictName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? '') : ($product->location ?? '');
-                $farmerDistrictId = $this->findDistrictIdByName($farmerDistrictName);
-            }
-
-            if (!$farmerDistrictId) {
+            if (!$districtId) {
                 return [
                     'success' => false,
                     'error' => 'Invalid farmer district for shipping',
                 ];
             }
 
-            if (!$farmerTownId) {
-                $farmerTownId = $this->getTownIdByName($product->location ?? '', $farmerDistrictId);
-            }
-
-            if (!$farmerTownId) {
+            if (!$townId) {
                 return [
                     'success' => false,
                     'error' => 'Invalid farmer town for shipping',
                 ];
             }
+
+            $groupKey = "farmer_{$farmerId}_dist_{$districtId}_town_{$townId}";
+
+            if (!isset($itemsByGroup[$groupKey])) {
+                $itemsByGroup[$groupKey] = [
+                    'farmer_id' => $farmerId,
+                    'district_id' => $districtId,
+                    'town_id' => $townId,
+                    'items' => [],
+                    'total_weight_kg' => 0.0,
+                    'first_product' => $product,
+                ];
+            }
+
+            $itemsByGroup[$groupKey]['items'][] = [
+                'cart_item' => $item,
+                'product' => $product,
+                'item_weight_kg' => $itemWeight,
+            ];
+            $itemsByGroup[$groupKey]['total_weight_kg'] += $itemWeight;
+        }
+
+        if (empty($itemsByGroup)) {
+            return [
+                'success' => false,
+                'error' => 'No valid items available for shipping calculation',
+            ];
+        }
+
+        // Calculate shipping for each location group and sum them up
+        $totalShippingCost = 0.0;
+        $allCalculations = [];
+        $selectedVehicles = [];
+
+        foreach ($itemsByGroup as $groupKey => $groupData) {
+            $totalWeight = (float)$groupData['total_weight_kg'];
+            $farmerDistrictId = $groupData['district_id'];
+            $farmerTownId = $groupData['town_id'];
 
             if ($totalWeight <= 0) {
                 return [
@@ -296,15 +313,15 @@ class CheckoutController
             ];
         }
 
-        $farmerCount = count($itemsByFarmer);
+        $groupCount = count($itemsByGroup);
 
         // Return combined result
         return [
             'success' => true,
             'calculation' => [
                 'total_shipping_cost_lkr' => round($totalShippingCost, 2),
-                'multiple_farmers' => $farmerCount > 1,
-                'farmer_count' => $farmerCount,
+                'multiple_farmers' => $groupCount > 1,
+                'farmer_count' => $groupCount,
                 'calculations' => $allCalculations,
                 'selected_vehicles' => $selectedVehicles
             ]
@@ -575,7 +592,7 @@ class CheckoutController
                 $errors[] = "Insufficient stock for {$item->product_name}. Only {$availableQuantity} kg available.";
             }
 
-            // Group by farmer
+            // Group by farmer and location
             $farmerId = (int)($product->farmer_id ?? 0);
 
             if (!$farmerId) {
@@ -583,10 +600,13 @@ class CheckoutController
                 continue;
             }
 
-            if (!isset($itemsByFarmer[$farmerId])) {
-                $itemsByFarmer[$farmerId] = [];
+            $locationData = $this->getFarmerProductLocation($farmerId, $product);
+            $groupKey = 'farmer_' . $farmerId . '_dist_' . ($locationData['district_id'] ?: '0') . '_town_' . ($locationData['town_id'] ?: '0');
+
+            if (!isset($itemsByGroup[$groupKey])) {
+                $itemsByGroup[$groupKey] = [];
             }
-            $itemsByFarmer[$farmerId][] = [
+            $itemsByGroup[$groupKey][] = [
                 'item' => $item,
                 'product' => $product,
             ];
@@ -601,11 +621,11 @@ class CheckoutController
             exit;
         }
 
-        if (empty($itemsByFarmer)) {
+        if (empty($itemsByGroup)) {
             http_response_code(422);
             echo json_encode([
                 'success' => false,
-                'message' => 'No valid farmer items found for order placement.',
+                'message' => 'No valid items found for order placement.',
             ]);
             exit;
         }
@@ -621,9 +641,12 @@ class CheckoutController
 
         try {
             // --- STEP 2: LOOP AND CREATE SPLIT ORDERS ---
-            foreach ($itemsByFarmer as $farmerId => $farmerEntries) {
+            foreach ($itemsByGroup as $groupKey => $groupEntries) {
                 $farmerItems = [];
-                foreach ($farmerEntries as $entry) {
+                $firstProduct = $groupEntries[0]['product'];
+                $farmerId = (int)$firstProduct->farmer_id;
+                
+                foreach ($groupEntries as $entry) {
                     $farmerItems[] = $entry['item'];
                 }
 
@@ -641,7 +664,7 @@ class CheckoutController
 
                 // Calculate subtotal for this group.
                 $cartTotal = 0.0;
-                foreach ($farmerEntries as $entry) {
+                foreach ($groupEntries as $entry) {
                     $item = $entry['item'];
                     $cartTotal += (float)$item->product_price * (float)$item->quantity;
                 }
@@ -674,7 +697,7 @@ class CheckoutController
 
                 // --- STEP 3: ADD ITEMS & UPDATE STOCK FOR THIS SUB-ORDER ---
                 $totalWeight = 0.0;
-                foreach ($farmerEntries as $entry) {
+                foreach ($groupEntries as $entry) {
                     $item = $entry['item'];
                     $product = $entry['product'];
 
@@ -692,7 +715,8 @@ class CheckoutController
                         'product_price' => $item->product_price,
                         'quantity' => $item->quantity,
                         'item_weight_kg' => $itemWeight,
-                        'farmer_id' => $farmerId
+                        'farmer_id' => $farmerId,
+                        'product_full_address' => trim((string)($product->full_address ?? '')),
                     ];
 
                     $addResult = $this->orderModel->addOrderItem($itemData);
@@ -714,9 +738,10 @@ class CheckoutController
 
                 // --- STEP 4: CREATE DELIVERY REQUEST FOR THIS ORDER ---
                 // We've already resolved deliveryDistrictId and farmerDistrictId successfully above
-                $farmerDistrictIdForDelivery = $farmerDistrictId ?? $deliveryDistrictId; // Fallback should not happen but just in case
+                $locationData = $this->getFarmerProductLocation($farmerId, $firstProduct);
+                $farmerDistrictIdForDelivery = $locationData['district_id'] ?? $deliveryDistrictId; // Fallback should not happen but just in case
                 $exactDistanceKm = $shippingCalculation['calculation']['calculations'][0]['total_distance_km'] ?? null;
-                
+
                 if (!$this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile, $deliveryDistrictId, $farmerDistrictIdForDelivery, $exactDistanceKm)) {
                     throw new RuntimeException('Failed to create delivery request for order #' . $orderId);
                 }
@@ -851,6 +876,7 @@ class CheckoutController
             }
 
             $farmer = $farmerResult[0];
+            $productPickupAddress = $this->getProductPickupAddressesForOrder((int)$orderId, (int)$farmerId);
 
             // Determine required vehicle type based on weight
             $vehicleTypeSql = "SELECT id FROM vehicle_types 
@@ -907,7 +933,7 @@ class CheckoutController
                 'farmer_id' => $farmerId,
                 'farmer_name' => $farmer->name ?? 'Unknown',
                 'farmer_phone' => $farmer->phone ?? '',
-                'farmer_address' => $farmer->full_address ?? '',
+                'farmer_address' => $productPickupAddress !== '' ? $productPickupAddress : ($farmer->full_address ?? ''),
                 'farmer_city' => $farmer->district ?? '',
                 'farmer_district_id' => $farmerDistrictId,
                 'total_weight_kg' => $totalWeight,
@@ -937,6 +963,49 @@ class CheckoutController
         }
     }
 
+    private function orderItemsHaveProductAddress(): bool
+    {
+        $dbModel = new CartModel();
+        $result = $dbModel->query("SHOW COLUMNS FROM order_items LIKE 'product_full_address'");
+        return is_array($result) && !empty($result);
+    }
+
+    private function getProductPickupAddressesForOrder(int $orderId, int $farmerId): string
+    {
+        if ($orderId <= 0 || $farmerId <= 0 || !$this->orderItemsHaveProductAddress()) {
+            return '';
+        }
+
+        $dbModel = new CartModel();
+        $rows = $dbModel->query(
+            "SELECT DISTINCT TRIM(product_full_address) AS product_full_address
+             FROM order_items
+             WHERE order_id = :order_id
+             AND farmer_id = :farmer_id
+             AND product_full_address IS NOT NULL
+             AND TRIM(product_full_address) <> ''",
+            [
+                'order_id' => $orderId,
+                'farmer_id' => $farmerId,
+            ]
+        );
+
+        if (!is_array($rows) || empty($rows)) {
+            return '';
+        }
+
+        $addresses = [];
+        foreach ($rows as $row) {
+            $address = trim((string)($row->product_full_address ?? ''));
+            if ($address !== '') {
+                $addresses[] = $address;
+            }
+        }
+
+        $addresses = array_values(array_unique($addresses));
+        return implode(' | ', $addresses);
+    }
+
     private function debugLog($message)
     {
         if (defined('DEBUG') && DEBUG) {
@@ -945,20 +1014,57 @@ class CheckoutController
     }
 
     /**
+     * Get the resolved district and town ID for a product/farmer combo.
+     * Returns associative array with district_id, town_id, and district_name.
+     */
+    private function getFarmerProductLocation($farmerId, $product)
+    {
+        $districtId = !empty($product->district_id) ? (int)$product->district_id : null;
+        $townId = !empty($product->town_id) ? (int)$product->town_id : null;
+        $districtName = '';
+
+        if (!$districtId) {
+            $farmerProfile = $this->farmerModel->getProfileByUserId($farmerId);
+            $districtName = $farmerProfile ? ($farmerProfile->district ?? $product->location ?? '') : ($product->location ?? '');
+            $districtId = $this->findDistrictIdByName($districtName);
+        } else {
+            if ($this->shippingCalculator) {
+                $districts = $this->shippingCalculator->getAllDistricts();
+                foreach ($districts as $d) {
+                    if ($d['id'] == $districtId) {
+                        $districtName = $d['district_name'];
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$townId) {
+            $townId = $this->getTownIdByName($product->location ?? '', $districtId);
+        }
+
+        return [
+            'district_id' => $districtId,
+            'town_id' => $townId,
+            'district_name' => $districtName
+        ];
+    }
+
+    /**
      * Get towns by district name (AJAX)
      */
     public function getTownsByDistrictName()
     {
         header('Content-Type: application/json');
-        
+
         $districtName = $_GET['district'] ?? '';
         $districtId = $this->findDistrictIdByName($districtName);
-        
+
         if (!$districtId || !$this->shippingCalculator) {
             echo json_encode(['success' => false, 'towns' => []]);
             return;
         }
-        
+
         $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
         echo json_encode(['success' => true, 'towns' => $towns]);
     }

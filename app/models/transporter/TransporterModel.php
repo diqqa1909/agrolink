@@ -271,7 +271,7 @@ class TransporterModel
                 WHERE dr.status = 'pending'
                 AND dr.required_vehicle_type_id IS NOT NULL
                 AND dr.total_weight_kg > 0
-                AND o.status IN ('pending', 'confirmed')";
+                AND o.status IN ('processing', 'ready_for_pickup')";
 
         $params = [];
 
@@ -457,7 +457,7 @@ class TransporterModel
         }
 
         $orderStatus = strtolower((string)($request->order_status ?? ''));
-        if (!in_array($orderStatus, ['pending', 'confirmed'], true)) {
+        if (!in_array($orderStatus, ['processing', 'ready_for_pickup'], true)) {
             return ['success' => false, 'error' => 'Order is not ready for transporter assignment'];
         }
 
@@ -500,17 +500,8 @@ class TransporterModel
                 return ['success' => false, 'error' => 'This request is no longer available'];
             }
 
-            $updateOrderSql = "UPDATE orders
-                               SET status = 'processing',
-                                   updated_at = NOW()
-                               WHERE id = :order_id
-                               AND status IN ('pending', 'confirmed')";
-            $orderResult = $this->write($updateOrderSql, ['order_id' => (int)$request->order_id]);
-
-            if ($orderResult === false) {
-                $this->rollBack();
-                return ['success' => false, 'error' => 'Failed to update order state'];
-            }
+            // Order is already at 'processing' (or later 'ready_for_pickup' set by the farmer).
+            // Accepting a delivery must not regress that status, so no order update here.
 
             if (!$this->commit()) {
                 $this->rollBack();
@@ -550,9 +541,10 @@ class TransporterModel
             'status' => $status
         ]);
 
-        // Update order status accordingly
+        // Update order status accordingly — only when transporter progresses the shipment.
+        // 'accepted' must not override the farmer's 'ready_for_pickup' state.
         if ($result) {
-            $orderStatus = 'processing';
+            $orderStatus = null;
             if ($status === 'in_transit') {
                 $orderStatus = 'shipped';
             } elseif ($status === 'delivered') {
@@ -561,13 +553,15 @@ class TransporterModel
                 $orderStatus = 'cancelled';
             }
 
-            $request = $this->get_row("SELECT order_id FROM delivery_requests WHERE id = :id", ['id' => $requestId]);
-            if ($request) {
-                $updateOrderSql = "UPDATE orders SET status = :status WHERE id = :order_id";
-                $this->write($updateOrderSql, [
-                    'status' => $orderStatus,
-                    'order_id' => $request->order_id
-                ]);
+            if ($orderStatus !== null) {
+                $request = $this->get_row("SELECT order_id FROM delivery_requests WHERE id = :id", ['id' => $requestId]);
+                if ($request) {
+                    $updateOrderSql = "UPDATE orders SET status = :status WHERE id = :order_id";
+                    $this->write($updateOrderSql, [
+                        'status' => $orderStatus,
+                        'order_id' => $request->order_id
+                    ]);
+                }
             }
         }
 
@@ -639,7 +633,9 @@ class TransporterModel
                     SUM(CASE WHEN dr.status = 'delivered' AND DATE(dr.updated_at) = CURDATE() THEN dr.shipping_fee ELSE 0 END) as today_earnings,
                     SUM(CASE WHEN dr.status = 'delivered' AND YEARWEEK(dr.updated_at, 1) = YEARWEEK(CURDATE(), 1) THEN dr.shipping_fee ELSE 0 END) as week_earnings,
                     SUM(CASE WHEN dr.status = 'delivered' AND YEAR(dr.updated_at) = YEAR(CURDATE()) AND MONTH(dr.updated_at) = MONTH(CURDATE()) THEN dr.shipping_fee ELSE 0 END) as month_earnings,
-                    COUNT(CASE WHEN dr.status = 'accepted' THEN 1 END) as active_deliveries,
+                    COUNT(CASE WHEN dr.status IN ('accepted', 'in_transit') THEN 1 END) as active_deliveries,
+                    COUNT(CASE WHEN dr.status = 'accepted' THEN 1 END) as accepted_deliveries,
+                    COUNT(CASE WHEN dr.status = 'in_transit' THEN 1 END) as in_transit_deliveries,
                     COUNT(CASE WHEN dr.status = 'delivered' THEN 1 END) as completed_deliveries
                 FROM delivery_requests dr
                 WHERE dr.transporter_id = :transporter_id";
@@ -655,6 +651,8 @@ class TransporterModel
                 'week_earnings' => 0,
                 'month_earnings' => 0,
                 'active_deliveries' => 0,
+                'accepted_deliveries' => 0,
+                'in_transit_deliveries' => 0,
                 'completed_deliveries' => 0
             ];
         }
@@ -828,6 +826,8 @@ class TransporterModel
                     $buyerAddress = (string)($pair->delivery_address ?? 'Not provided');
                 }
 
+                $productPickupAddress = $this->getOrderFarmerPickupAddress($orderId, $farmerId);
+
                 $insertSql = "INSERT INTO delivery_requests (
                     order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
                     farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
@@ -851,7 +851,7 @@ class TransporterModel
                     'farmer_id' => $farmerId,
                     'farmer_name' => $farmer->name ?? 'Unknown',
                     'farmer_phone' => $farmer->phone ?? '',
-                    'farmer_address' => $farmer->full_address ?? '',
+                    'farmer_address' => $productPickupAddress !== '' ? $productPickupAddress : ($farmer->full_address ?? ''),
                     'farmer_city' => $farmer->district ?? '',
                     'farmer_district_id' => $farmerDistrictId,
                     'total_weight_kg' => round($totalWeight, 2),
@@ -895,6 +895,47 @@ class TransporterModel
         }
 
         return null;
+    }
+
+    private function orderItemsHavePickupAddressColumn(): bool
+    {
+        $result = $this->query("SHOW COLUMNS FROM order_items LIKE 'product_full_address'", []);
+        return is_array($result) && !empty($result);
+    }
+
+    private function getOrderFarmerPickupAddress(int $orderId, int $farmerId): string
+    {
+        if ($orderId <= 0 || $farmerId <= 0 || !$this->orderItemsHavePickupAddressColumn()) {
+            return '';
+        }
+
+        $rows = $this->query(
+            "SELECT DISTINCT TRIM(product_full_address) AS product_full_address
+             FROM order_items
+             WHERE order_id = :order_id
+               AND farmer_id = :farmer_id
+               AND product_full_address IS NOT NULL
+               AND TRIM(product_full_address) <> ''",
+            [
+                'order_id' => $orderId,
+                'farmer_id' => $farmerId,
+            ]
+        );
+
+        if (!is_array($rows) || empty($rows)) {
+            return '';
+        }
+
+        $addresses = [];
+        foreach ($rows as $row) {
+            $address = trim((string)($row->product_full_address ?? ''));
+            if ($address !== '') {
+                $addresses[] = $address;
+            }
+        }
+
+        $addresses = array_values(array_unique($addresses));
+        return implode(' | ', $addresses);
     }
 
     private function debugLog($message)

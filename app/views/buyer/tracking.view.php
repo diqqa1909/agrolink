@@ -13,7 +13,7 @@
                 <div class="buyer-tracking-empty-state">
                     <div class="buyer-tracking-empty-icon">🚚</div>
                     <h3 class="buyer-tracking-empty-title">No active deliveries</h3>
-                    <p class="buyer-tracking-empty-text">Your delivery statuses will appear here once an order is confirmed.</p>
+                    <p class="buyer-tracking-empty-text">Your delivery statuses will appear here once an order is placed.</p>
                     <a href="<?= ROOT ?>/buyerproducts" class="btn btn-primary">Browse Products</a>
                 </div>
             <?php else: ?>
@@ -22,7 +22,6 @@
                         <thead>
                             <tr>
                                 <th>Order</th>
-                                <th>Order Status</th>
                                 <th>Delivery Status</th>
                                 <th>Transporter</th>
                                 <th>Destination</th>
@@ -42,11 +41,6 @@
                                         <div class="buyer-tracking-order-date">
                                             <?= date('M d, Y', strtotime($row->order_created_at)) ?>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="order-status <?= htmlspecialchars(strtolower((string)$row->order_status)) ?>">
-                                            <?= strtoupper($row->order_status) ?>
-                                        </span>
                                     </td>
                                     <td>
                                         <span class="order-status <?= htmlspecialchars($statusClass) ?>">

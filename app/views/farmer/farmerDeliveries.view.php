@@ -49,13 +49,11 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Delivery ID</th>
-                            <th>Order</th>
+                            <th>Order ID</th>
                             <th>Buyer</th>
                             <th>Transporter</th>
                             <th>Route</th>
                             <th>Weight</th>
-                            <th>Shipping</th>
                             <th>Status</th>
                             <th>Updated</th>
                         </tr>
@@ -63,7 +61,6 @@
                     <tbody>
                         <?php foreach ($deliveries as $delivery): ?>
                             <tr>
-                                <td>#<?= (int)$delivery->id ?></td>
                                 <td>#<?= (int)$delivery->order_id ?></td>
                                 <td><?= htmlspecialchars($delivery->buyer_name ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($delivery->transporter_name ?? 'Unassigned') ?></td>
@@ -76,7 +73,6 @@
                                     </div>
                                 </td>
                                 <td><?= number_format((float)($delivery->total_weight_kg ?? 0), 2) ?> kg</td>
-                                <td>Rs. <?= number_format((float)($delivery->shipping_fee ?? 0), 2) ?></td>
                                 <td>
                                     <span class="order-status status-<?= htmlspecialchars($delivery->status ?? 'pending') ?>">
                                         <?= ucfirst(str_replace('_', ' ', htmlspecialchars($delivery->status ?? 'pending'))) ?>
