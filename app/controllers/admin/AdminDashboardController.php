@@ -1275,6 +1275,7 @@ class AdminDashboardController
                 FROM products p
                 JOIN users u ON p.farmer_id = u.id
                 WHERE 1=1
+                AND p.deleted_at IS NULL
             ";
 
             $params = [];
@@ -1320,6 +1321,7 @@ class AdminDashboardController
                     COUNT(*) as total_products,
                     SUM(CASE WHEN quantity <= 0 THEN 1 ELSE 0 END) as out_of_stock
                 FROM products
+                WHERE deleted_at IS NULL
             ";
 
             $statsStmt = $db->prepare($statsQuery);
@@ -1333,6 +1335,7 @@ class AdminDashboardController
                     COUNT(*) as count
                 FROM products
                 WHERE category IS NOT NULL AND category != ''
+                AND deleted_at IS NULL
                 GROUP BY category
                 ORDER BY count DESC
             ";
@@ -1387,6 +1390,7 @@ class AdminDashboardController
                 JOIN users u ON p.farmer_id = u.id
                 LEFT JOIN farmer_profiles fp ON fp.user_id = u.id
                 WHERE p.id = ?
+                AND p.deleted_at IS NULL
             ";
 
             $stmt = $db->prepare($query);
@@ -1467,6 +1471,7 @@ class AdminDashboardController
                 JOIN users u ON u.id = v.transporter_id
                 LEFT JOIN vehicle_types vt ON vt.id = v.vehicle_type_id
                 WHERE 1=1
+                AND v.deleted_at IS NULL
             ";
 
             $params = [];
@@ -1623,7 +1628,7 @@ class AdminDashboardController
 
             $db = $this->connect();
 
-            $query = "UPDATE products SET status = :status WHERE id = :product_id";
+            $query = "UPDATE products SET status = :status WHERE id = :product_id AND deleted_at IS NULL";
             $stmt = $db->prepare($query);
             $result = $stmt->execute([':status' => $status, ':product_id' => $productId]);
 
@@ -1654,8 +1659,12 @@ class AdminDashboardController
 
             $db = $this->connect();
 
-            // Check if product has any orders
-            $checkQuery = "SELECT COUNT(*) as order_count FROM order_items WHERE product_id = ?";
+            // Block deletion only when there are ongoing orders using this product.
+            $checkQuery = "SELECT COUNT(*) as order_count
+                           FROM order_items oi
+                           INNER JOIN orders o ON o.id = oi.order_id
+                           WHERE oi.product_id = ?
+                           AND o.status NOT IN ('delivered', 'cancelled')";
             $checkStmt = $db->prepare($checkQuery);
             $checkStmt->execute([$productId]);
             $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
@@ -1663,20 +1672,20 @@ class AdminDashboardController
             if ($result['order_count'] > 0) {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Cannot delete product with existing orders. ' . $result['order_count'] . ' orders found.'
+                    'message' => 'Cannot delete product with ongoing orders. ' . $result['order_count'] . ' active orders found.'
                 ]);
                 exit;
             }
 
-            // Delete the product
-            $query = "DELETE FROM products WHERE id = ?";
+            // Soft-delete the product
+            $query = "UPDATE products SET deleted_at = NOW(), updated_at = NOW() WHERE id = ? AND deleted_at IS NULL";
             $stmt = $db->prepare($query);
             $success = $stmt->execute([$productId]);
 
-            if ($success) {
+            if ($success && $stmt->rowCount() > 0) {
                 echo json_encode(['success' => true, 'message' => 'Product deleted successfully']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to delete product']);
+                echo json_encode(['success' => false, 'message' => 'Product not found or already deleted']);
             }
         } catch (Exception $e) {
             error_log("Error in deleteProduct: " . $e->getMessage());
@@ -1746,6 +1755,7 @@ class AdminDashboardController
                     AVG(price) as avg_price,
                     SUM(price * quantity) as inventory_value
                 FROM products
+                WHERE deleted_at IS NULL
             ";
 
             $productStatsStmt = $db->prepare($productStatsQuery);
@@ -1800,6 +1810,7 @@ class AdminDashboardController
                 JOIN order_items oi ON p.id = oi.product_id
                 JOIN orders o ON oi.order_id = o.id
                 WHERE o.status IN ('completed', 'delivered')
+                AND p.deleted_at IS NULL
                 GROUP BY p.id
                 ORDER BY total_revenue DESC
                 LIMIT 10
@@ -1817,6 +1828,7 @@ class AdminDashboardController
                     SUM(price * quantity) as total_value
                 FROM products
                 WHERE category IS NOT NULL AND category != ''
+                AND deleted_at IS NULL
                 GROUP BY category
                 ORDER BY product_count DESC
             ";
