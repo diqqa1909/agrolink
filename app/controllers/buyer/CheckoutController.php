@@ -906,6 +906,10 @@ class CheckoutController
             // Use passed exact distance if available, else null
             $distance = $exactDistanceKm;
 
+            // Calculate commission and transporter fee
+            $commissionFee = $shippingFee * 0.05;
+            $transporterFee = $shippingFee * 0.95;
+
             // Prepare buyer full address
             $buyerFullAddress = trim(($buyerProfile->apartment_code ?? '') . ', ' .
                 ($buyerProfile->street_name ?? '') . ', ' .
@@ -915,11 +919,11 @@ class CheckoutController
             $insertSql = "INSERT INTO delivery_requests (
                 order_id, buyer_id, buyer_name, buyer_phone, buyer_address, buyer_city, buyer_district_id,
                 farmer_id, farmer_name, farmer_phone, farmer_address, farmer_city, farmer_district_id,
-                total_weight_kg, shipping_fee, distance_km, required_vehicle_type_id, status, created_at, updated_at
+                total_weight_kg, shipping_fee, commission_fee, distance_km, required_vehicle_type_id, status, created_at, updated_at
             ) VALUES (
                 :order_id, :buyer_id, :buyer_name, :buyer_phone, :buyer_address, :buyer_city, :buyer_district_id,
                 :farmer_id, :farmer_name, :farmer_phone, :farmer_address, :farmer_city, :farmer_district_id,
-                :total_weight_kg, :shipping_fee, :distance_km, :required_vehicle_type_id, 'pending', NOW(), NOW()
+                :total_weight_kg, :shipping_fee, :commission_fee, :distance_km, :required_vehicle_type_id, 'pending', NOW(), NOW()
             )";
 
             $params = [
@@ -937,7 +941,8 @@ class CheckoutController
                 'farmer_city' => $farmer->district ?? '',
                 'farmer_district_id' => $farmerDistrictId,
                 'total_weight_kg' => $totalWeight,
-                'shipping_fee' => $shippingFee,
+                'shipping_fee' => $transporterFee,
+                'commission_fee' => $commissionFee,
                 'distance_km' => $distance,
                 'required_vehicle_type_id' => $requiredVehicleTypeId
             ];

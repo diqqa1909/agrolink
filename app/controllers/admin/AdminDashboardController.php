@@ -2112,6 +2112,7 @@ class AdminDashboardController
                 SELECT 
                     COUNT(*) as total_transactions,
                     SUM(CASE WHEN status = 'delivered' OR status = 'completed' THEN order_total ELSE 0 END) as total_completed_amount,
+                    SUM(CASE WHEN status = 'delivered' OR status = 'completed' THEN shipping_cost ELSE 0 END) as total_completed_shipping,
                     SUM(CASE WHEN status = 'pending' THEN order_total ELSE 0 END) as total_pending_amount,
                     SUM(CASE WHEN status = 'cancelled' THEN order_total ELSE 0 END) as total_cancelled_amount,
                     SUM(CASE WHEN status = 'shipped' THEN order_total ELSE 0 END) as total_shipped_amount,
@@ -2122,6 +2123,7 @@ class AdminDashboardController
                     SUM(order_total) as total_revenue,
                     AVG(order_total) as avg_payment_amount,
                     SUM(shipping_cost) as total_shipping_revenue,
+                    SUM(CASE WHEN status NOT IN ('pending_payment', 'cancelled') THEN shipping_cost ELSE 0 END) as paid_shipping_revenue,
                     AVG(total_weight_kg) as avg_weight
                 FROM orders
             ";
@@ -2150,8 +2152,8 @@ class AdminDashboardController
             $trendsStmt->execute();
             $trends = $trendsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Calculate platform commission (assuming 5% commission on completed orders)
-            $totalCommission = ($stats['total_completed_amount'] ?? 0) * 0.05;
+            // Calculate platform commission (5% commission on paid shipping cost, excluding pending_payment and cancelled)
+            $totalCommission = ($stats['paid_shipping_revenue'] ?? 0) * 0.05;
 
             echo json_encode([
                 'success' => true,

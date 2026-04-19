@@ -187,6 +187,10 @@
                         <div class="stat-number" id="dashboardTotalRevenue">Rs. 0</div>
                         <div class="stat-label">Total Revenue</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="dashboardPlatformCommission">Rs. 0</div>
+                        <div class="stat-label">Platform Commission</div>
+                    </div>
                 </div>
 
                 <!-- User Summary Card -->
@@ -3700,6 +3704,10 @@
                     document.getElementById('totalRevenue').textContent = totalRevenueText;
                     const dashRevenueEl = document.getElementById('dashboardTotalRevenue');
                     if (dashRevenueEl) dashRevenueEl.textContent = totalRevenueText;
+                    
+                    const dashCommEl = document.getElementById('dashboardPlatformCommission');
+                    if (dashCommEl) dashCommEl.textContent = `Rs. ${(result.stats.platform_commission || 0).toLocaleString()}`;
+                    
                     document.getElementById('totalTransactions').textContent = result.stats.total_transactions || 0;
                     document.getElementById('platformCommission').textContent = `Rs. ${(result.stats.platform_commission || 0).toLocaleString()}`;
                     document.getElementById('avgPaymentAmount').textContent = `Rs. ${Math.round(result.stats.avg_payment_amount || 0).toLocaleString()}`;
