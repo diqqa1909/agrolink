@@ -2850,7 +2850,6 @@ class AdminDashboardController
         $input = json_decode(file_get_contents('php://input'), true);
         $search = trim((string) ($input['search'] ?? ''));
         $revisionStatus = strtolower(trim((string) ($input['revision_status'] ?? ''))); // revised|unrevised|all
-        $paymentMethod = strtolower(trim((string) ($input['payment_method'] ?? '')));
 
         try {
             $db = $this->connect();
@@ -2861,11 +2860,6 @@ class AdminDashboardController
             if ($search !== '') {
                 $where[] = "(CAST(o.id AS CHAR) LIKE :search OR b.name LIKE :search OR b.email LIKE :search)";
                 $params[':search'] = '%' . $search . '%';
-            }
-
-            if ($paymentMethod !== '') {
-                $where[] = "LOWER(COALESCE(o.payment_method, '')) = :payment_method";
-                $params[':payment_method'] = $paymentMethod;
             }
 
             if ($revisionStatus === 'revised') {
@@ -2885,7 +2879,6 @@ class AdminDashboardController
                     o.total_amount,
                     o.shipping_cost,
                     o.order_total,
-                    o.payment_method,
                     o.delivery_city,
                     o.created_at,
                     o.updated_at,
