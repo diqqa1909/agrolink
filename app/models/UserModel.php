@@ -43,6 +43,18 @@ class UserModel
 
     public function insert($data)
     {
+        $role = strtolower(trim((string)($data['role'] ?? '')));
+        if ($role === 'superadmin') {
+            $existing = $this->get_row("SELECT id FROM {$this->table} WHERE role = 'superadmin' LIMIT 1");
+            if ($existing) {
+                return false;
+            }
+        }
+
+        if (in_array($role, ['admin', 'superadmin'], true) && empty($data['verification_status'])) {
+            $data['verification_status'] = 'not_required';
+        }
+
         // Hash password before inserting
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -164,18 +176,69 @@ class UserModel
             $reason = substr($reason, 0, 500);
         }
 
-        return $this->write(
-            "UPDATE {$this->table}
-             SET status = 'inactive',
-                 deactivated_at = NOW(),
-                 deactivation_reason = :reason
-             WHERE id = :id
-             LIMIT 1",
-            [
-                'id' => $userId,
-                'reason' => $reason,
-            ]
-        ) !== false;
+        $supportsDeactivatedAt = $this->supportsColumn('deactivated_at');
+        $supportsReason = $this->supportsColumn('deactivation_reason');
+
+        $setParts = ["status = 'inactive'"];
+        $params = ['id' => $userId];
+
+        if ($supportsDeactivatedAt) {
+            $setParts[] = "deactivated_at = NOW()";
+        }
+
+        if ($supportsReason) {
+            $setParts[] = "deactivation_reason = :reason";
+            $params['reason'] = $reason;
+        }
+
+        $sql = "UPDATE {$this->table} SET " . implode(",\n                 ", $setParts) . " WHERE id = :id LIMIT 1";
+
+        return $this->write($sql, $params) !== false;
+    }
+
+    public function activateAccount($userId)
+    {
+        $userId = (int) $userId;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $supportsDeactivatedAt = $this->supportsColumn('deactivated_at');
+        $supportsReason = $this->supportsColumn('deactivation_reason');
+
+        $setParts = ["status = 'active'"];
+        $params = ['id' => $userId];
+
+        if ($supportsDeactivatedAt) {
+            $setParts[] = "deactivated_at = NULL";
+        }
+
+        if ($supportsReason) {
+            $setParts[] = "deactivation_reason = NULL";
+        }
+
+        $sql = "UPDATE {$this->table} SET " . implode(",\n                 ", $setParts) . " WHERE id = :id LIMIT 1";
+
+        return $this->write($sql, $params) !== false;
+    }
+
+    private function supportsColumn(string $column): bool
+    {
+        static $cache = [];
+
+        $key = $this->table . ':' . $column;
+        if (array_key_exists($key, $cache)) {
+            return (bool)$cache[$key];
+        }
+
+        try {
+            $rows = $this->query("SHOW COLUMNS FROM {$this->table} LIKE :col", ['col' => $column]);
+            $cache[$key] = is_array($rows) && !empty($rows);
+        } catch (Exception $e) {
+            $cache[$key] = false;
+        }
+
+        return (bool)$cache[$key];
     }
 
     private function ensureEmailChangesTable()
@@ -228,6 +291,23 @@ class UserModel
 
     public function update($id, $data, $id_column = 'id')
     {
+        $id = (int)$id;
+
+        if (isset($data['role'])) {
+            $newRole = strtolower(trim((string)$data['role']));
+
+            if ($newRole === 'superadmin') {
+                $existing = $this->get_row("SELECT id FROM {$this->table} WHERE role = 'superadmin' LIMIT 1");
+                if ($existing && (int)($existing->id ?? 0) !== $id) {
+                    return false;
+                }
+            }
+
+            if (in_array($newRole, ['admin', 'superadmin'], true) && empty($data['verification_status'])) {
+                $data['verification_status'] = 'not_required';
+            }
+        }
+
         // Hash password before updating (only if password is provided)
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);

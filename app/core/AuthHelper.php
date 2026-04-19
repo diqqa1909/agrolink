@@ -197,6 +197,7 @@ function authDashboardPath(?string $role = null): string
         case 'transporter':
             return 'transporterdashboard';
         case 'admin':
+        case 'superadmin':
             return 'admindashboard';
         default:
             return 'home';
@@ -214,6 +215,9 @@ function authProfilePath(?string $role = null): string
             return 'farmerprofile';
         case 'transporter':
             return 'transporterprofile';
+        case 'admin':
+        case 'superadmin':
+            return 'admindashboard';
         default:
             return authDashboardPath($resolvedRole);
     }

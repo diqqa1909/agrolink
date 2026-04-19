@@ -9,10 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/dashboard.css">
-<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/verifications.css">
-<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/products.css">
-<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/payments.css">
-<link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/disputes.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/verifications.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/products.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/payments.css">
+    <link rel="stylesheet" href="<?= ROOT ?>/assets/css/admin/disputes.css">
 </head>
 
 <body>
@@ -49,6 +49,19 @@
                         </div>
                         Users
                     </a></li>
+                <?php if (($role ?? '') === 'superadmin'): ?>
+                    <li><a href="#admins" class="menu-link" data-section="admins">
+                            <div class="menu-icon">
+                                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="8.5" cy="7" r="4" />
+                                    <path d="M20 8v6" />
+                                    <path d="M23 11h-6" />
+                                </svg>
+                            </div>
+                            Admins
+                        </a></li>
+                <?php endif; ?>
                 <li><a href="#verifications" class="menu-link" data-section="verifications">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -115,7 +128,7 @@
                         </div>
                         Notifications
                     </a></li>
-                <li><a href="#settings" class="menu-link" data-section="settings">
+                <!-- <li><a href="#settings" class="menu-link" data-section="settings">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="3" />
@@ -124,7 +137,7 @@
                             </svg>
                         </div>
                         Settings
-                    </a></li>
+                    </a></li> -->
             </ul>
         </aside>
 
@@ -145,7 +158,7 @@
                         <div class="stat-label">Total Users</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="activeOrders">0</div>
+                        <div class="stat-number" id="activeOrders"><?= ($orders) ?></div>
                         <div class="stat-label">Active Orders</div>
                     </div>
                     <div class="stat-card">
@@ -188,29 +201,106 @@
 
                 <!-- Recent Activity -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: var(--spacing-xl);">
-                    <div class="elegant-card">
-                        <div class="card-header-elegant">
-                            <div class="card-header-content">
+                    <div class="content-card">
+                        <div class="card-header"
+                            style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                            <div>
                                 <h3 class="card-title">Recent Orders</h3>
-                                <p class="card-subtitle">Latest customer purchases</p>
+                                <p class="content-subtitle" style="margin:0;">Latest customer purchases</p>
                             </div>
+                            <a href="#orders" class="btn btn-secondary"
+                                onclick="showSection('orders'); return false;">View all</a>
                         </div>
-                        <div class="card-body-elegant" id="recentOrders"></div>
-                        <div class="card-footer-elegant">
-                            <a href="#" class="card-link">View all orders →</a>
+                        <div class="card-content" id="recentOrders">
+                            <?php $recentOrders = $recent_orders ?? []; ?>
+                            <?php if (empty($recentOrders)): ?>
+                                <div style="padding: 18px; text-align: center; color: #666;">No recent orders</div>
+                            <?php else: ?>
+                                <?php foreach ($recentOrders as $o): ?>
+                                    <?php
+                                    $orderId = (int) ($o->order_id ?? 0);
+                                    $buyerName = trim((string) ($o->buyer_name ?? 'Buyer'));
+                                    $farmerCount = (int) ($o->farmer_count ?? 0);
+                                    $farmerNames = trim((string) ($o->farmer_names ?? ''));
+                                    $farmerLabel = $farmerCount > 1 ? 'Multiple Farmers' : ($farmerNames !== '' ? $farmerNames : 'Farmer');
+                                    $orderTotal = (float) ($o->order_total ?? 0);
+                                    $orderStatus = strtolower(trim((string) ($o->status ?? '')));
+
+                                    $statusClass = 'badge-secondary';
+                                    if (in_array($orderStatus, ['pending', 'pending_payment'], true))
+                                        $statusClass = 'badge-warning';
+                                    elseif (in_array($orderStatus, ['processing', 'shipped', 'confirmed'], true))
+                                        $statusClass = 'badge-info';
+                                    elseif ($orderStatus === 'delivered')
+                                        $statusClass = 'badge-success';
+                                    elseif ($orderStatus === 'cancelled')
+                                        $statusClass = 'badge-danger';
+                                    ?>
+                                    <div
+                                        style="padding: 14px 0; border-bottom: 1px solid var(--light-gray); display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+                                        <div>
+                                            <div style="font-weight: var(--font-weight-bold);">#ORD-<?= $orderId ?></div>
+                                            <div style="font-size: 0.9rem; color: var(--dark-gray);">
+                                                <?= esc($buyerName) ?> → <?= esc($farmerLabel) ?> - Rs.
+                                                <?= number_format($orderTotal, 2) ?>
+                                            </div>
+                                        </div>
+                                        <span class="badge <?= $statusClass ?>"
+                                            style="text-transform:capitalize; white-space:nowrap;">
+                                            <?= esc($orderStatus !== '' ? str_replace('_', ' ', $orderStatus) : 'unknown') ?>
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div class="elegant-card">
-                        <div class="card-header-elegant">
-                            <div class="card-header-content">
+                    <div class="content-card">
+                        <div class="card-header"
+                            style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                            <div>
                                 <h3 class="card-title">New User Registrations</h3>
-                                <p class="card-subtitle">Recently joined users</p>
+                                <p class="content-subtitle" style="margin:0;">Recently joined users</p>
                             </div>
+                            <a href="#users" class="btn btn-secondary"
+                                onclick="showSection('users'); return false;">View all</a>
                         </div>
-                        <div class="card-body-elegant" id="newRegistrations"></div>
-                        <div class="card-footer-elegant">
-                            <a href="#" class="card-link">View all users →</a>
+                        <div class="card-content" id="newRegistrations">
+                            <?php $recentRegistrations = $recent_registrations ?? []; ?>
+                            <?php if (empty($recentRegistrations)): ?>
+                                <div style="padding: 18px; text-align: center; color: #666;">No new registrations</div>
+                            <?php else: ?>
+                                <?php foreach ($recentRegistrations as $u): ?>
+                                    <?php
+                                    $userName = trim((string) ($u->name ?? 'User'));
+                                    $userRoleLabel = trim((string) ($u->role ?? 'user'));
+                                    $verification = strtolower(trim((string) ($u->verification_status ?? '')));
+
+                                    $verificationClass = 'badge-secondary';
+                                    if ($verification === 'approved')
+                                        $verificationClass = 'badge-success';
+                                    elseif ($verification === 'not_required')
+                                        $verificationClass = 'badge-info';
+                                    elseif ($verification === 'pending')
+                                        $verificationClass = 'badge-warning';
+                                    elseif ($verification === 'rejected')
+                                        $verificationClass = 'badge-danger';
+                                    ?>
+                                    <div
+                                        style="padding: 14px 0; border-bottom: 1px solid var(--light-gray); display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+                                        <div>
+                                            <div style="font-weight: var(--font-weight-bold);"><?= esc($userName) ?></div>
+                                            <div style="font-size: 0.9rem; color: var(--dark-gray);">
+                                                <?= esc(ucfirst($userRoleLabel !== '' ? $userRoleLabel : 'user')) ?>
+                                            </div>
+                                        </div>
+                                        <span class="badge <?= $verificationClass ?>"
+                                            style="text-transform:capitalize; white-space:nowrap;">
+                                            <?= esc($verification !== '' ? str_replace('_', ' ', $verification) : 'unknown') ?>
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -255,6 +345,7 @@
                                 <th data-sort="name">Name</th>
                                 <th data-sort="email">Email</th>
                                 <th data-sort="role">Role</th>
+                                <th data-sort="status">Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -263,6 +354,34 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Admin Management (Superadmin only) -->
+            <?php if (($role ?? '') === 'superadmin'): ?>
+                <div id="admins-section" class="content-section" style="display: none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
+                        <h1>Admin Management</h1>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn btn-primary" onclick="openAddAdminModal()">➕ Add Admin</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="id">User ID</th>
+                                    <th data-sort="name">Name</th>
+                                    <th data-sort="email">Email</th>
+                                    <th data-sort="role">Role</th>
+                                    <th data-sort="status">Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Verification Management -->
             <div id="verifications-section" class="content-section" style="display: none;">
@@ -327,8 +446,8 @@
 
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="pendingOrdersCount">0</div>
-                        <div class="stat-label">Pending Orders</div>
+                        <div class="stat-number" id="totalOrdersCount">0</div>
+                        <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number" id="processingOrdersCount">0</div>
@@ -338,10 +457,10 @@
                         <div class="stat-number" id="completedOrdersCount">0</div>
                         <div class="stat-label">Completed</div>
                     </div>
-                    <div class="stat-card">
+                    <!-- <div class="stat-card">
                         <div class="stat-number" id="averageOrderValue">Rs. 0</div>
                         <div class="stat-label">Avg Order Value</div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="filters" style="margin-top: var(--spacing-xl);">
@@ -361,16 +480,6 @@
                                 <option value="shipped">Shipped</option>
                                 <option value="delivered">Delivered</option>
                                 <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="orderDateFilter">Date Range</label>
-                            <select id="orderDateFilter" class="form-control">
-                                <option value="">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                                <option value="quarter">This Quarter</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -395,7 +504,6 @@
                                 <th data-sort="farmer">Farmer</th>
                                 <th data-sort="total">Total</th>
                                 <th data-sort="status">Status</th>
-                                <th data-sort="payment">Payment</th>
                                 <th data-sort="date">Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -428,10 +536,6 @@
                     <div class="stat-card">
                         <div class="stat-number" id="outOfStockProducts">0</div>
                         <div class="stat-label">Out of Stock</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="pendingApprovalProducts">0</div>
-                        <div class="stat-label">Pending Approval</div>
                     </div>
                 </div>
 
@@ -505,14 +609,14 @@
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <h4>Failed</h4>
-                                <div class="stat-number" id="failedPayments">0</div>
+                                <h4>Shipped</h4>
+                                <div class="stat-number" id="shippedPayments">0</div>
                             </div>
                         </div>
                         <div class="stat-card card text-center">
                             <div class="stat-content">
-                                <h4>Refunded</h4>
-                                <div class="stat-number" id="refundedPayments">0</div>
+                                <h4>Cancelled</h4>
+                                <div class="stat-number" id="cancelledPayments">0</div>
                             </div>
                         </div>
                     </div>
@@ -552,39 +656,29 @@
                 <div class="filters" style="margin-top: var(--spacing-xl);">
                     <div class="filters-row">
                         <div class="filter-group">
-                            <label for="paymentSearch">Search Payments</label>
-                            <input type="text" id="paymentSearch" class="form-control"
+                            <label for="paymentTxnSearch">Search Payments</label>
+                            <input type="text" id="paymentTxnSearch" class="form-control"
                                 placeholder="Search by order ID, buyer, or transaction ID...">
                         </div>
                         <div class="filter-group">
-                            <label for="paymentStatusFilter">Status</label>
-                            <select id="paymentStatusFilter" class="form-control">
+                            <label for="paymentTxnStatusFilter">Status</label>
+                            <select id="paymentTxnStatusFilter" class="form-control">
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
                                 <option value="completed">Completed</option>
-                                <option value="failed">Failed</option>
-                                <option value="refunded">Refunded</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label for="paymentMethodFilter">Payment Method</label>
-                            <select id="paymentMethodFilter" class="form-control">
+                            <label for="paymentTxnMethodFilter">Payment Method</label>
+                            <select id="paymentTxnMethodFilter" class="form-control">
                                 <option value="">All Methods</option>
                                 <option value="cash_on_delivery">Cash on Delivery</option>
                                 <option value="bank_transfer">Bank Transfer</option>
                                 <option value="card">Card Payment</option>
                                 <option value="mobile_payment">Mobile Payment</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="paymentDateFilter">Date Range</label>
-                            <select id="paymentDateFilter" class="form-control">
-                                <option value="">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                                <option value="quarter">This Quarter</option>
-                                <option value="year">This Year</option>
                             </select>
                         </div>
                     </div>
@@ -771,7 +865,7 @@
                         </thead>
                         <tbody id="cancelledOrdersDisputesTableBody">
                             <tr>
-                                <td colspan="7" style="text-align:center;padding:2rem;">Loading cancelled orders...</td>
+                                <td colspan="8" style="text-align:center;padding:2rem;">Loading cancelled orders...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -799,20 +893,20 @@
                 <!-- Key Performance Indicators -->
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-number" id="totalRevenue">Rs. 0</div>
+                        <div class="stat-number" id="analyticsTotalRevenue">Rs. 0</div>
                         <div class="stat-label">Total Revenue</div>
-                        <div id="revenueGrowth" class="stat-trend">+0%</div>
+                        <div id="analyticsRevenueGrowth" class="stat-trend">+0%</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="totalOrders">0</div>
+                        <div class="stat-number" id="analyticsTotalOrders">0</div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-number" id="analyticsTotalUsers">0</div>
                         <div class="stat-label">Total Users</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="avgOrderValue">Rs. 0</div>
+                        <div class="stat-number" id="analyticsAvgOrderValue">Rs. 0</div>
                         <div class="stat-label">Avg Order Value</div>
                     </div>
                 </div>
@@ -978,7 +1072,8 @@
                                     <label for="reviewSlaDays">Verification SLA (days)</label>
                                     <input type="number" id="reviewSlaDays" name="verification_sla_days"
                                         class="form-control" min="0" step="1" placeholder="2">
-                                    <small class="form-text">Target time for verifying farmer/transporter accounts.</small>
+                                    <small class="form-text">Target time for verifying farmer/transporter
+                                        accounts.</small>
                                 </div>
                             </div>
 
@@ -1009,7 +1104,8 @@
                                                 <input type="checkbox" id="maintenanceMode" name="maintenance_mode">
                                                 <span style="font-weight:600;">Maintenance Mode</span>
                                             </label>
-                                            <small class="form-text">Use this as an admin reminder and optionally notify users.</small>
+                                            <small class="form-text">Use this as an admin reminder and optionally notify
+                                                users.</small>
                                         </div>
                                         <div class="form-group" style="margin-bottom:0;">
                                             <button type="button" class="btn btn-primary" id="sendMaintenanceNoticeBtn"
@@ -1021,12 +1117,14 @@
 
                             <div style="display:flex; gap: 12px; margin-top: var(--spacing-lg);">
                                 <button type="submit" class="btn btn-primary">Save Settings</button>
-                                <button type="button" class="btn btn-secondary" id="openNotificationModalBtn">Send Notification</button>
+                                <button type="button" class="btn btn-secondary" id="openNotificationModalBtn">Send
+                                    Notification</button>
                             </div>
                         </form>
 
                         <div style="margin-top: 12px; font-size: 12px; color: var(--dark-gray);">
-                            Note: settings are currently stored per-browser for this admin account (local). Connect them to a DB table when ready.
+                            Note: settings are currently stored per-browser for this admin account (local). Connect them
+                            to a DB table when ready.
                         </div>
                     </div>
                 </div>
@@ -1055,7 +1153,7 @@
                 <h3>Add New User</h3>
             </div>
             <div class="modal-body">
-                <form id="addUserForm">
+                <form id="addUserForm" enctype="multipart/form-data">
                     <div class="message" id="addUserMessage"></div>
                     <div class="grid grid-2">
                         <div class="form-group">
@@ -1075,6 +1173,9 @@
                                 <option value="farmer">Farmer</option>
                                 <option value="buyer">Buyer</option>
                                 <option value="transporter">Transporter</option>
+                                <?php if (($role ?? '') === 'superadmin'): ?>
+                                    <option value="admin">Admin</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1088,6 +1189,59 @@
                             <input type="password" id="userConfirmPass" name="confirmPassword" class="form-control"
                                 required minlength="8">
                             <small class="form-text">Re-enter password to confirm</small>
+                        </div>
+                    </div>
+
+                    <div id="verificationDocsFarmer" style="display:none; margin-top: 10px;">
+                        <div class="content-card" style="border:1px solid var(--light-gray);">
+                            <div class="card-header" style="background: transparent;">
+                                <h3 class="card-title">Farmer verification documents</h3>
+                            </div>
+                            <div class="card-content" style="padding: 16px;">
+                                <div class="grid grid-2">
+                                    <div class="form-group">
+                                        <label for="docNic">NIC (Required)</label>
+                                        <input type="file" id="docNic" name="nic" class="form-control"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf">
+                                        <small class="form-text">Clear photo/scan (front side preferred).</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docBank">Bank details (Required)</label>
+                                        <input type="file" id="docBank" name="bank_details" class="form-control"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf">
+                                        <small class="form-text">Statement/passbook page with name + account
+                                            number.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="verificationDocsTransporter" style="display:none; margin-top: 10px;">
+                        <div class="content-card" style="border:1px solid var(--light-gray);">
+                            <div class="card-header" style="background: transparent;">
+                                <h3 class="card-title">Transporter verification documents</h3>
+                            </div>
+                            <div class="card-content" style="padding: 16px;">
+                                <div class="grid grid-2">
+                                    <div class="form-group">
+                                        <label for="docDL">Driving license (Required)</label>
+                                        <input type="file" id="docDL" name="driving_license" class="form-control"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docIns">Vehicle insurance (Required)</label>
+                                        <input type="file" id="docIns" name="vehicle_insurance" class="form-control"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docRev">Vehicle revenue license (Required)</label>
+                                        <input type="file" id="docRev" name="vehicle_revenue_license"
+                                            class="form-control"
+                                            accept="image/jpeg,image/png,image/webp,application/pdf">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="addUserFormErrors"
@@ -1130,6 +1284,9 @@
                                 <option value="farmer">Farmer</option>
                                 <option value="buyer">Buyer</option>
                                 <option value="transporter">Transporter</option>
+                                <?php if (($role ?? '') === 'superadmin'): ?>
+                                    <option value="admin">Admin</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1187,7 +1344,7 @@
                                 <option value="system">System</option>
                                 <option value="maintenance">Maintenance</option>
                                 <option value="promotion">Promotion</option>
-                            <option value="alert">Alert</option>
+                                <option value="alert">Alert</option>
                             </select>
                         </div>
                     </div>
@@ -1196,13 +1353,16 @@
                         <select id="notificationSelectedUsers" name="user_ids[]" class="form-control" multiple size="8">
                             <?php foreach (($users ?? []) as $u): ?>
                                 <?php
-                                    $uid = (int)($u->id ?? 0);
-                                    if ($uid <= 0) continue;
-                                    $uname = trim((string)($u->name ?? 'User'));
-                                    $uemail = trim((string)($u->email ?? ''));
-                                    $urole = trim((string)($u->role ?? ''));
+                                $uid = (int) ($u->id ?? 0);
+                                if ($uid <= 0)
+                                    continue;
+                                $uname = trim((string) ($u->name ?? 'User'));
+                                $uemail = trim((string) ($u->email ?? ''));
+                                $urole = trim((string) ($u->role ?? ''));
                                 ?>
-                                <option value="<?= $uid ?>"><?= htmlspecialchars($uname) ?><?= $uemail !== '' ? ' (' . htmlspecialchars($uemail) . ')' : '' ?><?= $urole !== '' ? ' - ' . htmlspecialchars($urole) : '' ?></option>
+                                <option value="<?= $uid ?>">
+                                    <?= htmlspecialchars($uname) ?>    <?= $uemail !== '' ? ' (' . htmlspecialchars($uemail) . ')' : '' ?>    <?= $urole !== '' ? ' - ' . htmlspecialchars($urole) : '' ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                         <small class="form-text">Hold Ctrl (Windows) / Cmd (Mac) to select multiple users.</small>
@@ -1297,6 +1457,9 @@
         function initAdminDashboard() {
             loadDashboardData();
             loadUsers();
+            <?php if (($role ?? '') === 'superadmin'): ?>
+                loadAdmins();
+            <?php endif; ?>
             loadVerifications();
             loadOrders();
             loadProducts();
@@ -1351,30 +1514,15 @@
 
         // Load dashboard data
         function loadDashboardData() {
-            document.getElementById('recentOrders').innerHTML = `
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">#ORD-2025-007</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Buyer → Ranjith Farmer - Rs. 2,450</div>
-                    <span class="badge badge">Completed</span>
-                </div>
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">#ORD-2025-008</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Green Valley Restaurant → Multiple Farmers - Rs. 8,900</div>
-                    <span class="badge badge">Processing</span>
-                </div>
-            `;
-            document.getElementById('newRegistrations').innerHTML = `
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">Saman Perera</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Farmer - Kandy</div>
-                    <span class="badge badge">Pending Approval</span>
-                </div>
-                <div style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--light-gray);">
-                    <div style="font-weight: var(--font-weight-bold);">Fresh Mart Ltd</div>
-                    <div style="font-size: 0.9rem; color: var(--dark-gray);">Buyer - Colombo</div>
-                    <span class="badge badge">Approved</span>
-                </div>
-            `;
+            const recentOrders = document.getElementById('recentOrders');
+            if (recentOrders && recentOrders.children.length === 0) {
+                recentOrders.innerHTML = '<div style="padding: 18px; text-align: center; color: #666;">No recent orders</div>';
+            }
+
+            const newRegistrations = document.getElementById('newRegistrations');
+            if (newRegistrations && newRegistrations.children.length === 0) {
+                newRegistrations.innerHTML = '<div style="padding: 18px; text-align: center; color: #666;">No new registrations</div>';
+            }
         }
 
         // Load users data
@@ -1402,16 +1550,34 @@
             displayUsers(users);
         }
 
-        function displayUsers(users) {
-            const tbody = document.getElementById('usersTableBody');
+        function loadAdmins() {
+            const tbody = document.getElementById('adminsTableBody');
+            if (!tbody) return;
+
+            let users = <?= json_encode($users) ?>;
+            users = (users || []).filter(user => String(user.role || '').toLowerCase() === 'admin');
+
+            users = users.filter(user => {
+                return user.verification_status === 'approved' ||
+                    user.verification_status === 'not_required';
+            });
+
+            displayUsers(users, 'adminsTableBody');
+        }
+
+        function displayUsers(users, tbodyId = 'usersTableBody') {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
 
             if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#aaa;">No users found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">No users found.</td></tr>';
                 return;
             }
 
             let html = '';
             users.forEach(user => {
+                const isDeactivated = (user.status && String(user.status).toLowerCase() === 'inactive') || !!user.deactivated_at;
+
                 // Get role badge class
                 let roleBadgeClass = '';
                 switch (user.role) {
@@ -1440,8 +1606,17 @@
                 <td>${user.email || 'N/A'}</td>
                 <td><span class="badge badge-${roleBadgeClass}">${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="openUpdateUserModal('${user.id}')">Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.role}')">Delete</button>
+                    ${isDeactivated
+                        ? `<span class="badge badge-secondary" title="${user.deactivated_at ? 'Deactivated at: ' + user.deactivated_at : 'Deactivated'}">Deactivated</span>`
+                        : `<span class="badge badge-success">Active</span>`
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="openUpdateUserModal('${user.id}')" ${isDeactivated ? 'disabled' : ''}>Edit</button>
+                    ${isDeactivated
+                        ? `<button type="button" class="btn btn-sm btn-success" onclick="activateUser('${user.id}', '${user.role}')">Activate</button>`
+                        : `<button type="button" class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.role}')">Deactivate</button>`
+                    }
                 </td>
             </tr>
         `;
@@ -1475,7 +1650,7 @@
             // Show message if no results
             if (filteredUsers.length === 0) {
                 const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#aaa;">No users match your search criteria.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">No users match your search criteria.</td></tr>';
             }
         }
 
@@ -1503,6 +1678,7 @@
         }
 
         // Add clear filters button functionality
+        // Add clear filters button functionality - UPDATED VERSION
         function addClearFiltersButton() {
             const filtersDiv = document.querySelector('#users-section .filters');
             if (filtersDiv && !document.getElementById('clearFiltersBtn')) {
@@ -1510,17 +1686,22 @@
                 clearBtn.id = 'clearFiltersBtn';
                 clearBtn.className = 'btn btn-secondary';
                 clearBtn.textContent = 'Clear Filters';
-                clearBtn.style.marginLeft = '10px';
-                clearBtn.onclick = function() {
+                clearBtn.style.marginTop = '24px'; // Align with inputs (since labels take space)
+                clearBtn.style.height = '38px'; // Match input height
+                clearBtn.style.padding = '0 16px';
+                clearBtn.style.cursor = 'pointer';
+                clearBtn.onclick = function () {
                     document.getElementById('userSearch').value = '';
                     document.getElementById('roleFilter').value = '';
                     filterUsers();
                 };
-                
+
                 const filterRow = filtersDiv.querySelector('.filters-row');
                 if (filterRow) {
                     const buttonDiv = document.createElement('div');
                     buttonDiv.className = 'filter-group';
+                    buttonDiv.style.display = 'flex';
+                    buttonDiv.style.alignItems = 'flex-end'; // Align button at bottom
                     buttonDiv.appendChild(clearBtn);
                     filterRow.appendChild(buttonDiv);
                 }
@@ -1545,13 +1726,12 @@
             const tbody = document.getElementById('ordersTableBody');
 
             // Show loading state
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading orders...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading orders...</td></tr>';
 
             try {
                 // Get filter values
                 const status = document.getElementById('orderStatusFilter')?.value || '';
                 const paymentStatus = document.getElementById('paymentStatusFilter')?.value || '';
-                const dateRange = document.getElementById('orderDateFilter')?.value || '';
                 const search = document.getElementById('orderSearch')?.value || '';
 
                 const response = await fetch('<?= ROOT ?>/adminDashboard/getOrders', {
@@ -1562,7 +1742,6 @@
                     body: JSON.stringify({
                         status: status,
                         payment_status: paymentStatus,
-                        date_range: dateRange,
                         search: search
                     })
                 });
@@ -1570,16 +1749,16 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td></tr>`;
+                    const msg = result.message || result.error || 'Failed to load orders';
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
                     return;
                 }
 
                 // Update statistics
                 if (result.stats) {
-                    document.getElementById('pendingOrdersCount').textContent = result.stats.pending || 0;
+                    document.getElementById('totalOrdersCount').textContent = result.stats.total_orders || 0;
                     document.getElementById('processingOrdersCount').textContent = result.stats.processing || 0;
                     document.getElementById('completedOrdersCount').textContent = result.stats.completed || 0;
-                    document.getElementById('averageOrderValue').textContent = `Rs. ${result.stats.avg_order_value || 0}`;
                 }
 
                 allOrders = result.data;
@@ -1587,7 +1766,7 @@
 
             } catch (error) {
                 console.error('Error loading orders:', error);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Failed to load orders. Please try again.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load orders. Please try again.</td></tr>';
             }
         }
 
@@ -1595,7 +1774,7 @@
             const tbody = document.getElementById('ordersTableBody');
 
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No orders found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#aaa;">No orders found.</td></tr>';
                 return;
             }
 
@@ -1630,17 +1809,16 @@
                 <td>${escapeHtml(order.farmer_name || 'Multiple')}</td>
                 <td><strong>Rs. ${parseFloat(order.total_amount).toLocaleString()}</strong></td>
                 <td><span class="badge ${statusClass}">${order.order_status ? order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1) : 'N/A'}</span></td>
-                <td><span class="badge ${paymentClass}">${order.payment_status ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1) : 'N/A'}</span></td>
                 <td>${formatDate(order.order_date)}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.order_id})">View</button>
-                    </td>
-                    </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            }
-            /* <button class="btn btn-sm btn-secondary" onclick="updateOrderStatus(${order.order_id})">Update Status</button> */
+                    <button type="button" class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.order_id})">View</button>
+                </td>
+            </tr>
+        `;
+            });
+            tbody.innerHTML = html;
+        }
+        /* <button class="btn btn-sm btn-secondary" onclick="updateOrderStatus(${order.order_id})">Update Status</button> */
 
         // Format date for display
         function formatDate(dateString) {
@@ -1666,7 +1844,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load order details');
+                    alert(result.message || result.error || 'Failed to load order details');
                     return;
                 }
 
@@ -1675,7 +1853,7 @@
             <div id="orderDetailsModal" class="modal" style="display:flex;">
                 <div class="modal-content" style="max-width:800px;width:95%;">
                     <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
-                        <h3>Order Details - #${result.order.order_number}</h3>
+                        <h3>Order Details - #${(result.order && (result.order.order_number || result.order.id)) || orderId}</h3>
                         <button onclick="closeModal('orderDetailsModal')" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
                     </div>
                     <div class="modal-body">
@@ -1702,20 +1880,32 @@
                                     <tr>
                                         <th>Product</th>
                                         <th>Quantity</th>
-                                        <th>Price</th>
-                                        <th>Subtotal</th>
+                                        <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
         `;
 
                 result.items.forEach(item => {
+                    const productImage = item.product_image
+                        ? `<?= ROOT ?>/assets/images/products/${item.product_image}`
+                        : `<?= ROOT ?>/assets/images/default-product.svg`;
+
+                    const unitPrice = parseFloat(item.unit_price || 0);
+                    const quantity = parseInt(item.quantity || 0, 10) || 0;
+                    const lineTotal = unitPrice * quantity;
+
                     modalHtml += `
                 <tr>
-                    <td>${escapeHtml(item.product_name)}</td>
-                    <td>${item.quantity}</td>
-                    <td>Rs. ${parseFloat(item.price).toLocaleString()}</td>
-                    <td>Rs. ${(parseFloat(item.price) * item.quantity).toLocaleString()}</td>
+                    <td style="display:flex;align-items:center;gap:10px;">
+                        <img src="${productImage}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:8px;" onerror="this.src='<?= ROOT ?>/assets/images/default-product.svg'">
+                        <div>
+                            <div style="font-weight:600;">${escapeHtml(item.product_name || 'Product')}</div>
+                            <div style="font-size:12px;color:#888;">${escapeHtml(item.product_category || '')}</div>
+                        </div>
+                    </td>
+                    <td>${quantity}</td>
+                    <td><strong>Rs. ${lineTotal.toLocaleString()}</strong></td>
                 </tr>
             `;
                 });
@@ -1788,7 +1978,7 @@
 
         // Setup order filters with live filtering
         function setupOrderFilters() {
-            const filters = ['orderSearch', 'orderStatusFilter', 'orderDateFilter', 'paymentStatusFilter'];
+            const filters = ['orderSearch', 'orderStatusFilter', 'paymentStatusFilter'];
 
             filters.forEach(filterId => {
                 const element = document.getElementById(filterId);
@@ -1856,7 +2046,7 @@
                             ? ` (sent: ${result.sent}, failed: ${result.failed || 0})`
                             : '';
                         showNotification((result.message || 'Notification sent') + meta, 'success');
-                        
+
                         // Update notifications stats in the UI
                         if (typeof result.sent !== 'undefined') {
                             const totalEl = document.getElementById('totalNotifications');
@@ -1873,7 +2063,7 @@
                                 loadNotificationStats();
                             }
                         }
-                        
+
                         closeModal('sendNotificationModal');
                         this.reset();
                         toggleSelectedUsers();
@@ -1953,7 +2143,7 @@
                 resetBtn.addEventListener('click', function () {
                     try {
                         localStorage.removeItem(settingsStorageKey);
-                    } catch (e) {}
+                    } catch (e) { }
 
                     const form = document.getElementById('platformSettingsForm');
                     if (form) form.reset();
@@ -2001,26 +2191,69 @@
 
         // Delete user
         async function deleteUser(userId, userRole) {
-            if (userRole === 'admin') {
-                showNotification('Cannot delete admin users. Admin accounts are protected.', 'error');
+            const actorRole = String('<?= $role ?? '' ?>').toLowerCase();
+            if (String(userRole).toLowerCase() === 'superadmin') {
+                showNotification('Cannot deactivate superadmin users.', 'error');
                 return;
             }
-            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            if (String(userRole).toLowerCase() === 'admin' && actorRole !== 'superadmin') {
+                showNotification('Only superadmin users can deactivate admin accounts.', 'error');
+                return;
+            }
+
+            const reason = prompt('Deactivation reason (optional):', 'Deactivated by admin') || 'Deactivated by admin';
+
+            if (!confirm('Deactivate this user? They will not be able to sign in, but their data will be kept.')) {
                 return;
             }
             try {
                 const response = await fetch('<?= ROOT ?>/adminDashboard/deleteUser', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showNotification('User deactivated successfully', 'success');
+                    updateUserCount();
+                    window.location.reload();
+                } else {
+                    showNotification(result.message || 'Error deactivating user', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function activateUser(userId, userRole) {
+            const actorRole = String('<?= $role ?? '' ?>').toLowerCase();
+            if (String(userRole).toLowerCase() === 'superadmin') {
+                showNotification('Cannot activate superadmin users.', 'error');
+                return;
+            }
+            if (String(userRole).toLowerCase() === 'admin' && actorRole !== 'superadmin') {
+                showNotification('Only superadmin users can activate admin accounts.', 'error');
+                return;
+            }
+
+            if (!confirm('Activate this user account? They will be able to sign in again.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/activateUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showNotification('User deleted successfully', 'success');
+                    showNotification('User activated successfully', 'success');
                     updateUserCount();
                     window.location.reload();
                 } else {
-                    showNotification(result.message || 'Error deleting user', 'error');
+                    showNotification(result.message || 'Error activating user', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -2106,11 +2339,11 @@
                         </td>
                         </tr>
                         `;
-                    });
-                    tbody.innerHTML = html;
-                }
-                /* <button class="btn btn-sm btn-success" onclick="bulkApprove(${user.user_id})" style="margin-left:4px;">Approve</button> */
-                /* <td>${docsHtml}</td> */
+            });
+            tbody.innerHTML = html;
+        }
+        /* <button class="btn btn-sm btn-success" onclick="bulkApprove(${user.user_id})" style="margin-left:4px;">Approve</button> */
+        /* <td>${docsHtml}</td> */
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -2335,15 +2568,86 @@
             }
         }
 
+        let currentVerificationFilter = 'pending';
         function setVerificationFilter(filter) {
-            // Filter functionality - implement as needed
-            loadVerifications();
+            currentVerificationFilter = filter;
+
+            const tabButtons = document.querySelectorAll('.v-tab-btn');
+            tabButtons.forEach(btn => {
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+                } else {
+                    btn.classList.remove('active');
+                    btn.classList.add('btn-secondary');
+                    btn.classList.remove('btn-primary');
+                }
+            });
+
+            loadVerificationsWithFilter(filter);
+        }
+
+        function loadVerificationsWithFilter(filter) {
+            const tbody = document.getElementById('verificationsTableBody');
+            let verifications = <?= json_encode($verifications ?? []) ?>
+
+            let filteredVerifications = [];
+            if (filter === 'all')
+                filteredVerifications = verifications;
+            else
+                filteredVerifications = verifications.filter(u => u.verification_status === filter);
+
+            displayVerifications(filteredVerifications);
+        }
+        function displayVerifications(verifications) {
+            const tbody = document.getElementById('verificationsTableBody');
+
+            if (!verifications || verifications.lenght === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">No verifications found</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            verifications.forEach(user => {
+                let statusClass = '';
+                switch (user.verification_status) {
+                    case 'pending': statusClass = 'badge-warning'; break;
+                    case 'approved': statusClass = 'badge-success'; break;
+                    case 'rejected': statusClass = 'badge-danger'; break;
+                    default: statusClass = '';
+                }
+
+                const expectedDocs = user.role === 'farmer'
+                    ? ['NIC', 'Bank Details']
+                    : ['Driving License', 'Vehicle Insurance', 'Revenue License'];
+
+                const docsHtml = `<ul style="margin:0;padding-left:18px;font-size:12px;">${expectedDocs.map(d => `<li>${d}</li>`).join('')}</ul>
+                         <div style="font-size:11px;color:#888;margin-top:4px;">${user.approved_docs ?? 0} approved / ${user.doc_count ?? 0} total</div>`;
+
+                html += `
+            <tr>
+                <td>${user.user_id}</td>
+                <td><strong>${escapeHtml(user.name)}</strong></td>
+                <td style="font-size:13px;">${escapeHtml(user.email)}</td>
+                <td><span class="badge badge-${user.role === 'farmer' ? 'success' : 'warning'}">${user.role}</span></td>
+                <td><span class="badge ${statusClass}" style="text-transform:capitalize;">${user.verification_status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="openDocReview(${user.user_id})">Review</button>
+                    ${user.verification_status === 'pending' ? `
+                    <button class="btn btn-sm btn-danger" onclick="bulkReject(${user.user_id})" style="margin-left:4px;">Reject</button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+            });
+            tbody.innerHTML = html;
         }
 
         // ============ PRODUCTS TAB FUNCTIONS ============
 
         // Global variables for products
-        let allProducts = [];
+        window.allProducts = [];
         let productCategories = [];
 
         // Load products with filters
@@ -2357,9 +2661,6 @@
                 // Get filter values
                 const search = document.getElementById('productSearch')?.value || '';
                 const category = document.getElementById('categoryFilter')?.value || '';
-                const status = document.getElementById('productStatusFilter')?.value || '';
-                const minPrice = document.getElementById('minPrice')?.value || '';
-                const maxPrice = document.getElementById('maxPrice')?.value || '';
 
                 const response = await fetch('<?= ROOT ?>/adminDashboard/getProducts', {
                     method: 'POST',
@@ -2369,16 +2670,14 @@
                     body: JSON.stringify({
                         search: search,
                         category: category,
-                        status: status,
-                        min_price: minPrice,
-                        max_price: maxPrice
                     })
                 });
 
                 const result = await response.json();
 
                 if (!result.success) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td>' + '</tr>`;
+                    const msg = result.message || result.error || 'Failed to load products';
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
                     return;
                 }
 
@@ -2387,7 +2686,6 @@
                     document.getElementById('totalProducts').textContent = result.stats.total_products || 0;
                     document.getElementById('activeProducts').textContent = result.stats.active_products || 0;
                     document.getElementById('outOfStockProducts').textContent = result.stats.out_of_stock || 0;
-                    document.getElementById('pendingApprovalProducts').textContent = result.stats.pending_approval || 0;
                 }
 
                 // Update category filter options if needed
@@ -2405,12 +2703,12 @@
                     });
                 }
 
-                allProducts = result.data;
-                displayProducts(allProducts);
+                window.allProducts = result.data;
+                displayProducts(window.allProducts);
 
             } catch (error) {
                 console.error('Error loading products:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load products. Please try again.</td>' + '</tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load products. Please try again.</td></tr>';
             }
         }
 
@@ -2456,13 +2754,13 @@
 
                 // Product image
                 const productImage = product.image
-                    ? `<?= ROOT ?>/assets/uploads/products/${product.image}`
-                    : `<?= ROOT ?>/assets/images/no-image.png`;
+                    ? `<?= ROOT ?>/assets/images/products/${product.image}`
+                    : `<?= ROOT ?>/assets/images/default-product.svg`;
 
                 html += `
             <tr>
                 <td style="text-align:center;">
-                    <img src="${productImage}" alt="${escapeHtml(product.name)}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" onerror="this.src='<?= ROOT ?>/assets/images/no-image.png'">
+                    <img src="${productImage}" alt="${escapeHtml(product.name)}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" onerror="this.src='<?= ROOT ?>/assets/images/default-product.svg'">
                 </td>
                 <td>
                     <strong>${escapeHtml(product.name)}</strong><br>
@@ -2473,7 +2771,7 @@
                 <td><strong>Rs. ${parseFloat(product.price).toLocaleString()}</strong></td>
                 <td><span class="badge ${stockClass}">${stockText}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="viewProductDetails(${product.id})">View</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="viewProductDetails(${product.id})">View</button>
                     
                 </td>
             </tr>
@@ -2481,9 +2779,9 @@
             });
             tbody.innerHTML = html;
         }
-/* 
-<button class="btn btn-sm btn-secondary" onclick="updateProductStatus(${product.id}, '${product.status}')">Update Status</button>
-                    ${product.total_orders === 0 ? `<button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>` : ''} */
+        /* 
+        <button class="btn btn-sm btn-secondary" onclick="updateProductStatus(${product.id}, '${product.status}')">Update Status</button>
+                            ${product.total_orders === 0 ? `<button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>` : ''} */
 
         // View product details
         async function viewProductDetails(productId) {
@@ -2499,7 +2797,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load product details');
+                    alert(result.message || result.error || 'Failed to load product details');
                     return;
                 }
 
@@ -2544,8 +2842,8 @@
                 }
 
                 const productImage = product.image
-                    ? `<?= ROOT ?>/assets/uploads/products/${product.image}`
-                    : `<?= ROOT ?>/assets/images/no-image.png`;
+                    ? `<?= ROOT ?>/assets/images/products/${product.image}`
+                    : `<?= ROOT ?>/assets/images/default-product.svg`;
 
                 const modalHtml = `
             <div id="productDetailsModal" class="modal" style="display:flex;">
@@ -2560,7 +2858,7 @@
                                 <img src="${productImage}" 
                                      alt="${escapeHtml(product.name)}" 
                                      style="width:150px;height:150px;object-fit:cover;border-radius:10px;"
-                                     onerror="this.src='<?= ROOT ?>/assets/images/no-image.png'">
+                                     onerror="this.src='<?= ROOT ?>/assets/images/default-product.svg'">
                             </div>
                             <div>
                                 <h3>${escapeHtml(product.name)}</h3>
@@ -2674,9 +2972,6 @@
         function resetProductFilters() {
             document.getElementById('productSearch').value = '';
             document.getElementById('categoryFilter').value = '';
-            document.getElementById('productStatusFilter').value = '';
-            document.getElementById('minPrice').value = '';
-            document.getElementById('maxPrice').value = '';
             loadProducts();
         }
 
@@ -2703,26 +2998,8 @@
                             <option value="meat">Meat</option>
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <label for="productStatusFilter">Status</label>
-                        <select id="productStatusFilter" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="pending">Pending</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
                 </div>
                 <div class="filters-row" style="margin-top: 10px;">
-                    <div class="filter-group">
-                        <label for="minPrice">Min Price (Rs.)</label>
-                        <input type="number" id="minPrice" class="form-control" placeholder="Min price">
-                    </div>
-                    <div class="filter-group">
-                        <label for="maxPrice">Max Price (Rs.)</label>
-                        <input type="number" id="maxPrice" class="form-control" placeholder="Max price">
-                    </div>
                     <div class="filter-group">
                         <label>&nbsp;</label>
                         <button class="btn btn-secondary" onclick="resetProductFilters()">Reset Filters</button>
@@ -2740,9 +3017,6 @@
 
             const searchInput = document.getElementById('productSearch');
             const categorySelect = document.getElementById('categoryFilter');
-            const statusSelect = document.getElementById('productStatusFilter');
-            const minPrice = document.getElementById('minPrice');
-            const maxPrice = document.getElementById('maxPrice');
 
             if (searchInput) {
                 let timeout;
@@ -2754,18 +3028,6 @@
 
             if (categorySelect) {
                 categorySelect.addEventListener('change', () => loadProducts());
-            }
-
-            if (statusSelect) {
-                statusSelect.addEventListener('change', () => loadProducts());
-            }
-
-            if (minPrice) {
-                minPrice.addEventListener('change', () => loadProducts());
-            }
-
-            if (maxPrice) {
-                maxPrice.addEventListener('change', () => loadProducts());
             }
         }
 
@@ -2835,13 +3097,17 @@
                 const data = result.data;
 
                 // Update KPIs
-                document.getElementById('totalRevenue').textContent = `Rs. ${(data.order_stats?.total_revenue || 0).toLocaleString()}`;
-                document.getElementById('totalOrders').textContent = data.order_stats?.total_orders || 0;
-                document.getElementById('totalUsers').textContent = data.user_stats?.total_users || 0;
-                document.getElementById('avgOrderValue').textContent = `Rs. ${Math.round(data.order_stats?.avg_order_value || 0).toLocaleString()}`;
+                const revenueEl = document.getElementById('analyticsTotalRevenue');
+                if (revenueEl) revenueEl.textContent = `Rs. ${(data.order_stats?.total_revenue || 0).toLocaleString()}`;
+                const ordersEl = document.getElementById('analyticsTotalOrders');
+                if (ordersEl) ordersEl.textContent = data.order_stats?.total_orders || 0;
+                const usersEl = document.getElementById('analyticsTotalUsers');
+                if (usersEl) usersEl.textContent = data.user_stats?.total_users || 0;
+                const aovEl = document.getElementById('analyticsAvgOrderValue');
+                if (aovEl) aovEl.textContent = `Rs. ${Math.round(data.order_stats?.avg_order_value || 0).toLocaleString()}`;
 
                 const revenueGrowth = data.growth_metrics?.revenue_growth || 0;
-                const growthElement = document.getElementById('revenueGrowth');
+                const growthElement = document.getElementById('analyticsRevenueGrowth');
                 if (growthElement) {
                     growthElement.textContent = `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth}%`;
                     growthElement.style.color = revenueGrowth >= 0 ? '#27ae60' : '#e74c3c';
@@ -3027,7 +3293,7 @@
 
         // ============ PAYMENTS TAB FUNCTIONS ============
 
-        let allPayments = [];
+        window.allPayments = [];
 
         // Load payments with filters
         async function loadPayments() {
@@ -3038,10 +3304,9 @@
 
             try {
                 // Get filter values
-                const search = document.getElementById('paymentSearch')?.value || '';
-                const status = document.getElementById('paymentStatusFilter')?.value || '';
-                const method = document.getElementById('paymentMethodFilter')?.value || '';
-                const dateRange = document.getElementById('paymentDateFilter')?.value || '';
+                const search = document.getElementById('paymentTxnSearch')?.value || '';
+                const status = document.getElementById('paymentTxnStatusFilter')?.value || '';
+                const method = document.getElementById('paymentTxnMethodFilter')?.value || '';
 
                 const response = await fetch('<?= ROOT ?>/adminDashboard/getPayments', {
                     method: 'POST',
@@ -3052,14 +3317,14 @@
                         search: search,
                         status: status,
                         method: method,
-                        date_range: dateRange
                     })
                 });
 
                 const result = await response.json();
 
                 if (!result.success) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td></tr>`;
+                    const msg = result.message || result.error || 'Failed to load payments';
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
                     return;
                 }
 
@@ -3072,8 +3337,8 @@
 
                     document.getElementById('completedPayments').textContent = result.stats.completed_count || 0;
                     document.getElementById('pendingPayments').textContent = result.stats.pending_count || 0;
-                    document.getElementById('failedPayments').textContent = result.stats.failed_count || 0;
-                    document.getElementById('refundedPayments').textContent = result.stats.refunded_count || 0;
+                    document.getElementById('shippedPayments').textContent = result.stats.shipped_count || 0;
+                    document.getElementById('cancelledPayments').textContent = result.stats.cancelled_count || 0;
 
                     document.getElementById('codRevenue').textContent = `Rs. ${(result.stats.cod_revenue || 0).toLocaleString()}`;
                     document.getElementById('bankRevenue').textContent = `Rs. ${(result.stats.bank_revenue || 0).toLocaleString()}`;
@@ -3081,8 +3346,8 @@
                     document.getElementById('mobileRevenue').textContent = `Rs. ${(result.stats.mobile_revenue || 0).toLocaleString()}`;
                 }
 
-                allPayments = result.data;
-                displayPayments(allPayments);
+                window.allPayments = result.data;
+                displayPayments(window.allPayments);
 
             } catch (error) {
                 console.error('Error loading payments:', error);
@@ -3092,51 +3357,55 @@
 
         // Display payments in the table
         function displayPayments(payments) {
-    const tbody = document.getElementById('paymentsTableBody');
+            const tbody = document.getElementById('paymentsTableBody');
 
-    if (!payments || payments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
-        return;
-    }
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
+                return;
+            }
 
-    let html = '';
-    payments.forEach(payment => {
-        // Status badge class - using order status
-        let statusClass = '';
-        let statusText = '';
-        switch (payment.payment_status) {
-            case 'delivered':
-                statusClass = 'badge-success';
-                statusText = 'Delivered';
-                break;
-            case 'shipped':
-                statusClass = 'badge-info';
-                statusText = 'Shipped';
-                break;
-            case 'pending':
-                statusClass = 'badge-warning';
-                statusText = 'Pending';
-                break;
-            case 'cancelled':
-                statusClass = 'badge-danger';
-                statusText = 'Cancelled';
-                break;
-            default:
-                statusClass = 'badge-secondary';
-                statusText = payment.payment_status || 'N/A';
-        }
+            let html = '';
+            payments.forEach(payment => {
+                // Status badge class - using order status
+                let statusClass = '';
+                let statusText = '';
+                switch (payment.payment_status) {
+                    case 'completed':
+                        statusClass = 'badge-success';
+                        statusText = 'Completed';
+                        break;
+                    case 'delivered':
+                        statusClass = 'badge-success';
+                        statusText = 'Delivered';
+                        break;
+                    case 'shipped':
+                        statusClass = 'badge-info';
+                        statusText = 'Shipped';
+                        break;
+                    case 'pending':
+                        statusClass = 'badge-warning';
+                        statusText = 'Pending';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'badge-danger';
+                        statusText = 'Cancelled';
+                        break;
+                    default:
+                        statusClass = 'badge-secondary';
+                        statusText = payment.payment_status || 'N/A';
+                }
 
-        // Payment method display
-        let methodText = '';
-        switch (payment.payment_method) {
-            case 'cash_on_delivery': methodText = 'Cash on Delivery'; break;
-            case 'bank_transfer': methodText = 'Bank Transfer'; break;
-            case 'card': methodText = 'Card Payment'; break;
-            case 'mobile_payment': methodText = 'Mobile Payment'; break;
-            default: methodText = payment.payment_method || 'N/A';
-        }
+                // Payment method display
+                let methodText = '';
+                switch (payment.payment_method) {
+                    case 'cash_on_delivery': methodText = 'Cash on Delivery'; break;
+                    case 'bank_transfer': methodText = 'Bank Transfer'; break;
+                    case 'card': methodText = 'Card Payment'; break;
+                    case 'mobile_payment': methodText = 'Mobile Payment'; break;
+                    default: methodText = payment.payment_method || 'N/A';
+                }
 
-        html += `
+                html += `
             <tr>
                 <td><strong>${payment.transaction_id || payment.payment_id}</strong></td>
                 <td>#${payment.order_id}</td>
@@ -3146,16 +3415,16 @@
                 <td><span class="badge ${statusClass}">${statusText}</span></td>
                 <td>${formatDate(payment.payment_date)}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="viewPaymentDetails(${payment.payment_id})">View</button>
-                    ${payment.payment_status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'shipped')">Mark Shipped</button>` : ''}
-                    </td>
-                    </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            }
-            /* ${payment.payment_status === 'shipped' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'delivered')">Mark Delivered</button>` : ''}
-            ${payment.payment_status !== 'cancelled' && payment.payment_status !== 'delivered' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment(${payment.payment_id})">Cancel Order</button>` : ''} */
+                    <button type="button" class="btn btn-sm btn-primary" onclick="viewPaymentDetails(${payment.payment_id})">View</button>
+                    ${payment.payment_status === 'pending' ? `<button type="button" class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'shipped')">Mark Shipped</button>` : ''}
+                </td>
+            </tr>
+        `;
+            });
+            tbody.innerHTML = html;
+        }
+        /* ${payment.payment_status === 'shipped' ? `<button class="btn btn-sm btn-success" onclick="updatePaymentStatus(${payment.payment_id}, 'delivered')">Mark Delivered</button>` : ''}
+        ${payment.payment_status !== 'cancelled' && payment.payment_status !== 'delivered' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment(${payment.payment_id})">Cancel Order</button>` : ''} */
         // View payment details
         async function viewPaymentDetails(paymentId) {
             try {
@@ -3170,7 +3439,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert('Failed to load payment details');
+                    alert(result.message || result.error || 'Failed to load payment details');
                     return;
                 }
 
@@ -3311,23 +3580,23 @@
 
         // Reset payment filters
         function resetPaymentFilters() {
-            document.getElementById('paymentSearch').value = '';
-            document.getElementById('paymentStatusFilter').value = '';
-            document.getElementById('paymentMethodFilter').value = '';
-            document.getElementById('paymentDateFilter').value = '';
+            document.getElementById('paymentTxnSearch').value = '';
+            document.getElementById('paymentTxnStatusFilter').value = '';
+            document.getElementById('paymentTxnMethodFilter').value = '';
             loadPayments();
         }
 
         // Export payments to CSV
         function exportPayments() {
-            if (!allPayments || allPayments.length === 0) {
+            const rows = window.allPayments || [];
+            if (!rows || rows.length === 0) {
                 alert('No data to export');
                 return;
             }
 
             let csv = 'Transaction ID,Order ID,Buyer,Amount,Payment Method,Status,Date\n';
 
-            allPayments.forEach(payment => {
+            rows.forEach(payment => {
                 csv += `"${payment.transaction_id || payment.payment_id}","${payment.order_number || payment.order_id}","${payment.buyer_name}",${payment.amount},"${payment.payment_method}","${payment.payment_status}","${payment.payment_date || payment.created_at}"\n`;
             });
 
@@ -3342,12 +3611,12 @@
 
         // Setup payment filters
         function setupPaymentFilters() {
-            const filters = ['paymentSearch', 'paymentStatusFilter', 'paymentMethodFilter', 'paymentDateFilter'];
+            const filters = ['paymentTxnSearch', 'paymentTxnStatusFilter', 'paymentTxnMethodFilter'];
 
             filters.forEach(filterId => {
                 const element = document.getElementById(filterId);
                 if (element) {
-                    if (filterId === 'paymentSearch') {
+                    if (filterId === 'paymentTxnSearch') {
                         let timeout;
                         element.addEventListener('input', () => {
                             clearTimeout(timeout);
@@ -3362,14 +3631,14 @@
 
         // ============ DISPUTES TAB FUNCTIONS ============
 
-        let allDisputes = [];
+        window.allDisputes = [];
 
         // Load disputes with filters
         async function loadDisputes() {
             const tbody = document.getElementById('cancelledOrdersDisputesTableBody');
 
             // Show loading state
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading cancelled orders...</td>' + '</tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading cancelled orders...</td></tr>';
 
             try {
                 // Get filter values
@@ -3392,7 +3661,8 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${result.message}</td>' + '</tr>`;
+                    const msg = result.message || result.error || 'Failed to load cancelled orders';
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
                     return;
                 }
 
@@ -3415,12 +3685,12 @@
                     });
                 }
 
-                allDisputes = result.data;
-                displayCancelledOrdersDisputes(allDisputes);
+                window.allDisputes = result.data;
+                displayCancelledOrdersDisputes(window.allDisputes);
 
             } catch (error) {
                 console.error('Error loading disputes:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load cancelled orders. Please try again.</td>' + '</tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Failed to load cancelled orders. Please try again.</td></tr>';
             }
         }
 
@@ -3432,9 +3702,9 @@
         function paymentMethodLabel(method) {
             const val = String(method || '').toLowerCase();
             return val === 'card' ? 'Credit/Debit Card' :
-                   val === 'bank_transfer' ? 'Bank Transfer' :
-                   val === 'cod' ? 'Cash on Delivery' :
-                   val.charAt(0).toUpperCase() + val.slice(1);
+                val === 'bank_transfer' ? 'Bank Transfer' :
+                    val === 'cod' ? 'Cash on Delivery' :
+                        val.charAt(0).toUpperCase() + val.slice(1);
         }
 
         async function loadNotificationStats() {
@@ -3476,7 +3746,7 @@
                 const revisedTotal = hasRevision ? formatMoney(order.revised_total_amount) : '-';
                 const revisedBy = hasRevision ? escapeHtml(order.revised_by_name || 'Admin') : '-';
                 const updatedAt = formatDate(order.updated_at || order.created_at);
-                
+
                 // Status badge styling
                 let rowClass = '';
                 let statusBadge = '';
@@ -3495,7 +3765,7 @@
                         <td>${hasRevision ? `<small>${revisedBy}</small>` : '<span style="color:#999;">-</span>'}</td>
                         <td>${updatedAt}</td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="viewCancelledOrderDisputeDetails(${Number(order.order_id)})">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="viewCancelledOrderDisputeDetails(${Number(order.order_id)})">
                                 ${hasRevision ? 'View Revision' : 'Revise Payment'}
                             </button>
                         </td>
@@ -3702,7 +3972,7 @@
 
                 // Show success message
                 showNotification('✓ Payment revision applied successfully', 'success');
-                
+
                 // Reload the list after a short delay to show the updated status
                 setTimeout(() => {
                     closeModal('cancelledOrderDisputeModal');
@@ -4029,21 +4299,23 @@
 
         // Reset dispute filters
         function resetDisputeFilters() {
-            document.getElementById('disputeSearch').value = '';
-            document.getElementById('disputeStatusFilter').value = '';
-            document.getElementById('disputeTypeFilter').value = '';
-            document.getElementById('disputePriorityFilter').value = '';
+            const searchEl = document.getElementById('cancelledOrderSearch');
+            const revEl = document.getElementById('revisionStatusFilter');
+            const methodEl = document.getElementById('cancelledOrderPaymentMethod');
+            if (searchEl) searchEl.value = '';
+            if (revEl) revEl.value = '';
+            if (methodEl) methodEl.value = '';
             loadDisputes();
         }
 
         // Setup dispute filters
         function setupDisputeFilters() {
-            const filters = ['disputeSearch', 'disputeStatusFilter', 'disputeTypeFilter', 'disputePriorityFilter'];
+            const filters = ['cancelledOrderSearch', 'revisionStatusFilter', 'cancelledOrderPaymentMethod'];
 
             filters.forEach(filterId => {
                 const element = document.getElementById(filterId);
                 if (element) {
-                    if (filterId === 'disputeSearch') {
+                    if (filterId === 'cancelledOrderSearch') {
                         let timeout;
                         element.addEventListener('input', () => {
                             clearTimeout(timeout);
@@ -4075,12 +4347,32 @@
             document.getElementById('addUserForm').reset();
             document.getElementById('addUserMessage').style.display = 'none';
             document.getElementById('addUserFormErrors').style.display = 'none';
+            const roleEl = document.getElementById('userRole');
+            if (roleEl) roleEl.disabled = false;
+            const titleEl = document.querySelector('#addUserModal .modal-header h3');
+            if (titleEl) titleEl.textContent = 'Add New User';
+        }
+
+        function openAddAdminModal() {
+            openAddUserModal();
+            const titleEl = document.querySelector('#addUserModal .modal-header h3');
+            if (titleEl) titleEl.textContent = 'Add New Admin';
+            const roleEl = document.getElementById('userRole');
+            if (roleEl) {
+                roleEl.value = 'admin';
+                roleEl.disabled = true;
+                roleEl.dispatchEvent(new Event('change'));
+            }
         }
 
         function closeAddUserModal() {
             document.getElementById('addUserModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             document.getElementById('addUserForm').reset();
+            const roleEl = document.getElementById('userRole');
+            if (roleEl) roleEl.disabled = false;
+            const titleEl = document.querySelector('#addUserModal .modal-header h3');
+            if (titleEl) titleEl.textContent = 'Add New User';
         }
 
         async function openUpdateUserModal(userId) {
@@ -4123,11 +4415,28 @@
             document.getElementById('addUserFormErrors').innerHTML = '';
             const password = document.getElementById('userPass').value;
             const confirmPassword = document.getElementById('userConfirmPass').value;
+            const selectedRole = String(document.getElementById('userRole')?.value || '').toLowerCase();
             if (password !== confirmPassword) {
                 document.getElementById('addUserFormErrors').innerHTML = '<strong>Error:</strong> Passwords do not match.';
                 document.getElementById('addUserFormErrors').style.display = 'block';
                 return;
             }
+
+            const docErrors = [];
+            if (selectedRole === 'farmer') {
+                if (!document.getElementById('docNic')?.files?.length) docErrors.push('NIC document is required for Farmer accounts.');
+                if (!document.getElementById('docBank')?.files?.length) docErrors.push('Bank details document is required for Farmer accounts.');
+            } else if (selectedRole === 'transporter') {
+                if (!document.getElementById('docDL')?.files?.length) docErrors.push('Driving license is required for Transporter accounts.');
+                if (!document.getElementById('docIns')?.files?.length) docErrors.push('Vehicle insurance is required for Transporter accounts.');
+                if (!document.getElementById('docRev')?.files?.length) docErrors.push('Vehicle revenue license is required for Transporter accounts.');
+            }
+            if (docErrors.length) {
+                document.getElementById('addUserFormErrors').innerHTML = '<strong>Please fix the following errors:</strong><ul>' + docErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+                document.getElementById('addUserFormErrors').style.display = 'block';
+                return;
+            }
+
             const formData = new FormData(this);
             try {
                 const response = await fetch('<?= ROOT ?>/adminDashboard/register', {
@@ -4157,8 +4466,30 @@
             }
         });
 
+        // Toggle verification doc inputs based on selected role in Add User modal
+        (function setupAddUserRoleDocsToggle() {
+            const roleEl = document.getElementById('userRole');
+            const farmerBox = document.getElementById('verificationDocsFarmer');
+            const transporterBox = document.getElementById('verificationDocsTransporter');
+            if (!roleEl || !farmerBox || !transporterBox) return;
+
+            function toggle() {
+                const role = String(roleEl.value || '').toLowerCase();
+                farmerBox.style.display = role === 'farmer' ? 'block' : 'none';
+                transporterBox.style.display = role === 'transporter' ? 'block' : 'none';
+            }
+
+            roleEl.addEventListener('change', toggle);
+            toggle();
+        })();
+
         document.getElementById('updateUserForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            const errBox = document.getElementById('updateUserFormErrors');
+            if (errBox) {
+                errBox.style.display = 'none';
+                errBox.innerHTML = '';
+            }
             const formData = new FormData(this);
             try {
                 const response = await fetch('<?= ROOT ?>/adminDashboard/updateUser', {
@@ -4413,10 +4744,10 @@
 
         function getAnalyticsReportData() {
             return [
-                { metric: 'Total Revenue', value: document.getElementById('totalRevenue')?.textContent || 0 },
-                { metric: 'Total Orders', value: document.getElementById('totalOrders')?.textContent || 0 },
-                { metric: 'Total Users', value: document.getElementById('totalUsers')?.textContent || 0 },
-                { metric: 'Avg Order Value', value: document.getElementById('avgOrderValue')?.textContent || 0 },
+                { metric: 'Total Revenue', value: document.getElementById('analyticsTotalRevenue')?.textContent || 0 },
+                { metric: 'Total Orders', value: document.getElementById('analyticsTotalOrders')?.textContent || 0 },
+                { metric: 'Total Users', value: document.getElementById('analyticsTotalUsers')?.textContent || 0 },
+                { metric: 'Avg Order Value', value: document.getElementById('analyticsAvgOrderValue')?.textContent || 0 },
                 { metric: 'Total Transactions', value: document.getElementById('totalTransactions')?.textContent || 0 }
             ];
         }
