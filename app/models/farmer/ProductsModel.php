@@ -97,6 +97,21 @@ class ProductsModel
         return $this->write($sql, ['id' => $id, 'farmer_id' => $farmerId]);
     }
 
+    public function countOngoingOrders(int $productId, int $farmerId): int
+    {
+        $sql = "SELECT COUNT(*) AS cnt
+                FROM order_items oi
+                INNER JOIN orders o ON o.id = oi.order_id
+                WHERE oi.product_id = :product_id
+                  AND oi.farmer_id = :farmer_id
+                  AND o.status NOT IN ('delivered', 'cancelled')";
+        $rows = $this->query($sql, ['product_id' => $productId, 'farmer_id' => $farmerId]);
+        if (!is_array($rows) || empty($rows)) {
+            return 0;
+        }
+        return (int)($rows[0]->cnt ?? 0);
+    }
+
     public function getByFarmer(int $farmerId)
     {
         $sql = "SELECT * FROM {$this->table} WHERE farmer_id=:farmer_id ORDER BY created_at DESC";

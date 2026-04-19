@@ -30,10 +30,11 @@ class FarmerDashboardController
             }
         }
 
-        $pendingOrders = 0;
+        $activeOrders = 0;
         foreach ($farmerOrders as $order) {
-            if (strtolower((string)($order->status ?? '')) === 'pending') {
-                $pendingOrders++;
+            $status = strtolower((string)($order->status ?? ''));
+            if (!in_array($status, ['delivered', 'cancelled', 'pending_payment'], true)) {
+                $activeOrders++;
             }
         }
 
@@ -57,7 +58,7 @@ class FarmerDashboardController
             'contentView' => '../app/views/farmer/farmerDashboard.view.php',
             'pageScript' => 'farmerDashboard.js',
             'activeProducts' => $activeProducts,
-            'pendingOrders' => $pendingOrders,
+            'activeOrders' => $activeOrders,
             'monthlyEarnings' => $monthlyEarnings,
             'totalEarnings' => $totalEarnings,
             'runningDeliveries' => $runningDeliveries,

@@ -761,8 +761,6 @@ async function autoSelectCategoryForCrop(cropName) {
 function deleteProduct(id) {
     if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
 
-    showNotification('Deleting product...', 'info');
-
     fetch(`${API_BASE}/delete/${id}`, {
         method: 'POST',
         credentials: 'include'

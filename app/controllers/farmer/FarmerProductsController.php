@@ -597,6 +597,15 @@ class FarmerProductsController
             return;
         }
 
+        $ongoing = $this->productModel->countOngoingOrders($id, (int)authUserId());
+        if ($ongoing > 0) {
+            http_response_code(409);
+            echo json_encode([
+                'error' => 'Cannot delete this product while it has ' . $ongoing . ' ongoing order' . ($ongoing === 1 ? '' : 's') . '. Wait until they are delivered or cancelled.'
+            ]);
+            return;
+        }
+
         $ok = $this->productModel->deleteByFarmer($id, (int)authUserId());
         if ($ok) {
             if (!empty($product->image)) {

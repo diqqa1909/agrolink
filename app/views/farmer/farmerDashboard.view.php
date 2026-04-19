@@ -10,8 +10,8 @@
             <div class="stat-label">Active Products</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number"><?= (int)($pendingOrders ?? 0) ?></div>
-            <div class="stat-label">Pending Orders</div>
+            <div class="stat-number"><?= (int)($activeOrders ?? 0) ?></div>
+            <div class="stat-label">Active Orders</div>
         </div>
         <div class="stat-card">
             <div class="stat-number"><?= (int)($runningDeliveries ?? 0) ?></div>

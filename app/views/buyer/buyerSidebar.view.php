@@ -47,6 +47,16 @@
         }
     }
 
+    $wishlistCount = isset($wishlistCount) ? (int)$wishlistCount : 0;
+    if ($userId > 0 && $role === 'buyer') {
+        try {
+            $wishlistModel = new WishlistModel();
+            $wishlistCount = $wishlistModel->countByUser($userId);
+        } catch (Throwable $e) {
+            // Keep the controller-provided value if DB refresh fails.
+        }
+    }
+
     $notificationUnreadCount = isset($notificationUnreadCount) ? (int)$notificationUnreadCount : null;
     if ($notificationUnreadCount === null && $userId > 0 && $role === 'buyer') {
         try {
@@ -121,6 +131,7 @@
                             </svg>
                         </div>
                         Wishlist
+                        <span class="wishlist-badge <?= $wishlistCount > 0 ? '' : 'is-hidden' ?>"><?= $wishlistCount ?></span>
                     </a>
                 </li>
                 <li>

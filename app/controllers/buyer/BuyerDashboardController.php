@@ -54,12 +54,12 @@ class BuyerDashboardController
 
         // Calculate statistics
         $totalOrders = count($orders);
-        $pendingOrders = 0;
+        $ongoingDeliveries = 0;
         $totalSpent = 0;
 
         foreach ($orders as $order) {
-            if (in_array($order->status, ['pending_payment', 'processing', 'ready_for_pickup', 'shipped'], true)) {
-                $pendingOrders++;
+            if (in_array($order->status, ['processing', 'ready_for_pickup', 'shipped'], true)) {
+                $ongoingDeliveries++;
             }
             // Count only successfully paid orders toward spend.
             $paymentStatus = strtolower((string)($order->payment_status ?? 'pending'));
@@ -90,7 +90,7 @@ class BuyerDashboardController
             'orders' => $ordersWithItems,
             'trackingRows' => $trackingRows,
             'totalOrders' => $totalOrders,
-            'pendingOrders' => $pendingOrders,
+            'ongoingDeliveries' => $ongoingDeliveries,
             'totalSpent' => $totalSpent,
             'wishlistCount' => count($wishlistItems),
             'pageStyles' => 'dashboard.css',

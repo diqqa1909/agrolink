@@ -395,7 +395,8 @@ body {
   justify-content: center;
 }
 
-.cart-badge {
+.cart-badge,
+.wishlist-badge {
   background: var(--primary-color);
   color: var(--white);
   border-radius: 50%;
