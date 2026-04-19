@@ -84,58 +84,6 @@
     letter-spacing: 0.3px;
 }
 
-.buyer-orders-section .order-status.pending,
-.buyer-order-modal-status.pending {
-    background: #fff7e6;
-    color: #b54708;
-    border-color: #f7d7a1;
-}
-
-.buyer-orders-section .order-status.confirmed,
-.buyer-orders-section .order-status.accepted,
-.buyer-order-modal-status.confirmed,
-.buyer-order-modal-status.accepted {
-    background: #edf7ef;
-    color: #1f6f3d;
-    border-color: #b7dfc0;
-}
-
-.buyer-orders-section .order-status.processing,
-.buyer-orders-section .order-status.in_transit,
-.buyer-orders-section .order-status.shipped,
-.buyer-order-modal-status.processing,
-.buyer-order-modal-status.in_transit,
-.buyer-order-modal-status.shipped {
-    background: #f2f4f7;
-    color: #475467;
-    border-color: #d0d5dd;
-}
-
-.buyer-orders-section .order-status.delivered,
-.buyer-order-modal-status.delivered {
-    background: #dff6e7;
-    color: #166534;
-    border-color: #b7e4c7;
-}
-
-.buyer-orders-section .order-status.cancelled,
-.buyer-orders-section .order-status.canceled,
-.buyer-order-modal-status.cancelled,
-.buyer-order-modal-status.canceled {
-    background: #fee4e2;
-    color: #b42318;
-    border-color: #fecdca;
-}
-
-.buyer-orders-section .order-status.failed,
-.buyer-orders-section .order-status.returned,
-.buyer-order-modal-status.failed,
-.buyer-order-modal-status.returned {
-    background: #f2f4f7;
-    color: #475467;
-    border-color: #d0d5dd;
-}
-
 .buyer-orders-placed-date {
     color: #666;
     font-size: 0.9rem;

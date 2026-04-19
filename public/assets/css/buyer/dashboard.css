@@ -30,35 +30,6 @@
   letter-spacing: 0.4px;
 }
 
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.pending {
-  background: #fff3cd;
-  color: #8a6d1a;
-}
-
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.confirmed,
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.accepted {
-  background: #edf7ef;
-  color: #1f6f3d;
-}
-
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.processing,
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.in_transit,
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.shipped {
-  background: #f2f4f7;
-  color: #475467;
-}
-
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.delivered {
-  background: #d1fadf;
-  color: #166534;
-}
-
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.cancelled,
-.buyer-dashboard-overview .buyer-dashboard-recent-orders-card .order-status.canceled {
-  background: #fee4e2;
-  color: #b42318;
-}
-
 .buyer-dashboard-overview .buyer-dashboard-quick-actions-grid {
   display: flex;
   width: 100%;

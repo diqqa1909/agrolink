@@ -142,26 +142,6 @@
     background: currentColor;
 }
 
-.crop-request-status--active {
-    background: #fff8e1;
-    color: #b26a00;
-}
-
-.crop-request-status--accepted {
-    background: #e6f4ea;
-    color: #1e7e34;
-}
-
-.crop-request-status--declined {
-    background: #fdecea;
-    color: #c62828;
-}
-
-.crop-request-status--completed {
-    background: #eceff1;
-    color: #455a64;
-}
-
 .crop-request-actions-group {
     display: inline-flex;
     gap: 6px;
