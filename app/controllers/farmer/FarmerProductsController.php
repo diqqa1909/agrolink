@@ -608,12 +608,6 @@ class FarmerProductsController
 
         $ok = $this->productModel->deleteByFarmer($id, (int)authUserId());
         if ($ok) {
-            if (!empty($product->image)) {
-                $imagePath = $this->getProductImageDirectory() . $product->image;
-                if (is_file($imagePath)) {
-                    @unlink($imagePath);
-                }
-            }
             echo json_encode(['success' => true, 'message' => 'Product deleted']);
         } else {
             http_response_code(500);

@@ -7,6 +7,7 @@ class OrderModel
     protected $table = 'orders';
     protected $orderItemsTable = 'order_items';
     private $hasOrderItemPickupAddressColumn = null;
+    private $hasProductDeletedAtColumn = null;
 
     private function supportsOrderItemPickupAddress(): bool
     {
@@ -17,6 +18,17 @@ class OrderModel
         $result = $this->query("SHOW COLUMNS FROM {$this->orderItemsTable} LIKE 'product_full_address'");
         $this->hasOrderItemPickupAddressColumn = is_array($result) && !empty($result);
         return $this->hasOrderItemPickupAddressColumn;
+    }
+
+    private function supportsProductSoftDelete(): bool
+    {
+        if ($this->hasProductDeletedAtColumn !== null) {
+            return $this->hasProductDeletedAtColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM products LIKE 'deleted_at'");
+        $this->hasProductDeletedAtColumn = is_array($result) && !empty($result);
+        return $this->hasProductDeletedAtColumn;
     }
 
     /**
@@ -124,6 +136,9 @@ class OrderModel
     {
         // First check current quantity
         $sql = "SELECT quantity FROM products WHERE id = :product_id";
+        if ($this->supportsProductSoftDelete()) {
+            $sql .= " AND deleted_at IS NULL";
+        }
         $current = $this->get_row($sql, ['product_id' => $productId]);
 
         if (!$current) {
@@ -134,6 +149,9 @@ class OrderModel
         $newQuantity = max(0, $currentQuantity - $quantity);
 
         $sql = "UPDATE products SET quantity = :new_quantity WHERE id = :product_id";
+        if ($this->supportsProductSoftDelete()) {
+            $sql .= " AND deleted_at IS NULL";
+        }
         return $this->write($sql, ['product_id' => $productId, 'new_quantity' => $newQuantity]);
     }
 
@@ -148,6 +166,9 @@ class OrderModel
         foreach ($items as $item) {
             // Increment quantity directly
             $sql = "UPDATE products SET quantity = quantity + :qty WHERE id = :id";
+            if ($this->supportsProductSoftDelete()) {
+                $sql .= " AND deleted_at IS NULL";
+            }
             $result = $this->write($sql, ['qty' => $item->quantity, 'id' => $item->product_id]);
 
             if ($result === false) {
