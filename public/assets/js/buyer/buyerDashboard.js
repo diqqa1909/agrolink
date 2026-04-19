@@ -601,7 +601,7 @@ function recalculateCartTotal() {
 }
 
 function proceedToCheckout() {
-    window.location.href = window.APP_ROOT + '/Checkout';
+    window.location.href = window.APP_ROOT + '/Checkout?cart=1';
 }
 
 function addToWishlist(productId, evt) {

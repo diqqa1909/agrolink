@@ -149,7 +149,7 @@ class FarmerProductsController
             } elseif (!is_numeric($quantity) || $quantity < 10) {
                 $errors['quantity'] = 'Minimum quantity is 10kg';
             }
-            if (empty($location)) {
+            if (empty($location) || $location === 'auto') {
                 // If using new dropdowns, construct location string.
                 // Some districts may have no towns; in that case district-only location is valid.
                 $districtId = $_POST['district_id'] ?? '';
