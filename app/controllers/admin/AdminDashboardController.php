@@ -18,20 +18,23 @@ class AdminDashboardController
         $data = [];
         $user = new UserModel;
         $verificationDoc = new VerificationDocumentModel;
-        /* if(!isset($_SESSION['USER']) || $_SESSION['USER']->role !== 'admin'){
-            $data['username'] = $_SESSION['USER']->name;
-        } */
-        $data['users'] = $user->findAll();
-        if (!empty($_SESSION['USER'])) {
-            $data['username'] = $_SESSION['USER']->name;
-            $data['farmers'] = count($user->where(['role' => 'farmer'], []));
-            $data['buyers'] = count($user->where(['role' => 'buyer'], []));
-            $data['transporters'] = count($user->where(['role' => 'transporter'], []));
-            $data['admins'] = count($user->where(['role' => 'admin'], []));
-            $data['orders'] = $this->getActiveOrdersCount();
-            /* $result = $user->delete(2); */
-            /* show($result); */
-        }
+        requireRole(['admin', 'superadmin']);
+
+        $data['role'] = authUserRole();
+        $data['username'] = authUserName();
+
+        $data['users'] = $user->findAll() ?: [];
+
+        $farmers = $user->where(['role' => 'farmer'], []);
+        $buyers = $user->where(['role' => 'buyer'], []);
+        $transporters = $user->where(['role' => 'transporter'], []);
+        $admins = $user->where(['role' => 'admin'], []);
+
+        $data['farmers'] = is_array($farmers) ? count($farmers) : 0;
+        $data['buyers'] = is_array($buyers) ? count($buyers) : 0;
+        $data['transporters'] = is_array($transporters) ? count($transporters) : 0;
+        $data['admins'] = is_array($admins) ? count($admins) : 0;
+        $data['orders'] = $this->getActiveOrdersCount();
 
         $data['verifications'] = $verificationDoc->getAllVerificationsWithDocuments();
 
@@ -1426,6 +1429,173 @@ class AdminDashboardController
             ]);
         } catch (Exception $e) {
             error_log("Error in getProductDetails: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    public function getVehicles()
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireAdminJson()) {
+            exit;
+        }
+
+        try {
+            $db = $this->connect();
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            $search = trim((string)($input['search'] ?? ''));
+            $status = strtolower(trim((string)($input['status'] ?? '')));
+
+            $query = "
+                SELECT
+                    v.id,
+                    v.transporter_id,
+                    u.name AS transporter_name,
+                    u.email AS transporter_email,
+                    v.registration,
+                    v.type,
+                    v.vehicle_type_id,
+                    vt.vehicle_name AS vehicle_type_name,
+                    v.capacity,
+                    v.fuel_type,
+                    v.model,
+                    v.status,
+                    v.created_at
+                FROM vehicles v
+                JOIN users u ON u.id = v.transporter_id
+                LEFT JOIN vehicle_types vt ON vt.id = v.vehicle_type_id
+                WHERE 1=1
+            ";
+
+            $params = [];
+
+            if ($search !== '') {
+                $query .= " AND (v.registration LIKE :search OR u.name LIKE :search OR u.email LIKE :search)";
+                $params[':search'] = "%{$search}%";
+            }
+
+            if ($status !== '') {
+                $allowed = ['active', 'inactive'];
+                if (in_array($status, $allowed, true)) {
+                    $query .= " AND v.status = :status";
+                    $params[':status'] = $status;
+                }
+            }
+
+            $query .= " ORDER BY v.created_at DESC";
+
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
+            $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $vehicles ?: [],
+            ]);
+        } catch (Exception $e) {
+            error_log("Error in getVehicles: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    public function getReviews()
+    {
+        header('Content-Type: application/json');
+        if (!$this->requireAdminJson()) {
+            exit;
+        }
+
+        try {
+            $db = $this->connect();
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            $search = trim((string)($input['search'] ?? ''));
+            $targetRole = strtolower(trim((string)($input['target_role'] ?? '')));
+            $ratingFilter = trim((string)($input['rating'] ?? ''));
+
+            $where = "WHERE 1=1";
+            $params = [];
+
+            if ($search !== '') {
+                $where .= " AND (
+                        CAST(r.id AS CHAR) LIKE :search
+                        OR CAST(r.order_id AS CHAR) LIKE :search
+                        OR b.name LIKE :search
+                        OR b.email LIKE :search
+                        OR t.name LIKE :search
+                        OR t.email LIKE :search
+                        OR p.name LIKE :search
+                        OR r.comment LIKE :search
+                    )";
+                $params[':search'] = "%{$search}%";
+            }
+
+            if (in_array($targetRole, ['farmer', 'transporter'], true)) {
+                $where .= " AND t.role = :target_role";
+                $params[':target_role'] = $targetRole;
+            }
+
+            if ($ratingFilter !== '') {
+                if ($ratingFilter === 'complaint') {
+                    $where .= " AND r.rating <= 2";
+                } elseif (ctype_digit($ratingFilter)) {
+                    $rating = (int)$ratingFilter;
+                    if ($rating >= 1 && $rating <= 5) {
+                        $where .= " AND r.rating = :rating";
+                        $params[':rating'] = $rating;
+                    }
+                }
+            }
+
+            $query = "
+                SELECT
+                    r.*,
+                    p.name AS product_name,
+                    p.image AS product_image,
+                    b.name AS buyer_name,
+                    b.email AS buyer_email,
+                    t.name AS target_name,
+                    t.email AS target_email,
+                    t.role AS target_role
+                FROM reviews r
+                LEFT JOIN products p ON p.id = r.product_id
+                JOIN users b ON b.id = r.buyer_id
+                JOIN users t ON t.id = r.farmer_id
+                {$where}
+                ORDER BY r.created_at DESC
+            ";
+
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            $total = count($rows);
+            $sum = 0;
+            $complaints = 0;
+            foreach ($rows as $r) {
+                $rating = (int)($r['rating'] ?? 0);
+                $sum += $rating;
+                if ($rating > 0 && $rating <= 2) {
+                    $complaints++;
+                }
+            }
+
+            $avg = $total > 0 ? round($sum / $total, 2) : 0;
+
+            echo json_encode([
+                'success' => true,
+                'data' => $rows,
+                'stats' => [
+                    'total_reviews' => $total,
+                    'avg_rating' => $avg,
+                    'complaints' => $complaints,
+                ],
+            ]);
+        } catch (Exception $e) {
+            error_log("Error in getReviews: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         exit;

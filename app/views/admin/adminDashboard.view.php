@@ -91,6 +91,28 @@
                         </div>
                         Products
                     </a></li>
+                <li><a href="#vehicles" class="menu-link" data-section="vehicles">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 17h18" />
+                                <path d="M5 17l1-5h12l1 5" />
+                                <path d="M7 12l2-6h6l2 6" />
+                                <circle cx="7" cy="17" r="2" />
+                                <circle cx="17" cy="17" r="2" />
+                            </svg>
+                        </div>
+                        Vehicles
+                    </a></li>
+                <li><a href="#reviews" class="menu-link" data-section="reviews">
+                        <div class="menu-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                                <path d="M7 9h10" />
+                                <path d="M7 13h6" />
+                            </svg>
+                        </div>
+                        Reviews
+                    </a></li>
                 <li><a href="#payments" class="menu-link" data-section="payments">
                         <div class="menu-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -162,7 +184,7 @@
                         <div class="stat-label">Active Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="totalRevenue">Rs. 0</div>
+                        <div class="stat-number" id="dashboardTotalRevenue">Rs. 0</div>
                         <div class="stat-label">Total Revenue</div>
                     </div>
                 </div>
@@ -177,22 +199,22 @@
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; padding: 20px;">
                             <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
                                 <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;"
-                                    id="farmerCount"><?php show($farmers); ?></div>
+                                    id="farmerCount"><?= (int)($farmers ?? 0) ?></div>
                                 <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Farmers</div>
                             </div>
                             <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
                                 <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;"
-                                    id="buyerCount"><?php show($buyers); ?></div>
+                                    id="buyerCount"><?= (int)($buyers ?? 0) ?></div>
                                 <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Buyers</div>
                             </div>
                             <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
                                 <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;"
-                                    id="transporterCount"><?php show($transporters); ?></div>
+                                    id="transporterCount"><?= (int)($transporters ?? 0) ?></div>
                                 <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Transporters</div>
                             </div>
                             <div style="text-align: center; padding: 24px; background: #f5f5f5; border-radius: 12px;">
                                 <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 8px;"
-                                    id="adminCount"><?php show($admins); ?></div>
+                                    id="adminCount"><?= (int)($admins ?? 0) ?></div>
                                 <div style="font-size: 1rem; color: #2c3e50; font-weight: 600;">Admins</div>
                             </div>
                         </div>
@@ -556,6 +578,133 @@
                         <tbody id="productsTableBody">
                             <tr>
                                 <td colspan="8" style="text-align:center;padding:2rem;">Loading products...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vehicles -->
+            <div id="vehicles-section" class="content-section" style="display: none;">
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Vehicles</h1>
+                        <p class="content-subtitle">View all registered transporter vehicles.</p>
+                    </div>
+                </div>
+
+                <div class="filters" style="margin-top: var(--spacing-xl);">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="vehicleSearch">Search Vehicles</label>
+                            <input type="text" id="vehicleSearch" class="form-control"
+                                placeholder="Search by registration, transporter name, or email...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="vehicleStatusFilter">Status</label>
+                            <select id="vehicleStatusFilter" class="form-control">
+                                <option value="">All</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: var(--spacing-xl);">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle ID</th>
+                                <th>Transporter</th>
+                                <th>Registration</th>
+                                <th>Type</th>
+                                <th>Capacity</th>
+                                <th>Fuel</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                                <th>Added</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehiclesTableBody">
+                            <tr>
+                                <td colspan="9" style="text-align:center;padding:2rem;">Loading vehicles...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div id="reviews-section" class="content-section" style="display: none;">
+                <div class="content-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h1 class="content-title">Reviews</h1>
+                        <p class="content-subtitle">All buyer reviews and complaints for farmers and transporters.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="reviewsTotalCount">0</div>
+                        <div class="stat-label">Total Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="reviewsAvgRating">0</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="reviewsComplaints">0</div>
+                        <div class="stat-label">Complaints (≤2★)</div>
+                    </div>
+                </div>
+
+                <div class="filters" style="margin-top: var(--spacing-xl);">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="reviewSearch">Search Reviews</label>
+                            <input type="text" id="reviewSearch" class="form-control"
+                                placeholder="Search by buyer, target, product, order, or comment...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="reviewTargetRoleFilter">Target Role</label>
+                            <select id="reviewTargetRoleFilter" class="form-control">
+                                <option value="">All</option>
+                                <option value="farmer">Farmer</option>
+                                <option value="transporter">Transporter</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="reviewRatingFilter">Rating</label>
+                            <select id="reviewRatingFilter" class="form-control">
+                                <option value="">All</option>
+                                <option value="5">5 stars</option>
+                                <option value="4">4 stars</option>
+                                <option value="3">3 stars</option>
+                                <option value="2">2 stars</option>
+                                <option value="1">1 star</option>
+                                <option value="complaint">Complaints (≤2★)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: var(--spacing-xl);">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Review ID</th>
+                                <th>Date</th>
+                                <th>Buyer</th>
+                                <th>Target</th>
+                                <th>Product</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewsTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align:center;padding:2rem;">Loading reviews...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1463,11 +1612,15 @@
             loadVerifications();
             loadOrders();
             loadProducts();
+            loadVehicles();
+            loadReviews();
             loadAnalytics();
             loadPayments();
             loadDisputes();
             setupOrderFilters();
             setupProductFilters();
+            setupVehicleFilters();
+            setupReviewFilters();
             setupPaymentFilters();
             setupDisputeFilters();
             setupNavigation();
@@ -3092,6 +3245,197 @@
         }
         */
 
+        // ============ VEHICLES TAB FUNCTIONS ============
+
+        window.allVehicles = [];
+
+        async function loadVehicles() {
+            const tbody = document.getElementById('vehiclesTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">Loading vehicles...</td></tr>';
+
+            try {
+                const search = document.getElementById('vehicleSearch')?.value || '';
+                const status = document.getElementById('vehicleStatusFilter')?.value || '';
+
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getVehicles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ search, status })
+                });
+
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) {
+                    const msg = result.message || result.error || response.statusText || 'Failed to load vehicles';
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
+                    return;
+                }
+
+                window.allVehicles = result.data || [];
+                displayVehicles(window.allVehicles);
+            } catch (error) {
+                console.error('Error loading vehicles:', error);
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:red;">Failed to load vehicles. Please try again.</td></tr>';
+            }
+        }
+
+        function displayVehicles(vehicles) {
+            const tbody = document.getElementById('vehiclesTableBody');
+            if (!tbody) return;
+
+            if (!vehicles || vehicles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#aaa;">No vehicles found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            vehicles.forEach(v => {
+                const status = String(v.status || '').toLowerCase();
+                const statusClass = status === 'active' ? 'badge-success' : (status === 'inactive' ? 'badge-secondary' : 'badge-secondary');
+                const typeLabel = v.vehicle_type_name || v.type || 'N/A';
+
+                html += `
+                <tr>
+                    <td><strong>${escapeHtml(String(v.id ?? ''))}</strong></td>
+                    <td>
+                        ${escapeHtml(String(v.transporter_name || 'N/A'))}<br>
+                        <small style="color:#888;">${escapeHtml(String(v.transporter_email || ''))}</small>
+                    </td>
+                    <td>${escapeHtml(String(v.registration || 'N/A'))}</td>
+                    <td>${escapeHtml(String(typeLabel))}</td>
+                    <td>${escapeHtml(String(v.capacity ?? ''))}</td>
+                    <td>${escapeHtml(String(v.fuel_type || ''))}</td>
+                    <td>${escapeHtml(String(v.model || ''))}</td>
+                    <td><span class="badge ${statusClass}" style="text-transform:capitalize;">${escapeHtml(status || 'n/a')}</span></td>
+                    <td>${formatDate(v.created_at)}</td>
+                </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function setupVehicleFilters() {
+            const searchEl = document.getElementById('vehicleSearch');
+            const statusEl = document.getElementById('vehicleStatusFilter');
+
+            if (searchEl) {
+                let timeout;
+                searchEl.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => loadVehicles(), 400);
+                });
+            }
+
+            if (statusEl) {
+                statusEl.addEventListener('change', () => loadVehicles());
+            }
+        }
+
+        // ============ REVIEWS TAB FUNCTIONS ============
+
+        window.allReviews = [];
+
+        async function loadReviews() {
+            const tbody = document.getElementById('reviewsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading reviews...</td></tr>';
+
+            try {
+                const search = document.getElementById('reviewSearch')?.value || '';
+                const target_role = document.getElementById('reviewTargetRoleFilter')?.value || '';
+                const rating = document.getElementById('reviewRatingFilter')?.value || '';
+
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getReviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ search, target_role, rating })
+                });
+
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) {
+                    const msg = result.message || result.error || response.statusText || 'Failed to load reviews';
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
+                    return;
+                }
+
+                // Stats
+                const stats = result.stats || {};
+                const totalEl = document.getElementById('reviewsTotalCount');
+                if (totalEl) totalEl.textContent = stats.total_reviews ?? 0;
+                const avgEl = document.getElementById('reviewsAvgRating');
+                if (avgEl) avgEl.textContent = stats.avg_rating ?? 0;
+                const compEl = document.getElementById('reviewsComplaints');
+                if (compEl) compEl.textContent = stats.complaints ?? 0;
+
+                window.allReviews = result.data || [];
+                displayReviews(window.allReviews);
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load reviews. Please try again.</td></tr>';
+            }
+        }
+
+        function displayReviews(reviews) {
+            const tbody = document.getElementById('reviewsTableBody');
+            if (!tbody) return;
+
+            if (!reviews || reviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#aaa;">No reviews found.</td></tr>';
+                return;
+            }
+
+            const stars = (n) => {
+                const rating = Math.max(0, Math.min(5, Number(n || 0)));
+                const filled = '★'.repeat(rating);
+                const empty = '☆'.repeat(5 - rating);
+                return filled + empty;
+            };
+
+            let html = '';
+            reviews.forEach(r => {
+                const buyer = r.buyer_name ? `${escapeHtml(r.buyer_name)}<br><small style="color:#888;">${escapeHtml(r.buyer_email || '')}</small>` : 'N/A';
+                const targetRole = String(r.target_role || '').toLowerCase();
+                const target = r.target_name ? `${escapeHtml(r.target_name)}<br><small style="color:#888;">${escapeHtml(targetRole || '')}</small>` : 'N/A';
+                const product = escapeHtml(String(r.product_name || r.order_item_name || 'N/A'));
+                const commentRaw = String(r.comment || '');
+                const comment = commentRaw.length > 120 ? `${escapeHtml(commentRaw.slice(0, 120))}...` : escapeHtml(commentRaw || '—');
+                const rating = Number(r.rating || 0);
+
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(String(r.id ?? ''))}</strong></td>
+                        <td>${formatDate(r.created_at)}</td>
+                        <td>${buyer}</td>
+                        <td>${target}</td>
+                        <td>${product}</td>
+                        <td title="${rating}">${escapeHtml(stars(rating))}</td>
+                        <td>${comment}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function setupReviewFilters() {
+            const searchEl = document.getElementById('reviewSearch');
+            const roleEl = document.getElementById('reviewTargetRoleFilter');
+            const ratingEl = document.getElementById('reviewRatingFilter');
+
+            if (searchEl) {
+                let timeout;
+                searchEl.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => loadReviews(), 400);
+                });
+            }
+            if (roleEl) roleEl.addEventListener('change', () => loadReviews());
+            if (ratingEl) ratingEl.addEventListener('change', () => loadReviews());
+        }
+
         // Analytics functions
         let revenueChart = null;
         let userGrowthChart = null;
@@ -3352,7 +3696,10 @@
 
                 // Update statistics
                 if (result.stats) {
-                    document.getElementById('totalRevenue').textContent = `Rs. ${(result.stats.total_revenue || 0).toLocaleString()}`;
+                    const totalRevenueText = `Rs. ${(result.stats.total_revenue || 0).toLocaleString()}`;
+                    document.getElementById('totalRevenue').textContent = totalRevenueText;
+                    const dashRevenueEl = document.getElementById('dashboardTotalRevenue');
+                    if (dashRevenueEl) dashRevenueEl.textContent = totalRevenueText;
                     document.getElementById('totalTransactions').textContent = result.stats.total_transactions || 0;
                     document.getElementById('platformCommission').textContent = `Rs. ${(result.stats.platform_commission || 0).toLocaleString()}`;
                     document.getElementById('avgPaymentAmount').textContent = `Rs. ${Math.round(result.stats.avg_payment_amount || 0).toLocaleString()}`;
@@ -4752,7 +5099,7 @@
                 { metric: 'Admins', value: document.getElementById('adminCount')?.textContent || 0 },
                 { metric: 'Pending Verifications', value: document.getElementById('vPendingCount')?.textContent || 0 },
                 { metric: 'Active Orders', value: document.getElementById('activeOrders')?.textContent || 0 },
-                { metric: 'Total Revenue', value: document.getElementById('totalRevenue')?.textContent || 0 }
+                { metric: 'Total Revenue', value: document.getElementById('dashboardTotalRevenue')?.textContent || 0 }
             ];
             return metrics;
         }
