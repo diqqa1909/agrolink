@@ -27,17 +27,6 @@
       justify-content: center;
     }
 
-    .step-new:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      top: 30%;
-      left: 67%;
-      width: 19%;
-      height: 1px;
-      background: #ddd;
-      z-index: 0;
-    }
-
     .step-circle {
       width: 28px;
       height: 28px;
@@ -72,6 +61,34 @@
       color: #888;
       margin-top: 4px;
       display: block;
+    }
+
+    .btn-primary {
+      background-color: #28a745 !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      padding: 12px 24px !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    .btn-secondary {
+      background-color: #dadada !important;
+      color: #28a745 !important;
+      border: none !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      padding: 12px 24px !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
     }
 
     .form-step {
@@ -191,10 +208,12 @@
 <body>
   <div class="split-container">
     <!-- Left panel -->
-    <div class="split-left" style="background:url('<?= ROOT ?>/assets/imgs/registerpage/register5.jpg') center/cover no-repeat;">
+    <div class="split-left"
+      style="background:url('<?= ROOT ?>/assets/imgs/registerpage/register5.jpg') center/cover no-repeat;">
       <span class="quote-icon">&ldquo;</span>
       <div class="split-left-content">
-        <p>The best produce comes straight from the source.<br>AgroLink connects you to Sri Lanka's freshest harvests.</p>
+        <p>The best produce comes straight from the source.<br>AgroLink connects you to Sri Lanka's freshest harvests.
+        </p>
       </div>
     </div>
 
@@ -239,12 +258,14 @@
             </div>
             <div class="form-group">
               <label for="password">Password</label>
-              <input type="password" id="password" name="password" class="form-control" placeholder="Minimum 8 characters" />
+              <input type="password" id="password" name="password" class="form-control"
+                placeholder="Minimum 8 characters" />
               <div class="field-error" id="err-pass">Password must be at least 8 characters.</div>
             </div>
             <div class="form-group">
               <label for="confirm_password">Confirm password</label>
-              <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" />
+              <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                placeholder="Repeat password" />
               <div class="field-error" id="err-confirm">Passwords do not match.</div>
             </div>
             <div class="nav-row">
@@ -278,7 +299,7 @@
             <div id="role-note" style="display:none; margin-top:10px; font-size:12px; color:#555;"></div>
 
             <div class="nav-row">
-              <button type="button" class="btn btn-back" onclick="prevStep(2)">← Back</button>
+              <button type="button" class="btn btn-back btn-secondary" onclick="prevStep(2)">← Back</button>
               <button type="button" class="btn btn-primary btn-next" onclick="nextStep(2)">Next →</button>
             </div>
           </div>
@@ -288,12 +309,14 @@
 
             <!-- Buyer: no docs -->
             <div id="docs-buyer" style="display:none;">
-              <div class="info-box">No documents required. Your account will be activated immediately after registration.</div>
+              <div class="info-box">No documents required. Your account will be activated immediately after
+                registration.</div>
             </div>
 
             <!-- Farmer docs -->
             <div id="docs-farmer" style="display:none;">
-              <div class="info-box">Your documents will be reviewed within 1–2 business days before your listings go live.</div>
+              <div class="info-box">Your documents will be reviewed within 1–2 business days before your listings go
+                live.</div>
               <div class="upload-box">
                 <label>National Identity Card (NIC) <span class="badge-req">Required</span></label>
                 <div class="upload-hint">Upload a clear photo or scan — front side.</div>
@@ -322,12 +345,13 @@
               <div class="upload-box">
                 <label>Vehicle revenue license <span class="badge-req">Required</span></label>
                 <div class="upload-hint">Current year revenue license.</div>
-                <input type="file" name="vehicle_revenue_license" accept="image/jpeg,image/png,image/webp,application/pdf" />
+                <input type="file" name="vehicle_revenue_license"
+                  accept="image/jpeg,image/png,image/webp,application/pdf" />
               </div>
             </div>
 
             <div class="nav-row">
-              <button type="button" class="btn btn-back" onclick="prevStep(3)">← Back</button>
+              <button type="button" class="btn btn-back btn-secondary" onclick="prevStep(3)">← Back</button>
               <button type="submit" class="btn btn-primary btn-next">Create account</button>
             </div>
           </div>
@@ -429,9 +453,9 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('registerForm');
-      form.addEventListener('submit', function(e) {
+      form.addEventListener('submit', function (e) {
         if (!validateStep1() || !validateStep2()) {
           e.preventDefault();
           if (!validateStep1()) showStep(1);

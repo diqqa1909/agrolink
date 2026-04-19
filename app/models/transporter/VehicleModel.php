@@ -77,6 +77,8 @@ class VehicleModel
 
         if (empty($data['registration'])) {
             $this->errors['registration'] = "Registration number is required";
+        } else if (!preg_match('/^[A-Z]{2,3} \d{4}$/', $data['registration'])) {
+            $this->errors['registration'] = "Registration must be 2 or 3 capital letters, a space, and 4 numbers (e.g. AB 1234)";
         }
 
         // Capacity is now automatically set based on vehicle type

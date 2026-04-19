@@ -12,15 +12,15 @@
             <div class="stat-label">Available Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="activeDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->active_deliveries : 0; ?></div>
+            <div class="stat-number" id="activeDeliveries"><?php echo isset($earningsSummary) ? (int)($earningsSummary->active_deliveries ?? 0) : 0; ?></div>
             <div class="stat-label">Active Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="monthlyEarnings">Rs. <?php echo isset($earningsSummary) ? number_format($earningsSummary->month_earnings, 2) : '0.00'; ?></div>
+            <div class="stat-number" id="monthlyEarnings">Rs. <?php echo isset($earningsSummary) ? number_format((float)($earningsSummary->month_earnings ?? 0), 2) : '0.00'; ?></div>
             <div class="stat-label">This Month</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" id="completedDeliveries"><?php echo isset($earningsSummary) ? $earningsSummary->completed_deliveries : 0; ?></div>
+            <div class="stat-number" id="completedDeliveries"><?php echo isset($earningsSummary) ? (int)($earningsSummary->completed_deliveries ?? 0) : 0; ?></div>
             <div class="stat-label">Completed</div>
         </div>
     </div>
@@ -34,25 +34,50 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
-                        <div id="statusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #4CAF50;"></div>
-                        <span style="font-weight: 600;">Status: <span id="currentStatus">Available</span></span>
-                    </div>
-                    <div style="margin-bottom: 18px; color: #666;">
-                        <strong>Current Location:</strong> <span id="currentLocation">-</span>
+                        <?php 
+                            $status = $profile->availability ?? 'available';
+                            $statusText = ($status === 'available') ? 'Available' : 'Offline';
+                            $statusColor = ($status === 'available') ? '#4CAF50' : '#f44336';
+                        ?>
+                        <div id="statusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: <?= $statusColor ?>;"></div>
+                        <span style="font-weight: 600;">Status: <span id="currentStatus"><?= $statusText ?></span></span>
                     </div>
                     <div style="margin-bottom: 18px; color: #666;" id="activeVehicleInfo">
-                        <strong>Vehicle:</strong> <span id="activeVehicle">Loading...</span>
+                        <strong>Vehicle:</strong> <span id="activeVehicle">
+                            <?php 
+                                $activeVehicleText = 'No active vehicle';
+                                if (isset($vehicles) && is_array($vehicles)) {
+                                    foreach ($vehicles as $v) {
+                                        if ($v->status === 'active') {
+                                            $activeVehicleText = htmlspecialchars($v->model ?: $v->type) . ' (' . htmlspecialchars($v->registration) . ')';
+                                            break;
+                                        }
+                                    }
+                                }
+                                echo $activeVehicleText;
+                            ?>
+                        </span>
+                    </div>
+                    <div style="margin-bottom: 18px; color: #666;">
+                        <strong>Current Orders:</strong> <span id="currentOrders">
+                            <?php
+                                $inTransit = $earningsSummary->in_transit_deliveries ?? 0;
+                                echo $inTransit > 0 ? $inTransit . ' orders' : 'No active orders';
+                            ?>
+                        </span>
                     </div>
                     <div style="color: #666;">
-                        <strong>Next Delivery:</strong> <span id="nextDelivery">No pending deliveries</span>
+                        <strong>Next Orders:</strong> <span id="nextOrders">
+                            <?php
+                                $accepted = $earningsSummary->accepted_deliveries ?? 0;
+                                echo $accepted > 0 ? $accepted . ' orders' : 'No pending orders';
+                            ?>
+                        </span>
                     </div>
                 </div>
                 <div>
                     <button class="btn btn-primary btn-block btn-stack" onclick="toggleAvailability()">
-                        <span id="availabilityBtn">Go Offline</span>
-                    </button>
-                    <button class="btn btn-secondary btn-block btn-stack" onclick="updateLocation()">
-                        Update Location
+                        <span id="availabilityBtn"><?= ($status === 'available') ? 'Go Offline' : 'Go Online' ?></span>
                     </button>
                     <button class="btn btn-outline btn-block" onclick="TransporterDashboard.showSection('available-deliveries')">
                         Find Deliveries
@@ -99,7 +124,6 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                 <button class="btn btn-primary btn-no-margin" onclick="TransporterDashboard.showSection('available-deliveries')">Find Deliveries</button>
                 <button class="btn btn-secondary btn-no-margin" onclick="TransporterDashboard.showSection('mydeliveries')">My Deliveries</button>
-                <button class="btn btn-outline btn-no-margin" onclick="TransporterDashboard.showSection('schedule')">View Schedule</button>
                 <button class="btn btn-outline btn-no-margin" onclick="TransporterDashboard.showSection('vehicle')">Vehicle Info</button>
             </div>
         </div>

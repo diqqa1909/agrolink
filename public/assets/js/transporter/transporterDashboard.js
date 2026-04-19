@@ -86,6 +86,16 @@ function updateDashboardStats(earnings) {
         const count = earnings.active_deliveries || 0;
         weeklyPendingDeliveries.textContent = `${count} ${count === 1 ? 'delivery' : 'deliveries'} pending`;
     }
+
+    const currentOrders = document.getElementById('currentOrders');
+    if (currentOrders && earnings.in_transit_deliveries !== undefined) {
+        currentOrders.textContent = earnings.in_transit_deliveries > 0 ? earnings.in_transit_deliveries + ' orders' : 'No active orders';
+    }
+
+    const nextOrders = document.getElementById('nextOrders');
+    if (nextOrders && earnings.accepted_deliveries !== undefined) {
+        nextOrders.textContent = earnings.accepted_deliveries > 0 ? earnings.accepted_deliveries + ' orders' : 'No pending orders';
+    }
 }
 
 function displayRecentDeliveries(deliveries) {
@@ -135,27 +145,38 @@ function loadRecentDeliveries() {
 }
 
 function toggleAvailability() {
-    const btn = document.getElementById('availabilityBtn');
-    const status = document.getElementById('currentStatus');
-    const indicator = document.getElementById('statusIndicator');
+    fetch(getBaseUrl() + '/transporterdashboard/toggleAvailability', {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const btn = document.getElementById('availabilityBtn');
+            const status = document.getElementById('currentStatus');
+            const indicator = document.getElementById('statusIndicator');
 
-    if (!btn || !status || !indicator) return;
+            if (!btn || !status || !indicator) return;
 
-    if (status.textContent === 'Available') {
-        status.textContent = 'Offline';
-        btn.textContent = 'Go Online';
-        indicator.style.background = '#f44336';
-        showNotification('You are now offline', 'info');
-    } else {
-        status.textContent = 'Available';
-        btn.textContent = 'Go Offline';
-        indicator.style.background = '#4CAF50';
-        showNotification('You are now available for deliveries', 'success');
-    }
-}
-
-function updateLocation() {
-    showNotification('Location updated successfully', 'success');
+            if (data.newStatus === 'available') {
+                status.textContent = 'Available';
+                btn.textContent = 'Go Offline';
+                indicator.style.background = '#4CAF50';
+                showNotification('You are now available for deliveries', 'success');
+            } else {
+                status.textContent = 'Offline';
+                btn.textContent = 'Go Online';
+                indicator.style.background = '#f44336';
+                showNotification('You are now offline', 'info');
+            }
+        } else {
+            showNotification(data.message || 'Failed to change status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling availability:', error);
+        showNotification('Failed to change status. Please try again.', 'error');
+    });
 }
 
 function redirectForSection(sectionName) {

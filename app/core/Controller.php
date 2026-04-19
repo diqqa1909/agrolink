@@ -47,8 +47,24 @@ trait Controller
         $status = $_SESSION['verification_status'] ?? null;
         $role = $_SESSION['role'] ?? null;
 
-        if (in_array($role, ['farmer', 'transporter'], true) && $status === 'pending') {
-            $this->view('pendingVerification'); // Show a holding page
+        if (!in_array($role, ['farmer', 'transporter'], true)) {
+            return;
+        }
+
+        if ($status === 'pending' || $status === 'rejected') {
+            $data = [
+                'verification_status' => $status,
+            ];
+
+            if ($status === 'rejected') {
+                $userId = (int)($_SESSION['user_id'] ?? 0);
+                if ($userId > 0) {
+                    $docModel = new VerificationDocumentModel();
+                    $data['rejections'] = $docModel->getRejectedDocumentsByUser($userId);
+                }
+            }
+
+            $this->view('pendingVerification', $data); // Show holding / rejected page
             exit;
         }
     }
