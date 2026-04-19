@@ -8,7 +8,7 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
     <div class="content-header earnings-header">
         <h1 class="content-title">My Earnings</h1>
         <p class="content-subtitle">Track your income and financial performance</p>
-        <button type="button" class="btn btn-secondary" onclick="FarmerEarnings.downloadReport()">Download Report</button>
+        <button type="button" class="btn btn-secondary" id="downloadEarningsReportBtn">Download Report</button>
     </div>
 
     <div class="earnings-modern-stats">
@@ -70,7 +70,9 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
                 </thead>
                 <tbody>
                     <?php if (empty($recentEarnings)): ?>
-                        <tr><td colspan="5">No recent transactions.</td></tr>
+                        <tr>
+                            <td colspan="5">No recent transactions.</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($recentEarnings as $earning): ?>
                             <tr>
@@ -90,28 +92,32 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
     </div>
 </div>
 
-<script id="earningsChartData" type="application/json"><?=
-    json_encode([
-        'daily' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $dailyChart ?? []),
-        'monthly' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['month'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $monthlyChart ?? []),
-        'yearly' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $yearlyChart ?? []),
-    ])
-?></script>
+<?php
+$chartPayload = json_encode([
+    'daily' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $dailyChart ?? []),
+    'monthly' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['month'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $monthlyChart ?? []),
+    'yearly' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $yearlyChart ?? []),
+]);
+?>
+<div
+    id="earningsChartData"
+    data-chart="<?= htmlspecialchars((string)$chartPayload, ENT_QUOTES, 'UTF-8') ?>"
+    hidden></div>

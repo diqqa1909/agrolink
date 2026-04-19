@@ -106,7 +106,7 @@
                                 <line x1="9" y1="14" x2="13" y2="14" />
                             </svg>
                         </div>
-                        Reviews & Complaints
+                        Reviews
                     </a></li>
                 <li><a href="<?= ROOT ?>/farmercroprequests" class="menu-link <?= ($activePage ?? '') === 'crop-requests' ? 'active' : '' ?>">
                         <div class="menu-icon">
