@@ -16,8 +16,16 @@ class LoginController
                 $row  = $user->first(['email' => $_POST['email']]);
 
                 if ($row && password_verify((string) $_POST['password'], (string) $row->password)) {
-                    setAuthSession($row);
-                    $_SESSION['verification_status'] = $row->verification_status;
+                    if (($row->status ?? '') === 'inactive') {
+                        $data['errors']['email'] = "Your account has been deactivated. Please contact support@agrolink.lk.";
+                        $this->view('login', $data);
+                        return;
+                    }
+
+                    $_SESSION['USER']                = $row;
+                    $_SESSION['user_id']             = $row->id;              // ✅ was $user['id']
+                    $_SESSION['role']                = $row->role;            // ✅ was $user['role']
+                    $_SESSION['verification_status'] = $row->verification_status; // ✅ was $user['verification_status']
 
                     $this->checkVerificationStatus();
                     $this->redirectBasedOnRole($row->role);

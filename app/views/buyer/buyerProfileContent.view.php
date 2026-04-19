@@ -139,6 +139,13 @@ $profileStats = is_array($profileStats ?? null) ? $profileStats : [];
         <p>Manage login email and password.</p>
     </div>
 
+    <div class="content-card profile-shortcut-card" data-open-modal="refundAccountModal">
+        <div class="profile-shortcut-head">
+            <h3>Refund Bank Details</h3>
+        </div>
+        <p>Add or update bank account details for order refunds.</p>
+    </div>
+
     <div class="content-card profile-account-info-card">
         <div class="profile-section-head">
             <h3>Profile Stats</h3>
@@ -253,6 +260,40 @@ $profileStats = is_array($profileStats ?? null) ? $profileStats : [];
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="refundAccountModal" class="modal profile-modal">
+    <div class="modal-content profile-modal-content">
+        <div class="modal-header profile-modal-header">
+            <h3>Add or Change Bank Details</h3>
+            <button type="button" class="modal-close" data-close-modal="refundAccountModal" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body">
+            <p class="payout-helper-text">Order refunds will be transferred to this bank account.</p>
+            <form id="refundAccountForm">
+                <div class="form-group">
+                    <label for="refundAccountName">Account Holder Name *</label>
+                    <input type="text" id="refundAccountName" class="form-control" maxlength="80" required>
+                </div>
+                <div class="form-group">
+                    <label for="refundBankName">Bank Name *</label>
+                    <input type="text" id="refundBankName" class="form-control" maxlength="80" required>
+                </div>
+                <div class="form-group">
+                    <label for="refundAccountNumber">Account Number *</label>
+                    <input type="text" id="refundAccountNumber" class="form-control" maxlength="18" inputmode="numeric" pattern="[0-9]{8,18}" required>
+                </div>
+                <div class="form-group">
+                    <label for="refundBranchName">Branch Name *</label>
+                    <input type="text" id="refundBranchName" class="form-control" maxlength="80" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="refundAccountModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Bank Details</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -4,18 +4,40 @@ class CartModel
     use Database;
 
     protected $table = 'cart';
+    private $hasProductDeletedAtColumn = null;
+
+    private function supportsProductSoftDelete(): bool
+    {
+        if ($this->hasProductDeletedAtColumn !== null) {
+            return $this->hasProductDeletedAtColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM products LIKE 'deleted_at'");
+        $this->hasProductDeletedAtColumn = is_array($result) && !empty($result);
+        return $this->hasProductDeletedAtColumn;
+    }
 
     /**
      * Get all cart items for a user with farmer details
      */
     public function getCartByUserId($user_id)
     {
-        $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name, p.image as product_image_db
-        FROM {$this->table} c
-        LEFT JOIN products p ON c.product_id = p.id
-        LEFT JOIN users u ON p.farmer_id = u.id
-        WHERE c.user_id = :user_id 
-        ORDER BY c.created_at DESC";
+        if ($this->supportsProductSoftDelete()) {
+            $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name, p.image as product_image_db
+            FROM {$this->table} c
+            LEFT JOIN products p ON c.product_id = p.id AND p.deleted_at IS NULL
+            LEFT JOIN users u ON p.farmer_id = u.id
+            WHERE c.user_id = :user_id
+            AND p.id IS NOT NULL
+            ORDER BY c.created_at DESC";
+        } else {
+            $sql = "SELECT c.*, p.location as farmer_location, u.name as farmer_name, p.image as product_image_db
+            FROM {$this->table} c
+            LEFT JOIN products p ON c.product_id = p.id
+            LEFT JOIN users u ON p.farmer_id = u.id
+            WHERE c.user_id = :user_id
+            ORDER BY c.created_at DESC";
+        }
 
         $result = $this->query($sql, ['user_id' => $user_id]);
         return is_array($result) ? $result : [];
@@ -103,7 +125,15 @@ class CartModel
      */
     public function getCartItemCount($user_id)
     {
-        $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE user_id = :user_id";
+        if ($this->supportsProductSoftDelete()) {
+            $sql = "SELECT COUNT(*) as total
+                FROM {$this->table} c
+                INNER JOIN products p ON p.id = c.product_id
+                WHERE c.user_id = :user_id
+                AND p.deleted_at IS NULL";
+        } else {
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE user_id = :user_id";
+        }
         $result = $this->query($sql, ['user_id' => $user_id]);
 
         if (is_array($result) && !empty($result) && isset($result[0]->total)) {
@@ -117,8 +147,16 @@ class CartModel
      */
     public function getCartTotal($user_id)
     {
-        $sql = "SELECT COALESCE(SUM(product_price * quantity), 0) as total 
-                FROM {$this->table} WHERE user_id = :user_id";
+        if ($this->supportsProductSoftDelete()) {
+            $sql = "SELECT COALESCE(SUM(c.product_price * c.quantity), 0) as total
+                FROM {$this->table} c
+                INNER JOIN products p ON p.id = c.product_id
+                WHERE c.user_id = :user_id
+                AND p.deleted_at IS NULL";
+        } else {
+            $sql = "SELECT COALESCE(SUM(product_price * quantity), 0) as total
+                    FROM {$this->table} WHERE user_id = :user_id";
+        }
         $result = $this->query($sql, ['user_id' => $user_id]);
 
         if (is_array($result) && !empty($result) && isset($result[0]->total)) {

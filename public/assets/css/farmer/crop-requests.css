@@ -24,26 +24,6 @@
   text-transform: uppercase;
 }
 
-.crop-request-status--active {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.crop-request-status--accepted {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.crop-request-status--declined {
-  background: #fdecea;
-  color: #c62828;
-}
-
-.crop-request-status--completed {
-  background: #eceff1;
-  color: #455a64;
-}
-
 .crop-request-details-page .crop-request-details-header {
   display: flex;
   justify-content: space-between;

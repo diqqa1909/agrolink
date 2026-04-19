@@ -6,6 +6,7 @@ class ProductsModel
 
     protected $table = 'products';
     private $hasFullAddressColumn = null;
+    private $hasDeletedAtColumn = null;
 
     private function supportsFullAddress(): bool
     {
@@ -16,6 +17,17 @@ class ProductsModel
         $result = $this->query("SHOW COLUMNS FROM {$this->table} LIKE 'full_address'");
         $this->hasFullAddressColumn = is_array($result) && !empty($result);
         return $this->hasFullAddressColumn;
+    }
+
+    private function supportsDeletedAt(): bool
+    {
+        if ($this->hasDeletedAtColumn !== null) {
+            return $this->hasDeletedAtColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM {$this->table} LIKE 'deleted_at'");
+        $this->hasDeletedAtColumn = is_array($result) && !empty($result);
+        return $this->hasDeletedAtColumn;
     }
 
     public function create(array $data)
@@ -88,11 +100,21 @@ class ProductsModel
         }
         if (empty($set)) return false;
         $sql = "UPDATE {$this->table} SET " . implode(',', $set) . " WHERE id=:id AND farmer_id=:farmer_id";
+        if ($this->supportsDeletedAt()) {
+            $sql .= " AND deleted_at IS NULL";
+        }
         return $this->write($sql, $params);
     }
 
     public function deleteByFarmer(int $id, int $farmerId)
     {
+        if ($this->supportsDeletedAt()) {
+            $sql = "UPDATE {$this->table}
+                    SET deleted_at = NOW(), updated_at = NOW()
+                    WHERE id = :id AND farmer_id = :farmer_id AND deleted_at IS NULL";
+            return $this->write($sql, ['id' => $id, 'farmer_id' => $farmerId]);
+        }
+
         $sql = "DELETE FROM {$this->table} WHERE id=:id AND farmer_id=:farmer_id";
         return $this->write($sql, ['id' => $id, 'farmer_id' => $farmerId]);
     }
@@ -114,7 +136,11 @@ class ProductsModel
 
     public function getByFarmer(int $farmerId)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE farmer_id=:farmer_id ORDER BY created_at DESC";
+        $sql = "SELECT * FROM {$this->table} WHERE farmer_id=:farmer_id";
+        if ($this->supportsDeletedAt()) {
+            $sql .= " AND deleted_at IS NULL";
+        }
+        $sql .= " ORDER BY created_at DESC";
         $result = $this->query($sql, ['farmer_id' => $farmerId]);
         return $result ?: [];
     }
@@ -125,6 +151,9 @@ class ProductsModel
                 FROM {$this->table} p
                 JOIN users u ON u.id = p.farmer_id
                 WHERE p.id=:id";
+        if ($this->supportsDeletedAt()) {
+            $sql .= " AND p.deleted_at IS NULL";
+        }
         return $this->get_row($sql, ['id' => $id]);
     }
 
@@ -132,6 +161,9 @@ class ProductsModel
     {
         $params = [];
         $where = "p.quantity > 0";
+        if ($this->supportsDeletedAt()) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
 
         if (!empty($filters['search'])) {
             $where .= " AND (p.name LIKE :search OR p.description LIKE :search)";
@@ -163,6 +195,9 @@ class ProductsModel
     {
         $params = [];
         $where = "p.quantity > 0"; // Only show products with stock
+        if ($this->supportsDeletedAt()) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
 
         // Add optional conditions
         if (!empty($conditions['category'])) {

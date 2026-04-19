@@ -7,12 +7,14 @@ class BuyerProfileController
     protected $buyerModel;
     protected $userModel;
     protected $orderModel;
+    protected $payoutAccountsModel;
 
     public function __construct()
     {
         $this->buyerModel = new BuyerModel();
         $this->userModel = new UserModel();
         $this->orderModel = new OrderModel();
+        $this->payoutAccountsModel = new PayoutAccountsModel();
     }
 
     /**
@@ -597,6 +599,58 @@ class BuyerProfileController
                 'error' => 'Server error: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function getRefundAccount()
+    {
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+
+        $userId = (int)authUserId();
+        $account = $this->payoutAccountsModel->getDefaultAccountByUserId($userId);
+
+        $this->jsonResponse(200, [
+            'success' => true,
+            'account' => $account,
+        ]);
+    }
+
+    public function saveRefundAccount()
+    {
+        $this->prepareJsonResponse();
+        $this->requireBuyerRole();
+        $this->requirePostRequest();
+
+        $userId = (int)authUserId();
+        $payload = [
+            'account_holder_name' => trim((string)($_POST['account_holder_name'] ?? '')),
+            'bank_name' => trim((string)($_POST['bank_name'] ?? '')),
+            'branch_name' => trim((string)($_POST['branch_name'] ?? '')),
+            'account_number' => trim((string)($_POST['account_number'] ?? '')),
+            'is_default' => 1,
+        ];
+
+        $result = $this->payoutAccountsModel->saveDefaultAccount($userId, $payload);
+        if (empty($result['success'])) {
+            if (!empty($result['errors'])) {
+                $this->jsonResponse(422, [
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $result['errors'],
+                ]);
+            }
+
+            $this->jsonResponse(500, [
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to save refund account',
+            ]);
+        }
+
+        $this->jsonResponse(200, [
+            'success' => true,
+            'message' => 'Refund account saved successfully',
+            'account' => $result['account'] ?? null,
+        ]);
     }
 
     /**

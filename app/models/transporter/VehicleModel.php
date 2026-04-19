@@ -5,6 +5,7 @@ class VehicleModel
     use Model;
 
     protected $table = 'vehicles';
+    private $hasDeletedAtColumn = null;
     protected $allowedColumns = [
         'transporter_id',
         'type',
@@ -16,16 +17,35 @@ class VehicleModel
         'status'
     ];
 
+    private function supportsDeletedAt(): bool
+    {
+        if ($this->hasDeletedAtColumn !== null) {
+            return $this->hasDeletedAtColumn;
+        }
+
+        $result = $this->query("SHOW COLUMNS FROM {$this->table} LIKE 'deleted_at'");
+        $this->hasDeletedAtColumn = is_array($result) && !empty($result);
+        return $this->hasDeletedAtColumn;
+    }
+
     public function getByUserId($user_id)
     {
-        $query = "SELECT * FROM $this->table WHERE transporter_id = :transporter_id ORDER BY created_at DESC";
+        $query = "SELECT * FROM $this->table WHERE transporter_id = :transporter_id";
+        if ($this->supportsDeletedAt()) {
+            $query .= " AND deleted_at IS NULL";
+        }
+        $query .= " ORDER BY created_at DESC";
         $result = $this->query($query, ['transporter_id' => $user_id]);
         return is_array($result) ? $result : [];
     }
 
     public function getById($id)
     {
-        $query = "SELECT * FROM $this->table WHERE id = :id LIMIT 1";
+        $query = "SELECT * FROM $this->table WHERE id = :id";
+        if ($this->supportsDeletedAt()) {
+            $query .= " AND deleted_at IS NULL";
+        }
+        $query .= " LIMIT 1";
         $result = $this->query($query, ['id' => $id]);
         return (is_array($result) && !empty($result)) ? $result[0] : false;
     }
@@ -46,24 +66,43 @@ class VehicleModel
 
     public function deleteVehicle($id)
     {
+        if ($this->supportsDeletedAt()) {
+            $query = "UPDATE $this->table
+                      SET deleted_at = NOW(),
+                          status = 'inactive',
+                          updated_at = NOW()
+                      WHERE id = :id
+                      AND deleted_at IS NULL";
+            return $this->write($query, ['id' => $id]);
+        }
+
         return $this->delete($id);
     }
 
     public function setActiveVehicle($vehicle_id, $user_id)
     {
         $query = "UPDATE $this->table SET status = 'inactive' WHERE transporter_id = :transporter_id";
+        if ($this->supportsDeletedAt()) {
+            $query .= " AND deleted_at IS NULL";
+        }
         $deactivateResult = $this->write($query, ['transporter_id' => $user_id]);
         if ($deactivateResult === false) {
             return false;
         }
 
         $query = "UPDATE $this->table SET status = 'active' WHERE id = :id AND transporter_id = :transporter_id";
+        if ($this->supportsDeletedAt()) {
+            $query .= " AND deleted_at IS NULL";
+        }
         return $this->write($query, ['id' => $vehicle_id, 'transporter_id' => $user_id]) !== false;
     }
 
     public function deactivateAllVehicles($user_id)
     {
         $query = "UPDATE $this->table SET status = 'inactive' WHERE transporter_id = :transporter_id";
+        if ($this->supportsDeletedAt()) {
+            $query .= " AND deleted_at IS NULL";
+        }
         return $this->write($query, ['transporter_id' => $user_id]) !== false;
     }
 
@@ -88,7 +127,14 @@ class VehicleModel
         }
 
         if (!empty($data['registration'])) {
-            $existing = $this->where(['registration' => $data['registration']]);
+            if ($this->supportsDeletedAt()) {
+                $existing = $this->query(
+                    "SELECT id FROM $this->table WHERE registration = :registration AND deleted_at IS NULL LIMIT 1",
+                    ['registration' => $data['registration']]
+                );
+            } else {
+                $existing = $this->where(['registration' => $data['registration']]);
+            }
             if (!is_array($existing)) {
                 $existing = [];
             }

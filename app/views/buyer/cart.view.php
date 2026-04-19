@@ -141,7 +141,7 @@
         window.APP_ROOT = "<?= ROOT ?>";
 
         function proceedToCheckout() {
-            window.location.href = '<?= ROOT ?>/checkout';
+            window.location.href = '<?= ROOT ?>/checkout?cart=1';
         }
 
         function updateCartQuantity(productId, change) {

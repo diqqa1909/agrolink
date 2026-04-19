@@ -71,6 +71,10 @@
   --ui-badge-warning-text: #b54708;
   --ui-badge-warning-border: #f7d7a1;
 
+  --ui-badge-yellow-bg: #fef9c3;
+  --ui-badge-yellow-text: #854d0e;
+  --ui-badge-yellow-border: #fde68a;
+
   --ui-badge-danger-bg: #fee4e2;
   --ui-badge-danger-text: #b42318;
   --ui-badge-danger-border: #fecdca;
@@ -78,6 +82,14 @@
   --ui-badge-info-bg: #e0f2fe;
   --ui-badge-info-text: #0369a1;
   --ui-badge-info-border: #bae6fd;
+
+  --ui-badge-dark-blue-bg: #dbeafe;
+  --ui-badge-dark-blue-text: #1e3a8a;
+  --ui-badge-dark-blue-border: #93c5fd;
+
+  --ui-badge-light-green-bg: #d1fae5;
+  --ui-badge-light-green-text: #047857;
+  --ui-badge-light-green-border: #6ee7b7;
 
   --ui-badge-neutral-bg: #f2f4f7;
   --ui-badge-neutral-text: #475467;
@@ -861,23 +873,21 @@ body {
 }
 
 /* Status mapping to shared badge palette */
+
+/* Dark yellow — pending */
 .order-status.pending,
-.order-status.pending_payment,
 .order-status.awaiting,
 .order-status.open,
 .order-status.pending_approval,
 .status-pending,
-.status-pending_payment,
 .status-awaiting,
 .status-open,
 .status-pending_approval,
 .status-badge.status-pending,
-.status-badge.status-pending_payment,
 .status-badge.status-awaiting,
 .status-badge.status-open,
 .status-badge.status-pending_approval,
 .delivery-status-badge.awaiting,
-.crop-request-status--active,
 .complaint-status.open,
 .feedback-badge.neutral {
   background: var(--ui-badge-warning-bg) !important;
@@ -885,40 +895,41 @@ body {
   color: var(--ui-badge-warning-text) !important;
 }
 
+/* Yellow — pending payment, active */
+.order-status.pending_payment,
+.order-status.active,
+.status-pending_payment,
+.status-active,
+.status-badge.status-pending_payment,
+.status-badge.status-active,
+.crop-request-status--active {
+  background: var(--ui-badge-yellow-bg) !important;
+  border-color: var(--ui-badge-yellow-border) !important;
+  color: var(--ui-badge-yellow-text) !important;
+}
+
+/* Light blue — processing, accepted, confirmed, in-progress */
 .order-status.processing,
 .order-status.confirmed,
 .order-status.accepted,
-.order-status.shipped,
-.order-status.in_transit,
-.order-status.in-transit,
 .order-status.running,
 .order-status.assigned,
-.order-status.out_for_delivery,
 .order-status.in_progress,
 .order-status.system,
 .status-processing,
 .status-confirmed,
 .status-accepted,
-.status-shipped,
-.status-in_transit,
-.status-in-transit,
 .status-running,
 .status-assigned,
-.status-out_for_delivery,
 .status-in_progress,
 .status-system,
 .status-badge.status-processing,
 .status-badge.status-confirmed,
 .status-badge.status-accepted,
-.status-badge.status-shipped,
-.status-badge.status-in_transit,
-.status-badge.status-in-transit,
 .status-badge.status-running,
 .status-badge.status-assigned,
-.status-badge.status-out_for_delivery,
 .status-badge.status-in_progress,
 .status-badge.status-system,
-.delivery-status-badge.in-transit,
 .delivery-status-badge.running,
 .complaint-status.in-progress,
 .crop-request-status--accepted,
@@ -928,6 +939,47 @@ body {
   color: var(--ui-badge-info-text) !important;
 }
 
+/* White / grey — ready for pickup */
+.order-status.ready_for_pickup,
+.order-status.ready-for-pickup,
+.order-status.picked_up,
+.status-ready_for_pickup,
+.status-ready-for-pickup,
+.status-picked_up,
+.status-badge.status-ready_for_pickup,
+.status-badge.status-ready-for-pickup,
+.status-badge.status-picked_up {
+  background: var(--ui-badge-neutral-bg) !important;
+  border-color: var(--ui-badge-neutral-border) !important;
+  color: var(--ui-badge-neutral-text) !important;
+}
+
+/* Dark blue — in transit, out for delivery */
+.order-status.in_transit,
+.order-status.in-transit,
+.order-status.out_for_delivery,
+.status-in_transit,
+.status-in-transit,
+.status-out_for_delivery,
+.status-badge.status-in_transit,
+.status-badge.status-in-transit,
+.status-badge.status-out_for_delivery,
+.delivery-status-badge.in-transit {
+  background: var(--ui-badge-dark-blue-bg) !important;
+  border-color: var(--ui-badge-dark-blue-border) !important;
+  color: var(--ui-badge-dark-blue-text) !important;
+}
+
+/* Light green — shipped */
+.order-status.shipped,
+.status-shipped,
+.status-badge.status-shipped {
+  background: var(--ui-badge-light-green-bg) !important;
+  border-color: var(--ui-badge-light-green-border) !important;
+  color: var(--ui-badge-light-green-text) !important;
+}
+
+/* Green — delivered, completed */
 .order-status.delivered,
 .order-status.completed,
 .order-status.resolved,
@@ -956,6 +1008,7 @@ body {
   color: var(--ui-badge-success-text) !important;
 }
 
+/* Red — cancelled, declined, delete, failed */
 .order-status.cancelled,
 .order-status.canceled,
 .order-status.rejected,
@@ -963,6 +1016,7 @@ body {
 .order-status.returned,
 .order-status.declined,
 .order-status.refunded,
+.order-status.deleted,
 .order-status.error,
 .status-cancelled,
 .status-canceled,
@@ -971,6 +1025,7 @@ body {
 .status-returned,
 .status-declined,
 .status-refunded,
+.status-deleted,
 .status-error,
 .status-badge.status-cancelled,
 .status-badge.status-canceled,
@@ -979,6 +1034,7 @@ body {
 .status-badge.status-returned,
 .status-badge.status-declined,
 .status-badge.status-refunded,
+.status-badge.status-deleted,
 .status-badge.status-error,
 .crop-request-status--declined,
 .feedback-badge.negative,

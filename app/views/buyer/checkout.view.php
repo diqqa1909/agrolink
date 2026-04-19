@@ -103,25 +103,35 @@
                 <h2 class="checkout-section-title">Review order</h2>
 
                 <?php
-                // Group items by farmer
-                $itemsByFarmer = [];
+                // Group items by location group
+                $itemsByGroup = [];
                 foreach ($cartItems as $item) {
-                    $farmerName = $item->farmer_name ?? 'Unknown Farmer';
-                    if (!isset($itemsByFarmer[$farmerName])) {
-                        $itemsByFarmer[$farmerName] = [];
+                    $groupKey = $item->group_key ?? 'unknown';
+                    if (!isset($itemsByGroup[$groupKey])) {
+                        $itemsByGroup[$groupKey] = [
+                            'farmer_name' => $item->farmer_name ?? 'Unknown Farmer',
+                            'pickup_location' => $item->pickup_location_name ?? 'Unknown Location',
+                            'items' => []
+                        ];
                     }
-                    $itemsByFarmer[$farmerName][] = $item;
+                    $itemsByGroup[$groupKey]['items'][] = $item;
                 }
                 ?>
 
-                <?php foreach ($itemsByFarmer as $farmerName => $farmerItems): ?>
+                <?php foreach ($itemsByGroup as $groupKey => $groupData): ?>
                     <div class="order-seller-block">
-                        <div class="seller-info">
-                            <span class="seller-name"><?= htmlspecialchars($farmerName) ?></span>
-                            <span class="seller-feedback">99.6% positive feedback</span>
+                        <div class="seller-info" style="display:flex; flex-direction:column; gap:5px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="seller-name"><?= htmlspecialchars($groupData['farmer_name']) ?></span>
+                          <!-- <span class="seller-feedback">99.6% positive feedback</span> -->
+                            </div>
+                            <div style="font-size:0.85rem; color:#666;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:text-bottom;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> 
+                                Ships from: <?= htmlspecialchars($groupData['pickup_location']) ?>
+                            </div>
                         </div>
 
-                        <?php foreach ($farmerItems as $item): ?>
+                        <?php foreach ($groupData['items'] as $item): ?>
                             <div class="order-item">
                                 <div class="order-item-image-small">
                                     <?php

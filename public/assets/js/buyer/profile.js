@@ -373,6 +373,111 @@ function openModal(id) {
     if (modal) modal.classList.add('show');
 }
 
+function populateRefundAccount(account) {
+    const map = {
+        refundAccountName: account?.account_holder_name || '',
+        refundBankName: account?.bank_name || '',
+        refundAccountNumber: account?.account_number || '',
+        refundBranchName: account?.branch_name || ''
+    };
+    Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = map[id];
+    });
+}
+
+function loadRefundAccount() {
+    fetch(`${window.APP_ROOT}/buyerprofile/getRefundAccount`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(parseJsonResponse)
+        .then(res => {
+            if (!res.success) return;
+            populateRefundAccount(res.account || null);
+        })
+        .catch(err => {
+            console.error('Failed to load refund account:', err);
+        });
+}
+
+function openRefundAccountModal() {
+    loadRefundAccount();
+    openModal('refundAccountModal');
+}
+
+function saveRefundAccount(event) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const accountName = (document.getElementById('refundAccountName')?.value || '').trim();
+    const bankName = (document.getElementById('refundBankName')?.value || '').trim();
+    const accountNumber = (document.getElementById('refundAccountNumber')?.value || '').replace(/\s+/g, '');
+    const branchName = (document.getElementById('refundBranchName')?.value || '').trim();
+
+    if (!accountName || !bankName || !accountNumber || !branchName) {
+        showNotification('Please fill in all bank detail fields', 'error');
+        return;
+    }
+    if (!/^\d{8,18}$/.test(accountNumber)) {
+        showNotification('Account number must be 8 to 18 digits', 'error');
+        return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+    }
+
+    fetch(`${window.APP_ROOT}/buyerprofile/saveRefundAccount`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+            account_holder_name: accountName,
+            bank_name: bankName,
+            account_number: accountNumber,
+            branch_name: branchName
+        })
+    })
+        .then(parseJsonResponse)
+        .then(res => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+
+            if (res.success) {
+                populateRefundAccount(res.account || null);
+                showNotification(res.message || 'Bank details saved', 'success');
+                closeModalCard('refundAccountModal');
+                return;
+            }
+
+            if (res.errors && typeof res.errors === 'object') {
+                const firstMsg = Object.values(res.errors)[0];
+                showNotification(firstMsg || 'Please fix the highlighted fields', 'error');
+                return;
+            }
+
+            showNotification(res.error || 'Failed to save bank details', 'error');
+        })
+        .catch(err => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+            console.error('Refund account save error:', err);
+            showNotification('Unable to save bank details', 'error');
+        });
+}
+
 function closeModalCard(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('show');
@@ -650,6 +755,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = this.getAttribute('data-open-modal');
             if (target === 'accountSettingsModal') {
                 openAccountSettingsModal();
+            } else if (target === 'refundAccountModal') {
+                openRefundAccountModal();
             } else {
                 openModal(target);
             }
@@ -662,11 +769,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = this.getAttribute('data-open-modal');
             if (target === 'accountSettingsModal') {
                 openAccountSettingsModal();
+            } else if (target === 'refundAccountModal') {
+                openRefundAccountModal();
             } else {
                 openModal(target);
             }
         });
     });
+
+    const refundForm = document.getElementById('refundAccountForm');
+    if (refundForm) refundForm.addEventListener('submit', saveRefundAccount);
+
+    const refundAccountNumber = document.getElementById('refundAccountNumber');
+    if (refundAccountNumber) {
+        refundAccountNumber.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 18);
+        });
+    }
 
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', function () {

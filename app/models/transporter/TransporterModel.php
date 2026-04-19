@@ -368,6 +368,7 @@ class TransporterModel
                 FROM vehicles v
                 INNER JOIN vehicle_types vt ON vt.id = v.vehicle_type_id
                 WHERE v.transporter_id = :transporter_id
+                AND v.deleted_at IS NULL
                 AND LOWER(COALESCE(v.status, '')) = 'active'
                 AND vt.is_active = 1
                 AND :order_weight >= vt.min_weight_kg
