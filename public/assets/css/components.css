@@ -210,6 +210,28 @@ body {
   white-space: nowrap;
 }
 
+.nav-user-toggle .dropdown-caret {
+  width: 10px;
+  height: 10px;
+  margin-left: 4px;
+  border-right: 2px solid var(--text-light, #6b7280);
+  border-bottom: 2px solid var(--text-light, #6b7280);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.nav-user-toggle:hover .dropdown-caret {
+  border-right-color: var(--primary-color, #4caf50);
+  border-bottom-color: var(--primary-color, #4caf50);
+}
+
+.nav-user-toggle[aria-expanded="true"] .dropdown-caret {
+  transform: rotate(-135deg) translateY(-2px);
+  border-right-color: var(--primary-color, #4caf50);
+  border-bottom-color: var(--primary-color, #4caf50);
+}
+
 .top-navbar .user-dropdown {
   position: absolute;
   top: calc(100% + 8px);

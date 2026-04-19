@@ -22,7 +22,6 @@
                         <thead>
                             <tr>
                                 <th>Order</th>
-                                <th>Order Status</th>
                                 <th>Delivery Status</th>
                                 <th>Transporter</th>
                                 <th>Destination</th>
@@ -42,11 +41,6 @@
                                         <div class="buyer-tracking-order-date">
                                             <?= date('M d, Y', strtotime($row->order_created_at)) ?>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="order-status <?= htmlspecialchars(strtolower((string)$row->order_status)) ?>">
-                                            <?= strtoupper($row->order_status) ?>
-                                        </span>
                                     </td>
                                     <td>
                                         <span class="order-status <?= htmlspecialchars($statusClass) ?>">

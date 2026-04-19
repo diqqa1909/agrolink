@@ -23,12 +23,13 @@ $profilePath = authProfilePath();
 
             <?php if ($isAuthenticated): ?>
                 <div class="user-section nav-user-section">
-                    <button type="button" class="user-info nav-user-toggle" onclick="toggleUserDropdown(this)" aria-expanded="false">
+                    <button type="button" class="user-info nav-user-toggle" onclick="toggleUserDropdown(this)" aria-expanded="false" aria-label="Open user menu">
                         <div class="user-avatar" id="userAvatar"><?= esc($userInitials) ?></div>
                         <div class="user-details">
                             <div class="user-name" style="text-transform: capitalize;"><?= esc($userName !== '' ? $userName : 'User') ?></div>
                             <div class="user-role"><?= esc(ucfirst($userRole !== '' ? $userRole : 'User')) ?></div>
                         </div>
+                        <span class="dropdown-caret" aria-hidden="true"></span>
                     </button>
 
                     <div id="userDropdown" class="user-dropdown">
@@ -58,12 +59,13 @@ $profilePath = authProfilePath();
 
         <?php if ($isAuthenticated): ?>
             <div class="user-section">
-                <button type="button" class="user-info nav-user-toggle" onclick="toggleUserDropdown(this)" aria-expanded="false">
+                <button type="button" class="user-info nav-user-toggle" onclick="toggleUserDropdown(this)" aria-expanded="false" aria-label="Open user menu">
                     <div class="user-avatar" id="userAvatar"><?= esc($userInitials) ?></div>
                     <div class="user-details">
                         <div class="user-name" id="adminName" style="text-transform: capitalize;"><?= esc(ucwords($userName !== '' ? $userName : 'User')) ?></div>
                         <div class="user-role"><?= esc(ucfirst($userRole !== '' ? $userRole : 'User')) ?></div>
                     </div>
+                    <span class="dropdown-caret" aria-hidden="true"></span>
                 </button>
 
                 <div id="userDropdown" class="user-dropdown">
