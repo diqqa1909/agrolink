@@ -2039,17 +2039,15 @@ class AdminDashboardController
             // Get filter parameters
             $input = json_decode(file_get_contents('php://input'), true);
             $status = $input['status'] ?? '';
-            $method = $input['method'] ?? '';
             $dateRange = $input['date_range'] ?? '';
             $search = $input['search'] ?? '';
 
             // Build the query - MATCHING YOUR ORDERS TABLE STRUCTURE
             $query = "
-                SELECT 
+                SELECT
                     o.id as payment_id,
                     o.id as order_id,
                     o.order_total as amount,
-                    o.payment_method,
                     o.status as payment_status,
                     CONCAT('TXN-', o.id, '-', DATE_FORMAT(o.created_at, '%Y%m%d')) as transaction_id,
                     o.created_at as payment_date,
@@ -2074,12 +2072,6 @@ class AdminDashboardController
             if (!empty($status)) {
                 $query .= " AND o.status = :status";
                 $params[':status'] = $status;
-            }
-
-            // Apply payment method filter
-            if (!empty($method)) {
-                $query .= " AND o.payment_method = :method";
-                $params[':method'] = $method;
             }
 
             // Apply date range filter
@@ -2129,10 +2121,6 @@ class AdminDashboardController
                     COUNT(CASE WHEN status = 'shipped' THEN 1 END) as shipped_count,
                     SUM(order_total) as total_revenue,
                     AVG(order_total) as avg_payment_amount,
-                    SUM(CASE WHEN payment_method = 'cash_on_delivery' THEN order_total ELSE 0 END) as cod_revenue,
-                    SUM(CASE WHEN payment_method = 'bank_transfer' THEN order_total ELSE 0 END) as bank_revenue,
-                    SUM(CASE WHEN payment_method = 'card' THEN order_total ELSE 0 END) as card_revenue,
-                    SUM(CASE WHEN payment_method = 'mobile_payment' THEN order_total ELSE 0 END) as mobile_revenue,
                     SUM(shipping_cost) as total_shipping_revenue,
                     AVG(total_weight_kg) as avg_weight
                 FROM orders
@@ -2142,20 +2130,7 @@ class AdminDashboardController
             $statsStmt->execute();
             $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
-            // Get payment method distribution from orders
-            $methodQuery = "
-                SELECT 
-                    payment_method,
-                    COUNT(*) as count,
-                    SUM(order_total) as total_amount
-                FROM orders
-                WHERE status IN ('delivered', 'completed', 'shipped')
-                GROUP BY payment_method
-            ";
-
-            $methodStmt = $db->prepare($methodQuery);
-            $methodStmt->execute();
-            $methodDistribution = $methodStmt->fetchAll(PDO::FETCH_ASSOC);
+            $methodDistribution = [];
 
             // Get monthly payment trends from orders
             $trendsQuery = "
@@ -2194,10 +2169,6 @@ class AdminDashboardController
                     'shipped_count' => (int) ($stats['shipped_count'] ?? 0),
                     'avg_payment_amount' => round($stats['avg_payment_amount'] ?? 0, 2),
                     'platform_commission' => round($totalCommission, 2),
-                    'cod_revenue' => round($stats['cod_revenue'] ?? 0, 2),
-                    'bank_revenue' => round($stats['bank_revenue'] ?? 0, 2),
-                    'card_revenue' => round($stats['card_revenue'] ?? 0, 2),
-                    'mobile_revenue' => round($stats['mobile_revenue'] ?? 0, 2),
                     'total_shipping_revenue' => round($stats['total_shipping_revenue'] ?? 0, 2),
                     'avg_weight' => round($stats['avg_weight'] ?? 0, 2)
                 ],
@@ -2236,7 +2207,6 @@ class AdminDashboardController
                     o.order_total as amount,
                     o.shipping_cost,
                     o.total_weight_kg,
-                    o.payment_method,
                     o.status as payment_status,
                     o.created_at as payment_date,
                     CONCAT('TXN-', o.id, '-', DATE_FORMAT(o.created_at, '%Y%m%d')) as transaction_id,
@@ -2863,13 +2833,15 @@ class AdminDashboardController
             }
 
             if ($revisionStatus === 'revised') {
-                $where[] = "o.revised_at IS NOT NULL";
+                $where[] = "d.id IS NOT NULL";
             } elseif ($revisionStatus === 'unrevised') {
-                $where[] = "o.revised_at IS NULL";
+                $where[] = "d.id IS NULL";
             }
 
             $whereSql = implode(' AND ', $where);
 
+            // LEFT JOIN the latest dispute row per order (disputes is append-only,
+            // so MAX(id) identifies the most recent revision).
             $sql = "
                 SELECT
                     o.id AS order_id,
@@ -2882,16 +2854,18 @@ class AdminDashboardController
                     o.delivery_city,
                     o.created_at,
                     o.updated_at,
-                    o.id AS revision_id,
-                    o.total_amount AS revised_total_amount,
-                    o.shipping_cost AS revised_shipping_cost,
-                    o.order_total AS revised_order_total,
-                    o.revision_reason,
-                    o.revised_at,
+                    d.id AS revision_id,
+                    d.revised_total_amount,
+                    d.revised_shipping_cost,
+                    d.revised_order_total,
+                    d.reason AS revision_reason,
+                    d.created_at AS revised_at,
                     admin_u.name AS revised_by_name
                 FROM orders o
                 JOIN users b ON b.id = o.buyer_id
-                LEFT JOIN users admin_u ON admin_u.id = o.revised_by_admin_id
+                LEFT JOIN disputes d
+                    ON d.id = (SELECT MAX(id) FROM disputes WHERE order_id = o.id)
+                LEFT JOIN users admin_u ON admin_u.id = d.admin_id
                 WHERE {$whereSql}
                 ORDER BY o.updated_at DESC, o.id DESC
                 LIMIT 200
@@ -2910,6 +2884,9 @@ class AdminDashboardController
             }
             $unrevised = $total - $revised;
 
+            $logStmt = $db->query("SELECT COUNT(*) FROM disputes");
+            $revisionLogCount = $logStmt ? (int) $logStmt->fetchColumn() : 0;
+
             echo json_encode([
                 'success' => true,
                 'data' => $rows,
@@ -2917,6 +2894,7 @@ class AdminDashboardController
                     'total_cancelled' => $total,
                     'revised' => $revised,
                     'unrevised' => $unrevised,
+                    'revision_log_count' => $revisionLogCount,
                 ],
             ]);
             exit;
@@ -2982,19 +2960,32 @@ class AdminDashboardController
             $itemsStmt->execute([$orderId]);
             $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-            // Build revision data from order columns
+            $revisionStmt = $db->prepare("
+                SELECT
+                    d.*,
+                    admin_u.name AS revised_by_name
+                FROM disputes d
+                LEFT JOIN users admin_u ON admin_u.id = d.admin_id
+                WHERE d.order_id = ?
+                ORDER BY d.id DESC
+                LIMIT 1
+            ");
+            $revisionStmt->execute([$orderId]);
+            $latest = $revisionStmt->fetch(PDO::FETCH_ASSOC);
+
             $revision = null;
-            if (!empty($order['revised_at'])) {
+            if ($latest) {
                 $revision = [
-                    'original_total_amount' => $order['original_total_amount'],
-                    'original_shipping_cost' => $order['original_shipping_cost'],
-                    'original_order_total' => $order['original_order_total'],
-                    'revised_total_amount' => $order['total_amount'],
-                    'revised_shipping_cost' => $order['shipping_cost'],
-                    'revised_order_total' => $order['order_total'],
-                    'reason' => $order['revision_reason'],
-                    'revised_at' => $order['revised_at'],
-                    'revised_by_admin_id' => $order['revised_by_admin_id']
+                    'original_total_amount' => $latest['original_total_amount'],
+                    'original_shipping_cost' => $latest['original_shipping_cost'],
+                    'original_order_total' => $latest['original_order_total'],
+                    'revised_total_amount' => $latest['revised_total_amount'],
+                    'revised_shipping_cost' => $latest['revised_shipping_cost'],
+                    'revised_order_total' => $latest['revised_order_total'],
+                    'reason' => $latest['reason'],
+                    'revised_at' => $latest['created_at'],
+                    'revised_by_admin_id' => $latest['admin_id'],
+                    'revised_by_name' => $latest['revised_by_name'],
                 ];
             }
 
@@ -3067,10 +3058,9 @@ class AdminDashboardController
                 exit;
             }
 
-            // Store original amounts if not already stored
-            $originalTotal = (float) ($order['original_total_amount'] ?? $order['total_amount'] ?? 0);
-            $originalShipping = (float) ($order['original_shipping_cost'] ?? $order['shipping_cost'] ?? 0);
-            $originalOrderTotal = (float) ($order['original_order_total'] ?? $order['order_total'] ?? ($originalTotal + $originalShipping));
+            $originalTotal = (float) ($order['total_amount'] ?? 0);
+            $originalShipping = (float) ($order['shipping_cost'] ?? 0);
+            $originalOrderTotal = (float) ($order['order_total'] ?? ($originalTotal + $originalShipping));
 
             $revisedOrderTotal = round($revisedTotal + $revisedShipping, 2);
 
@@ -3081,31 +3071,55 @@ class AdminDashboardController
 
             $db->beginTransaction();
 
+            $insert = $db->prepare("
+                INSERT INTO disputes (
+                    order_id,
+                    original_total_amount,
+                    original_shipping_cost,
+                    original_order_total,
+                    revised_total_amount,
+                    revised_shipping_cost,
+                    revised_order_total,
+                    reason,
+                    admin_id
+                ) VALUES (
+                    :order_id,
+                    :original_total,
+                    :original_shipping,
+                    :original_order_total,
+                    :revised_total,
+                    :revised_shipping,
+                    :revised_order_total,
+                    :reason,
+                    :admin_id
+                )
+            ");
+
+            $insert->execute([
+                ':order_id' => $orderId,
+                ':original_total' => $originalTotal,
+                ':original_shipping' => $originalShipping,
+                ':original_order_total' => $originalOrderTotal,
+                ':revised_total' => $revisedTotal,
+                ':revised_shipping' => $revisedShipping,
+                ':revised_order_total' => $revisedOrderTotal,
+                ':reason' => substr($reason, 0, 500),
+                ':admin_id' => $adminId > 0 ? $adminId : null,
+            ]);
+
             $update = $db->prepare("
                 UPDATE orders
                 SET total_amount = :total_amount,
                     shipping_cost = :shipping_cost,
                     order_total = :order_total,
-                    original_total_amount = :original_total,
-                    original_shipping_cost = :original_shipping,
-                    original_order_total = :original_order_total,
-                    revision_reason = :reason,
-                    revised_at = NOW(),
-                    revised_by_admin_id = :admin_id,
                     updated_at = NOW()
                 WHERE id = :order_id
                 LIMIT 1
             ");
-
             $update->execute([
                 ':total_amount' => $revisedTotal,
                 ':shipping_cost' => $revisedShipping,
                 ':order_total' => $revisedOrderTotal,
-                ':original_total' => $originalTotal,
-                ':original_shipping' => $originalShipping,
-                ':original_order_total' => $originalOrderTotal,
-                ':reason' => substr($reason, 0, 500),
-                ':admin_id' => $adminId > 0 ? $adminId : null,
                 ':order_id' => $orderId,
             ]);
 
