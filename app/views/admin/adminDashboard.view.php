@@ -508,16 +508,6 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
-                        <div class="filter-group">
-                            <label for="paymentStatusFilter">Payment</label>
-                            <select id="paymentStatusFilter" class="form-control">
-                                <option value="">All Payments</option>
-                                <option value="paid">Paid</option>
-                                <option value="pending">Pending</option>
-                                <option value="failed">Failed</option>
-                                <option value="refunded">Refunded</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
@@ -556,10 +546,6 @@
                         <div class="stat-label">Total Products</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="activeProducts">0</div>
-                        <div class="stat-label">Active Products</div>
-                    </div>
-                    <div class="stat-card">
                         <div class="stat-number" id="outOfStockProducts">0</div>
                         <div class="stat-label">Out of Stock</div>
                     </div>
@@ -581,7 +567,7 @@
                         </thead>
                         <tbody id="productsTableBody">
                             <tr>
-                                <td colspan="8" style="text-align:center;padding:2rem;">Loading products...</td>
+                                <td colspan="7" style="text-align:center;padding:2rem;">Loading products...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -739,70 +725,6 @@
                         <div class="stat-number" id="platformCommission">Rs. 0</div>
                         <div class="stat-label">Platform Commission</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="avgPaymentAmount">Rs. 0</div>
-                        <div class="stat-label">Avg Payment Amount</div>
-                    </div>
-                </div>
-
-                <!-- Payment Status Summary -->
-                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
-                    <div class="stats-grid-4">
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Completed</h4>
-                                <div class="stat-number" id="completedPayments">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Pending</h4>
-                                <div class="stat-number" id="pendingPayments">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Shipped</h4>
-                                <div class="stat-number" id="shippedPayments">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Cancelled</h4>
-                                <div class="stat-number" id="cancelledPayments">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Methods -->
-                <div class="stats-container" style="margin-top: var(--spacing-xl); width: 100%;">
-                    <div class="stats-grid-4">
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Cash on Delivery</h4>
-                                <div class="stat-number" id="codRevenue">Rs. 0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Bank Transfer</h4>
-                                <div class="stat-number" id="bankRevenue">Rs. 0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Card Payment</h4>
-                                <div class="stat-number" id="cardRevenue">Rs. 0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card card text-center">
-                            <div class="stat-content">
-                                <h4>Mobile Payment</h4>
-                                <div class="stat-number" id="mobileRevenue">Rs. 0</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Payment Filters -->
@@ -824,16 +746,6 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
-                        <div class="filter-group">
-                            <label for="paymentTxnMethodFilter">Payment Method</label>
-                            <select id="paymentTxnMethodFilter" class="form-control">
-                                <option value="">All Methods</option>
-                                <option value="cash_on_delivery">Cash on Delivery</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="card">Card Payment</option>
-                                <option value="mobile_payment">Mobile Payment</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="filters-row" style="margin-top: 10px;">
                         <div class="filter-group">
@@ -847,7 +759,6 @@
                 <div class="content-card" style="margin-top: var(--spacing-xl);">
                     <div class="card-header">
                         <h3 class="card-title">Payment Transactions</h3>
-                        <button class="btn btn-secondary" onclick="exportPayments()">Export CSV</button>
                     </div>
                     <div style="padding: var(--spacing-lg);">
                         <div class="table-container">
@@ -858,7 +769,6 @@
                                         <th>Order ID</th>
                                         <th>Buyer</th>
                                         <th>Amount</th>
-                                        <th>Payment Method</th>
                                         <th>Status</th>
                                         <th>Date</th>
                                         <th>Actions</th>
@@ -866,7 +776,7 @@
                                 </thead>
                                 <tbody id="paymentsTableBody">
                                     <tr>
-                                        <td colspan="8" style="text-align:center;padding:2rem;">Loading payments...</td>
+                                        <td colspan="7" style="text-align:center;padding:2rem;">Loading payments...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -898,10 +808,6 @@
                     <div class="stat-card">
                         <div class="stat-number" id="revisedCancelledOrders">0</div>
                         <div class="stat-label">Revised</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="revisionLogCount">0</div>
-                        <div class="stat-label">Revisions Logged</div>
                     </div>
                 </div>
 
@@ -1058,10 +964,6 @@
                         <div class="stat-number" id="analyticsTotalUsers">0</div>
                         <div class="stat-label">Total Users</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="analyticsAvgOrderValue">Rs. 0</div>
-                        <div class="stat-label">Avg Order Value</div>
-                    </div>
                 </div>
 
                 <!-- Analytics Grid -->
@@ -1189,13 +1091,31 @@
                         <div class="stat-number" id="deliveredNotifications">0</div>
                         <div class="stat-label">Delivered</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="openRate">0%</div>
-                        <div class="stat-label">Open Rate</div>
+                </div>
+
+                <div class="content-card" style="margin-top: var(--spacing-xl);">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3 class="card-title">Sent Notifications</h3>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="clickRate">0%</div>
-                        <div class="stat-label">Click Rate</div>
+                    <div class="card-content" style="padding:0;">
+                        <div style="overflow-x:auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sent At</th>
+                                        <th>Notification</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="notificationsSummaryBody">
+                                    <tr>
+                                        <td colspan="3" style="text-align:center;padding:2rem;color:var(--text-light);">
+                                            Loading notifications...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1666,6 +1586,9 @@
                 loadAnalytics();
             } else if (sectionName === 'notifications') {
                 loadNotificationStats();
+                if (typeof loadNotificationSummary === 'function') {
+                    loadNotificationSummary();
+                }
             }
         }
 
@@ -1888,7 +1811,6 @@
             try {
                 // Get filter values
                 const status = document.getElementById('orderStatusFilter')?.value || '';
-                const paymentStatus = document.getElementById('paymentStatusFilter')?.value || '';
                 const search = document.getElementById('orderSearch')?.value || '';
 
                 const response = await fetch('<?= ROOT ?>/adminDashboard/getOrders', {
@@ -1898,7 +1820,6 @@
                     },
                     body: JSON.stringify({
                         status: status,
-                        payment_status: paymentStatus,
                         search: search
                     })
                 });
@@ -2135,7 +2056,7 @@
 
         // Setup order filters with live filtering
         function setupOrderFilters() {
-            const filters = ['orderSearch', 'orderStatusFilter', 'paymentStatusFilter'];
+            const filters = ['orderSearch', 'orderStatusFilter'];
 
             filters.forEach(filterId => {
                 const element = document.getElementById(filterId);
@@ -2218,6 +2139,9 @@
                             }
                             if (typeof loadNotificationStats === 'function') {
                                 loadNotificationStats();
+                            }
+                            if (typeof loadNotificationSummary === 'function') {
+                                loadNotificationSummary();
                             }
                         }
 
@@ -2863,7 +2787,6 @@
                 // Update statistics
                 if (result.stats) {
                     document.getElementById('totalProducts').textContent = result.stats.total_products || 0;
-                    document.getElementById('activeProducts').textContent = result.stats.active_products || 0;
                     document.getElementById('outOfStockProducts').textContent = result.stats.out_of_stock || 0;
                 }
 
@@ -3473,8 +3396,6 @@
                 if (ordersEl) ordersEl.textContent = data.order_stats?.total_orders || 0;
                 const usersEl = document.getElementById('analyticsTotalUsers');
                 if (usersEl) usersEl.textContent = data.user_stats?.total_users || 0;
-                const aovEl = document.getElementById('analyticsAvgOrderValue');
-                if (aovEl) aovEl.textContent = `Rs. ${Math.round(data.order_stats?.avg_order_value || 0).toLocaleString()}`;
 
                 const revenueGrowth = data.growth_metrics?.revenue_growth || 0;
                 const growthElement = document.getElementById('analyticsRevenueGrowth');
@@ -3498,11 +3419,8 @@
             const ctx = document.getElementById('revenueChart')?.getContext('2d');
             if (!ctx) return;
 
-            const months = monthlyRevenue.map(m => {
-                const date = new Date(m.month + '-01');
-                return date.toLocaleString('default', { month: 'short' });
-            });
-            const revenues = monthlyRevenue.map(m => parseFloat(m.revenue || 0));
+            const labels = (monthlyRevenue || []).map(m => formatAnalyticsLabel(m.label ?? m.month ?? m.day));
+            const revenues = (monthlyRevenue || []).map(m => parseFloat(m.revenue || 0));
 
             if (revenueChart) {
                 revenueChart.destroy();
@@ -3511,7 +3429,7 @@
             revenueChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: months,
+                    labels: labels,
                     datasets: [{
                         label: 'Revenue (Rs.)',
                         data: revenues,
@@ -3544,13 +3462,10 @@
             const ctx = document.getElementById('userGrowthChart')?.getContext('2d');
             if (!ctx) return;
 
-            const months = userGrowth.map(u => {
-                const date = new Date(u.month + '-01');
-                return date.toLocaleString('default', { month: 'short' });
-            });
-            const newUsers = userGrowth.map(u => parseInt(u.new_users || 0));
-            const newFarmers = userGrowth.map(u => parseInt(u.new_farmers || 0));
-            const newBuyers = userGrowth.map(u => parseInt(u.new_buyers || 0));
+            const labels = (userGrowth || []).map(u => formatAnalyticsLabel(u.label ?? u.month ?? u.day));
+            const newUsers = (userGrowth || []).map(u => parseInt(u.new_users || 0));
+            const newFarmers = (userGrowth || []).map(u => parseInt(u.new_farmers || 0));
+            const newBuyers = (userGrowth || []).map(u => parseInt(u.new_buyers || 0));
 
             if (userGrowthChart) {
                 userGrowthChart.destroy();
@@ -3559,7 +3474,7 @@
             userGrowthChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: months,
+                    labels: labels,
                     datasets: [
                         {
                             label: 'New Farmers',
@@ -3657,6 +3572,27 @@
             loadAnalytics();
         }
 
+        function formatAnalyticsLabel(label) {
+            const val = String(label || '').trim();
+            if (!val) return '';
+
+            if (/^\\d{4}-\\d{2}-\\d{2}$/.test(val)) {
+                const date = new Date(val + 'T00:00:00');
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+                }
+            }
+
+            if (/^\\d{4}-\\d{2}$/.test(val)) {
+                const date = new Date(val + '-01T00:00:00');
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
+                }
+            }
+
+            return val;
+        }
+
         // Update the initAdminDashboard function to include analytics loading
         // Add this line inside initAdminDashboard after showSection:
         // if (typeof loadAnalytics === 'function') loadAnalytics();
@@ -3670,13 +3606,12 @@
             const tbody = document.getElementById('paymentsTableBody');
 
             // Show loading state
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading payments...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading payments...</td></tr>';
 
             try {
                 // Get filter values
                 const search = document.getElementById('paymentTxnSearch')?.value || '';
                 const status = document.getElementById('paymentTxnStatusFilter')?.value || '';
-                const method = document.getElementById('paymentTxnMethodFilter')?.value || '';
 
                 const response = await fetch('<?= ROOT ?>/adminDashboard/getPayments', {
                     method: 'POST',
@@ -3686,7 +3621,6 @@
                     body: JSON.stringify({
                         search: search,
                         status: status,
-                        method: method,
                     })
                 });
 
@@ -3694,7 +3628,7 @@
 
                 if (!result.success) {
                     const msg = result.message || result.error || 'Failed to load payments';
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Error: ${escapeHtml(String(msg))}</td></tr>`;
                     return;
                 }
 
@@ -3710,17 +3644,6 @@
                     
                     document.getElementById('totalTransactions').textContent = result.stats.total_transactions || 0;
                     document.getElementById('platformCommission').textContent = `Rs. ${(result.stats.platform_commission || 0).toLocaleString()}`;
-                    document.getElementById('avgPaymentAmount').textContent = `Rs. ${Math.round(result.stats.avg_payment_amount || 0).toLocaleString()}`;
-
-                    document.getElementById('completedPayments').textContent = result.stats.completed_count || 0;
-                    document.getElementById('pendingPayments').textContent = result.stats.pending_count || 0;
-                    document.getElementById('shippedPayments').textContent = result.stats.shipped_count || 0;
-                    document.getElementById('cancelledPayments').textContent = result.stats.cancelled_count || 0;
-
-                    document.getElementById('codRevenue').textContent = `Rs. ${(result.stats.cod_revenue || 0).toLocaleString()}`;
-                    document.getElementById('bankRevenue').textContent = `Rs. ${(result.stats.bank_revenue || 0).toLocaleString()}`;
-                    document.getElementById('cardRevenue').textContent = `Rs. ${(result.stats.card_revenue || 0).toLocaleString()}`;
-                    document.getElementById('mobileRevenue').textContent = `Rs. ${(result.stats.mobile_revenue || 0).toLocaleString()}`;
                 }
 
                 window.allPayments = result.data;
@@ -3728,7 +3651,7 @@
 
             } catch (error) {
                 console.error('Error loading payments:', error);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:red;">Failed to load payments. Please try again.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:red;">Failed to load payments. Please try again.</td></tr>';
             }
         }
 
@@ -3737,7 +3660,7 @@
             const tbody = document.getElementById('paymentsTableBody');
 
             if (!payments || payments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#aaa;">No payments found.</td></tr>';
                 return;
             }
 
@@ -3772,23 +3695,12 @@
                         statusText = payment.payment_status || 'N/A';
                 }
 
-                // Payment method display
-                let methodText = '';
-                switch (payment.payment_method) {
-                    case 'cash_on_delivery': methodText = 'Cash on Delivery'; break;
-                    case 'bank_transfer': methodText = 'Bank Transfer'; break;
-                    case 'card': methodText = 'Card Payment'; break;
-                    case 'mobile_payment': methodText = 'Mobile Payment'; break;
-                    default: methodText = payment.payment_method || 'N/A';
-                }
-
                 html += `
             <tr>
                 <td><strong>${payment.transaction_id || payment.payment_id}</strong></td>
                 <td>#${payment.order_id}</td>
                 <td>${escapeHtml(payment.buyer_name || 'N/A')}</td>
                 <td><strong>Rs. ${parseFloat(payment.amount).toLocaleString()}</strong></td>
-                <td>${methodText}</td>
                 <td><span class="badge ${statusClass}">${statusText}</span></td>
                 <td>${formatDate(payment.payment_date)}</td>
                 <td>
@@ -3959,7 +3871,6 @@
         function resetPaymentFilters() {
             document.getElementById('paymentTxnSearch').value = '';
             document.getElementById('paymentTxnStatusFilter').value = '';
-            document.getElementById('paymentTxnMethodFilter').value = '';
             loadPayments();
         }
 
@@ -3971,10 +3882,10 @@
                 return;
             }
 
-            let csv = 'Transaction ID,Order ID,Buyer,Amount,Payment Method,Status,Date\n';
+            let csv = 'Transaction ID,Order ID,Buyer,Amount,Status,Date\n';
 
             rows.forEach(payment => {
-                csv += `"${payment.transaction_id || payment.payment_id}","${payment.order_number || payment.order_id}","${payment.buyer_name}",${payment.amount},"${payment.payment_method}","${payment.payment_status}","${payment.payment_date || payment.created_at}"\n`;
+                csv += `"${payment.transaction_id || payment.payment_id}","${payment.order_number || payment.order_id}","${payment.buyer_name}",${payment.amount},"${payment.payment_status}","${payment.payment_date || payment.created_at}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -3988,7 +3899,7 @@
 
         // Setup payment filters
         function setupPaymentFilters() {
-            const filters = ['paymentTxnSearch', 'paymentTxnStatusFilter', 'paymentTxnMethodFilter'];
+            const filters = ['paymentTxnSearch', 'paymentTxnStatusFilter'];
 
             filters.forEach(filterId => {
                 const element = document.getElementById(filterId);
@@ -4051,8 +3962,6 @@
                     if (unrevisedEl) unrevisedEl.textContent = result.stats.unrevised || 0;
                     const revisedEl = document.getElementById('revisedCancelledOrders');
                     if (revisedEl) revisedEl.textContent = result.stats.revised || 0;
-                    const revLogEl = document.getElementById('revisionLogCount');
-                    if (revLogEl) revLogEl.textContent = result.stats.revised || 0;
 
                     // Keep legacy counters safe if they still exist in the markup.
                     const legacyIds = ['highPriorityDisputes', 'mediumPriorityDisputes', 'lowPriorityDisputes', 'orderIssues', 'paymentIssues', 'deliveryIssues', 'qualityIssues'];
@@ -4104,6 +4013,79 @@
                 if (clickRateEl) clickRateEl.textContent = `${data.click_rate ?? 0}%`;
             } catch (error) {
                 console.error('Error loading notification stats:', error);
+            }
+        }
+
+        async function loadNotificationSummary() {
+            const tbody = document.getElementById('notificationsSummaryBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-light);">Loading notifications...</td></tr>';
+
+            try {
+                const response = await fetch('<?= ROOT ?>/adminDashboard/getNotificationSummary', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
+
+                const contentType = String(response.headers.get('content-type') || '');
+                let rawText = '';
+                let result = null;
+
+                if (contentType.includes('application/json')) {
+                    result = await response.json().catch(() => null);
+                } else {
+                    rawText = await response.text().catch(() => '');
+                    try {
+                        result = rawText ? JSON.parse(rawText) : null;
+                    } catch (e) {
+                        result = null;
+                    }
+                }
+
+                if (!result || typeof result !== 'object') {
+                    const preview = rawText ? rawText.slice(0, 220) : '';
+                    const msg = preview ? `Invalid JSON response: ${preview}` : `Invalid server response (HTTP ${response.status})`;
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--danger);">Error: ${escapeHtml(String(msg))}</td></tr>`;
+                    return;
+                }
+
+                if (!response.ok || result.success !== true) {
+                    const msg = result.message || result.error || `Request failed (HTTP ${response.status})`;
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--danger);">Error: ${escapeHtml(String(msg))}</td></tr>`;
+                    return;
+                }
+
+                const rows = Array.isArray(result.data) ? result.data : [];
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-light);">No notifications found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(n => {
+                    const type = String(n.type || 'system');
+                    const badgeClass = type === 'alert' ? 'badge-danger'
+                        : type === 'maintenance' ? 'badge-warning'
+                            : type === 'promotion' ? 'badge-info'
+                                : 'badge-secondary';
+
+                    const msg = String(n.message || '');
+                    const preview = msg.length > 100 ? msg.slice(0, 100) + '...' : msg;
+
+                    return `
+                        <tr>
+                            <td>${formatDate(n.sent_at)}</td>
+                            <td>
+                                <strong>${escapeHtml(String(n.title || ''))}</strong><br>
+                                <small style="color:var(--text-light);">${escapeHtml(preview)}</small>
+                            </td>
+                            <td><span class="badge ${badgeClass}" style="text-transform:capitalize;">${escapeHtml(type)}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading notification summary:', error);
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--danger);">Failed to load notifications. Please try again.</td></tr>';
             }
         }
 
@@ -5124,7 +5106,6 @@
                 { metric: 'Total Revenue', value: document.getElementById('analyticsTotalRevenue')?.textContent || 0 },
                 { metric: 'Total Orders', value: document.getElementById('analyticsTotalOrders')?.textContent || 0 },
                 { metric: 'Total Users', value: document.getElementById('analyticsTotalUsers')?.textContent || 0 },
-                { metric: 'Avg Order Value', value: document.getElementById('analyticsAvgOrderValue')?.textContent || 0 },
                 { metric: 'Total Transactions', value: document.getElementById('totalTransactions')?.textContent || 0 }
             ];
         }

@@ -2693,7 +2693,11 @@ class AdminDashboardController
         }
 
         $notifications = new NotificationsModel();
-        $eventKey = 'admin_' . date('YmdHis') . '_' . bin2hex(random_bytes(6));
+        $recipientKey = preg_replace('/[^a-z_]+/i', '', strtolower((string) $recipient));
+        if ($recipientKey === '') {
+            $recipientKey = 'unknown';
+        }
+        $eventKey = 'admin_' . $recipientKey . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(6));
         $result = $notifications->broadcast($userIds, [
             'event_key' => $eventKey,
             'title' => $title,
@@ -2751,6 +2755,80 @@ class AdminDashboardController
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
+        exit;
+    }
+
+    public function getNotificationSummary()
+    {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
+        header('Content-Type: application/json');
+
+        if (!$this->requireAdminJson()) {
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
+        }
+
+        try {
+            $notifications = new NotificationsModel();
+
+            $sql = "
+                SELECT
+                    n.event_key,
+                    MIN(n.title) AS title,
+                    MIN(n.message) AS message,
+                    MIN(n.type) AS type,
+                    MIN(n.created_at) AS sent_at,
+                    COUNT(*) AS delivered_count,
+                    CASE
+                        WHEN n.event_key LIKE 'admin\\_%\\_%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(n.event_key, '_', 2), '_', -1)
+                        ELSE 'unknown'
+                    END AS recipient_type
+                FROM notifications n
+                WHERE n.event_key LIKE 'admin\\_%'
+                  AND COALESCE(n.event_key, '') NOT LIKE 'mock\\_%'
+                  AND COALESCE(n.event_key, '') NOT LIKE 'test\\_%'
+                  AND COALESCE(n.event_key, '') NOT LIKE 'debug\\_%'
+                  AND LOWER(COALESCE(n.title, '')) NOT LIKE '%localhost%'
+                  AND LOWER(COALESCE(n.message, '')) NOT LIKE '%localhost%'
+                GROUP BY n.event_key
+                ORDER BY sent_at DESC
+                LIMIT 200
+            ";
+
+            $rows = $notifications->query($sql, []) ?: [];
+            $data = [];
+
+            if (is_array($rows)) {
+                foreach ($rows as $row) {
+                    $data[] = [
+                        'event_key' => (string) ($row->event_key ?? ''),
+                        'title' => (string) ($row->title ?? ''),
+                        'message' => (string) ($row->message ?? ''),
+                        'type' => (string) ($row->type ?? 'system'),
+                        'sent_at' => (string) ($row->sent_at ?? ''),
+                        'recipient_type' => (string) ($row->recipient_type ?? 'unknown'),
+                        'delivered_count' => (int) ($row->delivered_count ?? 0),
+                    ];
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+
         exit;
     }
 
