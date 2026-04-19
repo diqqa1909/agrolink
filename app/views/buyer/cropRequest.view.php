@@ -89,15 +89,12 @@
         <?php if (!empty($requests)): ?>
             <div class="content-card crop-request-table-card">
                 <div class="table-responsive">
-                    <table>
+                    <table class="crop-request-table">
                         <thead>
                             <tr>
-                                <th class="crop-request-checkbox-header">
-                                    <input type="checkbox" class="crop-request-checkbox">
-                                </th>
-                                <th>Submitted</th>
+                                <th>Crop</th>
                                 <th>Quantity</th>
-                                <th>Crop Type</th>
+                                <th>Submitted</th>
                                 <th>Delivery Date</th>
                                 <th>Location</th>
                                 <th>Status</th>
@@ -112,18 +109,15 @@
                                 $statusClass = in_array($status, $validStatuses, true) ? $status : 'active';
                             ?>
                                 <tr>
-                                    <td>
-                                        <input type="checkbox" class="crop-request-checkbox">
-                                    </td>
-                                    <td><?= date('d M, Y', strtotime($request->created_at)) ?></td>
+                                    <td class="crop-request-crop-cell"><?= htmlspecialchars($request->crop_name) ?></td>
                                     <td>
                                         <span class="crop-request-quantity-badge">
                                             <?= htmlspecialchars($request->quantity) ?> units
                                         </span>
                                     </td>
-                                    <td class="crop-request-crop-cell"><?= htmlspecialchars($request->crop_name) ?></td>
+                                    <td class="crop-request-muted"><?= date('d M, Y', strtotime($request->created_at)) ?></td>
                                     <td><?= date('d M, Y', strtotime($request->delivery_date)) ?></td>
-                                    <td><?= htmlspecialchars($request->location) ?></td>
+                                    <td class="crop-request-muted"><?= htmlspecialchars($request->location) ?></td>
                                     <td>
                                         <span class="crop-request-status crop-request-status--<?= htmlspecialchars($statusClass) ?>">
                                             <?= ucfirst($statusClass) ?>

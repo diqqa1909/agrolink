@@ -1,5 +1,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const deliveryForm = document.getElementById('deliveryForm');
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+
+    if (stateSelect && citySelect) {
+        stateSelect.addEventListener('change', function() {
+            const district = this.value;
+            citySelect.innerHTML = '<option value="" selected disabled>Loading...</option>';
+            citySelect.disabled = true;
+
+            if (!district) {
+                citySelect.innerHTML = '<option value="" selected disabled>Select nearest city</option>';
+                return;
+            }
+
+            fetch(`${window.APP_ROOT}/Checkout/getTownsByDistrictName?district=${encodeURIComponent(district)}`)
+                .then(response => response.json())
+                .then(data => {
+                    citySelect.innerHTML = '<option value="" selected disabled>Select nearest city</option>';
+                    citySelect.disabled = false;
+                    
+                    if (data.success && data.towns) {
+                        data.towns.forEach(town => {
+                            const option = document.createElement('option');
+                            option.value = town.town_name;
+                            option.textContent = town.town_name;
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        citySelect.innerHTML = '<option value="" selected disabled>No cities found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching towns:', error);
+                    citySelect.innerHTML = '<option value="" selected disabled>Error loading cities</option>';
+                    citySelect.disabled = false;
+                });
+        });
+    }
 
     if (deliveryForm) {
         deliveryForm.addEventListener('submit', function(e) {
@@ -11,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const district = document.getElementById('state').value.trim();
 
             if (!phone || !city || !deliveryAddress || !district) {
-                alert('Please fill in all required fields');
+                showNotification('Please fill in all required fields', 'warning');
                 return;
             }
 
@@ -50,14 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.location.reload();
                         }, 500);
                     } else {
-                        alert(data.message || 'Failed to save delivery details');
+                        showNotification(data.message || 'Failed to save delivery details', 'error');
                         btn.disabled = false;
                         btn.textContent = originalText;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while saving delivery details: ' + error.message);
+                    showNotification('An error occurred while saving delivery details: ' + error.message, 'error');
                     btn.disabled = false;
                     btn.textContent = originalText;
                 });
@@ -67,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function updateCheckoutQuantity(productId, quantity, maxQuantity) {
     if (maxQuantity && quantity > maxQuantity) {
-        alert('Cannot select more than ' + maxQuantity + ' kg. Only ' + maxQuantity + ' kg available.');
+        showNotification('Cannot select more than ' + maxQuantity + ' kg. Only ' + maxQuantity + ' kg available.', 'warning');
         const select = document.querySelector(`select[data-product-id="${productId}"]`);
         if (select) {
             select.value = maxQuantity;
@@ -77,7 +115,7 @@ function updateCheckoutQuantity(productId, quantity, maxQuantity) {
     }
 
     if (quantity <= 0) {
-        alert('Quantity must be at least 1');
+        showNotification('Quantity must be at least 1', 'warning');
         return;
     }
 
@@ -95,12 +133,12 @@ function updateCheckoutQuantity(productId, quantity, maxQuantity) {
             if (data.success) {
                 window.location.reload();
             } else {
-                alert('Failed to update quantity: ' + (data.message || 'Unknown error'));
+                showNotification('Failed to update quantity: ' + (data.message || 'Unknown error'), 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating quantity');
+            showNotification('An error occurred while updating quantity', 'error');
         });
 }
 

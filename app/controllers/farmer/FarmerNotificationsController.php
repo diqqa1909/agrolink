@@ -87,12 +87,67 @@ class FarmerNotificationsController
         }
 
         $farmerId = $this->getFarmerId();
+        // Ensure generated notifications are synced before marking all as read.
+        $this->notificationsModel->getNotifications($farmerId, 'all');
         $this->notificationsModel->markAllAsRead($farmerId);
 
         echo json_encode([
             'success' => true,
             'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
             'notifications' => $this->notificationsModel->getNotifications($farmerId, 'all'),
+        ]);
+        exit;
+    }
+
+    public function markRead()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!$this->isAuthorizedFarmer()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            exit;
+        }
+
+        $farmerId = $this->getFarmerId();
+        $notificationId = (int)($_POST['notification_id'] ?? 0);
+        if ($notificationId <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => 'Invalid notification id']);
+            exit;
+        }
+
+        $updated = $this->notificationsModel->markAsRead($farmerId, $notificationId);
+
+        echo json_encode([
+            'success' => (bool)$updated,
+            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
+        ]);
+        exit;
+    }
+
+    public function unreadCount()
+    {
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
+
+        if (!$this->isAuthorizedFarmer()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $farmerId = $this->getFarmerId();
+        echo json_encode([
+            'success' => true,
+            'unreadCount' => $this->notificationsModel->getUnreadCount($farmerId),
         ]);
         exit;
     }

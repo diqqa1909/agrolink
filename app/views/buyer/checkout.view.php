@@ -33,12 +33,6 @@
                                 placeholder="Apartment, suite, etc. (optional)">
                         </div>
 
-                        <div class="form-group">
-                            <label for="city" class="form-label">City <span class="required">*</span></label>
-                            <input type="text" id="city" name="city" class="form-control"
-                                placeholder="Enter your city" required>
-                        </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="state" class="form-label">District <span class="required">*</span></label>
@@ -54,6 +48,13 @@
                                 <input type="text" id="zipCode" name="zipCode" class="form-control"
                                     placeholder="Postal code">
                             </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city" class="form-label">Nearest City <span class="required">*</span></label>
+                            <select id="city" name="city" class="form-control" required>
+                                <option value="" selected disabled>Select nearest city</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -145,22 +146,19 @@
                                         <label>Quantity:</label>
                                         <?php
                                         $availableQty = $item->available_quantity ?? 0;
-                                        $maxQuantity = min($availableQty, 100); // Cap at 100 for UI, but respect available quantity
+                                        $maxQuantity = $availableQty;
                                         $currentQuantity = min($item->quantity, $maxQuantity);
 
                                         if ($maxQuantity <= 0):
                                         ?>
                                             <span class="checkout-out-of-stock">Out of Stock</span>
                                         <?php else: ?>
-                                            <select class="quantity-select" data-product-id="<?= $item->product_id ?>"
+                                            <input type="number" class="quantity-select" style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;" 
+                                                data-product-id="<?= $item->product_id ?>"
                                                 data-max-quantity="<?= $availableQty ?>"
+                                                value="<?= $currentQuantity ?>"
+                                                min="1" max="<?= $availableQty ?>"
                                                 onchange="updateCheckoutQuantity(<?= $item->product_id ?>, this.value, <?= $availableQty ?>)">
-                                                <?php for ($i = 1; $i <= $maxQuantity; $i++): ?>
-                                                    <option value="<?= $i ?>" <?= $currentQuantity == $i ? 'selected' : '' ?>>
-                                                        <?= $i ?> <?= $i == $maxQuantity && $maxQuantity == $availableQty ? '(Max)' : '' ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
                                             <span class="checkout-available-qty">
                                                 (<?= $availableQty ?> kg available)
                                             </span>
@@ -172,7 +170,6 @@
                                             <span class="delivery-date"><?= date('M d', strtotime('+3 days')) ?> - <?= date('M d', strtotime('+7 days')) ?></span>
                                         </div>
                                         <div class="shipping-method">Standard Shipping</div>
-                                        <div class="returns-policy">30 days returns accepted</div>
                                     </div>
                                     <div class="order-item-price">
                                         Rs. <?= number_format($item->product_price * $item->quantity, 2) ?>

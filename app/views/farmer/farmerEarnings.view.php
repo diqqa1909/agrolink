@@ -8,46 +8,26 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
     <div class="content-header earnings-header">
         <h1 class="content-title">My Earnings</h1>
         <p class="content-subtitle">Track your income and financial performance</p>
-        <button type="button" class="btn btn-secondary" onclick="FarmerEarnings.downloadReport()">Download Report</button>
+        <button type="button" class="btn btn-secondary" id="downloadEarningsReportBtn">Download Report</button>
     </div>
 
     <div class="earnings-modern-stats">
         <div class="earnings-modern-card">
-            <div class="icon-badge">$</div>
             <div class="metric-block">
                 <div class="metric-label">Total Earnings</div>
                 <div class="metric-value">Rs. <?= number_format((float)$totalEarnings, 2) ?></div>
-                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> from last month</div>
             </div>
         </div>
         <div class="earnings-modern-card">
-            <div class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </div>
             <div class="metric-block">
                 <div class="metric-label">This Month</div>
                 <div class="metric-value">Rs. <?= number_format((float)$monthlyEarnings, 2) ?></div>
-                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> compared to last month</div>
             </div>
         </div>
         <div class="earnings-modern-card">
-            <div class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9"></path></svg>
-            </div>
             <div class="metric-block">
                 <div class="metric-label">Total Orders</div>
                 <div class="metric-value"><?= number_format((float)($earningsStats->total_orders ?? 0)) ?></div>
-                <div class="metric-sub positive"><?= number_format((float)($weeklyOrders ?? 0)) ?> orders this week</div>
-            </div>
-        </div>
-        <div class="earnings-modern-card">
-            <div class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline></svg>
-            </div>
-            <div class="metric-block">
-                <div class="metric-label">Avg. Per Order</div>
-                <div class="metric-value">Rs. <?= number_format((float)($earningsStats->avg_order_value ?? 0), 2) ?></div>
-                <div class="metric-sub <?= $monthlyChangeClass ?>"><?= $monthlyChangeText ?> compared to last month</div>
             </div>
         </div>
     </div>
@@ -90,7 +70,9 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
                 </thead>
                 <tbody>
                     <?php if (empty($recentEarnings)): ?>
-                        <tr><td colspan="5">No recent transactions.</td></tr>
+                        <tr>
+                            <td colspan="5">No recent transactions.</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($recentEarnings as $earning): ?>
                             <tr>
@@ -110,28 +92,32 @@ $monthlyChangeClass = $monthlyChange >= 0 ? 'positive' : 'negative';
     </div>
 </div>
 
-<script id="earningsChartData" type="application/json"><?=
-    json_encode([
-        'daily' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $dailyChart ?? []),
-        'monthly' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['month'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $monthlyChart ?? []),
-        'yearly' => array_map(function ($p) {
-            return [
-                'label' => $p['label'] ?? '',
-                'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
-                'earnings' => (float)($p['earnings'] ?? 0),
-            ];
-        }, $yearlyChart ?? []),
-    ])
-?></script>
+<?php
+$chartPayload = json_encode([
+    'daily' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $dailyChart ?? []),
+    'monthly' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['month'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $monthlyChart ?? []),
+    'yearly' => array_map(function ($p) {
+        return [
+            'label' => $p['label'] ?? '',
+            'fullLabel' => $p['fullLabel'] ?? ($p['label'] ?? ''),
+            'earnings' => (float)($p['earnings'] ?? 0),
+        ];
+    }, $yearlyChart ?? []),
+]);
+?>
+<div
+    id="earningsChartData"
+    data-chart="<?= htmlspecialchars((string)$chartPayload, ENT_QUOTES, 'UTF-8') ?>"
+    hidden></div>

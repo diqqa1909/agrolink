@@ -150,7 +150,6 @@
                         </div>
                         <p>${escapeHtml(item.message || '')}</p>
                     </div>
-                    <div class="notification-row-time">${escapeHtml(timeAgo(item.created_at))}</div>
                 </a>
             `;
         }).join('');

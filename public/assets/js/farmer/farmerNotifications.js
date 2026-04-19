@@ -8,6 +8,49 @@
     let notifications = Array.isArray(seed.notifications) ? seed.notifications : [];
     let unreadCount = Number(seed.unreadCount || 0);
     let activeFilter = 'all';
+    let knownNotificationKeys = new Set();
+
+    function notificationKey(item) {
+        if (!item || typeof item !== 'object') return '';
+        return String(item.event_key || item.id || '').trim();
+    }
+
+    function rebuildKnownKeys() {
+        knownNotificationKeys = new Set(
+            notifications
+                .map(notificationKey)
+                .filter(Boolean)
+        );
+    }
+
+    function notifyUser(message, type) {
+        const safeMessage = String(message || '').trim();
+        const compactMessage = safeMessage.length > 80
+            ? `${safeMessage.slice(0, 77)}...`
+            : safeMessage;
+
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(compactMessage || 'Notification', type || 'info');
+            return;
+        }
+
+        const existing = document.querySelector('.notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `notification ${type || 'info'}`;
+        toast.textContent = compactMessage || 'Notification';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 360px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2200);
+    }
 
     function timeAgo(value) {
         const ts = new Date(value).getTime();
@@ -22,6 +65,53 @@
         if (minutes < 60) return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
         if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
         return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function toRoute(link) {
+        if (!link || link === '#') return '#';
+
+        const root = APP_ROOT.replace(/\/$/, '');
+        const rootPath = root.replace(/^https?:\/\/[^/]+/i, '').replace(/^\//, '');
+        let clean = String(link).trim();
+
+        if (/^https?:\/\//i.test(clean)) {
+            try {
+                const parsed = new URL(clean, window.location.origin);
+                if (parsed.origin !== window.location.origin) {
+                    return clean;
+                }
+                clean = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+            } catch (error) {
+                return clean;
+            }
+        }
+
+        clean = clean.replace(/^\.\//, '').replace(/^\//, '');
+
+        if (rootPath !== '' && clean.toLowerCase().startsWith(`${rootPath.toLowerCase()}/`)) {
+            clean = clean.slice(rootPath.length + 1);
+        }
+
+        const publicIndex = clean.toLowerCase().lastIndexOf('public/');
+        if (publicIndex >= 0) {
+            clean = clean.slice(publicIndex + 7);
+        }
+
+        clean = clean.replace(/^index\.php\/?/i, '');
+        clean = clean.replace(/^farmer\/farmerdashboard/i, 'farmerdashboard');
+        clean = clean.replace(/^farmer\/farmernotifications/i, 'farmernotifications');
+
+        if (clean === '') return '#';
+        return `${root}/${clean}`;
     }
 
     function iconFor(type) {
@@ -53,23 +143,56 @@
 
         list.innerHTML = rows.map(item => {
             const unreadClass = item.is_read ? '' : 'is-unread';
-            const link = item.link ? `${APP_ROOT}/${item.link}` : '#';
+            const link = toRoute(item.link);
+            const notificationId = Number(item.id || 0);
             return `
-                <a class="notification-row ${unreadClass}" href="${link}">
+                <a class="notification-row ${unreadClass}" href="${escapeHtml(link)}" data-notification-id="${notificationId > 0 ? notificationId : ''}">
                     <div class="notification-type-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${iconFor(item.icon || item.category)}</svg>
                     </div>
                     <div class="notification-row-content">
                         <div class="notification-row-title-line">
-                            <h4>${item.title || 'Notification'}</h4>
+                            <h4>${escapeHtml(item.title || 'Notification')}</h4>
                             ${item.is_read ? '' : '<span class="notification-unread-dot"></span>'}
                         </div>
-                        <p>${item.message || ''}</p>
+                        <p>${escapeHtml(item.message || '')}</p>
                     </div>
-                    <div class="notification-row-time">${timeAgo(item.created_at)}</div>
                 </a>
             `;
         }).join('');
+    }
+
+    function markNotificationRead(notificationId) {
+        const id = Number(notificationId || 0);
+        if (!id) return;
+
+        const notification = notifications.find(item => Number(item.id || 0) === id);
+        if (!notification || notification.is_read) return;
+
+        notification.is_read = true;
+        unreadCount = Math.max(0, unreadCount - 1);
+        updateSidebarBadge();
+        renderNotifications();
+
+        const payload = new URLSearchParams({ notification_id: String(id) });
+        const endpoint = `${APP_ROOT}/farmernotifications/markRead`;
+
+        if (navigator.sendBeacon) {
+            const blob = new Blob([payload.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' });
+            navigator.sendBeacon(endpoint, blob);
+            return;
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            credentials: 'include',
+            keepalive: true,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: payload.toString()
+        }).catch(err => console.error('Farmer notification mark-read error:', err));
     }
 
     function updateActiveFilterUi() {
@@ -109,6 +232,7 @@
                 if (!res.success) return;
                 notifications = Array.isArray(res.notifications) ? res.notifications : notifications.map(n => ({ ...n, is_read: true }));
                 unreadCount = Number(res.unreadCount || 0);
+                rebuildKnownKeys();
                 updateSidebarBadge();
                 renderNotifications();
             })
@@ -132,6 +256,7 @@
                 notifications = Array.isArray(res.notifications) ? res.notifications : [];
                 unreadCount = Number(res.unreadCount || 0);
                 activeFilter = 'all';
+                rebuildKnownKeys();
                 updateActiveFilterUi();
                 updateSidebarBadge();
                 renderNotifications();
@@ -140,7 +265,39 @@
             .catch(err => console.error('Save notification settings error:', err));
     }
 
+    function pollNotifications() {
+        fetch(`${APP_ROOT}/farmernotifications/list?filter=all`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success || !Array.isArray(res.notifications)) return;
+
+                const incoming = res.notifications;
+                const newItems = incoming.filter(item => {
+                    const key = notificationKey(item);
+                    return key !== '' && !knownNotificationKeys.has(key);
+                });
+
+                notifications = incoming;
+                unreadCount = Number(res.unreadCount || 0);
+                rebuildKnownKeys();
+                updateSidebarBadge();
+                renderNotifications();
+
+                if (newItems.length > 0) {
+                    const preview = String(newItems[0].title || 'New notification');
+                    const suffix = newItems.length > 1 ? ` (+${newItems.length - 1} more)` : '';
+                    notifyUser(`${preview}${suffix}`, 'info');
+                }
+            })
+            .catch(err => console.error('Farmer notifications polling error:', err));
+    }
+
     function init() {
+        rebuildKnownKeys();
         renderNotifications();
         updateSidebarBadge();
 
@@ -151,6 +308,18 @@
                 renderNotifications();
             });
         });
+
+        const notificationsList = document.getElementById('notificationsList');
+        if (notificationsList) {
+            notificationsList.addEventListener('click', function (event) {
+                const link = event.target.closest('a.notification-row[data-notification-id]');
+                if (!link) return;
+                const notificationId = Number(link.getAttribute('data-notification-id') || 0);
+                if (notificationId > 0) {
+                    markNotificationRead(notificationId);
+                }
+            });
+        }
 
         const markAllBtn = document.getElementById('markAllNotificationsReadBtn');
         if (markAllBtn) markAllBtn.addEventListener('click', markAllAsRead);
@@ -165,6 +334,15 @@
         const settingsForm = document.getElementById('notificationSettingsForm');
         if (settingsForm) settingsForm.addEventListener('submit', saveSettings);
 
+        const clearFilterBtn = document.getElementById('clearFarmerNotificationFilterBtn');
+        if (clearFilterBtn) {
+            clearFilterBtn.addEventListener('click', function () {
+                activeFilter = 'all';
+                updateActiveFilterUi();
+                renderNotifications();
+            });
+        }
+
         document.querySelectorAll('[data-close-modal]').forEach(btn => {
             btn.addEventListener('click', function () {
                 closeModal(this.getAttribute('data-close-modal'));
@@ -176,6 +354,8 @@
                 if (e.target === modal) modal.classList.remove('show');
             });
         });
+
+        setInterval(pollNotifications, 30000);
     }
 
     if (document.readyState === 'loading') {
@@ -184,4 +364,3 @@
         init();
     }
 })();
-

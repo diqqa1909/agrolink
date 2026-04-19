@@ -1,133 +1,3 @@
-
-// Review Functions
-function openReviewModal(orderId, productId, farmerId, productName) {
-    // Create modal HTML if it doesn't exist
-    if (!document.getElementById('review-modal')) {
-        const modalHtml = `
-            <div id="review-modal" class="modal" style="display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-                <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 12px; position: relative;">
-                    <span class="close-modal" onclick="BuyerDashboard.closeReviewModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-                    <h2 style="margin-top: 0; color: #333;">Write a Review</h2>
-                    <p id="review-product-name" style="color: #666; margin-bottom: 20px;"></p>
-                    
-                    <form id="review-form" onsubmit="BuyerDashboard.submitReview(event)">
-                        <input type="hidden" id="review-order-id" name="order_id">
-                        <input type="hidden" id="review-product-id" name="product_id">
-                        <input type="hidden" id="review-farmer-id" name="farmer_id">
-                        
-                        <div style="margin-bottom: 20px; text-align: center;">
-                            <label style="display: block; margin-bottom: 10px; font-weight: 500;">Rate this product</label>
-                            <div class="rating-stars" style="font-size: 2rem; color: #ddd; cursor: pointer;">
-                                <span onclick="BuyerDashboard.setRating(1)" data-val="1">★</span>
-                                <span onclick="BuyerDashboard.setRating(2)" data-val="2">★</span>
-                                <span onclick="BuyerDashboard.setRating(3)" data-val="3">★</span>
-                                <span onclick="BuyerDashboard.setRating(4)" data-val="4">★</span>
-                                <span onclick="BuyerDashboard.setRating(5)" data-val="5">★</span>
-                            </div>
-                            <input type="hidden" id="review-rating" name="rating" required>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <label for="review-comment" style="display: block; margin-bottom: 8px; font-weight: 500;">Your Comment</label>
-                            <textarea id="review-comment" name="comment" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; resize: vertical;" placeholder="What did you like or dislike?" required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Review</button>
-                    </form>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Add star hover effects
-        const stars = document.querySelectorAll('.rating-stars span');
-        stars.forEach(star => {
-            star.addEventListener('mouseover', function () {
-                const val = this.dataset.val;
-                highlightStars(val);
-            });
-            star.addEventListener('mouseout', function () {
-                const currentRating = document.getElementById('review-rating').value;
-                highlightStars(currentRating);
-            });
-        });
-    }
-
-    // Set values
-    document.getElementById('review-product-name').textContent = 'Product: ' + productName;
-    document.getElementById('review-order-id').value = orderId;
-    document.getElementById('review-product-id').value = productId;
-    document.getElementById('review-farmer-id').value = farmerId;
-    document.getElementById('review-rating').value = '';
-    document.getElementById('review-comment').value = '';
-    highlightStars(0);
-
-    // Show modal
-    document.getElementById('review-modal').style.display = 'block';
-}
-
-function closeReviewModal() {
-    const modal = document.getElementById('review-modal');
-    if (modal) modal.style.display = 'none';
-}
-
-function setRating(val) {
-    document.getElementById('review-rating').value = val;
-    highlightStars(val);
-}
-
-function highlightStars(val) {
-    const stars = document.querySelectorAll('.rating-stars span');
-    stars.forEach(star => {
-        if (star.dataset.val <= val) {
-            star.style.color = '#ff9800';
-        } else {
-            star.style.color = '#ddd';
-        }
-    });
-}
-
-function submitReview(e) {
-    e.preventDefault();
-
-    const rating = document.getElementById('review-rating').value;
-    if (!rating) {
-        showNotification('Please select a star rating', 'error');
-        return;
-    }
-
-    const formData = new FormData(e.target);
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.textContent;
-
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
-
-    fetch(window.APP_ROOT + '/buyerreviews/submit', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, 'success');
-                closeReviewModal();
-                // Optional: Hide the review button or mark as reviewed
-            } else {
-                showNotification(data.message || 'Failed to submit review', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('An error occurred', 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        });
-}
-
 // Buyer Dashboard JavaScript
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -995,11 +865,6 @@ function escapeHtml(text = '') {
 }
 
 window.BuyerDashboard = {
-    openReviewModal,
-    closeReviewModal,
-    setRating,
-    highlightStars,
-    submitReview,
     showSection,
     filterProducts,
     addToCart,
@@ -1069,12 +934,14 @@ function viewOrderDetails(orderId) {
                 let itemsHtml = '';
                 items.forEach(item => {
                     const itemTotal = parseFloat(item.product_price) * parseInt(item.quantity);
+                    const pickupAddress = escapeHtml(item.product_full_address || '');
                     itemsHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
                         <div style="flex: 1;">
                             <div style="font-weight: 500;">${escapeHtml(item.product_name)}</div>
                             <div style="font-size: 0.85rem; color: #666;">${item.quantity} kg x Rs. ${parseFloat(item.product_price).toFixed(2)}</div>
                             ${item.farmer_name ? `<div style="font-size: 0.8rem; color: #888;">Farmer: ${escapeHtml(item.farmer_name)}</div>` : ''}
+                            ${pickupAddress ? `<div style="font-size: 0.8rem; color: #888;">Pickup: ${pickupAddress}</div>` : ''}
                         </div>
                         <div style="font-weight: 500;">Rs. ${itemTotal.toFixed(2)}</div>
                     </div>

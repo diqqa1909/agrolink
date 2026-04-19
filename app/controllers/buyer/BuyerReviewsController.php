@@ -90,10 +90,9 @@ class BuyerReviewsController
                 exit;
             }
 
-            $allowedTransporterStatuses = ['shipped', 'delivered'];
-            if (!in_array($orderContext->order_status, $allowedTransporterStatuses, true)) {
+            if ($orderContext->order_status !== 'delivered') {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Transporter reviews are available after order is shipped']);
+                echo json_encode(['success' => false, 'message' => 'Transporter reviews are available after the order is delivered']);
                 exit;
             }
 
@@ -142,10 +141,9 @@ class BuyerReviewsController
             exit;
         }
 
-        $allowedStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
-        if (!in_array($orderItem->order_status, $allowedStatuses, true)) {
+        if ($orderItem->order_status !== 'delivered') {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Reviews can be written once the order is confirmed']);
+            echo json_encode(['success' => false, 'message' => 'Reviews can be written once the order is delivered']);
             exit;
         }
 

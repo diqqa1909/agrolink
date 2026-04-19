@@ -47,7 +47,7 @@ function setProfilePhoto(url) {
     if (!img) return;
 
     const hasPhoto = !!(url && url.length && url !== 'undefined');
-    
+
     if (hasPhoto) {
         img.style.display = 'block';
         if (defaultIcon) defaultIcon.style.display = 'none';
@@ -67,6 +67,46 @@ function formatDateLabel(dateStr) {
     return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
+function loadNearestCities(district, selectedCity = '') {
+    const cityField = document.getElementById('profileCity');
+    if (!cityField) return;
+
+    cityField.innerHTML = '<option value="" selected disabled>Loading...</option>';
+    cityField.disabled = true;
+
+    if (!district) {
+        cityField.innerHTML = '<option value="">Select nearest city</option>';
+        return;
+    }
+
+    fetch(`${window.APP_ROOT}/Checkout/getTownsByDistrictName?district=${encodeURIComponent(district)}`)
+        .then(response => response.json())
+        .then(data => {
+            cityField.innerHTML = '<option value="">Select nearest city</option>';
+            cityField.disabled = false;
+
+            if (data.success && data.towns) {
+                data.towns.forEach(town => {
+                    const option = document.createElement('option');
+                    option.value = town.town_name;
+                    option.textContent = town.town_name;
+                    cityField.appendChild(option);
+                });
+
+                if (selectedCity) {
+                    cityField.value = selectedCity;
+                }
+            } else {
+                cityField.innerHTML = '<option value="">No cities found</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching towns:', error);
+            cityField.innerHTML = '<option value="">Error loading cities</option>';
+            cityField.disabled = false;
+        });
+}
+
 function populateProfileForm(profile, photoUrl, profileStats) {
     const nameField = document.getElementById('profileName');
     const emailField = document.getElementById('profileEmail');
@@ -83,12 +123,17 @@ function populateProfileForm(profile, photoUrl, profileStats) {
     if (emailField) emailField.value = profile.email || '';
     if (accountSettingsEmail) accountSettingsEmail.value = profile.email || '';
     if (phoneField) phoneField.value = profile.phone || '';
-    if (districtField) districtField.value = profile.district || '';
     if (apartmentField) apartmentField.value = profile.apartment_code || '';
     if (streetNameField) streetNameField.value = profile.street_name || '';
-    if (cityField) cityField.value = profile.city || '';
     if (postalField) postalField.value = profile.postal_code || '';
     if (addressField) addressField.value = profile.additional_address_details || '';
+
+    if (districtField) {
+        districtField.value = profile.district || '';
+        loadNearestCities(profile.district || '', profile.city || '');
+    } else if (cityField) {
+        cityField.innerHTML = `<option value="${profile.city || ''}" selected>${profile.city || 'Select nearest city'}</option>`;
+    }
 
     const displayName = document.getElementById('profileDisplayName');
     const displayEmail = document.getElementById('profileDisplayEmail');
@@ -209,14 +254,16 @@ function saveProfileData() {
             }
 
             if (res.errors && typeof res.errors === 'object') {
+                let errorMessages = [];
                 Object.keys(res.errors).forEach(field => {
+                    errorMessages.push(res.errors[field]);
                     const errorEl = document.getElementById(`error-${field}`);
                     if (errorEl) {
                         errorEl.textContent = res.errors[field];
                         errorEl.classList.add('show');
                     }
                 });
-                showNotification('Please fix the highlighted fields', 'error');
+                showNotification('Validation Error: ' + errorMessages.join(' | '), 'error');
             } else {
                 showNotification(res.error || 'Failed to save profile', 'error');
             }
@@ -582,6 +629,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailForm = document.getElementById('changeEmailForm');
     if (emailForm) {
         emailForm.addEventListener('submit', handleChangeEmailSubmit);
+    }
+
+    const profileDistrict = document.getElementById('profileDistrict');
+    if (profileDistrict) {
+        profileDistrict.addEventListener('change', function () {
+            loadNearestCities(this.value);
+        });
     }
 
     const addPhotoBtn = document.getElementById('addPhotoBtn');

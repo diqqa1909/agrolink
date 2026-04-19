@@ -23,11 +23,16 @@ function authSyncFromLegacySession(): void
         $_SESSION['logged_in'] = true;
     }
 
+    $hasLegacyUser = isset($_SESSION['USER']);
+    $nameMissing = empty($_SESSION['user_name']);
+
     if (!empty($_SESSION['logged_in']) && !empty($_SESSION['user_id']) && !empty($_SESSION['role'])) {
-        return;
+        if (!$hasLegacyUser || !$nameMissing) {
+            return;
+        }
     }
 
-    if (!isset($_SESSION['USER'])) {
+    if (!$hasLegacyUser) {
         return;
     }
 

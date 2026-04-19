@@ -44,12 +44,8 @@
                         </button>
 
                         <?php $status = strtolower((string)$order->status); ?>
-                        <?php if ($status === 'pending'): ?>
-                            <button class="btn btn-primary" onclick="FarmerOrders.updateOrderStatus(<?= (int)$order->id ?>, 'confirmed')">Mark Confirmed</button>
-                        <?php elseif ($status === 'confirmed'): ?>
-                            <button class="btn btn-primary" onclick="FarmerOrders.updateOrderStatus(<?= (int)$order->id ?>, 'processing')">Mark Processing</button>
-                        <?php elseif ($status === 'processing'): ?>
-                            <button class="btn btn-primary" onclick="FarmerOrders.updateOrderStatus(<?= (int)$order->id ?>, 'shipped')">Mark Shipped</button>
+                        <?php if ($status === 'processing'): ?>
+                            <button class="btn btn-primary" onclick="FarmerOrders.updateOrderStatus(<?= (int)$order->id ?>, 'ready_for_pickup')">Mark Ready for Pickup</button>
                         <?php endif; ?>
                     </div>
                 </div>

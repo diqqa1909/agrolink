@@ -372,7 +372,7 @@ function showEditVehicleModal(vehicle) {
                                     </div>
                                     <div class="form-group">
                                         <label for="editVehicleRegistration">Registration Number *</label>
-                                        <input type="text" id="editVehicleRegistration" name="registration" class="form-control" value="${escapeHtml(vehicle.registration)}" required>
+                                        <input type="text" id="editVehicleRegistration" name="registration" class="form-control" value="${escapeHtml(vehicle.registration)}" required pattern="^[A-Z]{2,3} \\d{4}$" title="Registration must be 2 or 3 capital letters, a space, and 4 numbers (e.g. AB 1234)">
                                     </div>
                                 </div>
 

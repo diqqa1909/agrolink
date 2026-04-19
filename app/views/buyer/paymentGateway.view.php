@@ -84,7 +84,7 @@
     <div class="content-card securepay-result-card securepay-result-success">
         <div class="securepay-result-icon" aria-hidden="true">✓</div>
         <h3>Payment Confirmed</h3>
-        <p>Your order is now confirmed and will move to seller processing.</p>
+        <p>Your order is now processing and the farmer will prepare it for pickup.</p>
 
         <ul class="securepay-order-list">
             <?php foreach ($orders as $order): ?>

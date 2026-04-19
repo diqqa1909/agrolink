@@ -12,7 +12,7 @@ class ReviewModel
         $sql = "INSERT INTO {$this->table} 
                 (order_id, product_id, buyer_id, farmer_id, rating, comment, created_at) 
                 VALUES (:order_id, :product_id, :buyer_id, :farmer_id, :rating, :comment, NOW())";
-        
+
         return $this->write($sql, $data);
     }
 
@@ -21,7 +21,7 @@ class ReviewModel
     {
         $sql = "SELECT id FROM {$this->table} 
                 WHERE order_id = :order_id AND product_id = :product_id AND buyer_id = :buyer_id";
-        
+
         $result = $this->get_row($sql, [
             'order_id' => $orderId,
             'product_id' => $productId,
@@ -88,14 +88,14 @@ class ReviewModel
                 JOIN users u ON r.farmer_id = u.id
                 WHERE r.buyer_id = :buyer_id
                 ORDER BY r.created_at DESC";
-        
+
         return $this->query($sql, ['buyer_id' => $buyerId]);
     }
 
     // Get reviews for a farmer
     public function getReviewsByFarmer($farmerId)
     {
-                $sql = "SELECT
+        $sql = "SELECT
                     r.*,
                     p.name as product_name,
                     u.name as buyer_name,
@@ -133,18 +133,45 @@ class ReviewModel
                     AND oi3.farmer_id = r.farmer_id
                 )
                 ORDER BY r.created_at DESC";
-        
+
         return $this->query($sql, ['farmer_id' => $farmerId]);
     }
 
     // Get reviews for a transporter (stored in farmer_id field as target user id)
     public function getReviewsByTransporter($transporterId)
     {
-        $sql = "SELECT r.*, p.name as product_name, u.name as buyer_name, u.email as buyer_email
+        $sql = "SELECT
+                    r.*, 
+                    p.name as product_name,
+                    u.name as buyer_name,
+                    u.email as buyer_email,
+                    dr.id as delivery_id,
+                    dr.id as delivery_request_id,
+                    dr.status as delivery_status,
+                    dr.farmer_city,
+                    dr.buyer_city,
+                    fd.district_name as farmer_district_name,
+                    bd.district_name as buyer_district_name,
+                    (
+                        SELECT COALESCE(SUM(oi.quantity), 0)
+                        FROM order_items oi
+                        WHERE oi.order_id = r.order_id
+                        AND oi.product_id = r.product_id
+                    ) as reviewed_quantity
                 FROM {$this->table} r
-                JOIN products p ON r.product_id = p.id
+                LEFT JOIN products p ON r.product_id = p.id
                 JOIN users u ON r.buyer_id = u.id
                 JOIN users t ON r.farmer_id = t.id
+                LEFT JOIN delivery_requests dr ON dr.id = (
+                    SELECT dr2.id
+                    FROM delivery_requests dr2
+                    WHERE dr2.order_id = r.order_id
+                    AND dr2.transporter_id = r.farmer_id
+                    ORDER BY dr2.id DESC
+                    LIMIT 1
+                )
+                LEFT JOIN districts fd ON fd.id = dr.farmer_district_id
+                LEFT JOIN districts bd ON bd.id = dr.buyer_district_id
                 WHERE r.farmer_id = :transporter_id
                 AND t.role = 'transporter'
                 ORDER BY r.created_at DESC";
@@ -158,7 +185,7 @@ class ReviewModel
         $sql = "UPDATE {$this->table} 
                 SET reply = :reply, replied_at = NOW() 
                 WHERE id = :id";
-        
+
         return $this->write($sql, ['reply' => $reply, 'id' => $reviewId]);
     }
 
