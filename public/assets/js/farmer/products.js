@@ -85,6 +85,43 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+function normalizeCategory(category) {
+    return String(category || '').trim().toLowerCase();
+}
+
+function humanizeCategory(category) {
+    const normalized = normalizeCategory(category);
+    if (!normalized) {
+        return 'Other';
+    }
+
+    return normalized
+        .split(/[\s_-]+/)
+        .filter(Boolean)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function setSelectValueCaseInsensitive(selectEl, targetValue) {
+    if (!selectEl) {
+        return false;
+    }
+
+    const normalizedTarget = normalizeCategory(targetValue);
+    if (!normalizedTarget) {
+        return false;
+    }
+
+    for (const option of selectEl.options) {
+        if (normalizeCategory(option.value) === normalizedTarget) {
+            selectEl.value = option.value;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function loadCategories() {
     return fetch(`${API_BASE}/getCategories`, { credentials: 'include' })
         .then(r => r.json())
@@ -111,15 +148,17 @@ function loadProductsByCategory(category, productSelectId, selectedId = null) {
     const select = document.getElementById(productSelectId);
     if (!select) return;
 
+    const normalizedCategory = normalizeCategory(category);
+
     select.innerHTML = '<option value="">Loading...</option>';
     select.disabled = true;
 
-    if (!category) {
+    if (!normalizedCategory) {
         select.innerHTML = '<option value="">Select Category First</option>';
         return;
     }
 
-    fetch(`${API_BASE}/getProductsByCategory?category=${encodeURIComponent(category)}`, { credentials: 'include' })
+    fetch(`${API_BASE}/getProductsByCategory?category=${encodeURIComponent(normalizedCategory)}`, { credentials: 'include' })
         .then(r => r.json())
         .then(res => {
             if (res.success && res.products) {
@@ -137,7 +176,10 @@ function loadProductsByCategory(category, productSelectId, selectedId = null) {
                         const nameField = productSelectId === 'productMaster' ?
                             document.getElementById('productName') :
                             document.getElementById('editProductName');
-                        if (nameField) nameField.value = selectedOption.dataset.name;
+                        if (nameField) {
+                            nameField.value = selectedOption.dataset.name;
+                            nameField.readOnly = true;
+                        }
                     }
                 }
             } else {
@@ -198,6 +240,8 @@ function initializeEditForm() {
         const category = document.getElementById('editProductCategory').value;
         const price = document.getElementById('editProductPrice').value;
         const quantity = document.getElementById('editProductQuantity').value;
+        const fullAddressInput = document.getElementById('editProductFullAddress');
+        const fullAddress = fullAddressInput ? fullAddressInput.value.trim() : '';
         // const location = document.getElementById('editProductLocation').value.trim(); // Now hidden/auto
         const districtSelect = document.getElementById('editProductDistrict');
         const townSelect = document.getElementById('editProductTown');
@@ -206,7 +250,7 @@ function initializeEditForm() {
         const listing_date = document.getElementById('editListingDate').value;
         const requiresTown = !!(townSelect && !townSelect.disabled);
 
-        if (!name || price === '' || quantity === '' || !districtId || !category || !listing_date || (requiresTown && !townId)) {
+        if (!name || price === '' || quantity === '' || !districtId || !category || !listing_date || !fullAddress || (requiresTown && !townId)) {
             showNotification('Please fill all required fields', 'error');
             return;
         }
@@ -223,6 +267,7 @@ function initializeEditForm() {
             fd.append('price', price);
             fd.append('quantity', quantity);
             fd.append('location', 'auto'); // Auto-generated in backend
+            fd.append('full_address', fullAddress);
             fd.append('district_id', districtId);
             fd.append('town_id', townId);
             fd.append('listing_date', listing_date);
@@ -394,6 +439,14 @@ function initializeProductForms() {
             return;
         }
 
+        const fullAddressInput = document.getElementById('productFullAddress');
+        if (fullAddressInput && fullAddressInput.value.trim().length < 8) {
+            showNotification('Please enter a complete product full address', 'error');
+            fullAddressInput.style.borderColor = '#ef5350';
+            fullAddressInput.style.background = '#ffebee';
+            return;
+        }
+
         const fd = new FormData(addProductForm);
         const url = `${API_BASE}/create`;
 
@@ -436,6 +489,7 @@ function initializeProductForms() {
                             'price': 'productPrice',
                             'quantity': 'productQuantity',
                             'location': 'productLocation',
+                            'full_address': 'productFullAddress',
                             'listing_date': 'listingDate',
                             'image': 'productImage'
                         };
@@ -467,6 +521,10 @@ function initializeProductForms() {
             }
             if (imgPreviewWrap) imgPreviewWrap.style.display = 'none';
             if (imgPreview) imgPreview.src = '';
+            const productNameInput = document.getElementById('productName');
+            if (productNameInput) {
+                productNameInput.readOnly = false;
+            }
             closeModal('addProductModal');
 
             if (listingDateInput) {
@@ -520,7 +578,7 @@ function populateProductsTable(products) {
             'yams': 'Yams', 'legumes': 'Legumes', 'spices': 'Spices',
             'leafy': 'Leafy', 'other': 'Other'
         };
-        const categoryDisplay = categoryNames[p.category] || 'Other';
+        const categoryDisplay = categoryNames[normalizeCategory(p.category)] || humanizeCategory(p.category);
 
         row.innerHTML = `
             <td>
@@ -574,9 +632,12 @@ async function editProduct(id) {
             await loadCategories();
         }
         if (catSel && p.category) {
-            catSel.value = p.category;
+            const categorySet = setSelectValueCaseInsensitive(catSel, p.category);
+            if (!categorySet) {
+                catSel.value = normalizeCategory(p.category);
+            }
             // Always load category products so optional selector is usable in edit mode.
-            loadProductsByCategory(p.category, 'editProductMaster', p.product_master_id || null);
+            loadProductsByCategory(catSel.value || normalizeCategory(p.category), 'editProductMaster', p.product_master_id || null);
         } else {
             const editMaster = document.getElementById('editProductMaster');
             if (editMaster) {
@@ -585,9 +646,14 @@ async function editProduct(id) {
             }
         }
         const editNameField = document.getElementById('editProductName');
-        if (editNameField) editNameField.value = p.name || '';
+        if (editNameField) {
+            editNameField.value = p.name || '';
+            editNameField.readOnly = !!p.product_master_id;
+        }
         document.getElementById('editProductPrice').value = p.price ?? '';
         document.getElementById('editProductQuantity').value = p.quantity ?? '';
+        const editFullAddress = document.getElementById('editProductFullAddress');
+        if (editFullAddress) editFullAddress.value = p.full_address || '';
         // document.getElementById('editProductLocation').value = p.location || '';
 
         // Set District and Town
@@ -630,6 +696,7 @@ function prefillFromAcceptedCropRequest() {
     const nameField = document.getElementById('productName');
     const qtyField = document.getElementById('productQuantity');
     const priceField = document.getElementById('productPrice');
+    const fullAddressField = document.getElementById('productFullAddress');
     const locationField = document.getElementById('productLocation');
     const dateField = document.getElementById('listingDate');
 
@@ -644,6 +711,9 @@ function prefillFromAcceptedCropRequest() {
     }
     if (locationField && location) {
         locationField.value = location;
+    }
+    if (fullAddressField && location) {
+        fullAddressField.value = location;
     }
     if (dateField) {
         dateField.value = new Date().toISOString().split('T')[0];
@@ -766,8 +836,15 @@ function initializeProductsPage() {
         productMaster.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const nameField = document.getElementById('productName');
-            if (selectedOption && selectedOption.dataset.name && nameField) {
+            if (!nameField) {
+                return;
+            }
+
+            if (selectedOption && selectedOption.dataset.name) {
                 nameField.value = selectedOption.dataset.name;
+                nameField.readOnly = true;
+            } else {
+                nameField.readOnly = false;
             }
         });
         productMaster.dataset.bound = '1';
@@ -778,8 +855,15 @@ function initializeProductsPage() {
         editMaster.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const nameField = document.getElementById('editProductName');
-            if (selectedOption && selectedOption.dataset.name && nameField) {
+            if (!nameField) {
+                return;
+            }
+
+            if (selectedOption && selectedOption.dataset.name) {
                 nameField.value = selectedOption.dataset.name;
+                nameField.readOnly = true;
+            } else {
+                nameField.readOnly = false;
             }
         });
         editMaster.dataset.bound = '1';

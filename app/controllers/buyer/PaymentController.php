@@ -207,7 +207,7 @@ class PaymentController
         // Simulate gateway processing delay.
         usleep(1800000);
 
-        $isSuccess = random_int(0, 1) === 1;
+        $isSuccess = true;
 
         if ($isSuccess) {
             $this->orderModel->updatePaymentResultForBuyerOrders($buyerId, $orderIds, 'paid', 'pending');

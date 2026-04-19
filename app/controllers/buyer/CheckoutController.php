@@ -692,7 +692,8 @@ class CheckoutController
                         'product_price' => $item->product_price,
                         'quantity' => $item->quantity,
                         'item_weight_kg' => $itemWeight,
-                        'farmer_id' => $farmerId
+                        'farmer_id' => $farmerId,
+                        'product_full_address' => trim((string)($product->full_address ?? '')),
                     ];
 
                     $addResult = $this->orderModel->addOrderItem($itemData);
@@ -716,7 +717,7 @@ class CheckoutController
                 // We've already resolved deliveryDistrictId and farmerDistrictId successfully above
                 $farmerDistrictIdForDelivery = $farmerDistrictId ?? $deliveryDistrictId; // Fallback should not happen but just in case
                 $exactDistanceKm = $shippingCalculation['calculation']['calculations'][0]['total_distance_km'] ?? null;
-                
+
                 if (!$this->createDeliveryRequest($orderId, $user_id, $farmerId, $totalWeight, $shippingCost, $buyerProfile, $deliveryDistrictId, $farmerDistrictIdForDelivery, $exactDistanceKm)) {
                     throw new RuntimeException('Failed to create delivery request for order #' . $orderId);
                 }
@@ -851,6 +852,7 @@ class CheckoutController
             }
 
             $farmer = $farmerResult[0];
+            $productPickupAddress = $this->getProductPickupAddressesForOrder((int)$orderId, (int)$farmerId);
 
             // Determine required vehicle type based on weight
             $vehicleTypeSql = "SELECT id FROM vehicle_types 
@@ -907,7 +909,7 @@ class CheckoutController
                 'farmer_id' => $farmerId,
                 'farmer_name' => $farmer->name ?? 'Unknown',
                 'farmer_phone' => $farmer->phone ?? '',
-                'farmer_address' => $farmer->full_address ?? '',
+                'farmer_address' => $productPickupAddress !== '' ? $productPickupAddress : ($farmer->full_address ?? ''),
                 'farmer_city' => $farmer->district ?? '',
                 'farmer_district_id' => $farmerDistrictId,
                 'total_weight_kg' => $totalWeight,
@@ -937,6 +939,49 @@ class CheckoutController
         }
     }
 
+    private function orderItemsHaveProductAddress(): bool
+    {
+        $dbModel = new CartModel();
+        $result = $dbModel->query("SHOW COLUMNS FROM order_items LIKE 'product_full_address'");
+        return is_array($result) && !empty($result);
+    }
+
+    private function getProductPickupAddressesForOrder(int $orderId, int $farmerId): string
+    {
+        if ($orderId <= 0 || $farmerId <= 0 || !$this->orderItemsHaveProductAddress()) {
+            return '';
+        }
+
+        $dbModel = new CartModel();
+        $rows = $dbModel->query(
+            "SELECT DISTINCT TRIM(product_full_address) AS product_full_address
+             FROM order_items
+             WHERE order_id = :order_id
+             AND farmer_id = :farmer_id
+             AND product_full_address IS NOT NULL
+             AND TRIM(product_full_address) <> ''",
+            [
+                'order_id' => $orderId,
+                'farmer_id' => $farmerId,
+            ]
+        );
+
+        if (!is_array($rows) || empty($rows)) {
+            return '';
+        }
+
+        $addresses = [];
+        foreach ($rows as $row) {
+            $address = trim((string)($row->product_full_address ?? ''));
+            if ($address !== '') {
+                $addresses[] = $address;
+            }
+        }
+
+        $addresses = array_values(array_unique($addresses));
+        return implode(' | ', $addresses);
+    }
+
     private function debugLog($message)
     {
         if (defined('DEBUG') && DEBUG) {
@@ -950,15 +995,15 @@ class CheckoutController
     public function getTownsByDistrictName()
     {
         header('Content-Type: application/json');
-        
+
         $districtName = $_GET['district'] ?? '';
         $districtId = $this->findDistrictIdByName($districtName);
-        
+
         if (!$districtId || !$this->shippingCalculator) {
             echo json_encode(['success' => false, 'towns' => []]);
             return;
         }
-        
+
         $towns = $this->shippingCalculator->getTownsByDistrict($districtId);
         echo json_encode(['success' => true, 'towns' => $towns]);
     }
