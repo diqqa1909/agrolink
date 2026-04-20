@@ -3081,11 +3081,15 @@ class AdminDashboardController
                 ];
             }
 
+            $payoutAccountsModel = new PayoutAccountsModel();
+            $payoutAccount = $payoutAccountsModel->getDefaultAccountByUserId($order['buyer_id']);
+
             echo json_encode([
                 'success' => true,
                 'order' => $order,
                 'items' => $items,
                 'revision' => $revision,
+                'payout_account' => $payoutAccount,
             ]);
             exit;
         } catch (Exception $e) {

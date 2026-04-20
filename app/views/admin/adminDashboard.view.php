@@ -4344,6 +4344,7 @@
                 const order = result.order || {};
                 const items = Array.isArray(result.items) ? result.items : [];
                 const revision = result.revision || null;
+                const payoutAccount = result.payout_account || null;
 
                 const itemsHtml = items.length
                     ? `
@@ -4429,6 +4430,37 @@
                                         <p><strong>Cancelled / Updated:</strong> ${formatDate(order.updated_at || order.created_at)}</p>
                                     </div>
                                 </div>
+
+                                ${payoutAccount ? `
+                                    <div style="margin-top:18px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;">
+                                        <h4 style="margin:0 0 12px 0;color:#334155;font-size:15px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;">Buyer Bank Details (Refund Destination)</h4>
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                            <div>
+                                                <p style="margin:0 0 4px;font-size:12px;color:#64748b;">Account Holder Name</p>
+                                                <p style="margin:0;font-size:14px;font-weight:500;color:#0f172a;">${escapeHtml(payoutAccount.account_holder_name)}</p>
+                                            </div>
+                                            <div>
+                                                <p style="margin:0 0 4px;font-size:12px;color:#64748b;">Account Number</p>
+                                                <p style="margin:0;font-size:14px;font-weight:500;color:#0f172a;">${escapeHtml(payoutAccount.account_number)}</p>
+                                            </div>
+                                            <div>
+                                                <p style="margin:0 0 4px;font-size:12px;color:#64748b;">Bank Name</p>
+                                                <p style="margin:0;font-size:14px;font-weight:500;color:#0f172a;">${escapeHtml(payoutAccount.bank_name)}</p>
+                                            </div>
+                                            <div>
+                                                <p style="margin:0 0 4px;font-size:12px;color:#64748b;">Branch Name</p>
+                                                <p style="margin:0;font-size:14px;font-weight:500;color:#0f172a;">${payoutAccount.branch_name ? escapeHtml(payoutAccount.branch_name) : '<span style="color:#94a3b8;font-style:italic;">Not provided</span>'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div style="margin-top:18px;padding:14px;border:1px solid #fef08a;border-radius:8px;background:#fef9c3;">
+                                        <p style="margin:0;font-size:13px;color:#854d0e;">
+                                            <span style="font-weight:600;">⚠️ No bank details found for this buyer.</span> 
+                                            They may need to add a payout account before a refund can be processed.
+                                        </p>
+                                    </div>
+                                `}
 
                                 ${revisionHtml}
 
