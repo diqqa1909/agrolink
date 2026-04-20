@@ -240,7 +240,6 @@ class TransporterModel
 
     /**
      * Get available delivery requests for transporter based on their vehicle capacity
-     * Filters by vehicle weight capacity range from vehicle_types table
      */
     public function getAvailableDeliveryRequests($transporterId, array $filters = [])
     {
