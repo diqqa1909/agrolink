@@ -581,6 +581,7 @@
                         <h1 class="content-title">Vehicles</h1>
                         <p class="content-subtitle">View all registered transporter vehicles.</p>
                     </div>
+                    <button class="btn btn-secondary" onclick="generateReport('vehicles')">📄 Export Report</button>
                 </div>
 
                 <div class="filters" style="margin-top: var(--spacing-xl);">
@@ -632,6 +633,7 @@
                         <h1 class="content-title">Reviews</h1>
                         <p class="content-subtitle">All buyer reviews and complaints for farmers and transporters.</p>
                     </div>
+                    <button class="btn btn-secondary" onclick="generateReport('reviews')">📄 Export Report</button>
                 </div>
 
                 <div class="dashboard-stats">
@@ -5164,6 +5166,25 @@
             analytics: [
                 { key: 'metric', label: 'Metric' },
                 { key: 'value', label: 'Value' }
+            ],
+            vehicles: [
+                { key: 'id', label: 'Vehicle ID' },
+                { key: 'transporter_name', label: 'Transporter' },
+                { key: 'type', label: 'Type' },
+                { key: 'model', label: 'Model' },
+                { key: 'registration', label: 'Registration' },
+                { key: 'capacity', label: 'Capacity' },
+                { key: 'status', label: 'Status' }
+            ],
+            reviews: [
+                { key: 'id', label: 'Review ID' },
+                { key: 'order_number', label: 'Order ID' },
+                { key: 'buyer_name', label: 'Buyer' },
+                { key: 'reviewee_name', label: 'Reviewed User' },
+                { key: 'reviewee_role', label: 'Role' },
+                { key: 'rating', label: 'Rating' },
+                { key: 'is_complaint', label: 'Complaint?' },
+                { key: 'created_at', label: 'Date' }
             ]
         };
 
@@ -5175,11 +5196,13 @@
             products: 'Product Catalogue Report',
             payments: 'Payments & Finance Report',
             disputes: 'Disputes Report',
-            analytics: 'Platform Analytics Report'
+            analytics: 'Platform Analytics Report',
+            vehicles: 'Vehicles Report',
+            reviews: 'Reviews Report'
         };
 
         // Sections that benefit from a date range filter
-        const DATE_RANGE_SECTIONS = ['orders', 'payments', 'disputes', 'analytics'];
+        const DATE_RANGE_SECTIONS = ['orders', 'payments', 'disputes', 'analytics', 'reviews'];
 
         function generateReport(section) {
             _reportSection = section;
@@ -5258,6 +5281,8 @@
                 case 'payments': return filterByDate(getJsVar('allPayments') || [], 'payment_date', dateFrom, dateTo);
                 case 'disputes': return filterByDate(getJsVar('allDisputes') || [], 'created_at', dateFrom, dateTo);
                 case 'analytics': return getAnalyticsReportData();
+                case 'vehicles': return getJsVar('allVehicles') || [];
+                case 'reviews': return filterByDate(getJsVar('allReviews') || [], 'created_at', dateFrom, dateTo);
                 default: return [];
             }
         }
