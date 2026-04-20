@@ -4455,7 +4455,7 @@
                                     </div>
                                 `}
 
-                                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+                                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;z-index:1000;">
                                     ${revision && revision.revised_at ? `
                                         <button class="btn btn-secondary" onclick="closeModal('cancelledOrderDisputeModal')">Close</button>
                                     ` : `
@@ -5478,7 +5478,7 @@ ${summarySection}
     <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
 
     <!-- System dialog modal (replaces alert/confirm/prompt) -->
-    <div id="systemDialogModal" class="modal" style="display:none;">
+    <div id="systemDialogModal" class="modal" style="display:none; z-index: 999999;">
         <div class="modal-content" style="max-width:520px;width:95%;max-height:80vh;overflow-y:auto;">
             <div class="modal-header"
                 style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid var(--border-color);">
