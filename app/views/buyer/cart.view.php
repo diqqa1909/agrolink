@@ -137,6 +137,7 @@
         </div>
     </div>
 
+    <script src="<?= ROOT ?>/assets/js/systemDialog.js"></script>
     <script>
         window.APP_ROOT = "<?= ROOT ?>";
 
@@ -174,10 +175,9 @@
             });
         }
 
-        function removeFromCart(productId) {
-            if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                return;
-            }
+        async function removeFromCart(productId) {
+            const ok = await systemConfirm('Are you sure you want to remove this item from your cart?', 'Remove Item');
+            if (!ok) return;
             
             const formData = new FormData();
             formData.append('product_id', productId);
@@ -201,10 +201,9 @@
             });
         }
 
-        function clearCart() {
-            if (!confirm('Are you sure you want to clear your entire cart?')) {
-                return;
-            }
+        async function clearCart() {
+            const ok = await systemConfirm('Are you sure you want to clear your entire cart?', 'Clear Cart');
+            if (!ok) return;
             
             fetch(window.APP_ROOT + '/Cart/clear', {
                 method: 'POST',

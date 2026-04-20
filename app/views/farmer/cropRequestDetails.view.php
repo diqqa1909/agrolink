@@ -91,7 +91,8 @@
                 <a href="<?= ROOT ?>/farmercroprequests/accept/<?= $request->id ?>" class="btn btn-primary">
                     Accept Request
                 </a>
-                <a href="<?= ROOT ?>/farmercroprequests/reject/<?= $request->id ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this request?')">
+                <a href="<?= ROOT ?>/farmercroprequests/reject/<?= $request->id ?>" class="btn btn-danger"
+                    onclick="return systemConfirmNavigate(event, 'Are you sure you want to reject this request?', 'Reject Request')">
                     Reject Request
                 </a>
             </div>
@@ -118,3 +119,5 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script src="<?= ROOT ?>/assets/js/systemDialog.js"></script>

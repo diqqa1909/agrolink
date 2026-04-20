@@ -1922,7 +1922,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert(result.message || result.error || 'Failed to load order details');
+                    await systemAlert(result.message || result.error || 'Failed to load order details', 'Order Details');
                     return;
                 }
 
@@ -2018,7 +2018,13 @@
 
         // Update order status
         async function updateOrderStatus(orderId) {
-            const newStatus = prompt('Enter new status (pending, processing, shipped, delivered, completed, cancelled):');
+            const newStatus = await systemPrompt({
+                title: 'Update Order Status',
+                message: 'Enter new status (pending, processing, shipped, delivered, completed, cancelled):',
+                label: 'New Status',
+                placeholder: 'e.g. shipped',
+                required: true,
+            });
 
             if (!newStatus) return;
 
@@ -2282,9 +2288,19 @@
                 return;
             }
 
-            const reason = prompt('Deactivation reason (optional):', 'Deactivated by admin') || 'Deactivated by admin';
+            const reason = await systemPrompt({
+                title: 'Deactivate User',
+                message: 'Deactivation reason (optional):',
+                label: 'Reason',
+                defaultValue: 'Deactivated by admin',
+                placeholder: 'Optional',
+                required: false,
+                multiline: true,
+            });
+            if (reason === null) return;
 
-            if (!confirm('Deactivate this user? They will not be able to sign in, but their data will be kept.')) {
+            const ok = await systemConfirm('Deactivate this user? They will not be able to sign in, but their data will be kept.', 'Deactivate User');
+            if (!ok) {
                 return;
             }
             try {
@@ -2318,7 +2334,8 @@
                 return;
             }
 
-            if (!confirm('Activate this user account? They will be able to sign in again.')) {
+            const ok = await systemConfirm('Activate this user account? They will be able to sign in again.', 'Activate User');
+            if (!ok) {
                 return;
             }
 
@@ -2393,6 +2410,149 @@
             modal.classList.remove('active', 'show');
             modal.style.display = '';
             document.body.style.overflow = 'auto';
+        }
+
+        // ============ SYSTEM DIALOG (NO BROWSER ALERT/CONFIRM/PROMPT) ============
+        let __systemDialogResolver = null;
+
+        function hideSystemDialog() {
+            const modal = document.getElementById('systemDialogModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function showSystemDialog({ title = 'Notice', bodyHtml = '', actions = [], onClose = null } = {}) {
+            const modal = document.getElementById('systemDialogModal');
+            const titleEl = document.getElementById('systemDialogTitle');
+            const bodyEl = document.getElementById('systemDialogBody');
+            const footerEl = document.getElementById('systemDialogFooter');
+            const closeBtn = document.getElementById('systemDialogCloseBtn');
+
+            if (!modal || !titleEl || !bodyEl || !footerEl || !closeBtn) {
+                // Fallback: do not use browser dialogs; use toast.
+                showNotification(String(title || 'Notice') + ': ' + String(bodyHtml || ''), 'info');
+                return Promise.resolve(null);
+            }
+
+            titleEl.textContent = String(title || 'Notice');
+            bodyEl.innerHTML = bodyHtml || '';
+            footerEl.innerHTML = '';
+
+            // Ensure only one resolver is active.
+            __systemDialogResolver = null;
+
+            const cleanup = () => {
+                closeBtn.onclick = null;
+                modal.onclick = null;
+                document.removeEventListener('keydown', onKeyDown);
+            };
+
+            const resolveWith = (val) => {
+                const resolver = __systemDialogResolver;
+                __systemDialogResolver = null;
+                cleanup();
+                hideSystemDialog();
+                if (typeof resolver === 'function') resolver(val);
+            };
+
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    if (typeof onClose === 'function') {
+                        resolveWith(onClose());
+                    } else {
+                        resolveWith(null);
+                    }
+                }
+            };
+
+            closeBtn.onclick = () => {
+                if (typeof onClose === 'function') {
+                    resolveWith(onClose());
+                } else {
+                    resolveWith(null);
+                }
+            };
+
+            // Click outside content closes.
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    if (typeof onClose === 'function') {
+                        resolveWith(onClose());
+                    } else {
+                        resolveWith(null);
+                    }
+                }
+            };
+
+            actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = action.className || 'btn btn-secondary';
+                btn.textContent = action.label || 'OK';
+                btn.onclick = () => resolveWith(action.value);
+                footerEl.appendChild(btn);
+            });
+
+            document.addEventListener('keydown', onKeyDown);
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            return new Promise(resolve => {
+                __systemDialogResolver = resolve;
+            });
+        }
+
+        function systemAlert(message, title = 'Notice') {
+            const bodyHtml = `<p style="margin:0;line-height:1.5;color:var(--text-color);">${escapeHtml(String(message || ''))}</p>`;
+            return showSystemDialog({
+                title,
+                bodyHtml,
+                actions: [{ label: 'OK', value: true, className: 'btn btn-primary' }],
+                onClose: () => true,
+            });
+        }
+
+        function systemConfirm(message, title = 'Confirm') {
+            const bodyHtml = `<p style="margin:0;line-height:1.5;color:var(--text-color);">${escapeHtml(String(message || ''))}</p>`;
+            return showSystemDialog({
+                title,
+                bodyHtml,
+                actions: [
+                    { label: 'Cancel', value: false, className: 'btn btn-secondary' },
+                    { label: 'Confirm', value: true, className: 'btn btn-primary' },
+                ],
+                onClose: () => false,
+            }).then(val => Boolean(val));
+        }
+
+        function systemPrompt({ title = 'Input', message = '', label = '', placeholder = '', defaultValue = '', required = false, multiline = false } = {}) {
+            const inputId = 'systemDialogPromptInput';
+            const safeMsg = message ? `<p style="margin:0 0 10px;line-height:1.5;color:var(--text-color);">${escapeHtml(String(message))}</p>` : '';
+            const safeLabel = label ? `<label for="${inputId}" style="display:block;margin:0 0 6px;font-weight:600;color:var(--text-color);">${escapeHtml(String(label))}</label>` : '';
+
+            const inputHtml = multiline
+                ? `<textarea id="${inputId}" class="form-control" rows="3" placeholder="${escapeHtml(String(placeholder || ''))}">${escapeHtml(String(defaultValue || ''))}</textarea>`
+                : `<input id="${inputId}" class="form-control" type="text" value="${escapeHtml(String(defaultValue || ''))}" placeholder="${escapeHtml(String(placeholder || ''))}">`;
+
+            const bodyHtml = `${safeMsg}${safeLabel}${inputHtml}${required ? `<div style="margin-top:6px;font-size:12px;color:var(--text-light);">This field is required.</div>` : ''}`;
+
+            return showSystemDialog({
+                title,
+                bodyHtml,
+                actions: [
+                    { label: 'Cancel', value: null, className: 'btn btn-secondary' },
+                    { label: 'OK', value: '__ok__', className: 'btn btn-primary' },
+                ],
+                onClose: () => null,
+            }).then(val => {
+                if (val !== '__ok__') return null;
+                const input = document.getElementById(inputId);
+                const value = input ? String(input.value || '').trim() : '';
+                if (required && !value) return null;
+                return value;
+            });
         }
 
         // Verification functions
@@ -2627,13 +2787,21 @@
         }
 
         function promptReject(docId) {
-            const reason = prompt('Enter rejection reason (optional):');
-            if (reason === null) return;
-            reviewDoc(docId, 'reject', reason || null);
+            systemPrompt({
+                title: 'Reject Document',
+                message: 'Enter rejection reason (optional):',
+                label: 'Reason',
+                required: false,
+                multiline: true,
+            }).then(reason => {
+                if (reason === null) return;
+                reviewDoc(docId, 'reject', reason || null);
+            });
         }
 
         async function bulkApprove(userId) {
-            if (!confirm('Approve this account? All pending documents will be marked approved.')) return;
+            const ok = await systemConfirm('Approve this account? All pending documents will be marked approved.', 'Approve Account');
+            if (!ok) return;
             const res = await fetch(`<?= ROOT ?>/adminDashboard/getUserDocuments/${userId}`);
             const data = await res.json();
             if (data.success) {
@@ -2653,7 +2821,13 @@
         }
 
         async function bulkReject(userId) {
-            const reason = prompt('Reason for rejecting this account (required):');
+            const reason = await systemPrompt({
+                title: 'Reject Account',
+                message: 'Reason for rejecting this account (required):',
+                label: 'Reason',
+                required: true,
+                multiline: true,
+            });
             if (!reason) {
                 showNotification('A reason is required to reject an account.', 'warning');
                 return;
@@ -2899,7 +3073,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert(result.message || result.error || 'Failed to load product details');
+                    await systemAlert(result.message || result.error || 'Failed to load product details', 'Product Details');
                     return;
                 }
 
@@ -3006,7 +3180,13 @@
         // Update product status
         async function updateProductStatus(productId, currentStatus) {
             const statuses = ['active', 'inactive', 'pending', 'rejected'];
-            const newStatus = prompt(`Current status: ${currentStatus}\nEnter new status (${statuses.join(', ')}):`);
+            const newStatus = await systemPrompt({
+                title: 'Update Product Status',
+                message: `Current status: ${currentStatus}\nEnter new status (${statuses.join(', ')}):`,
+                label: 'New Status',
+                placeholder: 'e.g. active',
+                required: true,
+            });
 
             if (!newStatus) return;
 
@@ -3043,7 +3223,8 @@
 
         // Delete product
         async function deleteProduct(productId) {
-            if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            const ok = await systemConfirm('Are you sure you want to delete this product? This action cannot be undone.', 'Delete Product');
+            if (!ok) {
                 return;
             }
 
@@ -3728,7 +3909,7 @@
                 const result = await response.json();
 
                 if (!result.success) {
-                    alert(result.message || result.error || 'Failed to load payment details');
+                    await systemAlert(result.message || result.error || 'Failed to load payment details', 'Payment Details');
                     return;
                 }
 
@@ -3802,7 +3983,8 @@
 
         // Update payment status
         async function updatePaymentStatus(paymentId, status) {
-            if (!confirm(`Are you sure you want to mark this payment as ${status}?`)) {
+            const ok = await systemConfirm(`Are you sure you want to mark this payment as ${status}?`, 'Update Payment Status');
+            if (!ok) {
                 return;
             }
 
@@ -3834,10 +4016,17 @@
 
         // Refund payment
         async function refundPayment(paymentId) {
-            const reason = prompt('Enter refund reason:');
+            const reason = await systemPrompt({
+                title: 'Refund Payment',
+                message: 'Enter refund reason:',
+                label: 'Reason',
+                required: true,
+                multiline: true,
+            });
             if (!reason) return;
 
-            if (!confirm('Are you sure you want to refund this payment?')) {
+            const ok = await systemConfirm('Are you sure you want to refund this payment?', 'Refund Payment');
+            if (!ok) {
                 return;
             }
 
@@ -3875,10 +4064,10 @@
         }
 
         // Export payments to CSV
-        function exportPayments() {
+        async function exportPayments() {
             const rows = window.allPayments || [];
             if (!rows || rows.length === 0) {
-                alert('No data to export');
+                await systemAlert('No data to export', 'Export');
                 return;
             }
 
@@ -4221,7 +4410,7 @@
                         <div class="modal-content" style="max-width:860px;width:95%;max-height:80vh;overflow-y:auto;">
                             <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid #eee;">
                                 <h3>Cancelled Order #${escapeHtml(order.id)}</h3>
-                                <button onclick="closeModal('cancelledOrderDisputeModal')" style="background:none;border:none;font-size:20px;cursor:pointer;">âœ•</button>
+                                <button type="button" onclick="closeModal('cancelledOrderDisputeModal')" style="background:none;border:none;font-size:20px;cursor:pointer;">X</button>
                             </div>
                             <div class="modal-body" style="padding:20px;">
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -4312,7 +4501,8 @@
                 return;
             }
 
-            if (!confirm('Apply this payment revision to the cancelled order?')) {
+            const ok = await systemConfirm('Apply this payment revision to the cancelled order?', 'Apply Revision');
+            if (!ok) {
                 return;
             }
 
@@ -4622,10 +4812,17 @@
 
         // Resolve dispute
         async function resolveDispute(disputeId) {
-            const resolution = prompt('Enter resolution notes:');
+            const resolution = await systemPrompt({
+                title: 'Resolve Dispute',
+                message: 'Enter resolution notes:',
+                label: 'Resolution Notes',
+                required: true,
+                multiline: true,
+            });
             if (!resolution) return;
 
-            if (!confirm('Mark this dispute as resolved?')) {
+            const ok = await systemConfirm('Mark this dispute as resolved?', 'Resolve Dispute');
+            if (!ok) {
                 return;
             }
 
@@ -5279,6 +5476,22 @@ ${summarySection}
         }
     </script>
     <script src="<?= ROOT ?>/assets/js/topnavbar.js"></script>
+
+    <!-- System dialog modal (replaces alert/confirm/prompt) -->
+    <div id="systemDialogModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:520px;width:95%;max-height:80vh;overflow-y:auto;">
+            <div class="modal-header"
+                style="display:flex;justify-content:space-between;align-items:center;padding:15px;border-bottom:1px solid var(--border-color);">
+                <h3 id="systemDialogTitle" style="margin:0;">Notice</h3>
+                <button id="systemDialogCloseBtn" type="button"
+                    style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div class="modal-body" id="systemDialogBody" style="padding:20px;"></div>
+            <div class="modal-footer" id="systemDialogFooter"
+                style="display:flex;justify-content:flex-end;gap:10px;padding:15px;border-top:1px solid var(--border-color);">
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

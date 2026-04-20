@@ -203,13 +203,17 @@
     </div>
 </div>
 
+<script src="<?= ROOT ?>/assets/js/systemDialog.js"></script>
 <script>
     function showFeedbackNotice(message, type = 'info') {
         if (typeof showNotification === 'function') {
             showNotification(message, type);
             return;
         }
-        alert(message);
+        if (typeof systemAlert === 'function') {
+            systemAlert(message, 'Notice');
+            return;
+        }
     }
 
     function openReviewModal(type, orderId, productId, targetId, productName, targetName) {
