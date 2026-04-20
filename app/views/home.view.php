@@ -54,7 +54,7 @@
         body {
             font-family: var(--font-body);
             color: var(--gray-900);
-            background: var(--white);
+            background: #fafaf7;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
@@ -185,7 +185,7 @@
 
         /* ── HERO ───────────────────────────────────── */
         .hero {
-            background: var(--green-900);
+            background: var(--green-600);
             padding: 88px 2rem 80px;
             text-align: center;
             position: relative;
@@ -196,8 +196,8 @@
             position: absolute;
             inset: 0;
             background-image:
-                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
             background-size: 48px 48px;
             pointer-events: none;
         }
@@ -207,7 +207,7 @@
             top: -60px; left: 50%;
             transform: translateX(-50%);
             width: 700px; height: 400px;
-            background: radial-gradient(ellipse at center, rgba(99,153,34,0.35) 0%, transparent 70%);
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 70%);
             pointer-events: none;
         }
 
@@ -351,7 +351,7 @@
         .section-header { text-align: center; }
         .section-header .section-sub { margin-left: auto; margin-right: auto; }
 
-        .bg-light { background: var(--gray-50); }
+        .bg-light { background: #d8e8c8; }
         .bg-dark { background: var(--green-900); }
 
         /* ── HOW IT WORKS ───────────────────────────── */
@@ -376,7 +376,7 @@
             font-family: var(--font-display);
             font-size: 56px;
             font-weight: 600;
-            color: var(--green-50);
+            color: var(--green-200);
             line-height: 1;
             margin-bottom: 20px;
             user-select: none;
@@ -401,7 +401,7 @@
             font-size: 14px;
             color: var(--gray-500);
             line-height: 1.65;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         /* ── FEATURES ───────────────────────────────── */
@@ -452,10 +452,10 @@
         }
 
         .feature-card p {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--gray-500);
             line-height: 1.6;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         /* ── ROLES ──────────────────────────────────── */
@@ -517,14 +517,14 @@
         }
 
         .role-list li {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--gray-500);
             padding: 8px 0;
             border-bottom: 1px solid var(--gray-100);
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         .role-list li:last-child { border-bottom: none; }
@@ -657,10 +657,10 @@
         .faq-answer {
             display: none;
             padding: 0 20px 18px;
-            font-size: 13px;
+            font-size: 14px;
             color: var(--gray-500);
             line-height: 1.65;
-            font-weight: 300;
+            font-weight: 400;
             border-top: 1px solid var(--gray-100);
             padding-top: 14px;
         }
@@ -673,7 +673,7 @@
         }
 
         .contact-info-panel {
-            background: var(--green-900);
+            background: var(--green-600);
             border-radius: var(--radius-xl);
             padding: 36px 32px;
             position: relative;
@@ -1024,10 +1024,10 @@
                 Sri Lanka's Agricultural Marketplace
             </div>
             <h1>Trade Smarter.<br><em>Deliver Faster.</em></h1>
-            <p class="hero-sub">A centralized digital marketplace that connects farmers, buyers, and transporters to streamline agricultural trade across Sri Lanka.</p>
+            <p class="hero-sub">Connecting farmers, buyers, and transporters to make agricultural trade simple across Sri Lanka.</p>
             <div class="hero-btns">
-                <a href="<?= ROOT ?>/register" class="btn btn-white">Get Started Free</a>
-                <a href="<?= ROOT ?>/login" class="btn btn-outline-white">Login to Account</a>
+                <a href="<?= ROOT ?>/register" class="btn btn-white">Get Started</a>
+                <a href="<?= ROOT ?>/login" class="btn btn-outline-white">Login</a>
             </div>
             <hr class="hero-divider">
             <div class="hero-stats">
@@ -1052,8 +1052,8 @@
         <div class="section-inner">
             <div class="section-header">
                 <span class="section-tag">How it works</span>
-                <h2 class="section-title">From farm to table in 3 steps</h2>
-                <p class="section-sub">Simple, transparent, and efficient — AgroLink removes friction at every stage of agricultural trade.</p>
+                <h2 class="section-title">How it works</h2>
+                <p class="section-sub">A quick look at how AgroLink works.</p>
             </div>
             <div class="steps-grid">
                 <div class="step-card">
@@ -1084,7 +1084,7 @@
             <div class="section-header">
                 <span class="section-tag">Why AgroLink</span>
                 <h2 class="section-title">Everything you need to trade</h2>
-                <p class="section-sub">Purpose-built tools for every participant in the agricultural supply chain.</p>
+                <p class="section-sub">Tools built for farmers, buyers, and transporters.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
@@ -1093,7 +1093,7 @@
                     </div>
                     <div>
                         <h3>Direct Farm-to-Buyer Sales</h3>
-                        <p>Eliminate middlemen and boost farmer profits with direct connections between producers and buyers.</p>
+                        <p>Skip the middlemen — farmers and buyers connect and trade directly.</p>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -1102,7 +1102,7 @@
                     </div>
                     <div>
                         <h3>Transport Coordination</h3>
-                        <p>Assign and track deliveries in one place with integrated logistics management for all parties.</p>
+                        <p>Manage and track deliveries from one place.</p>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -1111,7 +1111,7 @@
                     </div>
                     <div>
                         <h3>Role-Based Dashboards</h3>
-                        <p>Tailored tools and interfaces designed specifically for each user type — farmer, buyer, or transporter.</p>
+                        <p>Each user type gets their own dashboard and tools.</p>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -1120,7 +1120,7 @@
                     </div>
                     <div>
                         <h3>Track Orders & Revenue</h3>
-                        <p>Real-time updates and comprehensive analytics to monitor your business performance and earnings.</p>
+                        <p>Follow your orders, deliveries, and earnings in real time.</p>
                     </div>
                 </div>
             </div>
@@ -1133,7 +1133,7 @@
             <div class="section-header">
                 <span class="section-tag">Who it's for</span>
                 <h2 class="section-title">A platform for everyone</h2>
-                <p class="section-sub">AgroLink serves three key roles, each with tailored tools and workflows built for their needs.</p>
+                <p class="section-sub">AgroLink is built for three types of users.</p>
             </div>
             <div class="roles-grid">
                 <div class="role-card">
@@ -1147,7 +1147,6 @@
                     </ul>
                 </div>
                 <div class="role-card featured">
-                    <div class="role-pill">Most Active</div>
                     <div class="role-avatar">🛒</div>
                     <h3>Buyers</h3>
                     <ul class="role-list">
@@ -1168,7 +1167,7 @@
                 </div>
             </div>
             <div class="roles-cta">
-                <a href="<?= ROOT ?>/register" class="btn btn-primary" style="padding: 12px 32px; font-size: 15px; border-radius: var(--radius-lg);">Register Now — It's Free</a>
+                <a href="<?= ROOT ?>/register" class="btn btn-primary" style="padding: 12px 32px; font-size: 15px; border-radius: var(--radius-lg);">Register Now</a>
             </div>
         </div>
     </section>
@@ -1305,8 +1304,8 @@
     <!-- ═══════════════ CTA ═══════════════ -->
     <section class="cta-section">
         <div class="cta-inner">
-            <h2>Ready to transform<br><em>agricultural trade?</em></h2>
-            <p>Join thousands of farmers, buyers, and transporters already using AgroLink.</p>
+            <h2>Start using AgroLink<br><em>today</em></h2>
+            <p>Free to register. Start buying and selling in minutes.</p>
             <div class="cta-btns">
                 <a href="<?= ROOT ?>/register" class="btn btn-white">Create Free Account</a>
                 <a href="<?= ROOT ?>/login" class="btn btn-outline-white">Login</a>
@@ -1325,7 +1324,7 @@
                         </div>
                         AgroLink
                     </div>
-                    <p class="footer-brand-desc">Empowering agricultural trade across Sri Lanka through digital innovation.</p>
+                    <p class="footer-brand-desc">Connecting farmers and buyers across Sri Lanka.</p>
                 </div>
                 <div class="footer-col">
                     <h4>Quick Links</h4>
