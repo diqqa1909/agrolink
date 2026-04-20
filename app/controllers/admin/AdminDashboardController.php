@@ -133,6 +133,31 @@ class AdminDashboardController
             exit;
         }
 
+        $db = $this->connect();
+        
+        if ($targetRole === 'buyer') {
+            $stmt = $db->prepare("SELECT 1 FROM orders WHERE buyer_id = ? AND status IN ('pending', 'processing', 'shipped') LIMIT 1");
+            $stmt->execute([$userId]);
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Cannot deactivate account. User has pending orders to be completed.']);
+                exit;
+            }
+        } elseif ($targetRole === 'farmer') {
+            $stmt = $db->prepare("SELECT 1 FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE oi.farmer_id = ? AND o.status IN ('pending', 'processing', 'shipped') LIMIT 1");
+            $stmt->execute([$userId]);
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Cannot deactivate account. User has pending orders to be completed.']);
+                exit;
+            }
+        } elseif ($targetRole === 'transporter') {
+            $stmt = $db->prepare("SELECT 1 FROM delivery_requests WHERE transporter_id = ? AND status IN ('pending', 'accepted', 'picked_up', 'in_transit') LIMIT 1");
+            $stmt->execute([$userId]);
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Cannot deactivate account. User has pending deliveries to be completed.']);
+                exit;
+            }
+        }
+
         if ($reason === '') {
             $reason = 'Deactivated by admin';
         }
