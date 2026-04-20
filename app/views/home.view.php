@@ -11,10 +11,7 @@
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/style1.css">
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/components.css">
     <style>
-        /* =============================================
-           AGROLINK - UPDATED HOMEPAGE STYLES
-           ============================================= */
-
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -141,7 +138,7 @@
             justify-content: center;
             gap: 6px;
             font-family: var(--font-body);
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 500;
             border-radius: var(--radius-md);
             cursor: pointer;
@@ -274,6 +271,10 @@
             justify-content: center;
             flex-wrap: wrap;
             margin-bottom: 56px;
+        }
+
+        .hero-btns .btn {
+            font-size: 18px;  
         }
 
         .hero-divider {
