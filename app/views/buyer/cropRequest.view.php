@@ -133,7 +133,7 @@
                                                 </svg>
                                             </a>
                                             <a href="<?= ROOT ?>/croprequest/delete/<?= $request->id ?>"
-                                                onclick="return confirm('Are you sure you want to delete this request?')"
+                                                onclick="return systemConfirmNavigate(event, 'Are you sure you want to delete this request?', 'Delete Request')"
                                                 class="btn btn-sm btn-danger crop-request-icon-btn"
                                                 title="Delete">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -388,7 +388,7 @@
                 <a href="<?= ROOT ?>/croprequest/edit/<?= $request->id ?>" class="btn btn-primary">
                     Edit Request
                 </a>
-                <a href="<?= ROOT ?>/croprequest/delete/<?= $request->id ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this request?')">
+                <a href="<?= ROOT ?>/croprequest/delete/<?= $request->id ?>" class="btn btn-danger" onclick="return systemConfirmNavigate(event, 'Are you sure you want to delete this request?', 'Delete Request')">
                     Delete Request
                 </a>
             </div>
@@ -396,3 +396,5 @@
     <?php endif; ?>
 
 </div>
+
+<script src="<?= ROOT ?>/assets/js/systemDialog.js"></script>

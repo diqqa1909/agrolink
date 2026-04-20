@@ -3215,6 +3215,20 @@ class AdminDashboardController
                 ':order_id' => $orderId,
             ]);
 
+            // Deduct/adjust transporter earnings by updating the linked delivery request(s).
+            // In this project, transporter earnings are derived from delivery_requests.shipping_fee.
+            $drUpdate = $db->prepare("
+                UPDATE delivery_requests
+                SET shipping_fee = :shipping_fee,
+                    updated_at = NOW()
+                WHERE order_id = :order_id
+            ");
+            $drUpdate->execute([
+                ':shipping_fee' => $revisedShipping,
+                ':order_id' => $orderId,
+            ]);
+            $deliveryRequestsUpdated = (int) $drUpdate->rowCount();
+
             $db->commit();
 
             echo json_encode([
@@ -3222,6 +3236,7 @@ class AdminDashboardController
                 'message' => 'Payment revised and recorded',
                 'order_id' => $orderId,
                 'revised_order_total' => $revisedOrderTotal,
+                'delivery_requests_updated' => $deliveryRequestsUpdated,
             ]);
             exit;
         } catch (Exception $e) {
